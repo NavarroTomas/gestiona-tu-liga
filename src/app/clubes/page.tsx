@@ -1,7 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
@@ -12,15 +11,12 @@ interface Club {
   division: string;
 }
 
-function ClubesContent() {
-  const searchParams = useSearchParams();
-
-  const temporada = searchParams.get("temporada") || "Temporada 1";
-  const division = searchParams.get("division") || "Primera";
-
+export default function ClubesPage() {
   const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4", "Temporada 5"];
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 
+  const [temporada, setTemporada] = useState("Temporada 1");
+  const [division, setDivision] = useState("Primera");
   const [clubes, setClubes] = useState<Club[]>([]);
 
   useEffect(() => {
@@ -80,9 +76,9 @@ function ClubesContent() {
 
           <div className="flex flex-wrap gap-3">
             {temporadas.map((temp) => (
-              <Link
+              <button
                 key={temp}
-                href={`/clubes?temporada=${encodeURIComponent(temp)}&division=${encodeURIComponent(division)}`}
+                onClick={() => setTemporada(temp)}
                 className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
                   temporada === temp
                     ? "bg-sky-400 text-black"
@@ -90,7 +86,7 @@ function ClubesContent() {
                 }`}
               >
                 {temp}
-              </Link>
+              </button>
             ))}
           </div>
         </div>
@@ -102,9 +98,9 @@ function ClubesContent() {
 
           <div className="flex flex-wrap gap-3">
             {divisiones.map((div) => (
-              <Link
+              <button
                 key={div}
-                href={`/clubes?temporada=${encodeURIComponent(temporada)}&division=${encodeURIComponent(div)}`}
+                onClick={() => setDivision(div)}
                 className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
                   division === div
                     ? "bg-sky-400 text-black"
@@ -112,7 +108,7 @@ function ClubesContent() {
                 }`}
               >
                 {div}
-              </Link>
+              </button>
             ))}
           </div>
         </div>
@@ -162,13 +158,5 @@ function ClubesContent() {
         )}
       </div>
     </main>
-  );
-}
-
-export default function ClubesPage() {
-  return (
-    <Suspense fallback={null}>
-      <ClubesContent />
-    </Suspense>
   );
 }
