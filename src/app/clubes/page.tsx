@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
@@ -12,13 +12,13 @@ interface Club {
   division: string;
 }
 
-export default function ClubesPage() {
+function ClubesContent() {
   const searchParams = useSearchParams();
 
   const temporada = searchParams.get("temporada") || "Temporada 1";
   const division = searchParams.get("division") || "Primera";
 
-  const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4"];
+  const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4", "Temporada 5"];
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 
   const [clubes, setClubes] = useState<Club[]>([]);
@@ -43,7 +43,9 @@ export default function ClubesPage() {
     setClubes(data || []);
   }
 
-  function iniciales(nombre: string) {
+  function iniciales(nombre?: string) {
+    if (!nombre) return "CL";
+
     return nombre
       .split(" ")
       .map((p) => p[0])
@@ -78,7 +80,7 @@ export default function ClubesPage() {
 
           <div className="flex flex-wrap gap-3">
             {temporadas.map((temp) => (
-              <a
+              <Link
                 key={temp}
                 href={`/clubes?temporada=${encodeURIComponent(temp)}&division=${encodeURIComponent(division)}`}
                 className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
@@ -88,7 +90,7 @@ export default function ClubesPage() {
                 }`}
               >
                 {temp}
-              </a>
+              </Link>
             ))}
           </div>
         </div>
@@ -100,7 +102,7 @@ export default function ClubesPage() {
 
           <div className="flex flex-wrap gap-3">
             {divisiones.map((div) => (
-              <a
+              <Link
                 key={div}
                 href={`/clubes?temporada=${encodeURIComponent(temporada)}&division=${encodeURIComponent(div)}`}
                 className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
@@ -110,7 +112,7 @@ export default function ClubesPage() {
                 }`}
               >
                 {div}
-              </a>
+              </Link>
             ))}
           </div>
         </div>
@@ -136,7 +138,7 @@ export default function ClubesPage() {
             {clubes.map((club) => (
               <Link
                 key={club.id}
-                href={`/equipos/${encodeURIComponent(club.nombre)}`}
+                href={`/equipos/${encodeURIComponent(club.nombre || "")}`}
                 className="group bg-[#11151c] border border-white/[0.05] rounded-3xl p-5 hover:border-sky-400/40 transition-all"
               >
                 <div className="w-16 h-16 rounded-full bg-gradient-to-b from-sky-400 to-blue-900 mb-5 flex items-center justify-center text-black font-black text-xl">
@@ -144,7 +146,7 @@ export default function ClubesPage() {
                 </div>
 
                 <h3 className="text-xl font-black group-hover:text-sky-400 transition-colors">
-                  {club.nombre}
+                  {club.nombre || "Club sin nombre"}
                 </h3>
 
                 <p className="mt-2 text-sm text-zinc-400">
@@ -160,5 +162,13 @@ export default function ClubesPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function ClubesPage() {
+  return (
+    <Suspense fallback={null}>
+      <ClubesContent />
+    </Suspense>
   );
 }
