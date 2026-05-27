@@ -2,18 +2,22 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 export default function EstadisticasPage() {
-  const searchParams = useSearchParams();
+  const temporadas = [
+    "Temporada 1",
+    "Temporada 2",
+    "Temporada 3",
+    "Temporada 4",
+    "Temporada 5",
+  ];
 
-  const temporada = searchParams.get("temporada") || "Temporada 1";
-  const division = searchParams.get("division") || "Primera";
-  const fecha = searchParams.get("fecha") || "Todas";
-
-  const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4"];
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
+
+  const [temporada, setTemporada] = useState("Temporada 1");
+  const [division, setDivision] = useState("Primera");
+  const [fecha, setFecha] = useState("Todas");
 
   const [fechas, setFechas] = useState<string[]>([]);
   const [partidos, setPartidos] = useState<any[]>([]);
@@ -87,14 +91,6 @@ export default function EstadisticasPage() {
     setPartidos(lista);
   }
 
-  function crearUrl(nuevaTemporada: string, nuevaDivision: string, nuevaFecha: string) {
-    return `/estadisticas?temporada=${encodeURIComponent(
-      nuevaTemporada
-    )}&division=${encodeURIComponent(
-      nuevaDivision
-    )}&fecha=${encodeURIComponent(nuevaFecha)}`;
-  }
-
   return (
     <main className="min-h-screen bg-[#0b0f14] text-white">
       <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-10 space-y-8">
@@ -120,9 +116,12 @@ export default function EstadisticasPage() {
 
             <div className="flex flex-wrap gap-3">
               {temporadas.map((temp) => (
-                <Link
+                <button
                   key={temp}
-                  href={crearUrl(temp, division, "Todas")}
+                  onClick={() => {
+                    setTemporada(temp);
+                    setFecha("Todas");
+                  }}
                   className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
                     temporada === temp
                       ? "bg-sky-400 text-black"
@@ -130,7 +129,7 @@ export default function EstadisticasPage() {
                   }`}
                 >
                   {temp}
-                </Link>
+                </button>
               ))}
             </div>
           </div>
@@ -142,9 +141,12 @@ export default function EstadisticasPage() {
 
             <div className="flex flex-wrap gap-3">
               {divisiones.map((div) => (
-                <Link
+                <button
                   key={div}
-                  href={crearUrl(temporada, div, "Todas")}
+                  onClick={() => {
+                    setDivision(div);
+                    setFecha("Todas");
+                  }}
                   className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
                     division === div
                       ? "bg-sky-400 text-black"
@@ -152,7 +154,7 @@ export default function EstadisticasPage() {
                   }`}
                 >
                   {div}
-                </Link>
+                </button>
               ))}
             </div>
           </div>
@@ -163,8 +165,8 @@ export default function EstadisticasPage() {
             </p>
 
             <div className="flex flex-wrap gap-3">
-              <Link
-                href={crearUrl(temporada, division, "Todas")}
+              <button
+                onClick={() => setFecha("Todas")}
                 className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
                   fecha === "Todas"
                     ? "bg-sky-400 text-black"
@@ -172,12 +174,12 @@ export default function EstadisticasPage() {
                 }`}
               >
                 Todas
-              </Link>
+              </button>
 
               {fechas.map((f) => (
-                <Link
+                <button
                   key={f}
-                  href={crearUrl(temporada, division, f)}
+                  onClick={() => setFecha(f)}
                   className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
                     fecha === f
                       ? "bg-sky-400 text-black"
@@ -185,7 +187,7 @@ export default function EstadisticasPage() {
                   }`}
                 >
                   Fecha {f}
-                </Link>
+                </button>
               ))}
             </div>
           </div>
@@ -197,7 +199,8 @@ export default function EstadisticasPage() {
           </p>
 
           <h2 className="text-3xl font-black mt-2">
-            {temporada} · {division} · {fecha === "Todas" ? "Todas las fechas" : `Fecha ${fecha}`}
+            {temporada} · {division} ·{" "}
+            {fecha === "Todas" ? "Todas las fechas" : `Fecha ${fecha}`}
           </h2>
         </div>
 
@@ -208,22 +211,21 @@ export default function EstadisticasPage() {
             </div>
           ) : (
             partidos.map((partido: any) => {
-              const equiposOrdenados = [...partido.equipos].sort(
-                (a: any, b: any) => Number(b.goals) - Number(a.goals)
-              );
-
               const e1 = partido.equipos[0];
               const e2 = partido.equipos[1];
 
               return (
                 <Link
                   key={partido.partido_id}
-                  href={`/estadisticas/${encodeURIComponent(partido.partido_id)}`}
+                  href={`/estadisticas/${encodeURIComponent(
+                    partido.partido_id
+                  )}`}
                   className="block bg-[#11151c] border border-white/[0.06] rounded-3xl p-6 hover:border-sky-400/40 transition"
                 >
                   <div className="flex items-center justify-between mb-4 gap-4">
                     <p className="text-zinc-500 text-sm font-bold uppercase">
-                      Fecha {partido.fecha} · {partido.temporada} · {partido.division}
+                      Fecha {partido.fecha} · {partido.temporada} ·{" "}
+                      {partido.division}
                     </p>
 
                     <span className="text-sky-400 text-sm font-bold">
