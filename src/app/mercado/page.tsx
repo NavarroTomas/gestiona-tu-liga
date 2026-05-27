@@ -1,19 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 export default function MercadoPage() {
-  const searchParams = useSearchParams();
+  const temporadas = [
+    "Temporada 1",
+    "Temporada 2",
+    "Temporada 3",
+    "Temporada 4",
+    "Temporada 5",
+  ];
 
-  const temporada = searchParams.get("temporada") || "Temporada 1";
-  const division = searchParams.get("division") || "Primera";
-
-  const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4"];
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 
+  const [temporada, setTemporada] = useState("Temporada 1");
+  const [division, setDivision] = useState("Primera");
   const [movimientos, setMovimientos] = useState<any[]>([]);
 
   useEffect(() => {
@@ -34,10 +36,6 @@ export default function MercadoPage() {
     }
 
     setMovimientos(data || []);
-  }
-
-  function crearUrl(temp: string, div: string) {
-    return `/mercado?temporada=${encodeURIComponent(temp)}&division=${encodeURIComponent(div)}`;
   }
 
   function colorTipo(tipo: string) {
@@ -72,15 +70,17 @@ export default function MercadoPage() {
 
             <div className="flex flex-wrap gap-3">
               {temporadas.map((temp) => (
-                <Link
+                <button
                   key={temp}
-                  href={crearUrl(temp, division)}
+                  onClick={() => setTemporada(temp)}
                   className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase ${
-                    temporada === temp ? "bg-sky-400 text-black" : "bg-[#0b0f14] text-zinc-400 hover:text-white"
+                    temporada === temp
+                      ? "bg-sky-400 text-black"
+                      : "bg-[#0b0f14] text-zinc-400 hover:text-white"
                   }`}
                 >
                   {temp}
-                </Link>
+                </button>
               ))}
             </div>
           </div>
@@ -92,15 +92,17 @@ export default function MercadoPage() {
 
             <div className="flex flex-wrap gap-3">
               {divisiones.map((div) => (
-                <Link
+                <button
                   key={div}
-                  href={crearUrl(temporada, div)}
+                  onClick={() => setDivision(div)}
                   className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase ${
-                    division === div ? "bg-sky-400 text-black" : "bg-[#0b0f14] text-zinc-400 hover:text-white"
+                    division === div
+                      ? "bg-sky-400 text-black"
+                      : "bg-[#0b0f14] text-zinc-400 hover:text-white"
                   }`}
                 >
                   {div}
-                </Link>
+                </button>
               ))}
             </div>
           </div>
@@ -119,7 +121,11 @@ export default function MercadoPage() {
               >
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
                   <div>
-                    <span className={`inline-block px-4 py-2 rounded-xl font-black text-sm ${colorTipo(m.tipo)}`}>
+                    <span
+                      className={`inline-block px-4 py-2 rounded-xl font-black text-sm ${colorTipo(
+                        m.tipo
+                      )}`}
+                    >
                       {m.tipo}
                     </span>
 

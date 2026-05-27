@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
@@ -14,12 +13,17 @@ interface Jugador {
 }
 
 export default function JugadoresPage() {
-  const searchParams = useSearchParams();
+  const [temporada, setTemporada] = useState("Temporada 1");
+  const [division, setDivision] = useState("Primera");
 
-  const temporada = searchParams.get("temporada") || "Temporada 1";
-  const division = searchParams.get("division") || "Primera";
+  const temporadas = [
+    "Temporada 1",
+    "Temporada 2",
+    "Temporada 3",
+    "Temporada 4",
+    "Temporada 5",
+  ];
 
-  const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4"];
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
@@ -44,6 +48,7 @@ export default function JugadoresPage() {
 
     data?.forEach((j: any) => {
       const nombre = (j.nombre || "").trim();
+
       if (!nombre) return;
 
       if (!mapa[nombre]) {
@@ -98,8 +103,13 @@ export default function JugadoresPage() {
                   </div>
 
                   <div>
-                    <p className="font-black text-white">{jugador.nombre}</p>
-                    <p className="text-sm text-zinc-500">{jugador.equipo}</p>
+                    <p className="font-black text-white">
+                      {jugador.nombre}
+                    </p>
+
+                    <p className="text-sm text-zinc-500">
+                      {jugador.equipo}
+                    </p>
                   </div>
                 </div>
 
@@ -133,9 +143,9 @@ export default function JugadoresPage() {
 
         <div className="flex flex-wrap gap-3">
           {temporadas.map((temp) => (
-            <a
+            <button
               key={temp}
-              href={`/jugadores?temporada=${encodeURIComponent(temp)}&division=${encodeURIComponent(division)}`}
+              onClick={() => setTemporada(temp)}
               className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
                 temporada === temp
                   ? "bg-sky-400 text-black"
@@ -143,15 +153,15 @@ export default function JugadoresPage() {
               }`}
             >
               {temp}
-            </a>
+            </button>
           ))}
         </div>
 
         <div className="flex flex-wrap gap-3">
           {divisiones.map((div) => (
-            <a
+            <button
               key={div}
-              href={`/jugadores?temporada=${encodeURIComponent(temporada)}&division=${encodeURIComponent(div)}`}
+              onClick={() => setDivision(div)}
               className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
                 division === div
                   ? "bg-sky-400 text-black"
@@ -159,7 +169,7 @@ export default function JugadoresPage() {
               }`}
             >
               {div}
-            </a>
+            </button>
           ))}
         </div>
 
@@ -174,9 +184,23 @@ export default function JugadoresPage() {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          <Ranking titulo="Goleadores" tipo="goles" color="text-emerald-400" />
-          <Ranking titulo="Asistencias" tipo="asistencias" color="text-sky-400" />
-          <Ranking titulo="MVPs" tipo="mvps" color="text-yellow-300" />
+          <Ranking
+            titulo="Goleadores"
+            tipo="goles"
+            color="text-emerald-400"
+          />
+
+          <Ranking
+            titulo="Asistencias"
+            tipo="asistencias"
+            color="text-sky-400"
+          />
+
+          <Ranking
+            titulo="MVPs"
+            tipo="mvps"
+            color="text-yellow-300"
+          />
         </div>
       </div>
     </main>

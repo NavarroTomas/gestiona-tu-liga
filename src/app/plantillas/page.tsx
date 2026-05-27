@@ -1,19 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 export default function PlantillasPage() {
-  const searchParams = useSearchParams();
+  const temporadas = [
+    "Temporada 1",
+    "Temporada 2",
+    "Temporada 3",
+    "Temporada 4",
+    "Temporada 5",
+  ];
 
-  const temporada = searchParams.get("temporada") || "Temporada 1";
-  const division = searchParams.get("division") || "Primera";
-  const equipoSeleccionado = searchParams.get("equipo") || "Todos";
-
-  const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4"];
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
+
+  const [temporada, setTemporada] = useState("Temporada 1");
+  const [division, setDivision] = useState("Primera");
+  const [equipoSeleccionado, setEquipoSeleccionado] = useState("Todos");
 
   const [plantillas, setPlantillas] = useState<any[]>([]);
   const [equipos, setEquipos] = useState<string[]>([]);
@@ -56,10 +60,14 @@ export default function PlantillasPage() {
     setEquipos(equiposUnicos as string[]);
   }
 
-  function crearUrl(temp: string, div: string, equipo: string) {
-    return `/plantillas?temporada=${encodeURIComponent(temp)}&division=${encodeURIComponent(
-      div
-    )}&equipo=${encodeURIComponent(equipo)}`;
+  function cambiarTemporada(temp: string) {
+    setTemporada(temp);
+    setEquipoSeleccionado("Todos");
+  }
+
+  function cambiarDivision(div: string) {
+    setDivision(div);
+    setEquipoSeleccionado("Todos");
   }
 
   const agrupadoPorEquipo: any = {};
@@ -97,9 +105,9 @@ export default function PlantillasPage() {
 
             <div className="flex flex-wrap gap-3">
               {temporadas.map((temp) => (
-                <Link
+                <button
                   key={temp}
-                  href={crearUrl(temp, division, "Todos")}
+                  onClick={() => cambiarTemporada(temp)}
                   className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
                     temporada === temp
                       ? "bg-sky-400 text-black"
@@ -107,7 +115,7 @@ export default function PlantillasPage() {
                   }`}
                 >
                   {temp}
-                </Link>
+                </button>
               ))}
             </div>
           </div>
@@ -119,9 +127,9 @@ export default function PlantillasPage() {
 
             <div className="flex flex-wrap gap-3">
               {divisiones.map((div) => (
-                <Link
+                <button
                   key={div}
-                  href={crearUrl(temporada, div, "Todos")}
+                  onClick={() => cambiarDivision(div)}
                   className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
                     division === div
                       ? "bg-sky-400 text-black"
@@ -129,7 +137,7 @@ export default function PlantillasPage() {
                   }`}
                 >
                   {div}
-                </Link>
+                </button>
               ))}
             </div>
           </div>
@@ -140,8 +148,8 @@ export default function PlantillasPage() {
             </p>
 
             <div className="flex flex-wrap gap-3">
-              <Link
-                href={crearUrl(temporada, division, "Todos")}
+              <button
+                onClick={() => setEquipoSeleccionado("Todos")}
                 className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
                   equipoSeleccionado === "Todos"
                     ? "bg-sky-400 text-black"
@@ -149,12 +157,12 @@ export default function PlantillasPage() {
                 }`}
               >
                 Todos
-              </Link>
+              </button>
 
               {equipos.map((equipo) => (
-                <Link
+                <button
                   key={equipo}
-                  href={crearUrl(temporada, division, equipo)}
+                  onClick={() => setEquipoSeleccionado(equipo)}
                   className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
                     equipoSeleccionado === equipo
                       ? "bg-sky-400 text-black"
@@ -162,7 +170,7 @@ export default function PlantillasPage() {
                   }`}
                 >
                   {equipo}
-                </Link>
+                </button>
               ))}
             </div>
           </div>
@@ -227,7 +235,8 @@ export default function PlantillasPage() {
                             </h3>
 
                             <p className="text-zinc-500 text-sm mt-1">
-                              {j.posicion || "Sin posición"} · {j.estado || "Activo"}
+                              {j.posicion || "Sin posición"} ·{" "}
+                              {j.estado || "Activo"}
                             </p>
                           </div>
 
