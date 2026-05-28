@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import TablaPosicionesHome from "../components/TablaPosicionesHome";
+import HeroImagenesHome from "../components/HeroImagenesHome";
+import HeroCarruselHome from "../components/HeroCarruselHome";
 
 export default function Home() {
   const [partidos, setPartidos] = useState<any[]>([]);
@@ -44,7 +46,13 @@ export default function Home() {
     }
 
     if (!equipos[p.visitante]) {
-      equipos[p.visitante] = { nombre: p.visitante, pts: 0, pj: 0, gf: 0, gc: 0 };
+      equipos[p.visitante] = {
+        nombre: p.visitante,
+        pts: 0,
+        pj: 0,
+        gf: 0,
+        gc: 0,
+      };
     }
 
     equipos[p.local].pj++;
@@ -78,13 +86,20 @@ export default function Home() {
 
   const ultimos = partidos.slice(-5).reverse();
   const destacado = partidos[0];
-  const equiposCantidad = new Set(partidos.flatMap((p) => [p.local, p.visitante])).size;
+
+  const equiposCantidad = new Set(
+    partidos.flatMap((p) => [p.local, p.visitante])
+  ).size;
+
   const jugadoresCantidad = new Set(jugadores.map((j) => j.nombre)).size;
+
   const golesTotales = jugadores.reduce((acc, j) => acc + (j.goles || 0), 0);
 
   return (
     <main className="min-h-screen text-white p-6 bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
       <section className="max-w-[1500px] mx-auto space-y-6">
+        <HeroImagenesHome />
+
         <div className="relative overflow-hidden rounded-[32px] border border-blue-500/40 bg-gradient-to-r from-[#07152f] via-[#020714] to-[#132d63] p-8 shadow-[0_0_45px_rgba(0,120,255,.35)]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,140,255,.35),transparent_30%)]" />
           <div className="absolute -right-16 top-0 h-full w-[420px] bg-gradient-to-l from-blue-500/10 to-transparent rotate-6" />
@@ -179,7 +194,9 @@ export default function Home() {
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
               <div className="border border-blue-500/50 bg-zinc-950/90 rounded-3xl p-5 shadow-[0_0_30px_rgba(0,120,255,.25)]">
                 <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-3xl font-black">📅 FECHA {fechaActual}</h2>
+                  <h2 className="text-3xl font-black">
+                    📅 FECHA {fechaActual}
+                  </h2>
 
                   <a
                     href={`/fixture/${division}`}
@@ -228,22 +245,31 @@ export default function Home() {
               </div>
 
               <div className="border border-blue-500/50 bg-gradient-to-br from-blue-950 via-zinc-950 to-black rounded-3xl p-6 shadow-[0_0_30px_rgba(0,120,255,.25)]">
-                <h2 className="font-black text-xl mb-6">PARTIDO DESTACADO</h2>
+                <h2 className="font-black text-xl mb-6">
+                  PARTIDO DESTACADO
+                </h2>
 
                 {destacado ? (
                   <div className="text-center">
-                    <p className="text-3xl font-black uppercase">{destacado.local}</p>
+                    <p className="text-3xl font-black uppercase">
+                      {destacado.local}
+                    </p>
+
                     <div className="my-6 bg-blue-600 rounded-2xl py-4 text-5xl font-black shadow-[0_0_25px_rgba(0,120,255,.7)]">
                       {destacado.resultado || "VS"}
                     </div>
-                    <p className="text-3xl font-black uppercase">{destacado.visitante}</p>
+
+                    <p className="text-3xl font-black uppercase">
+                      {destacado.visitante}
+                    </p>
 
                     <p className="text-zinc-400 mt-6">
                       Fecha {destacado.fecha} · {division} · {temporada}
                     </p>
 
                     <p className="text-zinc-500 mt-2 text-sm">
-                      {destacado.dia || "Día sin cargar"} · {destacado.hora || "Hora sin cargar"}
+                      {destacado.dia || "Día sin cargar"} ·{" "}
+                      {destacado.hora || "Hora sin cargar"}
                     </p>
                   </div>
                 ) : (
@@ -253,11 +279,16 @@ export default function Home() {
             </div>
 
             <div className="border border-blue-500/50 bg-zinc-950/90 rounded-3xl p-5">
-              <h2 className="text-2xl font-black mb-5">📆 PRÓXIMAS FECHAS</h2>
+              <h2 className="text-2xl font-black mb-5">
+                📆 PRÓXIMAS FECHAS
+              </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {["2", "3", "4", "5"].map((f) => (
-                  <div key={f} className="bg-[#06142d] border border-blue-500/40 rounded-2xl p-4 min-h-[165px]">
+                  <div
+                    key={f}
+                    className="bg-[#06142d] border border-blue-500/40 rounded-2xl p-4 min-h-[165px]"
+                  >
                     <h3 className="font-black mb-3">FECHA {f}</h3>
 
                     {partidos
@@ -266,7 +297,9 @@ export default function Home() {
                       .map((p, i) => (
                         <div key={i} className="text-sm text-zinc-300 mb-3">
                           <p className="truncate">
-                            {p.local} <b className="text-blue-400">VS</b> {p.visitante}
+                            {p.local}{" "}
+                            <b className="text-blue-400">VS</b>{" "}
+                            {p.visitante}
                           </p>
 
                           <p className="text-[11px] text-zinc-500 mt-1">
@@ -290,22 +323,31 @@ export default function Home() {
           <aside className="space-y-6">
             <div className="border border-blue-500/50 bg-zinc-950/90 rounded-3xl p-5 shadow-[0_0_30px_rgba(0,120,255,.25)]">
               <TablaPosicionesHome tabla={tabla} />
-              </div>
+            </div>
 
             <div className="border border-blue-500/50 bg-zinc-950/90 rounded-3xl p-6">
-              <h2 className="text-2xl font-black mb-5">ÚLTIMOS RESULTADOS</h2>
+              <h2 className="text-2xl font-black mb-5">
+                ÚLTIMOS RESULTADOS
+              </h2>
 
               <div className="space-y-3">
                 {ultimos.map((p, i) => (
-                  <div key={i} className="bg-[#06142d] border border-blue-500/30 rounded-2xl p-3">
+                  <div
+                    key={i}
+                    className="bg-[#06142d] border border-blue-500/30 rounded-2xl p-3"
+                  >
                     <p className="flex justify-between gap-2 text-sm">
                       <span className="truncate">{p.local}</span>
                       <b>{p.resultado}</b>
-                      <span className="truncate text-right">{p.visitante}</span>
+                      <span className="truncate text-right">
+                        {p.visitante}
+                      </span>
                     </p>
+
                     <p className="text-zinc-500 text-xs mt-1">
                       Fecha {p.fecha} · {temporada}
                     </p>
+
                     <p className="text-zinc-600 text-xs mt-1">
                       {p.dia || "DÍA"} · {p.hora || "--:--"}
                     </p>
@@ -338,6 +380,8 @@ export default function Home() {
             </div>
           </aside>
         </div>
+
+        <HeroCarruselHome />
       </section>
     </main>
   );

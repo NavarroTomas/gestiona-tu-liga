@@ -13,6 +13,7 @@ interface EquipoTabla {
   gc: number;
   dg: number;
   puntos: number;
+  forma: ("W" | "D" | "L")[];
 }
 
 export default function TablaDivision({
@@ -64,6 +65,7 @@ export default function TablaDivision({
           gc: 0,
           dg: 0,
           puntos: 0,
+          forma: [],
         };
       }
 
@@ -78,6 +80,7 @@ export default function TablaDivision({
           gc: 0,
           dg: 0,
           puntos: 0,
+          forma: [],
         };
       }
 
@@ -93,16 +96,26 @@ export default function TablaDivision({
       if (golesLocal > golesVisitante) {
         equipos[local].pg += 1;
         equipos[local].puntos += 3;
+        equipos[local].forma.push("W");
+
         equipos[visitante].pp += 1;
+        equipos[visitante].forma.push("L");
       } else if (golesVisitante > golesLocal) {
         equipos[visitante].pg += 1;
         equipos[visitante].puntos += 3;
+        equipos[visitante].forma.push("W");
+
         equipos[local].pp += 1;
+        equipos[local].forma.push("L");
       } else {
         equipos[local].pe += 1;
         equipos[visitante].pe += 1;
+
         equipos[local].puntos += 1;
         equipos[visitante].puntos += 1;
+
+        equipos[local].forma.push("D");
+        equipos[visitante].forma.push("D");
       }
     });
 
@@ -110,6 +123,7 @@ export default function TablaDivision({
       .map((equipo) => ({
         ...equipo,
         dg: equipo.gf - equipo.gc,
+        forma: equipo.forma.slice(-5),
       }))
       .sort(
         (a, b) =>
@@ -121,64 +135,184 @@ export default function TablaDivision({
     setTabla(tablaFinal);
   }
 
+  function movimiento(index: number) {
+    if (index === 0) return "▲";
+    if (index === tabla.length - 1) return "▼";
+    return "▬";
+  }
+
+  function colorMovimiento(index: number) {
+    if (index === 0) return "text-green-400";
+    if (index === tabla.length - 1) return "text-red-500";
+    return "text-zinc-500";
+  }
+
+  function colorForma(resultado: "W" | "D" | "L") {
+    if (resultado === "W")
+      return "bg-green-400 shadow-[0_0_8px_rgba(74,222,128,.7)]";
+
+    if (resultado === "D")
+      return "bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,.6)]";
+
+    return "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,.65)]";
+  }
+
   return (
-    <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[700px]">
-          <thead>
-            <tr className="text-zinc-500 text-xs uppercase tracking-widest border-b border-white/[0.06]">
-              <th className="py-4 text-left">#</th>
-              <th className="py-4 text-left">Equipo</th>
-              <th className="py-4 text-center">PJ</th>
-              <th className="py-4 text-center">PG</th>
-              <th className="py-4 text-center">PE</th>
-              <th className="py-4 text-center">PP</th>
-              <th className="py-4 text-center">DG</th>
-              <th className="py-4 text-center">PTS</th>
+    <section className="relative overflow-hidden rounded-2xl border border-sky-500/30 bg-[#020814] shadow-[0_0_35px_rgba(0,120,255,.22)]">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(56,189,248,.13),transparent_58%)]" />
+
+      <div className="relative overflow-x-auto">
+        <table className="w-full min-w-[880px] border-separate border-spacing-y-[6px] px-2 pb-2">
+          <thead className="sticky top-0 z-10">
+            <tr className="bg-[#061a33] text-[11px] font-black uppercase tracking-[0.28em] text-sky-300/80">
+              <th className="py-3 text-center w-[68px] rounded-l-xl">#</th>
+              <th className="py-3 text-left">Equipo</th>
+              <th className="py-3 text-center">PJ</th>
+              <th className="py-3 text-center">PG</th>
+              <th className="py-3 text-center">PE</th>
+              <th className="py-3 text-center">PP</th>
+              <th className="py-3 text-center">GF</th>
+              <th className="py-3 text-center">GC</th>
+              <th className="py-3 text-center">DG</th>
+              <th className="py-3 text-center">Forma</th>
+              <th className="py-3 text-center rounded-r-xl">PTS</th>
             </tr>
           </thead>
 
           <tbody>
             {tabla.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-8 text-center text-zinc-500">
-                  Todavía no hay partidos cargados para esta temporada y división.
+                <td colSpan={11} className="py-12 text-center text-zinc-500">
+                  No hay partidos cargados todavía.
                 </td>
               </tr>
             ) : (
-              tabla.map((equipo, index) => (
-                <tr
-                  key={equipo.nombre}
-                  className="border-b border-white/[0.04] hover:bg-white/[0.03] transition"
-                >
-                  <td className="py-4 font-black text-sky-400">
-                    {index + 1}
-                  </td>
+              tabla.map((equipo, index) => {
+                const top = index < 4;
+                const descenso = index >= tabla.length - 2;
 
-                  <td className="py-4 font-black text-white">
-                    {equipo.nombre}
-                  </td>
+                return (
+                  <tr
+                    key={equipo.nombre}
+                    className={`group relative text-[12px] font-black uppercase transition-all duration-300 hover:scale-[1.008] hover:shadow-[0_0_22px_rgba(56,189,248,.16)] ${
+                      index === 0
+                        ? "bg-gradient-to-r from-[#0a2850] via-[#071c36] to-[#030b18] ring-1 ring-sky-400/35 shadow-[0_0_28px_rgba(56,189,248,.18)]"
+                        : "bg-gradient-to-r from-[#06152c] via-[#071a33] to-[#030b18]"
+                    }`}
+                  >
+                    <td className="relative rounded-l-xl py-3 text-center overflow-hidden">
+                      <div
+                        className={`absolute left-0 top-0 h-full w-[3px] ${
+                          top
+                            ? "bg-green-400 shadow-[0_0_10px_rgba(74,222,128,.7)]"
+                            : descenso
+                            ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,.7)]"
+                            : "bg-sky-500/45"
+                        }`}
+                      />
 
-                  <td className="py-4 text-center font-bold">{equipo.pj}</td>
-                  <td className="py-4 text-center font-bold text-emerald-400">{equipo.pg}</td>
-                  <td className="py-4 text-center font-bold text-zinc-300">{equipo.pe}</td>
-                  <td className="py-4 text-center font-bold text-rose-400">{equipo.pp}</td>
+                      <div className="grid grid-cols-[22px_16px] items-center justify-center gap-1">
+                        <span className="text-sky-200 text-center">
+                          {index + 1}
+                        </span>
 
-                  <td className="py-4 text-center font-bold text-cyan-300">
-                    {equipo.dg > 0 ? "+" : ""}
-                    {equipo.dg}
-                  </td>
+                        <span
+                          className={`flex h-[16px] w-[16px] items-center justify-center text-[9px] font-black leading-none ${colorMovimiento(
+                            index
+                          )}`}
+                        >
+                          {movimiento(index)}
+                        </span>
+                      </div>
+                    </td>
 
-                  <td className="py-4 text-center">
-                    <span className="bg-sky-400 text-black px-4 py-2 rounded-xl font-black">
-                      {equipo.puntos}
-                    </span>
-                  </td>
-                </tr>
-              ))
+                    <td className="py-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`h-3 w-3 rounded-full ${
+                            top
+                              ? "bg-green-400 shadow-[0_0_10px_rgba(74,222,128,.75)]"
+                              : descenso
+                              ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,.75)]"
+                              : "bg-sky-500 shadow-[0_0_10px_rgba(56,189,248,.45)]"
+                          }`}
+                        />
+
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-sky-400/40 bg-gradient-to-b from-sky-400/30 to-blue-950 text-[10px] text-white shadow-[0_0_14px_rgba(56,189,248,.22)]">
+                          {equipo.nombre.slice(0, 2).toUpperCase()}
+                        </div>
+
+                        <span className="max-w-[280px] truncate text-white">
+                          {equipo.nombre}
+                        </span>
+                      </div>
+                    </td>
+
+                    <td className="py-3 text-center text-zinc-300">
+                      {equipo.pj}
+                    </td>
+
+                    <td className="py-3 text-center text-zinc-300">
+                      {equipo.pg}
+                    </td>
+
+                    <td className="py-3 text-center text-zinc-300">
+                      {equipo.pe}
+                    </td>
+
+                    <td className="py-3 text-center text-zinc-300">
+                      {equipo.pp}
+                    </td>
+
+                    <td className="py-3 text-center text-zinc-300">
+                      {equipo.gf}
+                    </td>
+
+                    <td className="py-3 text-center text-zinc-300">
+                      {equipo.gc}
+                    </td>
+
+                    <td
+                      className={`py-3 text-center ${
+                        equipo.dg >= 0 ? "text-sky-300" : "text-red-400"
+                      }`}
+                    >
+                      {equipo.dg > 0 ? "+" : ""}
+                      {equipo.dg}
+                    </td>
+
+                    <td className="py-3">
+                      <div className="flex justify-center gap-1.5">
+                        {equipo.forma.length === 0 ? (
+                          <span className="text-zinc-600">—</span>
+                        ) : (
+                          equipo.forma.map((resultado, i) => (
+                            <span
+                              key={`${equipo.nombre}-${i}`}
+                              className={`h-2.5 w-2.5 rounded-full ${colorForma(
+                                resultado
+                              )}`}
+                            />
+                          ))
+                        )}
+                      </div>
+                    </td>
+
+                    <td className="rounded-r-xl py-3 text-center">
+                      <span className="bg-gradient-to-b from-yellow-300 to-amber-500 bg-clip-text text-2xl font-black text-transparent drop-shadow-[0_0_8px_rgba(250,204,21,.55)]">
+                        {equipo.puntos}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="relative border-t border-sky-500/20 px-4 py-3 text-center text-[11px] font-black uppercase tracking-[0.25em] text-sky-300">
+        ★ Los 4 primeros clasifican a playoffs ★
       </div>
     </section>
   );

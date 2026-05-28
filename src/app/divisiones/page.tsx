@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TablaDivision from "@/components/TablaDivision";
+import { supabase } from "@/lib/supabase";
 
 export default function DivisionesPage() {
   const [temporada, setTemporada] = useState("Temporada 1");
   const [division, setDivision] = useState("Primera");
+  const [ultimosResultados, setUltimosResultados] = useState<any[]>([]);
 
   const temporadas = [
     "Temporada 1",
@@ -17,81 +19,300 @@ export default function DivisionesPage() {
 
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 
+  useEffect(() => {
+    cargarUltimosResultados();
+  }, []);
+
+  async function cargarUltimosResultados() {
+    const { data, error } = await supabase
+      .from("partidos")
+      .select("*")
+      .not("resultado", "is", null)
+      .not("partido_id", "is", null)
+      .order("id", { ascending: false })
+      .limit(3);
+
+    if (error) {
+      console.log(error);
+      return;
+    }
+
+    setUltimosResultados(data || []);
+  }
+
   return (
-    <main className="min-h-screen bg-[#0b0f14] text-white">
-      <div className="bg-[#11151c] border-b border-white/[0.05]">
-        <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-8">
-          <p className="text-sky-400 text-xs uppercase tracking-[4px] font-bold">
-            APA PSO ARGENTINA
-          </p>
+    <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
+      <section className="max-w-[1500px] mx-auto px-4 md:px-8 py-8 space-y-6">
+        <div className="relative overflow-hidden rounded-[34px] border border-sky-500/40 bg-[#020714] shadow-[0_0_55px_rgba(0,120,255,.28)]">
+          <div className="relative min-h-[250px] bg-[url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center">
+            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 to-black/20" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,140,255,.25),transparent_35%)]" />
 
-          <h1 className="mt-3 text-4xl md:text-5xl font-black">
-            Divisiones
-          </h1>
+            <div className="relative z-10 flex items-center justify-between gap-8 p-7 md:p-10">
+              <div>
+                <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black">
+                  APA PSO ARGENTINA
+                </p>
 
-          <p className="mt-4 text-zinc-400 max-w-2xl">
-            Tablas oficiales por temporada y categoría.
-          </p>
-        </div>
-      </div>
+                <h1 className="mt-4 text-5xl md:text-7xl font-black uppercase italic leading-none">
+                  <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
+                    APA PSO
+                  </span>
+                  <span className="block text-sky-400 drop-shadow-[0_0_18px_rgba(56,189,248,.65)]">
+                    ARGENTINA
+                  </span>
+                </h1>
 
-      <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-10 space-y-10">
-        <div className="space-y-4">
-          <p className="text-zinc-500 uppercase tracking-[4px] text-xs font-bold">
-            Temporadas
-          </p>
+                <p className="mt-4 text-zinc-300 max-w-xl">
+                  Competición oficial por temporadas, divisiones y tablas de posiciones.
+                </p>
+              </div>
 
-          <div className="flex flex-wrap gap-3">
-            {temporadas.map((temp) => (
-              <button
-                key={temp}
-                onClick={() => setTemporada(temp)}
-                className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
-                  temporada === temp
-                    ? "bg-sky-400 text-black"
-                    : "bg-[#11151c] text-zinc-400 hover:text-white"
-                }`}
-              >
-                {temp}
-              </button>
-            ))}
+              <div className="hidden lg:flex w-36 h-36 rounded-full border border-sky-400/40 bg-black/40 overflow-hidden shadow-[0_0_35px_rgba(0,120,255,.45)]">
+                <img
+                  src="/logo-apa.png"
+                  alt="APA PSO"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-sky-500/30 bg-gradient-to-r from-[#020714] via-[#061a33] to-[#020714] p-4 md:p-5 space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-[120px_1fr] gap-3 items-center">
+              <p className="text-sky-300 uppercase tracking-[0.25em] text-xs font-black">
+                Temporada
+              </p>
+
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                {temporadas.map((temp) => (
+                  <button
+                    key={temp}
+                    onClick={() => setTemporada(temp)}
+                    className={`relative overflow-hidden rounded-xl border px-4 py-3 font-black uppercase text-sm transition-all ${
+                      temporada === temp
+                        ? "border-sky-300 bg-gradient-to-b from-sky-400 to-blue-700 text-white shadow-[0_0_20px_rgba(56,189,248,.45)]"
+                        : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/50 hover:text-white"
+                    }`}
+                  >
+                    {temp.replace("Temporada ", "")}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-[120px_1fr] gap-3 items-center">
+              <p className="text-sky-300 uppercase tracking-[0.25em] text-xs font-black">
+                Divisiones
+              </p>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {divisiones.map((div) => (
+                  <button
+                    key={div}
+                    onClick={() => setDivision(div)}
+                    className={`rounded-xl border px-4 py-3 font-black uppercase text-sm transition-all ${
+                      division === div
+                        ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
+                        : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/50 hover:text-white"
+                    }`}
+                  >
+                    🛡️ {div}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <p className="text-zinc-500 uppercase tracking-[4px] text-xs font-bold">
-            Divisiones
-          </p>
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
+          <section className="overflow-hidden rounded-[30px] border border-sky-500/40 bg-[#020714] shadow-[0_0_40px_rgba(0,120,255,.2)]">
+            <div className="flex items-center justify-between gap-4 border-b border-sky-500/30 bg-gradient-to-r from-[#061a33] to-[#020714] px-5 py-4">
+              <div>
+                <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black">
+                  Tabla de posiciones
+                </p>
 
-          <div className="flex flex-wrap gap-3">
-            {divisiones.map((div) => (
-              <button
-                key={div}
-                onClick={() => setDivision(div)}
-                className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
-                  division === div
-                    ? "bg-sky-400 text-black"
-                    : "bg-[#11151c] text-zinc-400 hover:text-white"
-                }`}
+                <h2 className="text-2xl md:text-4xl font-black uppercase mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 leading-tight">
+                  <span className="inline-block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent pr-1">
+                    {temporada}
+                  </span>
+
+                  <span className="inline-block text-sky-400">
+                    / {division}
+                  </span>
+                </h2>
+              </div>
+
+              <div className="hidden md:flex w-16 h-16 rounded-2xl border border-sky-400/30 bg-sky-400/10 items-center justify-center text-3xl">
+                🏆
+              </div>
+            </div>
+
+            <div className="p-4 md:p-5">
+              <TablaDivision temporada={temporada} division={division} />
+            </div>
+          </section>
+
+          <aside className="space-y-4">
+            <div className="rounded-[26px] border border-sky-500/40 bg-[#020714] p-5 shadow-[0_0_30px_rgba(0,120,255,.18)]">
+              <h3 className="text-sky-300 uppercase tracking-[0.25em] text-xs font-black mb-4">
+                Información
+              </h3>
+
+              <div className="space-y-3 text-sm">
+                <p className="flex justify-between gap-4">
+                  <span className="text-zinc-400">Temporada</span>
+                  <b>{temporada}</b>
+                </p>
+
+                <p className="flex justify-between gap-4">
+                  <span className="text-zinc-400">División</span>
+                  <b className="text-sky-400">{division}</b>
+                </p>
+
+                <p className="flex justify-between gap-4">
+                  <span className="text-zinc-400">Estado</span>
+                  <b className="text-green-400">● Activa</b>
+                </p>
+
+                <p className="flex justify-between gap-4">
+                  <span className="text-zinc-400">Formato</span>
+                  <b>Liga</b>
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-[26px] border border-yellow-500/35 bg-gradient-to-b from-[#18120a] to-[#050505] p-5 shadow-[0_0_30px_rgba(250,204,21,.12)]">
+              <h3 className="text-yellow-300 uppercase tracking-[0.25em] text-xs font-black mb-4">
+                Clasificación
+              </h3>
+
+              <div className="space-y-3 text-sm font-black uppercase">
+                <div className="flex items-center justify-between rounded-xl border border-white/5 bg-black/30 px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <span className="w-9 h-3 rounded bg-green-500 shadow-[0_0_10px_rgba(74,222,128,.65)]" />
+                    <span>Playoffs</span>
+                  </div>
+                  <span className="text-zinc-500 text-[10px]">TOP 4</span>
+                </div>
+
+                <div className="flex items-center justify-between rounded-xl border border-white/5 bg-black/30 px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <span className="w-9 h-3 rounded bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,.55)]" />
+                    <span>Play-In</span>
+                  </div>
+                  <span className="text-zinc-500 text-[10px]">TOP 6</span>
+                </div>
+
+                <div className="flex items-center justify-between rounded-xl border border-white/5 bg-black/30 px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <span className="w-9 h-3 rounded bg-red-600 shadow-[0_0_10px_rgba(239,68,68,.55)]" />
+                    <span>Descenso</span>
+                  </div>
+                  <span className="text-zinc-500 text-[10px]">ÚLTIMOS</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-[26px] border border-sky-500/40 bg-[#020714] p-5 shadow-[0_0_30px_rgba(0,120,255,.18)]">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sky-300 uppercase tracking-[0.25em] text-xs font-black">
+                  Últimos resultados
+                </h3>
+
+                <span className="text-[10px] text-zinc-500 uppercase font-black">
+                  Liga
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {ultimosResultados.length === 0 ? (
+                  <div className="rounded-2xl border border-sky-500/20 bg-black/35 p-4 text-center text-xs text-zinc-500">
+                    No hay resultados cargados.
+                  </div>
+                ) : (
+                  ultimosResultados.map((partido) => (
+                    <a
+                      key={partido.id}
+                      href={`/estadisticas/${encodeURIComponent(partido.partido_id)}`}
+                      className="group block rounded-2xl border border-sky-500/20 bg-black/35 p-3 transition hover:border-sky-400/60 hover:bg-sky-500/10"
+                    >
+                      <div className="grid grid-cols-[1fr_78px_1fr] items-center gap-3">
+                        <div className="min-w-0 flex items-center gap-2">
+                          <img
+                            src="/logo-apa.png"
+                            alt={partido.local}
+                            className="h-8 w-8 shrink-0 rounded-full border border-sky-400/40 bg-black object-cover"
+                          />
+
+                          <span className="truncate text-[11px] font-black text-white">
+                            {partido.local}
+                          </span>
+                        </div>
+
+                        <div className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-2 py-1 text-center">
+                          <span className="whitespace-nowrap text-lg font-black text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,.55)]">
+                            {partido.resultado}
+                          </span>
+                        </div>
+
+                        <div className="min-w-0 flex items-center justify-end gap-2">
+                          <span className="truncate text-right text-[11px] font-black text-zinc-300">
+                            {partido.visitante}
+                          </span>
+
+                          <img
+                            src="/logo-apa.png"
+                            alt={partido.visitante}
+                            className="h-8 w-8 shrink-0 rounded-full border border-sky-400/40 bg-black object-cover"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-sky-400">
+                          {partido.division || "Sin división"}
+                        </p>
+
+                        <span className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500 group-hover:text-sky-300">
+                          Ver stats →
+                        </span>
+                      </div>
+                    </a>
+                  ))
+                )}
+              </div>
+
+              <a
+                href="/estadisticas"
+                className="mt-4 block w-full rounded-xl border border-sky-500/30 bg-sky-500/10 py-3 text-center text-[11px] font-black uppercase tracking-[0.22em] text-sky-300 transition hover:bg-sky-500/20"
               >
-                {div}
-              </button>
-            ))}
-          </div>
+                Ver todos los resultados
+              </a>
+            </div>
+
+            <div className="relative overflow-hidden rounded-[26px] border border-sky-500/35 bg-[#020714] p-5 min-h-[150px]">
+              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1517927033932-b3d18e61fb3a?q=80&w=1200&auto=format&fit=crop')] bg-cover bg-center opacity-25" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
+
+              <div className="relative z-10">
+                <p className="text-sky-300 uppercase tracking-[0.25em] text-xs font-black">
+                  APA PSO
+                </p>
+
+                <h3 className="text-2xl font-black mt-2 uppercase">
+                  Más que una liga
+                </h3>
+
+                <p className="text-zinc-400 text-sm mt-2">
+                  Somos una familia competitiva.
+                </p>
+              </div>
+            </div>
+          </aside>
         </div>
-
-        <div>
-          <p className="text-zinc-500 uppercase tracking-[4px] text-xs font-bold">
-            Tabla seleccionada
-          </p>
-
-          <h2 className="text-3xl font-black mt-2">
-            {temporada} · {division}
-          </h2>
-        </div>
-
-        <TablaDivision temporada={temporada} division={division} />
-      </div>
+      </section>
     </main>
   );
 }

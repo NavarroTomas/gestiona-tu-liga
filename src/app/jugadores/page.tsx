@@ -84,8 +84,14 @@ export default function JugadoresPage() {
       .slice(0, 10);
 
     return (
-      <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
-        <h2 className="text-2xl font-black mb-5">{titulo}</h2>
+      <section className="bg-gradient-to-b from-[#101826] to-[#060b13] border border-white/[0.06] rounded-[32px] p-6 shadow-[0_0_30px_rgba(0,120,255,.12)]">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-3xl font-black">{titulo}</h2>
+
+          <div className="w-12 h-12 rounded-2xl bg-white/[0.04] flex items-center justify-center">
+            🏆
+          </div>
+        </div>
 
         <div className="space-y-3">
           {ordenados.length === 0 ? (
@@ -95,15 +101,25 @@ export default function JugadoresPage() {
               <Link
                 key={jugador.nombre}
                 href={`/jugador/${encodeURIComponent(jugador.nombre)}`}
-                className="flex items-center justify-between bg-[#0b0f14] border border-white/[0.05] rounded-2xl p-4 hover:border-sky-400/40 transition"
+                className="flex items-center justify-between bg-gradient-to-r from-[#0a0f18] to-[#111827] border border-white/[0.05] rounded-2xl p-4 hover:border-sky-400/40 hover:scale-[1.02] transition-all duration-300"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-white/[0.05] flex items-center justify-center font-black text-zinc-400">
+                  <div
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black ${
+                      index === 0
+                        ? "bg-yellow-400 text-black shadow-[0_0_20px_rgba(255,215,0,.8)]"
+                        : index === 1
+                        ? "bg-zinc-300 text-black"
+                        : index === 2
+                        ? "bg-orange-500 text-black"
+                        : "bg-white/[0.05] text-zinc-400"
+                    }`}
+                  >
                     {index + 1}
                   </div>
 
                   <div>
-                    <p className="font-black text-white">
+                    <p className="font-black text-white text-lg">
                       {jugador.nombre}
                     </p>
 
@@ -113,7 +129,7 @@ export default function JugadoresPage() {
                   </div>
                 </div>
 
-                <p className={`text-3xl font-black ${color}`}>
+                <p className={`text-5xl font-black ${color}`}>
                   {jugador[tipo]}
                 </p>
               </Link>
@@ -125,20 +141,24 @@ export default function JugadoresPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0b0f14] text-white">
+    <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
       <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-10 space-y-10">
-        <div>
-          <p className="text-sky-400 text-xs uppercase tracking-[4px] font-bold">
-            APA PSO ARGENTINA
-          </p>
+        <div className="relative overflow-hidden rounded-[32px] border border-sky-500/30 bg-gradient-to-r from-[#07152f] via-[#020714] to-[#132d63] p-8 shadow-[0_0_45px_rgba(0,120,255,.25)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,140,255,.25),transparent_30%)]" />
 
-          <h1 className="mt-3 text-4xl md:text-5xl font-black">
-            Jugadores
-          </h1>
+          <div className="relative z-10">
+            <p className="text-sky-400 text-xs uppercase tracking-[4px] font-bold">
+              APA PSO ARGENTINA
+            </p>
 
-          <p className="mt-4 text-zinc-400 max-w-2xl">
-            Rankings oficiales por temporada y división.
-          </p>
+            <h1 className="mt-3 text-5xl md:text-7xl font-black leading-none">
+              RANKINGS
+            </h1>
+
+            <p className="mt-4 text-zinc-300 max-w-2xl text-lg">
+              Goleadores, asistentes y MVPs oficiales de la liga.
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-3">
@@ -148,7 +168,7 @@ export default function JugadoresPage() {
               onClick={() => setTemporada(temp)}
               className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
                 temporada === temp
-                  ? "bg-sky-400 text-black"
+                  ? "bg-sky-400 text-black shadow-[0_0_20px_rgba(56,189,248,.7)]"
                   : "bg-[#11151c] text-zinc-400 hover:text-white"
               }`}
             >
@@ -164,7 +184,7 @@ export default function JugadoresPage() {
               onClick={() => setDivision(div)}
               className={`px-5 py-3 rounded-2xl font-bold text-sm uppercase transition-all ${
                 division === div
-                  ? "bg-sky-400 text-black"
+                  ? "bg-sky-400 text-black shadow-[0_0_20px_rgba(56,189,248,.7)]"
                   : "bg-[#11151c] text-zinc-400 hover:text-white"
               }`}
             >
@@ -185,19 +205,19 @@ export default function JugadoresPage() {
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           <Ranking
-            titulo="Goleadores"
+            titulo="⚽ Goleadores"
             tipo="goles"
             color="text-emerald-400"
           />
 
           <Ranking
-            titulo="Asistencias"
+            titulo="🎯 Asistencias"
             tipo="asistencias"
             color="text-sky-400"
           />
 
           <Ranking
-            titulo="MVPs"
+            titulo="👑 MVPs"
             tipo="mvps"
             color="text-yellow-300"
           />
