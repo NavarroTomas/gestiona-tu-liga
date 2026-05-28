@@ -22,7 +22,7 @@ export default function AdminLayout({
   }, []);
 
   function ingresar() {
-    if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
+    if (password === "apa123") {
       localStorage.setItem("admin_access", "true");
       setAutorizado(true);
     } else {
