@@ -289,16 +289,6 @@ export default function Home() {
 
           <aside className="space-y-6">
             <div className="border border-blue-500/50 bg-zinc-950/90 rounded-3xl p-5 shadow-[0_0_30px_rgba(0,120,255,.25)]">
-              
-
-              <div className="grid grid-cols-[55px_minmax(0,1fr)_55px_55px_45px] text-xs text-zinc-400 font-black mb-3 px-3">
-                <span>POS</span>
-                <span>EQUIPO</span>
-                <span className="text-center">PTS</span>
-                <span className="text-center">PJ</span>
-                <span className="text-center">DG</span>
-              </div>
-
               <TablaPosicionesHome tabla={tabla} />
               </div>
 
