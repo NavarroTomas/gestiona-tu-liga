@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 
 interface RankingJugador {
   nombre: string;
+  playerId: string;
   equipo: string;
   partidos: number;
   goles: number;
@@ -41,11 +42,16 @@ export default function HistoriaPage() {
 
     data?.forEach((j: any) => {
       const nombre = (j.nombre || "").trim();
+      const playerId = (j.playerId || "").trim();
+
       if (!nombre) return;
 
-      if (!mapa[nombre]) {
-        mapa[nombre] = {
+      const clave = playerId || nombre;
+
+      if (!mapa[clave]) {
+        mapa[clave] = {
           nombre,
+          playerId,
           equipo: j.equipo || "Sin Club",
           partidos: 0,
           goles: 0,
@@ -60,17 +66,19 @@ export default function HistoriaPage() {
         };
       }
 
-      mapa[nombre].partidos += 1;
-      mapa[nombre].goles += Number(j.goals) || 0;
-      mapa[nombre].asistencias += Number(j.assists) || 0;
-      mapa[nombre].mvps += Number(j.mvp) || 0;
-      mapa[nombre].score += Number(j.score) || 0;
-      mapa[nombre].ratingTotal += Number(j.overallRating) || 0;
-      mapa[nombre].atajadas += Number(j.gKSaves) || 0;
-      mapa[nombre].tackles += Number(j.tackles) || 0;
-      mapa[nombre].intercepciones += Number(j.interceptions) || 0;
+      mapa[clave].partidos += 1;
+      mapa[clave].goles += Number(j.goals) || 0;
+      mapa[clave].asistencias += Number(j.assists) || 0;
+      mapa[clave].mvps += Number(j.mvp) || 0;
+      mapa[clave].score += Number(j.score) || 0;
+      mapa[clave].ratingTotal += Number(j.overallRating) || 0;
+      mapa[clave].atajadas += Number(j.gKSAVES) || 0;
+      mapa[clave].tackles += Number(j.tackles) || 0;
+      mapa[clave].intercepciones += Number(j.interceptions) || 0;
 
-      if (j.equipo) mapa[nombre].equipo = j.equipo;
+      if (j.equipo) mapa[clave].equipo = j.equipo;
+      if (j.nombre) mapa[clave].nombre = j.nombre;
+      if (j.playerId) mapa[clave].playerId = j.playerId;
     });
 
     const lista = Object.values(mapa).map((j: any) => ({
@@ -115,8 +123,12 @@ export default function HistoriaPage() {
           ) : (
             lista.map((j, index) => (
               <Link
-                key={j.nombre}
-                href={`/jugador/${encodeURIComponent(j.nombre)}`}
+                key={j.playerId || j.nombre}
+                href={
+                  j.playerId
+                    ? `/jugadores/${encodeURIComponent(j.playerId)}`
+                    : "#"
+                }
                 className="flex items-center justify-between bg-[#0b0f14] border border-white/[0.05] rounded-2xl p-4 hover:border-sky-400/40 transition"
               >
                 <div className="flex items-center gap-4 min-w-0">

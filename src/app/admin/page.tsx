@@ -156,6 +156,58 @@ export default function AdminPage() {
             plantillas y mercado sin tocar código.
           </p>
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
+          <Link
+            href="/admin/subir-txt"
+            className="group rounded-3xl border border-sky-500/20 bg-[#11151c] p-6 transition hover:border-sky-400 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]"
+          >
+            <p className="text-sky-400 text-xs uppercase tracking-[0.25em] font-black">
+              Estadísticas
+            </p>
+
+            <h3 className="text-3xl font-black mt-3">
+              📄 Subir TXT
+            </h3>
+
+            <p className="text-zinc-400 mt-3">
+              Cargá automáticamente los archivos de partidos.
+            </p>
+          </Link>
+
+          <Link
+            href="/admin/listas"
+            className="group rounded-3xl border border-sky-500/20 bg-[#11151c] p-6 transition hover:border-sky-400 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]"
+          >
+            <p className="text-sky-400 text-xs uppercase tracking-[0.25em] font-black">
+              Administración
+           </p>
+
+          <h3 className="text-3xl font-black mt-3">
+              📋 Listas
+          </h3>
+
+          <p className="text-zinc-400 mt-3">
+            Gestioná registros y datos cargados.
+          </p>
+        </Link>
+
+  <Link
+    href="/admin/plantillas"
+    className="group rounded-3xl border border-sky-500/20 bg-[#11151c] p-6 transition hover:border-sky-400 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]"
+  >
+    <p className="text-sky-400 text-xs uppercase tracking-[0.25em] font-black">
+      Equipos
+    </p>
+
+    <h3 className="text-3xl font-black mt-3">
+      👥 Plantillas
+    </h3>
+
+    <p className="text-zinc-400 mt-3">
+      Administrá jugadores y transferencias.
+    </p>
+  </Link>
+</div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">

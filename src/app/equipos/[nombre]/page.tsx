@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { supabase } from "@/lib/supabase"; // Si tira error de ruta, cambialo por "../../../lib/supabase"
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 interface Partido {
   id: string;
@@ -11,6 +11,7 @@ interface Partido {
   visitante: string;
   resultado: string;
   fecha: string;
+  partido_id?: string | null;
 }
 
 interface EstadisticasJugador {
@@ -20,16 +21,36 @@ interface EstadisticasJugador {
   mvps: number;
 }
 
+interface ClubVisual {
+  nombre: string;
+  slug: string;
+  logo_url?: string | null;
+  banner_url?: string | null;
+  descripcion?: string | null;
+  color_principal?: string | null;
+}
+
+interface EquipoTemporada {
+  nombre: string;
+  temporada: string;
+  division: string;
+  club_slug?: string | null;
+}
+
 export default function PaginaEquipo() {
   const params = useParams();
-  
-  // Capturamos el nombre de la URL de forma segura
-  const nombreEquipoUrl = params?.nombre ? decodeURIComponent(params.nombre as string) : "";
+
+  const nombreEquipoUrl = params?.nombre
+    ? decodeURIComponent(params.nombre as string)
+    : "";
 
   const [partidos, setPartidos] = useState<Partido[]>([]);
   const [plantel, setPlantel] = useState<EstadisticasJugador[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [nombreRealEquipo, setNombreRealEquipo] = useState<string>(nombreEquipoUrl);
+  const [clubVisual, setClubVisual] = useState<ClubVisual | null>(null);
+  const [equipoTemporada, setEquipoTemporada] =
+    useState<EquipoTemporada | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [nombreRealEquipo, setNombreRealEquipo] = useState(nombreEquipoUrl);
 
   const [stats, setStats] = useState({
     pj: 0,
@@ -44,320 +65,433 @@ export default function PaginaEquipo() {
 
   useEffect(() => {
     if (!nombreEquipoUrl) return;
-
-    const fetchDatosEquipo = async () => {
-      try {
-        setLoading(true);
-
-        // 1. Traer todos los partidos
-        const { data: partidosData, error: partidosError } = await supabase
-          .from("partidos")
-          .select("*");
-
-        if (partidosError) {
-          console.error("❌ Error de Supabase en la tabla 'partidos':", partidosError.message, partidosError.details);
-          throw partidosError;
-        }
-
-        if (partidosData) {
-          const partidoEncontrado = partidosData.find(
-            (p: any) => p.local?.toLowerCase() === nombreEquipoUrl.toLowerCase() || 
-                       p.visitante?.toLowerCase() === nombreEquipoUrl.toLowerCase()
-          );
-
-          const nombreExacto = partidoEncontrado 
-            ? (partidoEncontrado.local?.toLowerCase() === nombreEquipoUrl.toLowerCase() ? partidoEncontrado.local : partidoEncontrado.visitante)
-            : nombreEquipoUrl;
-
-          setNombreRealEquipo(nombreExacto);
-
-          const partidosDelEquipo = partidosData.filter(
-            (p: any) => p.local?.toLowerCase() === nombreExacto.toLowerCase() || 
-                       p.visitante?.toLowerCase() === nombreExacto.toLowerCase()
-          );
-          setPartidos(partidosDelEquipo);
-
-          // 2. Traer el plantel desde tu tabla 'jugadores'
-          const { data: jugadoresData, error: jugadoresError } = await supabase
-            .from("jugadores")
-            .select("*");
-
-          if (jugadoresError) {
-            console.error("❌ Error de Supabase en la tabla 'jugadores':", jugadoresError.message, jugadoresError.details);
-          }
-
-          if (jugadoresData) {
-            // Filtramos manualmente por el equipo actual
-            const jugadoresFiltrados = jugadoresData.filter(
-              (j: any) => j.equipo?.toLowerCase() === nombreExacto.toLowerCase()
-            );
-
-            // AGRUPACIÓN CRÍTICA: Sumamos las estadísticas de filas que tengan el mismo nombre de jugador
-            const mapaAgrupado: { [key: string]: EstadisticasJugador } = {};
-
-            jugadoresFiltrados.forEach((j: any) => {
-              const nombreJugador = (j.jugador || j.nombre || "Sin Nombre").trim();
-              if (!nombreJugador) return;
-
-              // Si el jugador no existía en nuestro mapa, lo inicializamos
-              if (!mapaAgrupado[nombreJugador]) {
-                mapaAgrupado[nombreJugador] = {
-                  jugador: nombreJugador,
-                  goles: 0,
-                  asistencias: 0,
-                  mvps: 0
-                };
-              }
-
-              // Sumamos los valores acumulados de manera segura
-              const registro = mapaAgrupado[nombreJugador];
-              if (registro) {
-                registro.goles += Number(j.goles) || 0;
-                registro.asistencias += Number(j.asistencias) || 0;
-                registro.mvps += Number(j.mvps) || Number(j.mvp) || 0;
-              }
-            });
-
-            // Convertimos el mapa agrupado a un Array y lo ordenamos por goles de mayor a menor
-            const listaProcesada = Object.values(mapaAgrupado).sort((a, b) => b.goles - a.goles);
-            setPlantel(listaProcesada);
-          }
-
-          // 3. Calcular números globales del club
-          let pj = 0, pg = 0, pe = 0, pp = 0, gf = 0, gc = 0, puntos = 0;
-          let rachaAux: string[] = [];
-
-          partidosDelEquipo.forEach((partido: any) => {
-            if (!partido.resultado || !partido.resultado.includes("-")) return;
-
-            const golesLocal = parseInt(partido.resultado.split("-")[0].trim());
-            const golesVisitante = parseInt(partido.resultado.split("-")[1].trim());
-
-            if (isNaN(golesLocal) || isNaN(golesVisitante)) return;
-
-            pj++;
-            const esLocal = partido.local?.toLowerCase() === nombreExacto.toLowerCase();
-
-            if (esLocal) {
-              gf += golesLocal;
-              gc += golesVisitante;
-              if (golesLocal > golesVisitante) {
-                pg++; puntos += 3; rachaAux.push("G");
-              } else if (golesLocal === golesVisitante) {
-                pe++; puntos += 1; rachaAux.push("E");
-              } else {
-                pp++; rachaAux.push("P");
-              }
-            } else {
-              gf += golesVisitante;
-              gc += golesLocal;
-              if (golesVisitante > golesLocal) {
-                pg++; puntos += 3; rachaAux.push("G");
-              } else if (golesVisitante === golesLocal) {
-                pe++; puntos += 1; rachaAux.push("E");
-              } else {
-                pp++; rachaAux.push("P");
-              }
-            }
-          });
-
-          setStats({
-            pj, pg, pe, pp, gf, gc, puntos,
-            racha: rachaAux.slice(-5)
-          });
-        }
-
-      } catch (error: any) {
-        console.error("🚨 ERROR CRÍTICO DETALLADO:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDatosEquipo();
   }, [nombreEquipoUrl]);
 
+  async function fetchDatosEquipo() {
+    try {
+      setLoading(true);
+
+      const { data: equiposData, error: equiposError } = await supabase
+        .from("equipos")
+        .select("*");
+
+      if (equiposError) {
+        console.log(equiposError);
+        return;
+      }
+
+      const equipoEncontrado = equiposData?.find(
+        (e: any) => e.nombre?.toLowerCase() === nombreEquipoUrl.toLowerCase()
+      );
+
+      const nombreExacto = equipoEncontrado?.nombre || nombreEquipoUrl;
+
+      setNombreRealEquipo(nombreExacto);
+      setEquipoTemporada(equipoEncontrado || null);
+
+      if (equipoEncontrado?.club_slug) {
+        const { data: clubData, error: clubError } = await supabase
+          .from("clubes_info")
+          .select("*")
+          .eq("slug", equipoEncontrado.club_slug)
+          .single();
+
+        if (clubError) {
+          console.log(clubError);
+        } else {
+          setClubVisual(clubData);
+        }
+      }
+
+      const { data: partidosData } = await supabase.from("partidos").select("*");
+
+      const partidosDelEquipo = (partidosData || []).filter(
+        (p: any) =>
+          p.local?.toLowerCase() === nombreExacto.toLowerCase() ||
+          p.visitante?.toLowerCase() === nombreExacto.toLowerCase()
+      );
+
+      setPartidos(partidosDelEquipo);
+
+      const { data: jugadoresData } = await supabase
+        .from("jugadores")
+        .select("*");
+
+      const jugadoresFiltrados = (jugadoresData || []).filter(
+        (j: any) => j.equipo?.toLowerCase() === nombreExacto.toLowerCase()
+      );
+
+      const mapaAgrupado: { [key: string]: EstadisticasJugador } = {};
+
+      jugadoresFiltrados.forEach((j: any) => {
+        const nombreJugador = (j.jugador || j.nombre || "Sin Nombre").trim();
+        if (!nombreJugador) return;
+
+        if (!mapaAgrupado[nombreJugador]) {
+          mapaAgrupado[nombreJugador] = {
+            jugador: nombreJugador,
+            goles: 0,
+            asistencias: 0,
+            mvps: 0,
+          };
+        }
+
+        mapaAgrupado[nombreJugador].goles += Number(j.goles) || 0;
+        mapaAgrupado[nombreJugador].asistencias += Number(j.asistencias) || 0;
+        mapaAgrupado[nombreJugador].mvps +=
+          Number(j.mvps) || Number(j.mvp) || 0;
+      });
+
+      setPlantel(
+        Object.values(mapaAgrupado).sort((a, b) => b.goles - a.goles)
+      );
+
+      let pj = 0;
+      let pg = 0;
+      let pe = 0;
+      let pp = 0;
+      let gf = 0;
+      let gc = 0;
+      let puntos = 0;
+      const rachaAux: string[] = [];
+
+      partidosDelEquipo.forEach((partido: any) => {
+        if (!partido.resultado || !partido.resultado.includes("-")) return;
+
+        const golesLocal = parseInt(partido.resultado.split("-")[0].trim());
+        const golesVisitante = parseInt(partido.resultado.split("-")[1].trim());
+
+        if (isNaN(golesLocal) || isNaN(golesVisitante)) return;
+
+        pj++;
+
+        const esLocal =
+          partido.local?.toLowerCase() === nombreExacto.toLowerCase();
+
+        const golesFavor = esLocal ? golesLocal : golesVisitante;
+        const golesContra = esLocal ? golesVisitante : golesLocal;
+
+        gf += golesFavor;
+        gc += golesContra;
+
+        if (golesFavor > golesContra) {
+          pg++;
+          puntos += 3;
+          rachaAux.push("G");
+        } else if (golesFavor === golesContra) {
+          pe++;
+          puntos += 1;
+          rachaAux.push("E");
+        } else {
+          pp++;
+          rachaAux.push("P");
+        }
+      });
+
+      setStats({
+        pj,
+        pg,
+        pe,
+        pp,
+        gf,
+        gc,
+        puntos,
+        racha: rachaAux.slice(-5),
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function iniciales(nombre?: string) {
+    if (!nombre) return "CL";
+
+    return nombre
+      .split(" ")
+      .map((p) => p[0])
+      .join("")
+      .slice(0, 3)
+      .toUpperCase();
+  }
+
+  const topGoleador = plantel[0];
+
+  const topAsistidor = [...plantel].sort(
+    (a, b) => b.asistencias - a.asistencias
+  )[0];
+
+  const topMvp = [...plantel].sort((a, b) => b.mvps - a.mvps)[0];
+
+  const colorPrincipal = clubVisual?.color_principal || "#38bdf8";
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white p-6 sm:p-10 flex items-center justify-center">
-        <div className="text-center animate-pulse text-cyan-400 font-bold tracking-wider uppercase">
-          ⚡ Cargando Club...
+      <main className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-pulse text-sky-400 font-black uppercase tracking-[0.3em]">
+          Cargando club...
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-zinc-100 p-4 sm:p-10 font-sans">
-      
-      {/* Botón Volver */}
-      <div className="mb-6">
-        <Link 
-          href="/" 
-          className="text-xs font-bold uppercase tracking-wide bg-zinc-900 border border-zinc-800 text-zinc-400 px-4 py-2 rounded-lg hover:text-white hover:border-zinc-700 transition-all"
+    <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
+      <section className="max-w-[1500px] mx-auto px-4 md:px-8 py-8 space-y-8">
+        <Link
+          href="/clubes"
+          className="inline-flex rounded-2xl border border-sky-500/20 bg-sky-500/10 px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-sky-300 hover:bg-sky-500/20 transition"
         >
-          ← Volver al Panel
+          ← Volver a clubes
         </Link>
-      </div>
 
-      {/* Header del Equipo */}
-      <div className="bg-zinc-900 border border-zinc-800 p-6 sm:p-8 rounded-2xl mb-8 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-cyan-500/10 to-transparent rounded-bl-full pointer-events-none"></div>
-        
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div>
-            <span className="text-xs font-extrabold uppercase tracking-widest text-cyan-400">Perfil del Club</span>
-            <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-tight text-white mt-1">
-              {nombreRealEquipo}
-            </h1>
-            
-            {/* Racha Visual */}
-            <div className="flex items-center gap-2 mt-4">
-              <span className="text-xs text-zinc-400 uppercase font-bold tracking-wider mr-2">Racha:</span>
-              {stats.racha.length === 0 ? (
-                <span className="text-xs text-zinc-500 italic">Sin partidos jugados</span>
-              ) : (
-                stats.racha.map((r, i) => (
-                  <span
-                    key={i}
-                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-black select-none ${
-                      r === "G" ? "bg-emerald-400" : r === "E" ? "bg-zinc-400" : "bg-rose-500"
-                    }`}
-                  >
-                    {r}
+        <section className="relative overflow-hidden rounded-[38px] border border-sky-500/40 bg-[#020714] shadow-[0_0_55px_rgba(0,120,255,.28)]">
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-35"
+            style={{
+              backgroundImage: `url(${
+                clubVisual?.banner_url ||
+                "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2070&auto=format&fit=crop"
+              })`,
+            }}
+          />
+
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/30" />
+
+          <div
+            className="absolute inset-0 opacity-40"
+            style={{
+              background: `radial-gradient(circle at top right, ${colorPrincipal}55, transparent 42%)`,
+            }}
+          />
+
+          <div className="relative z-10 p-7 md:p-10">
+            <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black">
+              Perfil del club
+            </p>
+
+            <div className="mt-8 flex flex-col lg:flex-row lg:items-center gap-8">
+              <div
+                className="h-36 w-36 shrink-0 overflow-hidden rounded-full border bg-gradient-to-b from-sky-400/30 to-blue-950 shadow-[0_0_35px_rgba(56,189,248,.28)]"
+                style={{ borderColor: `${colorPrincipal}99` }}
+              >
+                {clubVisual?.logo_url ? (
+                  <img
+                    src={clubVisual.logo_url}
+                    alt={nombreRealEquipo}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-4xl font-black">
+                    {iniciales(nombreRealEquipo)}
+                  </div>
+                )}
+              </div>
+
+              <div className="min-w-0">
+                <h1 className="text-5xl md:text-7xl font-black uppercase italic leading-none">
+                  <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
+                    {nombreRealEquipo}
                   </span>
-                ))
-              )}
+                </h1>
+
+                <p className="mt-4 text-zinc-300 max-w-2xl">
+                  {clubVisual?.descripcion ||
+                    "Club oficial registrado en APA PSO Argentina UE5."}
+                </p>
+
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <span className="rounded-2xl border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-sm font-black uppercase text-sky-300">
+                    {equipoTemporada?.temporada || "Temporada"}
+                  </span>
+
+                  <span className="rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-sm font-black uppercase text-yellow-300">
+                    {equipoTemporada?.division || "División"}
+                  </span>
+
+                  {equipoTemporada?.club_slug && (
+                    <span className="rounded-2xl border border-white/10 bg-black/30 px-4 py-2 text-sm font-black uppercase text-zinc-400">
+                      {equipoTemporada.club_slug}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
+        </section>
 
-          {/* Tarjetas de Stats */}
-          <div className="grid grid-cols-4 gap-3 bg-zinc-950 border border-zinc-800/60 p-4 rounded-xl min-w-[280px] sm:min-w-[350px]">
-            <div className="text-center">
-              <p className="text-xs text-zinc-500 font-bold uppercase">PTS</p>
-              <p className="text-2xl font-black text-cyan-400">{stats.puntos}</p>
-            </div>
-            <div className="text-center border-l border-zinc-800">
-              <p className="text-xs text-zinc-500 font-bold uppercase">PJ</p>
-              <p className="text-2xl font-black text-zinc-300">{stats.pj}</p>
-            </div>
-            <div className="text-center border-l border-zinc-800">
-              <p className="text-xs text-zinc-500 font-bold uppercase">GF</p>
-              <p className="text-2xl font-black text-emerald-400">{stats.gf}</p>
-            </div>
-            <div className="text-center border-l border-zinc-800">
-              <p className="text-xs text-zinc-500 font-bold uppercase">GC</p>
-              <p className="text-2xl font-black text-rose-400">{stats.gc}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            ["PTS", stats.puntos, "text-yellow-400"],
+            ["PJ", stats.pj, "text-sky-300"],
+            ["GF", stats.gf, "text-green-400"],
+            ["GC", stats.gc, "text-red-400"],
+          ].map(([label, value, color]) => (
+            <div
+              key={label}
+              className="rounded-[26px] border border-sky-500/20 bg-[#020714] p-5 shadow-[0_0_25px_rgba(0,120,255,.12)]"
+            >
+              <p className="text-zinc-500 text-xs uppercase tracking-[0.25em] font-black">
+                {label}
+              </p>
 
-      {/* Grid Principal */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Plantel */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl shadow-xl">
-            <h2 className="text-2xl font-bold uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-4">
-              🛡️ Plantel y Estadísticas
+              <p className={`mt-3 text-4xl font-black ${color}`}>{value}</p>
+            </div>
+          ))}
+        </section>
+
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {[
+            ["Top goleador", topGoleador, `${topGoleador?.goles || 0} goles`],
+            [
+              "Top asistidor",
+              topAsistidor,
+              `${topAsistidor?.asistencias || 0} asistencias`,
+            ],
+            ["Más MVP", topMvp, `${topMvp?.mvps || 0} MVP`],
+          ].map(([titulo, jugador, dato]: any) => (
+            <Link
+              key={titulo}
+              href={
+                jugador?.jugador
+                  ? `/jugadores/${encodeURIComponent(jugador.jugador)}`
+                  : "#"
+           }
+            className="group rounded-[26px] border border-sky-500/20 bg-[#020714] p-5 transition hover:border-sky-400/50 hover:shadow-[0_0_25px_rgba(56,189,248,.16)]"
+          >
+            <p className="text-sky-300 uppercase tracking-[0.25em] text-xs font-black">
+              {titulo}
+            </p>
+
+            <h3 className="mt-3 text-2xl font-black uppercase group-hover:text-sky-300 transition">
+              {jugador?.jugador || "Sin datos"}
+            </h3>
+
+            <p className="mt-2 text-yellow-400 font-black">
+              {dato}
+            </p>
+
+            <p className="mt-4 text-[10px] uppercase tracking-[0.2em] text-zinc-500 group-hover:text-sky-300">
+              Ver jugador →
+            </p>
+          </Link>
+        ))}
+      </section>
+
+        <section className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-8">
+          <div className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6">
+            <h2 className="text-3xl font-black uppercase mb-6">
+              Plantel y estadísticas
             </h2>
-            <hr className="border-zinc-800 mb-4" />
-            
+
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full min-w-[620px] border-separate border-spacing-y-2">
                 <thead>
-                  <tr className="border-b border-zinc-800 text-zinc-500 text-xs font-bold uppercase tracking-wider">
-                    <th className="py-3 px-2">Jugador</th>
-                    <th className="py-3 px-2 text-center">⚽ Goles</th>
-                    <th className="py-3 px-2 text-center">👟 Asist.</th>
-                    <th className="py-3 px-2 text-center">⭐ MVP</th>
+                  <tr className="text-[11px] uppercase tracking-[0.25em] text-sky-300/80">
+                    <th className="text-left py-3">Jugador</th>
+                    <th className="text-center py-3">Goles</th>
+                    <th className="text-center py-3">Asist.</th>
+                    <th className="text-center py-3">MVP</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800/50">
+
+                <tbody>
                   {plantel.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="py-6 text-center text-sm text-zinc-500 italic">
-                        No se encontraron jugadores registrados para este equipo.
+                      <td colSpan={4} className="py-10 text-center text-zinc-500">
+                        No se encontraron jugadores registrados.
                       </td>
                     </tr>
                   ) : (
-                    plantel.map((jugador) => (
-                      <tr key={jugador.jugador} className="hover:bg-zinc-950/40 transition-colors group">
-                        <td className="py-3.5 px-2 font-medium text-zinc-200 group-hover:text-white transition-colors">
-                          {jugador.jugador}
+                    plantel.map((jugador, index) => (
+                      <tr
+                        key={jugador.jugador}
+                        className="bg-gradient-to-r from-[#06152c] via-[#071a33] to-[#030b18] transition hover:brightness-125"
+                      >
+                        <td className="rounded-l-xl py-4 px-4 font-black uppercase">
+                          <Link
+                            href={`/jugadores/${encodeURIComponent(jugador.jugador)}`}
+                            className="block hover:text-sky-300 transition"
+                          >
+                            <span className="text-sky-400 mr-3">
+                              #{index + 1}
+                            </span>
+                            {jugador.jugador}
+                            </Link>
+                          </td>
+
+                          <td className="py-4 text-center font-black text-yellow-400">
+                            <Link
+                              href={`/jugadores/${encodeURIComponent(jugador.jugador)}`}
+                              className="block"
+                            >
+                              {jugador.goles}
+                            </Link>
+                          </td>
+
+                          <td className="py-4 text-center font-black text-zinc-300">
+                            <Link
+                            href={`/jugadores/${encodeURIComponent(jugador.jugador)}`}
+                            className="block"
+                          >
+                            {jugador.asistencias}
+                          </Link>
                         </td>
-                        <td className="py-3.5 px-2 text-center font-mono font-bold text-zinc-300">
-                          {jugador.goles}
-                        </td>
-                        <td className="py-3.5 px-2 text-center font-mono font-bold text-zinc-400">
-                          {jugador.asistencias}
-                        </td>
-                        <td className="py-3.5 px-2 text-center font-mono font-bold text-cyan-400">
+
+                        <td className="rounded-r-xl py-4 text-center font-black text-sky-300">
+                          <Link
+                          href={`/jugadores/${encodeURIComponent(jugador.jugador)}`}
+                          className="block"
+                        >
                           {jugador.mvps}
-                        </td>
-                      </tr>
-                    ))
+                        </Link>
+                      </td>
+                    </tr>
+                   ))
                   )}
                 </tbody>
               </table>
             </div>
           </div>
-        </div>
 
-        {/* Historial de Partidos */}
-        <div className="space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl shadow-xl">
-            <h2 className="text-xl font-bold uppercase tracking-wider text-white mb-4">
-              📅 Historial de Partidos
-            </h2>
-            <hr className="border-zinc-800 mb-4" />
+          <aside className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6">
+            <h2 className="text-2xl font-black uppercase mb-6">Historial</h2>
 
-            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-[620px] overflow-y-auto pr-1">
               {partidos.length === 0 ? (
-                <p className="text-zinc-500 text-sm italic text-center py-6">
+                <p className="text-zinc-500 text-sm">
                   Este club aún no disputó partidos oficiales.
                 </p>
               ) : (
                 partidos.map((partido) => {
-                  const partes = partido.resultado ? partido.resultado.split("-") : ["-", "-"];
+                  const partes = partido.resultado
+                    ? partido.resultado.split("-")
+                    : ["-", "-"];
+
                   const golesLocal = partes[0]?.trim() || "-";
                   const golesVisitante = partes[1]?.trim() || "-";
-                  
-                  let colorBorde = "border-l-zinc-800";
-                  if (golesLocal !== "-" && golesVisitante !== "-") {
-                    const gl = parseInt(golesLocal);
-                    const gv = parseInt(golesVisitante);
-                    const esLocal = partido.local?.toLowerCase() === nombreRealEquipo.toLowerCase();
-                    
-                    if (gl === gv) {
-                      colorBorde = "border-l-zinc-500";
-                    } else if ((gl > gv && esLocal) || (gv > gl && !esLocal)) {
-                      colorBorde = "border-l-emerald-500";
-                    } else {
-                      colorBorde = "border-l-rose-500";
-                    }
-                  }
 
                   return (
                     <div
                       key={partido.id}
-                      className={`bg-zinc-950/60 border border-zinc-800 border-l-4 ${colorBorde} p-3.5 rounded-xl flex flex-col gap-2`}
+                      className="rounded-2xl border border-sky-500/20 bg-black/35 p-4"
                     >
-                      <div className="flex justify-between items-center text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                        <span>Fecha {partido.fecha}</span>
-                      </div>
+                      <p className="text-[10px] text-sky-400 uppercase tracking-[0.22em] font-black mb-3">
+                        Fecha {partido.fecha || "-"}
+                      </p>
 
-                      <div className="grid grid-cols-7 items-center text-xs">
-                        <span className={`col-span-3 text-right font-semibold truncate ${partido.local?.toLowerCase() === nombreRealEquipo.toLowerCase() ? "text-cyan-400 font-bold" : "text-zinc-400"}`}>
+                      <div className="grid grid-cols-[1fr_70px_1fr] items-center gap-2">
+                        <span className="truncate text-right text-xs font-black">
                           {partido.local}
                         </span>
 
-                        <span className="col-span-1 text-center bg-zinc-900 px-1.5 py-1 rounded text-[11px] font-mono font-black text-zinc-200 border border-zinc-800/60 mx-1">
+                        <span className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-2 py-1 text-center text-yellow-400 font-black">
                           {golesLocal}-{golesVisitante}
                         </span>
 
-                        <span className={`col-span-3 text-left font-semibold truncate ${partido.visitante?.toLowerCase() === nombreRealEquipo.toLowerCase() ? "text-cyan-400 font-bold" : "text-zinc-400"}`}>
+                        <span className="truncate text-left text-xs font-black">
                           {partido.visitante}
                         </span>
                       </div>
@@ -366,11 +500,9 @@ export default function PaginaEquipo() {
                 })
               )}
             </div>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
+          </aside>
+        </section>
+      </section>
+    </main>
   );
 }

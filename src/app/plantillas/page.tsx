@@ -5,14 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 export default function PlantillasPage() {
-  const temporadas = [
-    "Temporada 1",
-    "Temporada 2",
-    "Temporada 3",
-    "Temporada 4",
-    "Temporada 5",
-  ];
-
+  const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4", "Temporada 5"];
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 
   const [temporada, setTemporada] = useState("Temporada 1");
@@ -45,7 +38,32 @@ export default function PlantillasPage() {
       return;
     }
 
-    setPlantillas(data || []);
+    const plantillasBase = data || [];
+
+    const { data: statsJugadores } = await supabase
+      .from("estadisticas_jugadores")
+      .select("nombre, playerId, equipo")
+      .eq("temporada", temporada)
+      .eq("division", division);
+
+    const plantillasConPlayerId = plantillasBase.map((p: any) => {
+      const encontrado = (statsJugadores || []).find((s: any) => {
+        const nombreStats = (s.nombre || "").trim().toLowerCase();
+        const nombrePlantilla = (p.jugador || "").trim().toLowerCase();
+
+        const equipoStats = (s.equipo || "").trim().toLowerCase();
+        const equipoPlantilla = (p.equipo || "").trim().toLowerCase();
+
+        return nombreStats === nombrePlantilla && equipoStats === equipoPlantilla;
+      });
+
+      return {
+        ...p,
+        playerId: encontrado?.playerId || "",
+      };
+    });
+
+    setPlantillas(plantillasConPlayerId);
 
     const { data: equiposData } = await supabase
       .from("plantillas")
@@ -204,9 +222,7 @@ export default function PlantillasPage() {
                 >
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                     <div>
-                      <h2 className="text-3xl font-black">
-                        {equipo}
-                      </h2>
+                      <h2 className="text-3xl font-black">{equipo}</h2>
 
                       <p className="text-zinc-500 mt-1">
                         {jugadores.length} jugadores registrados
@@ -222,30 +238,45 @@ export default function PlantillasPage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                    {jugadores.map((j: any) => (
-                      <Link
-                        key={j.id}
-                        href={`/jugador/${encodeURIComponent(j.jugador)}`}
-                        className="bg-[#0b0f14] border border-white/[0.05] rounded-2xl p-5 hover:border-sky-400/40 transition"
-                      >
-                        <div className="flex items-center justify-between gap-4">
-                          <div>
-                            <h3 className="text-2xl font-black">
-                              {j.jugador}
-                            </h3>
+                    {jugadores.map((j: any) => {
+                      const card = (
+                        <div className="bg-[#0b0f14] border border-white/[0.05] rounded-2xl p-5 hover:border-sky-400/40 transition">
+                          <div className="flex items-center justify-between gap-4">
+                            <div>
+                              <h3 className="text-2xl font-black">
+                                {j.jugador}
+                              </h3>
 
-                            <p className="text-zinc-500 text-sm mt-1">
-                              {j.posicion || "Sin posición"} ·{" "}
-                              {j.estado || "Activo"}
-                            </p>
+                              <p className="text-zinc-500 text-sm mt-1">
+                                {j.posicion || "Sin posición"} ·{" "}
+                                {j.estado || "Activo"}
+                              </p>
+                            </div>
+
+                            <div className="bg-white/[0.06] px-4 py-2 rounded-xl font-black text-zinc-300">
+                              {j.posicion || "-"}
+                            </div>
                           </div>
 
-                          <div className="bg-white/[0.06] px-4 py-2 rounded-xl font-black text-zinc-300">
-                            {j.posicion || "-"}
-                          </div>
+                          <p className="mt-4 text-[10px] uppercase tracking-[0.18em] text-zinc-500">
+                            {j.playerId ? "Ver perfil →" : "Sin Player ID"}
+                          </p>
                         </div>
-                      </Link>
-                    ))}
+                      );
+
+                      if (j.playerId) {
+                        return (
+                          <Link
+                            key={j.id}
+                            href={`/jugadores/${encodeURIComponent(j.playerId)}`}
+                          >
+                            {card}
+                          </Link>
+                        );
+                      }
+
+                      return <div key={j.id}>{card}</div>;
+                    })}
                   </div>
                 </div>
               );

@@ -4,7 +4,12 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function SubirTxtPage() {
-  const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4"];
+  const temporadas = [
+    "Temporada 1",
+    "Temporada 2",
+    "Temporada 3",
+    "Temporada 4",
+  ];
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 
   const [archivo, setArchivo] = useState<File | null>(null);
@@ -180,8 +185,8 @@ export default function SubirTxtPage() {
           normalizarJugador(
             j,
             idPartido,
-            mejorJugador?.playerId === j.playerId
-          )
+            mejorJugador?.playerId === j.playerId,
+          ),
         );
 
       const { error: jugadoresDetalleError } = await supabase
@@ -192,41 +197,90 @@ export default function SubirTxtPage() {
         console.log(jugadoresDetalleError);
         alert(
           "Error guardando estadísticas detalladas de jugadores: " +
-            jugadoresDetalleError.message
+            jugadoresDetalleError.message,
         );
         return;
       }
 
-      const jugadoresResumen = jugadoresDetallados.map((j) => ({
-        nombre: j.nombre,
-        equipo: j.equipo,
-        goles: j.goals,
-        asistencias: j.assists,
-        mvps: j.mvp,
-        temporada,
-        division,
-      }));
+      const jugadoresUnicos = Array.from(
+        new Set(jugadoresDetallados.map((j) => j.playerId).filter(Boolean)),
+      );
+
+      const jugadoresResumen = [];
+
+      for (const playerId of jugadoresUnicos) {
+        const jugadorBase = jugadoresDetallados.find(
+          (j) => j.playerId === playerId,
+        );
+
+        if (!jugadorBase) continue;
+
+        const { data: historialJugador, error: historialError } = await supabase
+          .from("estadisticas_jugadores")
+          .select("*")
+          .eq("playerId", playerId)
+          .eq("temporada", temporada)
+          .eq("division", division)
+          .eq("equipo", jugadorBase.equipo);
+
+        if (historialError) {
+          console.log(historialError);
+          continue;
+        }
+
+        const totalGoles = (historialJugador || []).reduce(
+          (acc: number, j: any) => acc + Number(j.goals || 0),
+          0,
+        );
+
+        const totalAsistencias = (historialJugador || []).reduce(
+          (acc: number, j: any) => acc + Number(j.assists || 0),
+          0,
+        );
+
+        const totalMvps = (historialJugador || []).reduce(
+          (acc: number, j: any) => acc + Number(j.mvp || 0),
+          0,
+        );
+
+        jugadoresResumen.push({
+          nombre: jugadorBase.nombre,
+          playerId,
+          equipo: jugadorBase.equipo,
+          goles: totalGoles,
+          asistencias: totalAsistencias,
+          mvps: totalMvps,
+          temporada,
+          division,
+        });
+      }
 
       const { error: jugadoresError } = await supabase
         .from("jugadores")
-        .insert(jugadoresResumen);
+        .upsert(jugadoresResumen, {
+          onConflict: "playerId,temporada,division,equipo",
+        });
 
       if (jugadoresError) {
         console.log(jugadoresError);
-        alert("Stats detalladas cargadas, pero error cargando ranking de jugadores");
+        alert(
+          "Stats detalladas cargadas, pero error cargando ranking de jugadores",
+        );
         return;
       }
 
       setMensaje(
         `Cargado perfecto: ${local} ${resultado} ${visitante}. Jugadores: ${jugadoresDetallados.length}. MVP por score: ${
           mejorJugador?.playerName || "Sin MVP"
-        }`
+        }`,
       );
 
       setArchivo(null);
     } catch (error) {
       console.log(error);
-      alert("No pude leer el TXT. Tiene que ser el formato JSON del MatchStats.");
+      alert(
+        "No pude leer el TXT. Tiene que ser el formato JSON del MatchStats.",
+      );
     }
   }
 
@@ -287,11 +341,7 @@ export default function SubirTxtPage() {
             Cargar Partido Automático
           </button>
 
-          {mensaje && (
-            <p className="text-emerald-400 font-bold">
-              {mensaje}
-            </p>
-          )}
+          {mensaje && <p className="text-emerald-400 font-bold">{mensaje}</p>}
         </section>
       </div>
     </main>
