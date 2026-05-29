@@ -17,6 +17,10 @@ export default function PartidoEstadisticasPage() {
     cargarDatos();
   }, [partidoId]);
 
+  function valorGKSave(r: any) {
+    return Number(r.gKSAVES || r.gKSaves || r.gksaves || 0);
+  }
+
   async function cargarDatos() {
     const { data: equiposData } = await supabase
       .from("estadisticas_equipos")
@@ -41,7 +45,7 @@ export default function PartidoEstadisticasPage() {
   const topJugadores = jugadores.slice(0, 6);
 
   const arqueros = jugadores.filter(
-    (j) => Number(j.gKSaves) > 0 || Number(j.gKCatches) > 0
+    (j) => valorGKSave(j) > 0 || Number(j.gKCatches) > 0,
   );
 
   const ordenPosiciones: Record<string, number> = {
@@ -70,32 +74,19 @@ export default function PartidoEstadisticasPage() {
       });
   }
 
-  function StatBar({
-    label,
-    a,
-    b,
-  }: {
-    label: string;
-    a: number;
-    b: number;
-  }) {
+  function StatBar({ label, a, b }: { label: string; a: number; b: number }) {
     const total = Number(a || 0) + Number(b || 0);
 
-    const porcentajeA =
-      total === 0 ? 50 : (Number(a || 0) / total) * 100;
+    const porcentajeA = total === 0 ? 50 : (Number(a || 0) / total) * 100;
 
     return (
       <div className="space-y-3">
         <div className="grid grid-cols-3 text-sm font-black uppercase tracking-[0.15em]">
           <span className="text-sky-300">{a || 0}</span>
 
-          <span className="text-center text-zinc-500">
-            {label}
-          </span>
+          <span className="text-center text-zinc-500">{label}</span>
 
-          <span className="text-right text-sky-300">
-            {b || 0}
-          </span>
+          <span className="text-right text-sky-300">{b || 0}</span>
         </div>
 
         <div className="h-3 rounded-full overflow-hidden bg-black/50 border border-sky-500/20">
@@ -108,42 +99,26 @@ export default function PartidoEstadisticasPage() {
     );
   }
 
-  function MiniStat({
-    label,
-    value,
-  }: {
-    label: string;
-    value: any;
-  }) {
+  function MiniStat({ label, value }: { label: string; value: any }) {
     return (
       <div className="rounded-2xl border border-sky-500/15 bg-black/35 p-4 backdrop-blur-sm">
         <p className="text-zinc-500 text-[10px] uppercase tracking-[0.22em] font-black">
           {label}
         </p>
 
-        <p className="text-3xl font-black mt-3 text-white">
-          {value ?? 0}
-        </p>
+        <p className="text-3xl font-black mt-3 text-white">{value ?? 0}</p>
       </div>
     );
   }
 
-  function PlayerStatCard({
-    label,
-    value,
-  }: {
-    label: string;
-    value: any;
-  }) {
+  function PlayerStatCard({ label, value }: { label: string; value: any }) {
     return (
       <div className="rounded-xl border border-sky-500/10 bg-black/35 p-3">
         <p className="text-[10px] uppercase tracking-[0.18em] text-zinc-500 font-black">
           {label}
         </p>
 
-        <p className="text-xl font-black mt-2">
-          {value ?? 0}
-        </p>
+        <p className="text-xl font-black mt-2">{value ?? 0}</p>
       </div>
     );
   }
@@ -192,7 +167,7 @@ export default function PartidoEstadisticasPage() {
           <PlayerStatCard label="Interc." value={j.interceptions} />
           <PlayerStatCard label="I. clave" value={j.keyInterceptions} />
           <PlayerStatCard label="Perdidas" value={j.possessionsLost} />
-          <PlayerStatCard label="Atajadas" value={j.gKSaves} />
+          <PlayerStatCard label="Atajadas" value={valorGKSave(j)} />
         </div>
       </div>
     );
@@ -216,7 +191,7 @@ export default function PartidoEstadisticasPage() {
               APA PSO ARGENTINA
             </p>
 
-            <div className="mt-8 grid grid-cols-1 lg:grid-cols-[1fr_240px_1fr] items-center gap-8">
+            <div className="mt-8 grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-8">
               <div className="text-center lg:text-left">
                 <div className="flex lg:block justify-center">
                   <div className="h-28 w-28 rounded-full border border-sky-400/30 bg-gradient-to-b from-sky-400/20 to-blue-950 flex items-center justify-center text-3xl font-black shadow-[0_0_25px_rgba(56,189,248,.18)]">
@@ -234,9 +209,9 @@ export default function PartidoEstadisticasPage() {
                   Resultado final
                 </p>
 
-                <div className="mt-4 rounded-[30px] border border-yellow-400/30 bg-yellow-400/10 px-6 py-8 shadow-[0_0_30px_rgba(250,204,21,.12)]">
-                  <span className="text-6xl md:text-8xl font-black text-yellow-400 whitespace-nowrap drop-shadow-[0_0_10px_rgba(250,204,21,.45)]">
-                    {local?.goals} - {visitante?.goals}
+                <div className="mt-4 inline-flex items-center justify-center rounded-[30px] border border-yellow-400/30 bg-yellow-400/10 px-8 py-6 shadow-[0_0_30px_rgba(250,204,21,.12)]">
+                  <span className="text-5xl md:text-7xl font-black text-yellow-400 whitespace-nowrap drop-shadow-[0_0_10px_rgba(250,204,21,.45)]">
+                    {local?.goals}-{visitante?.goals}
                   </span>
                 </div>
 
@@ -296,15 +271,35 @@ export default function PartidoEstadisticasPage() {
               Estadísticas principales
             </h2>
 
-            <StatBar label="Posesión" a={local.possession} b={visitante.possession} />
+            <StatBar
+              label="Posesión"
+              a={local.possession}
+              b={visitante.possession}
+            />
             <StatBar label="Tiros" a={local.shots} b={visitante.shots} />
-            <StatBar label="Al arco" a={local.shotsOnTarget} b={visitante.shotsOnTarget} />
+            <StatBar
+              label="Al arco"
+              a={local.shotsOnTarget}
+              b={visitante.shotsOnTarget}
+            />
             <StatBar label="Pases" a={local.passes} b={visitante.passes} />
-            <StatBar label="P. clave" a={local.keyPasses} b={visitante.keyPasses} />
+            <StatBar
+              label="P. clave"
+              a={local.keyPasses}
+              b={visitante.keyPasses}
+            />
             <StatBar label="Tackles" a={local.tackles} b={visitante.tackles} />
-            <StatBar label="Intercepciones" a={local.interceptions} b={visitante.interceptions} />
+            <StatBar
+              label="Intercepciones"
+              a={local.interceptions}
+              b={visitante.interceptions}
+            />
             <StatBar label="Faltas" a={local.fouls} b={visitante.fouls} />
-            <StatBar label="Corners" a={local.cornerKicks} b={visitante.cornerKicks} />
+            <StatBar
+              label="Corners"
+              a={local.cornerKicks}
+              b={visitante.cornerKicks}
+            />
           </section>
         )}
 
@@ -382,7 +377,10 @@ export default function PartidoEstadisticasPage() {
                   <MiniStat label="Pases" value={equipo.passes} />
                   <MiniStat label="P. clave" value={equipo.keyPasses} />
                   <MiniStat label="Tackles" value={equipo.tackles} />
-                  <MiniStat label="Intercepciones" value={equipo.interceptions} />
+                  <MiniStat
+                    label="Intercepciones"
+                    value={equipo.interceptions}
+                  />
                   <MiniStat label="Perdidas" value={equipo.possessionsLost} />
                   <MiniStat label="Faltas" value={equipo.fouls} />
                   <MiniStat label="Corners" value={equipo.cornerKicks} />
@@ -394,9 +392,7 @@ export default function PartidoEstadisticasPage() {
 
         {arqueros.length > 0 && (
           <section className="rounded-[34px] border border-sky-500/20 bg-[#020714] p-6 md:p-8">
-            <h2 className="text-4xl font-black uppercase mb-8">
-              Arqueros
-            </h2>
+            <h2 className="text-4xl font-black uppercase mb-8">Arqueros</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {arqueros.map((j) => (
@@ -421,7 +417,7 @@ export default function PartidoEstadisticasPage() {
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                    <MiniStat label="Atajadas" value={j.gKSaves} />
+                    <MiniStat label="Atajadas" value={valorGKSave(j)} />
                     <MiniStat label="Atrapadas" value={j.gKCatches} />
                     <MiniStat label="Rating" value={j.overallRating} />
                     <MiniStat label="Score" value={j.score} />
@@ -445,37 +441,30 @@ export default function PartidoEstadisticasPage() {
             </div>
 
             <button
-              onClick={() =>
-                setVerDetalleCompleto(!verDetalleCompleto)
-              }
+              onClick={() => setVerDetalleCompleto(!verDetalleCompleto)}
               className="rounded-2xl border border-sky-400/30 bg-sky-400/10 px-6 py-4 text-sm font-black uppercase tracking-[0.18em] text-sky-300 transition hover:bg-sky-400/20"
             >
-              {verDetalleCompleto
-                ? "Ocultar detalle"
-                : "Ver detalle"}
+              {verDetalleCompleto ? "Ocultar detalle" : "Ver detalle"}
             </button>
           </div>
 
           {verDetalleCompleto && local && visitante && (
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-              {[local.equipo, visitante.equipo].map(
-                (equipoNombre) => (
-                  <div key={equipoNombre} className="space-y-5">
-                    <div className="rounded-[28px] border border-sky-500/15 bg-black/35 p-5">
-                      <h3 className="text-3xl font-black uppercase">
-                        {equipoNombre}
-                      </h3>
-                    </div>
-
-                    {ordenarPorEquipoPosicionScore(
-                      jugadores,
-                      equipoNombre
-                    ).map((j) => (
-                      <JugadorDetalleCard key={j.id} j={j} />
-                    ))}
+              {[local.equipo, visitante.equipo].map((equipoNombre) => (
+                <div key={equipoNombre} className="space-y-5">
+                  <div className="rounded-[28px] border border-sky-500/15 bg-black/35 p-5">
+                    <h3 className="text-3xl font-black uppercase">
+                      {equipoNombre}
+                    </h3>
                   </div>
-                )
-              )}
+
+                  {ordenarPorEquipoPosicionScore(jugadores, equipoNombre).map(
+                    (j) => (
+                      <JugadorDetalleCard key={j.id} j={j} />
+                    ),
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </section>

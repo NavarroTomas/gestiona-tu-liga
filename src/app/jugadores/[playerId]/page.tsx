@@ -251,7 +251,6 @@ export default function JugadorPage() {
               <p className={`mt-3 text-4xl font-black ${color}`}>{value}</p>
             </div>
           ))}
-          
         </section>
         {mejorPartido && (
           <section className="relative overflow-hidden rounded-[34px] border border-yellow-400/30 bg-[#020714] p-6 shadow-[0_0_45px_rgba(250,204,21,.12)]">
@@ -362,6 +361,76 @@ export default function JugadorPage() {
             </div>
           </section>
         )}
+        <section className="rounded-[34px] border border-purple-500/25 bg-[#020714] p-6">
+          <h2 className="text-3xl font-black uppercase mb-6">
+            📈 Evolución por temporada
+          </h2>
+
+          <div className="space-y-4">
+            {carreraPorTemporada.map((t: any) => (
+              <div
+                key={`evo-${t.temporada}-${t.division}-${t.equipo}`}
+                className="rounded-2xl border border-purple-500/20 bg-black/30 p-5"
+              >
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <p className="text-purple-300 text-xs uppercase tracking-[0.2em] font-black">
+                      {t.temporada}
+                    </p>
+
+                    <h3 className="text-2xl font-black uppercase">
+                      {t.equipo}
+                    </h3>
+
+                    <p className="text-zinc-500">{t.division}</p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3">
+                    <span className="rounded-xl bg-green-500/10 border border-green-500/30 px-4 py-2 font-black text-green-400">
+                      ⭐ {t.rating}
+                    </span>
+
+                    <span className="rounded-xl bg-yellow-500/10 border border-yellow-500/30 px-4 py-2 font-black text-yellow-400">
+                      ⚽ {t.goles}
+                    </span>
+
+                    <span className="rounded-xl bg-sky-500/10 border border-sky-500/30 px-4 py-2 font-black text-sky-300">
+                      🎯 {t.asistencias}
+                    </span>
+
+                    <span className="rounded-xl bg-purple-500/10 border border-purple-500/30 px-4 py-2 font-black text-purple-300">
+                      👑 {t.mvps}
+                    </span>
+
+                    <span className="rounded-xl bg-cyan-500/10 border border-cyan-500/30 px-4 py-2 font-black text-cyan-300">
+                      🧤 {t.atajadas}
+                    </span>
+                    <div className="mt-5">
+                      <div className="mb-2 flex items-center justify-between">
+                        <p className="text-[10px] uppercase tracking-[0.25em] text-zinc-500 font-black">
+                          Nivel de rendimiento
+                        </p>
+
+                        <p className="text-sm font-black text-green-400">
+                          {t.rating}/100
+                        </p>
+                      </div>
+
+                      <div className="h-3 w-full overflow-hidden rounded-full bg-white/10">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-green-500 via-yellow-400 to-emerald-300"
+                          style={{
+                            width: `${Math.min(Number(t.rating || 0), 100)}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
         <section className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6">
           <h2 className="text-3xl font-black uppercase mb-6">
             Carrera por temporada
