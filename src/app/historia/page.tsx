@@ -88,7 +88,9 @@ export default function HistoriaPage() {
     const lista = Object.values(mapa).map((j: any) => ({
       ...j,
       ratingPromedio:
-        j.partidos > 0 ? Math.round((j.ratingTotal / j.partidos) * 10) / 10 : 0,
+        j.partidos > 0
+          ? Math.round((j.ratingTotal / j.partidos) * 10) / 10
+          : 0,
     }));
 
     setJugadores(lista);
@@ -102,57 +104,105 @@ export default function HistoriaPage() {
       .slice(0, 10);
   }
 
+  function linkJugador(
+    j: RankingJugador,
+    children: React.ReactNode,
+    className: string,
+    key: string,
+  ) {
+    if (!j.playerId) {
+      return (
+        <div key={key} className={className}>
+          {children}
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        key={key}
+        href={`/jugadores/${encodeURIComponent(j.playerId)}`}
+        className={className}
+      >
+        {children}
+      </Link>
+    );
+  }
+
   function RankingBox({
     titulo,
     campo,
     color,
     sufijo = "",
+    icono = "🏆",
   }: {
     titulo: string;
     campo: keyof RankingJugador;
     color: string;
     sufijo?: string;
+    icono?: string;
   }) {
     const lista = top(campo);
 
     return (
-      <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
-        <h2 className="text-2xl font-black mb-5">{titulo}</h2>
+      <section className="relative overflow-hidden rounded-[34px] border border-sky-500/20 bg-[#020714] p-6 shadow-[0_0_30px_rgba(0,120,255,.10)]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.10),transparent_38%)]" />
 
-        <div className="space-y-3">
-          {lista.length === 0 ? (
-            <p className="text-zinc-500">Todavía no hay datos.</p>
-          ) : (
-            lista.map((j, index) => (
-              <Link
-                key={j.playerId || j.nombre}
-                href={
-                  j.playerId
-                    ? `/jugadores/${encodeURIComponent(j.playerId)}`
-                    : "#"
-                }
-                className="flex items-center justify-between bg-[#0b0f14] border border-white/[0.05] rounded-2xl p-4 hover:border-sky-400/40 transition"
-              >
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-white/[0.05] flex items-center justify-center font-black text-zinc-400 shrink-0">
-                    {index + 1}
-                  </div>
+        <div className="relative z-10">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-400/25 bg-sky-400/10 text-2xl">
+              {icono}
+            </div>
 
-                  <div className="min-w-0">
-                    <p className="font-black text-white truncate">{j.nombre}</p>
-                    <p className="text-sm text-zinc-500 truncate">
-                      {j.equipo} · {j.partidos} PJ
+            <h2 className="text-2xl font-black uppercase">{titulo}</h2>
+          </div>
+
+          <div className="space-y-3">
+            {lista.length === 0 ? (
+              <p className="rounded-2xl border border-white/5 bg-black/30 p-5 text-zinc-500">
+                Todavía no hay datos.
+              </p>
+            ) : (
+              lista.map((j, index) =>
+                linkJugador(
+                  j,
+                  <>
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl font-black ${
+                          index === 0
+                            ? "bg-yellow-400 text-black shadow-[0_0_18px_rgba(250,204,21,.35)]"
+                            : index === 1
+                              ? "bg-zinc-200 text-black"
+                              : index === 2
+                                ? "bg-orange-500 text-black"
+                                : "bg-white/[0.06] text-zinc-400"
+                        }`}
+                      >
+                        {index + 1}
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="truncate font-black uppercase text-white">
+                          {j.nombre}
+                        </p>
+                        <p className="truncate text-sm text-zinc-500">
+                          {j.equipo} · {j.partidos} PJ
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className={`shrink-0 text-3xl font-black ${color}`}>
+                      {j[campo]}
+                      {sufijo}
                     </p>
-                  </div>
-                </div>
-
-                <p className={`text-3xl font-black ${color} shrink-0`}>
-                  {j[campo]}
-                  {sufijo}
-                </p>
-              </Link>
-            ))
-          )}
+                  </>,
+                  "flex items-center justify-between rounded-2xl border border-sky-500/10 bg-black/35 p-4 transition hover:border-sky-400/45 hover:bg-sky-400/10",
+                  `${String(campo)}-${j.playerId || j.nombre}-${index}`,
+                ),
+              )
+            )}
+          </div>
         </div>
       </section>
     );
@@ -160,162 +210,218 @@ export default function HistoriaPage() {
 
   const totalPartidos = jugadores.reduce((acc, j) => acc + j.partidos, 0);
   const totalGoles = jugadores.reduce((acc, j) => acc + j.goles, 0);
-  const totalAsistencias = jugadores.reduce((acc, j) => acc + j.asistencias, 0);
   const totalMvps = jugadores.reduce((acc, j) => acc + j.mvps, 0);
 
   const maxGoleador = top("goles")[0];
+  const maxAsistidor = top("asistencias")[0];
   const maxMvp = top("mvps")[0];
   const mejorRating = top("ratingPromedio")[0];
   const mejorArquero = top("atajadas")[0];
 
+  function LeyendaCard({
+    titulo,
+    subtitulo,
+    jugador,
+    valor,
+    color,
+    icono,
+  }: {
+    titulo: string;
+    subtitulo: string;
+    jugador?: RankingJugador;
+    valor: any;
+    color: string;
+    icono: string;
+  }) {
+    const contenido = (
+      <>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,.10),transparent_40%)]" />
+
+        <div className="relative z-10">
+          <div className="mb-8 flex items-center justify-between gap-4">
+            <p
+              className={`text-xs font-black uppercase tracking-[0.28em] ${color}`}
+            >
+              {titulo}
+            </p>
+
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-black/35 text-3xl">
+              {icono}
+            </div>
+          </div>
+
+          <h3 className="truncate text-3xl font-black uppercase">
+            {jugador?.nombre || "-"}
+          </h3>
+
+          <p className="mt-2 truncate text-sm uppercase tracking-[0.12em] text-zinc-500">
+            {jugador?.equipo || "Sin datos"}
+          </p>
+
+          <div className="mt-7 flex items-end justify-between gap-4">
+            <p className={`text-6xl font-black ${color}`}>{valor || 0}</p>
+
+            <p className="text-right text-xs uppercase tracking-[0.2em] text-zinc-500">
+              {subtitulo}
+            </p>
+          </div>
+        </div>
+      </>
+    );
+
+    if (!jugador?.playerId) {
+      return (
+        <div className="relative overflow-hidden rounded-[34px] border border-white/10 bg-[#020714] p-6 shadow-[0_0_35px_rgba(0,120,255,.10)]">
+          {contenido}
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        href={`/jugadores/${encodeURIComponent(jugador.playerId)}`}
+        className="relative block overflow-hidden rounded-[34px] border border-white/10 bg-[#020714] p-6 shadow-[0_0_35px_rgba(0,120,255,.10)] transition hover:border-sky-400/45 hover:scale-[1.01]"
+      >
+        {contenido}
+      </Link>
+    );
+  }
+
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#0b0f14] text-white flex items-center justify-center">
-        <p className="text-zinc-400">Cargando historia...</p>
+      <main className="min-h-screen bg-[#020714] text-white flex items-center justify-center">
+        <p className="animate-pulse text-sky-400 font-black uppercase tracking-[0.3em]">
+          Cargando historia...
+        </p>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#0b0f14] text-white">
-      <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-10 space-y-10">
-        <div>
-          <p className="text-sky-400 text-xs uppercase tracking-[4px] font-bold">
-            APA PSO ARGENTINA
-          </p>
+    <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
+      <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-8 space-y-8">
+        <section className="relative overflow-hidden rounded-[38px] border border-sky-500/30 bg-[#020714] p-7 md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_42%)]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/20" />
 
-          <h1 className="mt-3 text-5xl md:text-7xl font-black uppercase">
-            🏆 Salón de la Fama
-          </h1>
-
-          <p className="mt-4 text-zinc-400 max-w-2xl">
-            Las mayores leyendas de APA PSO Argentina UE5. Todos los récords
-            históricos acumulados desde los TXT cargados.
-          </p>
-        </div>
-
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-5">
-          <div className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
-            <p className="text-zinc-500 text-xs uppercase font-bold">
-              Jugadores
+          <div className="relative z-10">
+            <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black">
+              APA PSO ARGENTINA
             </p>
-            <h2 className="text-5xl font-black mt-3">{jugadores.length}</h2>
-          </div>
 
-          <div className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
-            <p className="text-zinc-500 text-xs uppercase font-bold">
-              Registros
+            <h1 className="mt-4 text-5xl md:text-7xl font-black uppercase italic leading-none">
+              <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
+                Salón de
+              </span>
+              <span className="block text-yellow-300 drop-shadow-[0_0_20px_rgba(250,204,21,.45)]">
+                la Fama
+              </span>
+            </h1>
+
+            <p className="mt-5 max-w-2xl text-zinc-400">
+              Las mayores leyendas de APA PSO Argentina UE5. Rankings históricos
+              acumulados desde todos los TXT cargados.
             </p>
-            <h2 className="text-5xl font-black mt-3">{totalPartidos}</h2>
-          </div>
 
-          <div className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
-            <p className="text-zinc-500 text-xs uppercase font-bold">Goles</p>
-            <h2 className="text-5xl font-black mt-3 text-emerald-400">
-              {totalGoles}
-            </h2>
-          </div>
+            <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="rounded-2xl border border-sky-500/20 bg-black/35 p-4">
+                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
+                  Jugadores
+                </p>
+                <p className="mt-2 text-3xl font-black text-sky-300">
+                  {jugadores.length}
+                </p>
+              </div>
 
-          <div className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
-            <p className="text-zinc-500 text-xs uppercase font-bold">MVPs</p>
-            <h2 className="text-5xl font-black mt-3 text-yellow-300">
-              {totalMvps}
-            </h2>
+              <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
+                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
+                  Registros
+                </p>
+                <p className="mt-2 text-3xl font-black text-white">
+                  {totalPartidos}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-emerald-500/20 bg-black/35 p-4">
+                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
+                  Goles
+                </p>
+                <p className="mt-2 text-3xl font-black text-emerald-400">
+                  {totalGoles}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-yellow-500/20 bg-black/35 p-4">
+                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
+                  MVPs
+                </p>
+                <p className="mt-2 text-3xl font-black text-yellow-300">
+                  {totalMvps}
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-          <Link
-            href={
-              maxGoleador?.playerId
-                ? `/jugadores/${encodeURIComponent(maxGoleador.playerId)}`
-                : "#"
-            }
-            className="rounded-[32px] border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-black p-6 hover:border-emerald-400/50 transition"
-          >
-            <p className="text-emerald-400 text-xs uppercase tracking-[0.25em] font-black">
-              👑 Leyenda goleadora
-            </p>
+        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
+          <LeyendaCard
+            titulo="Leyenda goleadora"
+            subtitulo="goles"
+            jugador={maxGoleador}
+            valor={maxGoleador?.goles}
+            color="text-emerald-400"
+            icono="⚽"
+          />
 
-            <h3 className="mt-4 text-2xl font-black truncate">
-              {maxGoleador?.nombre || "-"}
-            </h3>
+          <LeyendaCard
+            titulo="Mago asistidor"
+            subtitulo="asistencias"
+            jugador={maxAsistidor}
+            valor={maxAsistidor?.asistencias}
+            color="text-sky-300"
+            icono="🎯"
+          />
 
-            <p className="mt-2 text-emerald-400 text-5xl font-black">
-              {maxGoleador?.goles || 0}
-            </p>
+          <LeyendaCard
+            titulo="Rey MVP"
+            subtitulo="MVP"
+            jugador={maxMvp}
+            valor={maxMvp?.mvps}
+            color="text-yellow-300"
+            icono="👑"
+          />
 
-            <p className="text-zinc-500 text-sm">goles históricos</p>
-          </Link>
+          <LeyendaCard
+            titulo="Mejor rating"
+            subtitulo="promedio"
+            jugador={mejorRating}
+            valor={mejorRating?.ratingPromedio}
+            color="text-purple-300"
+            icono="⭐"
+          />
 
-          <Link
-            href={
-              maxMvp?.playerId
-                ? `/jugadores/${encodeURIComponent(maxMvp.playerId)}`
-                : "#"
-            }
-            className="rounded-[32px] border border-yellow-500/20 bg-gradient-to-br from-yellow-500/10 to-black p-6 hover:border-yellow-300/50 transition"
-          >
-            <p className="text-yellow-300 text-xs uppercase tracking-[0.25em] font-black">
-              🏆 Rey MVP
-            </p>
+          <LeyendaCard
+            titulo="Muro histórico"
+            subtitulo="atajadas"
+            jugador={mejorArquero}
+            valor={mejorArquero?.atajadas}
+            color="text-cyan-300"
+            icono="🧤"
+          />
+        </section>
 
-            <h3 className="mt-4 text-2xl font-black truncate">
-              {maxMvp?.nombre || "-"}
-            </h3>
+        <section>
+          <p className="text-sky-300 uppercase tracking-[0.35em] text-xs font-black">
+            Rankings históricos
+          </p>
 
-            <p className="mt-2 text-yellow-300 text-5xl font-black">
-              {maxMvp?.mvps || 0}
-            </p>
+          <h2 className="mt-3 text-3xl md:text-5xl font-black uppercase">
+            Récords de la competición
+          </h2>
 
-            <p className="text-zinc-500 text-sm">MVP obtenidos</p>
-          </Link>
-
-          <Link
-            href={
-              mejorRating?.playerId
-                ? `/jugadores/${encodeURIComponent(mejorRating.playerId)}`
-                : "#"
-            }
-            className="rounded-[32px] border border-purple-500/20 bg-gradient-to-br from-purple-500/10 to-black p-6 hover:border-purple-300/50 transition"
-          >
-            <p className="text-purple-300 text-xs uppercase tracking-[0.25em] font-black">
-              ⭐ Mejor rating
-            </p>
-
-            <h3 className="mt-4 text-2xl font-black truncate">
-              {mejorRating?.nombre || "-"}
-            </h3>
-
-            <p className="mt-2 text-purple-300 text-5xl font-black">
-              {mejorRating?.ratingPromedio || 0}
-            </p>
-
-            <p className="text-zinc-500 text-sm">rating promedio</p>
-          </Link>
-
-          <Link
-            href={
-              mejorArquero?.playerId
-                ? `/jugadores/${encodeURIComponent(mejorArquero.playerId)}`
-                : "#"
-            }
-            className="rounded-[32px] border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 to-black p-6 hover:border-cyan-300/50 transition"
-          >
-            <p className="text-cyan-300 text-xs uppercase tracking-[0.25em] font-black">
-              🧤 Muro histórico
-            </p>
-
-            <h3 className="mt-4 text-2xl font-black truncate">
-              {mejorArquero?.nombre || "-"}
-            </h3>
-
-            <p className="mt-2 text-cyan-300 text-5xl font-black">
-              {mejorArquero?.atajadas || 0}
-            </p>
-
-            <p className="text-zinc-500 text-sm">atajadas</p>
-          </Link>
+          <p className="mt-3 text-zinc-500">
+            Cada ranking agrupa jugadores por Player ID.
+          </p>
         </section>
 
         <section className="grid grid-cols-1 xl:grid-cols-2 gap-8">
@@ -323,48 +429,56 @@ export default function HistoriaPage() {
             titulo="Máximos goleadores históricos"
             campo="goles"
             color="text-emerald-400"
+            icono="⚽"
           />
 
           <RankingBox
             titulo="Máximos asistidores históricos"
             campo="asistencias"
             color="text-sky-400"
+            icono="🎯"
           />
 
           <RankingBox
             titulo="Más MVPs históricos"
             campo="mvps"
             color="text-yellow-300"
+            icono="👑"
           />
 
           <RankingBox
             titulo="Mayor score total"
             campo="score"
             color="text-yellow-300"
+            icono="📊"
           />
 
           <RankingBox
             titulo="Mejor rating promedio"
             campo="ratingPromedio"
             color="text-purple-300"
+            icono="⭐"
           />
 
           <RankingBox
             titulo="Más atajadas"
             campo="atajadas"
             color="text-cyan-300"
+            icono="🧤"
           />
 
           <RankingBox
             titulo="Más tackles"
             campo="tackles"
             color="text-rose-300"
+            icono="🛡️"
           />
 
           <RankingBox
             titulo="Más intercepciones"
             campo="intercepciones"
             color="text-orange-300"
+            icono="🔥"
           />
         </section>
       </div>

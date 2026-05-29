@@ -81,14 +81,14 @@ export default function Home() {
     partidos.length > 0 ? String(partidos[0].fecha || "1") : "1";
 
   const partidosFecha = partidos.filter(
-    (p) => String(p.fecha || "1") === fechaActual
+    (p) => String(p.fecha || "1") === fechaActual,
   );
 
   const ultimos = partidos.slice(-5).reverse();
   const destacado = partidos[0];
 
   const equiposCantidad = new Set(
-    partidos.flatMap((p) => [p.local, p.visitante])
+    partidos.flatMap((p) => [p.local, p.visitante]),
   ).size;
 
   const jugadoresCantidad = new Set(jugadores.map((j) => j.nombre)).size;
@@ -189,6 +189,51 @@ export default function Home() {
           </div>
         </div>
 
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <a
+            href="/historia"
+            className="rounded-3xl border border-yellow-500/30 bg-gradient-to-br from-yellow-500/15 to-black p-5 hover:scale-[1.02] transition"
+          >
+            <p className="text-yellow-300 text-xs font-black tracking-[0.25em] uppercase">
+              Historia
+            </p>
+
+            <h3 className="text-2xl font-black mt-2">🏆 Salón de la Fama</h3>
+          </a>
+
+          <a
+            href="/clubes"
+            className="rounded-3xl border border-sky-500/30 bg-gradient-to-br from-sky-500/15 to-black p-5 hover:scale-[1.02] transition"
+          >
+            <p className="text-sky-300 text-xs font-black tracking-[0.25em] uppercase">
+              Clubes
+            </p>
+
+            <h3 className="text-2xl font-black mt-2">🏟️ Equipos</h3>
+          </a>
+
+          <a
+            href="/jugadores"
+            className="rounded-3xl border border-green-500/30 bg-gradient-to-br from-green-500/15 to-black p-5 hover:scale-[1.02] transition"
+          >
+            <p className="text-green-300 text-xs font-black tracking-[0.25em] uppercase">
+              Jugadores
+            </p>
+
+            <h3 className="text-2xl font-black mt-2">⚽ Rankings</h3>
+          </a>
+
+          <a
+            href="/fixture"
+            className="rounded-3xl border border-purple-500/30 bg-gradient-to-br from-purple-500/15 to-black p-5 hover:scale-[1.02] transition"
+          >
+            <p className="text-purple-300 text-xs font-black tracking-[0.25em] uppercase">
+              Fixture
+            </p>
+
+            <h3 className="text-2xl font-black mt-2">📅 Calendario</h3>
+          </a>
+        </div>
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-6">
           <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
@@ -245,9 +290,7 @@ export default function Home() {
               </div>
 
               <div className="border border-blue-500/50 bg-gradient-to-br from-blue-950 via-zinc-950 to-black rounded-3xl p-6 shadow-[0_0_30px_rgba(0,120,255,.25)]">
-                <h2 className="font-black text-xl mb-6">
-                  PARTIDO DESTACADO
-                </h2>
+                <h2 className="font-black text-xl mb-6">PARTIDO DESTACADO</h2>
 
                 {destacado ? (
                   <div className="text-center">
@@ -279,9 +322,7 @@ export default function Home() {
             </div>
 
             <div className="border border-blue-500/50 bg-zinc-950/90 rounded-3xl p-5">
-              <h2 className="text-2xl font-black mb-5">
-                📆 PRÓXIMAS FECHAS
-              </h2>
+              <h2 className="text-2xl font-black mb-5">📆 PRÓXIMAS FECHAS</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {["2", "3", "4", "5"].map((f) => (
@@ -297,8 +338,7 @@ export default function Home() {
                       .map((p, i) => (
                         <div key={i} className="text-sm text-zinc-300 mb-3">
                           <p className="truncate">
-                            {p.local}{" "}
-                            <b className="text-blue-400">VS</b>{" "}
+                            {p.local} <b className="text-blue-400">VS</b>{" "}
                             {p.visitante}
                           </p>
 
@@ -326,9 +366,7 @@ export default function Home() {
             </div>
 
             <div className="border border-blue-500/50 bg-zinc-950/90 rounded-3xl p-6">
-              <h2 className="text-2xl font-black mb-5">
-                ÚLTIMOS RESULTADOS
-              </h2>
+              <h2 className="text-2xl font-black mb-5">ÚLTIMOS RESULTADOS</h2>
 
               <div className="space-y-3">
                 {ultimos.map((p, i) => (
@@ -339,9 +377,7 @@ export default function Home() {
                     <p className="flex justify-between gap-2 text-sm">
                       <span className="truncate">{p.local}</span>
                       <b>{p.resultado}</b>
-                      <span className="truncate text-right">
-                        {p.visitante}
-                      </span>
+                      <span className="truncate text-right">{p.visitante}</span>
                     </p>
 
                     <p className="text-zinc-500 text-xs mt-1">

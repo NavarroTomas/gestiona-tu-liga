@@ -136,10 +136,12 @@ export default function FixtureDivisionPage() {
                     <Escudo nombre={p.local} />
                   </div>
 
-                  <div className="bg-gradient-to-b from-blue-500 to-blue-900 flex items-center justify-center px-4 py-5 shadow-[0_0_25px_rgba(0,120,255,.9)]">
-                    <p className="text-3xl font-black whitespace-nowrap">
-                      {p.resultado ? p.resultado : "VS"}
-                    </p>
+                  <div className="flex items-center justify-center px-4 py-5">
+                    <div className="min-w-[130px] rounded-2xl border border-yellow-400/35 bg-yellow-400/10 px-5 py-3 text-center shadow-[0_0_22px_rgba(250,204,21,.18)]">
+                      <p className="text-4xl font-black text-yellow-400 whitespace-nowrap drop-shadow-[0_0_10px_rgba(250,204,21,.45)]">
+                        {p.resultado ? p.resultado.replace(/\s/g, "") : "VS"}
+                      </p>
+                    </div>
                   </div>
 
                   <div className="flex items-center justify-center xl:justify-start gap-5 px-6 py-5">

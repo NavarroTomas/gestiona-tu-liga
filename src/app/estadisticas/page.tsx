@@ -40,7 +40,7 @@ export default function EstadisticasPage() {
     }
 
     const fechasUnicas = Array.from(
-      new Set((data || []).map((item: any) => item.fecha))
+      new Set((data || []).map((item: any) => item.fecha)),
     )
       .filter(Boolean)
       .sort((a: any, b: any) => Number(a) - Number(b));
@@ -85,7 +85,7 @@ export default function EstadisticasPage() {
     });
 
     const lista = Object.values(agrupados).sort(
-      (a: any, b: any) => Number(b.fecha) - Number(a.fecha)
+      (a: any, b: any) => Number(b.fecha) - Number(a.fecha),
     );
 
     setPartidos(lista);
@@ -236,7 +236,7 @@ export default function EstadisticasPage() {
                 <Link
                   key={partido.partido_id}
                   href={`/estadisticas/${encodeURIComponent(
-                    partido.partido_id
+                    partido.partido_id,
                   )}`}
                   className="group relative block overflow-hidden rounded-[32px] border border-sky-500/20 bg-[#020714] p-6 md:p-8 transition-all duration-300 hover:border-sky-400/50 hover:shadow-[0_0_35px_rgba(56,189,248,.16)]"
                 >
@@ -259,7 +259,7 @@ export default function EstadisticasPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-[1fr_120px_1fr] items-center gap-4 md:gap-8">
+                    <div className="grid grid-cols-1 xl:grid-cols-[1fr_auto_1fr] items-center gap-4 md:gap-8">
                       <div className="flex items-center gap-4 min-w-0">
                         <div className="h-14 w-14 shrink-0 rounded-full border border-sky-400/30 bg-gradient-to-b from-sky-400/20 to-blue-950 flex items-center justify-center text-sm font-black shadow-[0_0_15px_rgba(56,189,248,.2)]">
                           {e1?.equipo?.slice(0, 2).toUpperCase()}
@@ -272,10 +272,10 @@ export default function EstadisticasPage() {
                         </div>
                       </div>
 
-                      <div className="text-center">
-                        <div className="rounded-3xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-4 shadow-[0_0_20px_rgba(250,204,21,.08)]">
-                          <span className="text-3xl md:text-5xl font-black text-yellow-400 whitespace-nowrap drop-shadow-[0_0_10px_rgba(250,204,21,.45)]">
-                            {e1?.goals} - {e2?.goals}
+                      <div className="flex justify-center">
+                        <div className="min-w-[140px] rounded-3xl border border-yellow-400/30 bg-yellow-400/10 px-6 py-4 text-center shadow-[0_0_20px_rgba(250,204,21,.08)]">
+                          <span className="text-4xl md:text-5xl font-black text-yellow-400 whitespace-nowrap drop-shadow-[0_0_10px_rgba(250,204,21,.45)]">
+                            {e1?.goals}-{e2?.goals}
                           </span>
                         </div>
                       </div>
