@@ -36,7 +36,13 @@ export default function JugadoresPage() {
   const [division, setDivision] = useState("Primera");
   const [modo, setModo] = useState<"temporada" | "historico">("temporada");
 
-  const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4", "Temporada 5"];
+  const temporadas = [
+    "Temporada 1",
+    "Temporada 2",
+    "Temporada 3",
+    "Temporada 4",
+    "Temporada 5",
+  ];
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
@@ -44,6 +50,10 @@ export default function JugadoresPage() {
   useEffect(() => {
     cargarJugadores();
   }, [temporada, division, modo]);
+
+  function valorGKSave(r: any) {
+    return Number(r.gKSAVES || r.gKSaves || r.gksaves || 0);
+  }
 
   async function cargarJugadores() {
     let query = supabase.from("estadisticas_jugadores").select("*");
@@ -95,7 +105,7 @@ export default function JugadoresPage() {
       mapa[clave].tackles += Number(j.tackles) || 0;
       mapa[clave].ratingTotal += Number(j.overallRating) || 0;
       mapa[clave].partidos += 1;
-      mapa[clave].atajadas += Number(j.gKSAVES) || 0;
+      mapa[clave].atajadas += valorGKSave(j);
       mapa[clave].atrapadas += Number(j.gKCatches) || 0;
     });
 
@@ -155,17 +165,19 @@ export default function JugadoresPage() {
                       index === 0
                         ? "bg-yellow-400 text-black shadow-[0_0_20px_rgba(255,215,0,.8)]"
                         : index === 1
-                        ? "bg-zinc-300 text-black"
-                        : index === 2
-                        ? "bg-orange-500 text-black"
-                        : "bg-white/[0.05] text-zinc-400"
+                          ? "bg-zinc-300 text-black"
+                          : index === 2
+                            ? "bg-orange-500 text-black"
+                            : "bg-white/[0.05] text-zinc-400"
                     }`}
                   >
                     {index + 1}
                   </div>
 
                   <div>
-                    <p className="font-black text-white text-lg">{jugador.nombre}</p>
+                    <p className="font-black text-white text-lg">
+                      {jugador.nombre}
+                    </p>
                     <p className="text-sm text-zinc-500">{jugador.equipo}</p>
                   </div>
                 </div>
@@ -272,15 +284,69 @@ export default function JugadoresPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-          <Ranking titulo={modo === "historico" ? "⚽ Goleadores históricos" : "⚽ Goleadores"} tipo="goles" color="text-emerald-400" />
-          <Ranking titulo={modo === "historico" ? "🎯 Asistidores históricos" : "🎯 Asistencias"} tipo="asistencias" color="text-sky-400" />
-          <Ranking titulo={modo === "historico" ? "👑 MVPs históricos" : "👑 MVPs"} tipo="mvps" color="text-yellow-300" />
-          <Ranking titulo={modo === "historico" ? "⭐ Rating promedio histórico" : "⭐ Rating promedio"} tipo="rating" color="text-green-400" />
-          <Ranking titulo={modo === "historico" ? "💎 Score histórico" : "💎 Score"} tipo="score" color="text-yellow-300" />
-          <Ranking titulo={modo === "historico" ? "👟 Pases históricos" : "👟 Pases"} tipo="pases" color="text-sky-300" />
-          <Ranking titulo={modo === "historico" ? "🛡 Tackles históricos" : "🛡 Tackles"} tipo="tackles" color="text-red-400" />
-          <Ranking titulo={modo === "historico" ? "🧤 Atajadas históricas" : "🧤 Atajadas"} tipo="atajadas" color="text-cyan-400" />
-          <Ranking titulo={modo === "historico" ? "🤲 Atrapadas históricas" : "🤲 Atrapadas"} tipo="atrapadas" color="text-indigo-300" />
+          <Ranking
+            titulo={
+              modo === "historico"
+                ? "⚽ Goleadores históricos"
+                : "⚽ Goleadores"
+            }
+            tipo="goles"
+            color="text-emerald-400"
+          />
+          <Ranking
+            titulo={
+              modo === "historico"
+                ? "🎯 Asistidores históricos"
+                : "🎯 Asistencias"
+            }
+            tipo="asistencias"
+            color="text-sky-400"
+          />
+          <Ranking
+            titulo={modo === "historico" ? "👑 MVPs históricos" : "👑 MVPs"}
+            tipo="mvps"
+            color="text-yellow-300"
+          />
+          <Ranking
+            titulo={
+              modo === "historico"
+                ? "⭐ Rating promedio histórico"
+                : "⭐ Rating promedio"
+            }
+            tipo="rating"
+            color="text-green-400"
+          />
+          <Ranking
+            titulo={modo === "historico" ? "💎 Score histórico" : "💎 Score"}
+            tipo="score"
+            color="text-yellow-300"
+          />
+          <Ranking
+            titulo={modo === "historico" ? "👟 Pases históricos" : "👟 Pases"}
+            tipo="pases"
+            color="text-sky-300"
+          />
+          <Ranking
+            titulo={
+              modo === "historico" ? "🛡 Tackles históricos" : "🛡 Tackles"
+            }
+            tipo="tackles"
+            color="text-red-400"
+          />
+          <Ranking
+            titulo={
+              modo === "historico" ? "🧤 Atajadas históricas" : "🧤 Atajadas"
+            }
+            tipo="atajadas"
+            color="text-cyan-400"
+          />
+          <Ranking
+            titulo={
+              modo === "historico" ? "🤲 Atrapadas históricas" : "🤲 Atrapadas"
+            }
+            tipo="atrapadas"
+            color="text-indigo-300"
+          />
         </div>
       </div>
     </main>

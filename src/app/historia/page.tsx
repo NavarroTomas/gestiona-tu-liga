@@ -27,6 +27,10 @@ export default function HistoriaPage() {
     cargarHistoria();
   }, []);
 
+  function valorGKSave(r: any) {
+    return Number(r.gKSAVES || r.gKSaves || r.gksaves || 0);
+  }
+
   async function cargarHistoria() {
     const { data, error } = await supabase
       .from("estadisticas_jugadores")
@@ -72,7 +76,7 @@ export default function HistoriaPage() {
       mapa[clave].mvps += Number(j.mvp) || 0;
       mapa[clave].score += Number(j.score) || 0;
       mapa[clave].ratingTotal += Number(j.overallRating) || 0;
-      mapa[clave].atajadas += Number(j.gKSAVES) || 0;
+      mapa[clave].atajadas += valorGKSave(j);
       mapa[clave].tackles += Number(j.tackles) || 0;
       mapa[clave].intercepciones += Number(j.interceptions) || 0;
 
@@ -84,9 +88,7 @@ export default function HistoriaPage() {
     const lista = Object.values(mapa).map((j: any) => ({
       ...j,
       ratingPromedio:
-        j.partidos > 0
-          ? Math.round((j.ratingTotal / j.partidos) * 10) / 10
-          : 0,
+        j.partidos > 0 ? Math.round((j.ratingTotal / j.partidos) * 10) / 10 : 0,
     }));
 
     setJugadores(lista);
@@ -161,6 +163,11 @@ export default function HistoriaPage() {
   const totalAsistencias = jugadores.reduce((acc, j) => acc + j.asistencias, 0);
   const totalMvps = jugadores.reduce((acc, j) => acc + j.mvps, 0);
 
+  const maxGoleador = top("goles")[0];
+  const maxMvp = top("mvps")[0];
+  const mejorRating = top("ratingPromedio")[0];
+  const mejorArquero = top("atajadas")[0];
+
   if (loading) {
     return (
       <main className="min-h-screen bg-[#0b0f14] text-white flex items-center justify-center">
@@ -177,12 +184,13 @@ export default function HistoriaPage() {
             APA PSO ARGENTINA
           </p>
 
-          <h1 className="mt-3 text-4xl md:text-5xl font-black">
-            Historia de la Liga
+          <h1 className="mt-3 text-5xl md:text-7xl font-black uppercase">
+            🏆 Salón de la Fama
           </h1>
 
           <p className="mt-4 text-zinc-400 max-w-2xl">
-            Rankings históricos acumulados desde todos los TXT cargados.
+            Las mayores leyendas de APA PSO Argentina UE5. Todos los récords
+            históricos acumulados desde los TXT cargados.
           </p>
         </div>
 
@@ -202,22 +210,112 @@ export default function HistoriaPage() {
           </div>
 
           <div className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
-            <p className="text-zinc-500 text-xs uppercase font-bold">
-              Goles
-            </p>
+            <p className="text-zinc-500 text-xs uppercase font-bold">Goles</p>
             <h2 className="text-5xl font-black mt-3 text-emerald-400">
               {totalGoles}
             </h2>
           </div>
 
           <div className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
-            <p className="text-zinc-500 text-xs uppercase font-bold">
-              MVPs
-            </p>
+            <p className="text-zinc-500 text-xs uppercase font-bold">MVPs</p>
             <h2 className="text-5xl font-black mt-3 text-yellow-300">
               {totalMvps}
             </h2>
           </div>
+        </section>
+
+        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+          <Link
+            href={
+              maxGoleador?.playerId
+                ? `/jugadores/${encodeURIComponent(maxGoleador.playerId)}`
+                : "#"
+            }
+            className="rounded-[32px] border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-black p-6 hover:border-emerald-400/50 transition"
+          >
+            <p className="text-emerald-400 text-xs uppercase tracking-[0.25em] font-black">
+              👑 Leyenda goleadora
+            </p>
+
+            <h3 className="mt-4 text-2xl font-black truncate">
+              {maxGoleador?.nombre || "-"}
+            </h3>
+
+            <p className="mt-2 text-emerald-400 text-5xl font-black">
+              {maxGoleador?.goles || 0}
+            </p>
+
+            <p className="text-zinc-500 text-sm">goles históricos</p>
+          </Link>
+
+          <Link
+            href={
+              maxMvp?.playerId
+                ? `/jugadores/${encodeURIComponent(maxMvp.playerId)}`
+                : "#"
+            }
+            className="rounded-[32px] border border-yellow-500/20 bg-gradient-to-br from-yellow-500/10 to-black p-6 hover:border-yellow-300/50 transition"
+          >
+            <p className="text-yellow-300 text-xs uppercase tracking-[0.25em] font-black">
+              🏆 Rey MVP
+            </p>
+
+            <h3 className="mt-4 text-2xl font-black truncate">
+              {maxMvp?.nombre || "-"}
+            </h3>
+
+            <p className="mt-2 text-yellow-300 text-5xl font-black">
+              {maxMvp?.mvps || 0}
+            </p>
+
+            <p className="text-zinc-500 text-sm">MVP obtenidos</p>
+          </Link>
+
+          <Link
+            href={
+              mejorRating?.playerId
+                ? `/jugadores/${encodeURIComponent(mejorRating.playerId)}`
+                : "#"
+            }
+            className="rounded-[32px] border border-purple-500/20 bg-gradient-to-br from-purple-500/10 to-black p-6 hover:border-purple-300/50 transition"
+          >
+            <p className="text-purple-300 text-xs uppercase tracking-[0.25em] font-black">
+              ⭐ Mejor rating
+            </p>
+
+            <h3 className="mt-4 text-2xl font-black truncate">
+              {mejorRating?.nombre || "-"}
+            </h3>
+
+            <p className="mt-2 text-purple-300 text-5xl font-black">
+              {mejorRating?.ratingPromedio || 0}
+            </p>
+
+            <p className="text-zinc-500 text-sm">rating promedio</p>
+          </Link>
+
+          <Link
+            href={
+              mejorArquero?.playerId
+                ? `/jugadores/${encodeURIComponent(mejorArquero.playerId)}`
+                : "#"
+            }
+            className="rounded-[32px] border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 to-black p-6 hover:border-cyan-300/50 transition"
+          >
+            <p className="text-cyan-300 text-xs uppercase tracking-[0.25em] font-black">
+              🧤 Muro histórico
+            </p>
+
+            <h3 className="mt-4 text-2xl font-black truncate">
+              {mejorArquero?.nombre || "-"}
+            </h3>
+
+            <p className="mt-2 text-cyan-300 text-5xl font-black">
+              {mejorArquero?.atajadas || 0}
+            </p>
+
+            <p className="text-zinc-500 text-sm">atajadas</p>
+          </Link>
         </section>
 
         <section className="grid grid-cols-1 xl:grid-cols-2 gap-8">

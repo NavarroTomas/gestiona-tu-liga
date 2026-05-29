@@ -140,6 +140,14 @@ export default function JugadorPage() {
       item.partidos > 0 ? (item.ratingTotal / item.partidos).toFixed(1) : "0.0",
   }));
   const esArquero = totales.atajadas > 0 || totales.atrapadas > 0;
+
+  const mejorPartido =
+    stats.length > 0
+      ? [...stats].sort(
+          (a, b) => Number(b.overallRating || 0) - Number(a.overallRating || 0),
+        )[0]
+      : null;
+
   if (loading) {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -243,7 +251,117 @@ export default function JugadorPage() {
               <p className={`mt-3 text-4xl font-black ${color}`}>{value}</p>
             </div>
           ))}
+          
         </section>
+        {mejorPartido && (
+          <section className="relative overflow-hidden rounded-[34px] border border-yellow-400/30 bg-[#020714] p-6 shadow-[0_0_45px_rgba(250,204,21,.12)]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,.16),transparent_40%)]" />
+
+            <div className="relative z-10">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                <div>
+                  <p className="text-yellow-300 text-xs uppercase tracking-[0.35em] font-black">
+                    Partido destacado
+                  </p>
+                  <h2 className="mt-2 text-3xl md:text-4xl font-black uppercase italic">
+                    🏆 Mejor Partido
+                  </h2>
+                </div>
+
+                <div className="rounded-3xl border border-green-400/30 bg-green-400/10 px-6 py-4 text-center">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-green-300 font-black">
+                    Rating
+                  </p>
+                  <p className="text-5xl font-black text-green-400">
+                    {mejorPartido.overallRating || 0}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-4">
+                <div className="rounded-2xl border border-sky-500/20 bg-black/35 p-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
+                    Equipo
+                  </p>
+                  <p className="mt-2 font-black uppercase">
+                    {mejorPartido.equipo}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-sky-500/20 bg-black/35 p-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
+                    Temporada
+                  </p>
+                  <p className="mt-2 font-black">{mejorPartido.temporada}</p>
+                </div>
+
+                <div className="rounded-2xl border border-sky-500/20 bg-black/35 p-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
+                    División
+                  </p>
+                  <p className="mt-2 font-black">{mejorPartido.division}</p>
+                </div>
+
+                <div className="rounded-2xl border border-yellow-400/30 bg-yellow-400/10 p-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-yellow-300 font-black">
+                    Score
+                  </p>
+                  <p className="mt-2 text-3xl font-black text-yellow-400">
+                    {mejorPartido.score || 0}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-purple-400/30 bg-purple-400/10 p-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-purple-300 font-black">
+                    MVP
+                  </p>
+                  <p className="mt-2 text-3xl font-black text-purple-300">
+                    {Number(mejorPartido.mvp || 0) > 0 ? "Sí" : "No"}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
+                    Fecha
+                  </p>
+                  <p className="mt-2 font-black">{mejorPartido.fecha || "-"}</p>
+                </div>
+              </div>
+
+              <div className="mt-5 flex flex-wrap gap-3">
+                {esPartidoArquero(mejorPartido) ? (
+                  <>
+                    <span className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-5 py-3 font-black text-cyan-300">
+                      🧤 {valorGKSave(mejorPartido)} Atajadas
+                    </span>
+
+                    <span className="rounded-2xl border border-indigo-400/30 bg-indigo-400/10 px-5 py-3 font-black text-indigo-300">
+                      🤲 {mejorPartido.gKCatches || 0} Atrapadas
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-5 py-3 font-black text-yellow-300">
+                      ⚽ {mejorPartido.goals || 0} Goles
+                    </span>
+
+                    <span className="rounded-2xl border border-sky-400/30 bg-sky-400/10 px-5 py-3 font-black text-sky-300">
+                      🎯 {mejorPartido.assists || 0} Asistencias
+                    </span>
+                  </>
+                )}
+
+                <span className="rounded-2xl border border-purple-400/30 bg-purple-400/10 px-5 py-3 font-black text-purple-300">
+                  🎯 {mejorPartido.passes || 0} Pases
+                </span>
+
+                <span className="rounded-2xl border border-blue-400/30 bg-blue-400/10 px-5 py-3 font-black text-blue-300">
+                  🛡️ {mejorPartido.tackles || 0} Tackles
+                </span>
+              </div>
+            </div>
+          </section>
+        )}
         <section className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6">
           <h2 className="text-3xl font-black uppercase mb-6">
             Carrera por temporada
@@ -296,7 +414,7 @@ export default function JugadorPage() {
                     <td className="py-4 text-center font-black text-indigo-300">
                       {item.atrapadas || 0}
                     </td>
-                    
+
                     <td className="py-4 text-center font-black text-green-400">
                       {item.mvps}
                     </td>
