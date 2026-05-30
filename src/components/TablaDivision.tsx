@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 
 interface EquipoTabla {
   nombre: string;
+  logo_url?: string;
   pj: number;
   pg: number;
   pe: number;
@@ -24,6 +25,7 @@ export default function TablaDivision({
   division: string;
 }) {
   const [tabla, setTabla] = useState<EquipoTabla[]>([]);
+  const [logos, setLogos] = useState<Record<string, string>>({});
 
   useEffect(() => {
     cargarTabla();
@@ -40,8 +42,39 @@ export default function TablaDivision({
       console.log(error);
       return;
     }
+    const { data: equiposData } = await supabase
+      .from("equipos")
+      .select("nombre, logo_url")
+      .eq("temporada", temporada)
+      .eq("division", division);
+
+    const logosMap: Record<string, string> = {};
+
+    equiposData?.forEach((e) => {
+      if (e.logo_url) {
+        logosMap[e.nombre] = e.logo_url;
+      }
+    });
+
+    setLogos(logosMap);
 
     const equipos: { [key: string]: EquipoTabla } = {};
+
+    equiposData?.forEach((e) => {
+      equipos[e.nombre] = {
+        nombre: e.nombre,
+        logo_url: e.logo_url || undefined,
+        pj: 0,
+        pg: 0,
+        pe: 0,
+        pp: 0,
+        gf: 0,
+        gc: 0,
+        dg: 0,
+        puntos: 0,
+        forma: [],
+      };
+    });
 
     data?.forEach((partido: any) => {
       if (!partido.resultado || !partido.resultado.includes("-")) return;
@@ -125,12 +158,7 @@ export default function TablaDivision({
         dg: equipo.gf - equipo.gc,
         forma: equipo.forma.slice(-5),
       }))
-      .sort(
-        (a, b) =>
-          b.puntos - a.puntos ||
-          b.dg - a.dg ||
-          b.gf - a.gf
-      );
+      .sort((a, b) => b.puntos - a.puntos || b.dg - a.dg || b.gf - a.gf);
 
     setTabla(tablaFinal);
   }
@@ -206,8 +234,8 @@ export default function TablaDivision({
                           top
                             ? "bg-green-400 shadow-[0_0_10px_rgba(74,222,128,.7)]"
                             : descenso
-                            ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,.7)]"
-                            : "bg-sky-500/45"
+                              ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,.7)]"
+                              : "bg-sky-500/45"
                         }`}
                       />
 
@@ -218,7 +246,7 @@ export default function TablaDivision({
 
                         <span
                           className={`flex h-[16px] w-[16px] items-center justify-center text-[9px] font-black leading-none ${colorMovimiento(
-                            index
+                            index,
                           )}`}
                         >
                           {movimiento(index)}
@@ -233,13 +261,23 @@ export default function TablaDivision({
                             top
                               ? "bg-green-400 shadow-[0_0_10px_rgba(74,222,128,.75)]"
                               : descenso
-                              ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,.75)]"
-                              : "bg-sky-500 shadow-[0_0_10px_rgba(56,189,248,.45)]"
+                                ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,.75)]"
+                                : "bg-sky-500 shadow-[0_0_10px_rgba(56,189,248,.45)]"
                           }`}
                         />
 
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-sky-400/40 bg-gradient-to-b from-sky-400/30 to-blue-950 text-[10px] text-white shadow-[0_0_14px_rgba(56,189,248,.22)]">
-                          {equipo.nombre.slice(0, 2).toUpperCase()}
+                        <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-sky-400/40 bg-black">
+                          {logos[equipo.nombre] ? (
+                            <img
+                              src={logos[equipo.nombre]}
+                              alt={equipo.nombre}
+                              className="h-full w-full object-contain p-1"
+                            />
+                          ) : (
+                            <span className="text-[10px] text-white">
+                              {equipo.nombre.slice(0, 2).toUpperCase()}
+                            </span>
+                          )}
                         </div>
 
                         <span className="max-w-[280px] truncate text-white">
@@ -290,7 +328,7 @@ export default function TablaDivision({
                             <span
                               key={`${equipo.nombre}-${i}`}
                               className={`h-2.5 w-2.5 rounded-full ${colorForma(
-                                resultado
+                                resultado,
                               )}`}
                             />
                           ))

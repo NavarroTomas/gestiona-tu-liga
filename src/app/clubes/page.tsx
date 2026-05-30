@@ -232,12 +232,12 @@ export default function ClubesPage() {
                 <div className="relative z-10">
                   <div className="mb-5 rounded-[26px] border border-sky-500/15 bg-gradient-to-br from-sky-400/10 via-black/20 to-blue-950/40 p-5">
                     <div className="flex items-center justify-between gap-4">
-                      <div className="h-24 w-24 shrink-0 overflow-hidden rounded-full border border-sky-400/40 bg-gradient-to-b from-sky-400/30 to-blue-950 shadow-[0_0_24px_rgba(56,189,248,.25)]">
+                      <div className="h-28 w-28 shrink-0 overflow-hidden rounded-full border border-sky-400/40 bg-gradient-to-b from-sky-400/30 to-blue-950 shadow-[0_0_24px_rgba(56,189,248,.25)]">
                         {club.logo_url ? (
                           <img
                             src={club.logo_url}
                             alt={club.nombre}
-                            className="h-full w-full object-cover"
+                            className="h-full w-full object-contain p-2"
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center text-2xl font-black text-white">
