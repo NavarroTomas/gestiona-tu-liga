@@ -6,6 +6,7 @@ import TablaPosicionesHome from "../components/TablaPosicionesHome";
 import HeroImagenesHome from "../components/HeroImagenesHome";
 import HeroCarruselHome from "../components/HeroCarruselHome";
 
+
 export default function Home() {
   const [partidos, setPartidos] = useState<any[]>([]);
   const [jugadores, setJugadores] = useState<any[]>([]);

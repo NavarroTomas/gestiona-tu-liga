@@ -5,7 +5,12 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 export default function AdminPage() {
-  const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4"];
+  const temporadas = [
+    "Temporada 1",
+    "Temporada 2",
+    "Temporada 3",
+    "Temporada 4",
+  ];
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 
   const [clubNombre, setClubNombre] = useState("");
@@ -36,7 +41,11 @@ export default function AdminPage() {
 
   async function crearClub() {
     const { error } = await supabase.from("equipos").insert([
-      { nombre: clubNombre, temporada: clubTemporada, division: clubDivision },
+      {
+        nombre: clubNombre,
+        temporada: clubTemporada,
+        division: clubDivision,
+      },
     ]);
 
     if (error) {
@@ -50,9 +59,9 @@ export default function AdminPage() {
   }
 
   async function crearTemporada() {
-    const { error } = await supabase.from("temporadas").insert([
-      { nombre: temporadaNombre, campeon: temporadaCampeon },
-    ]);
+    const { error } = await supabase
+      .from("temporadas")
+      .insert([{ nombre: temporadaNombre, campeon: temporadaCampeon }]);
 
     if (error) {
       console.log(error);
@@ -147,16 +156,14 @@ export default function AdminPage() {
             PANEL ADMINISTRATIVO
           </p>
 
-          <h1 className="mt-3 text-4xl md:text-5xl font-black">
-            Admin Panel
-          </h1>
+          <h1 className="mt-3 text-4xl md:text-5xl font-black">Admin Panel</h1>
 
           <p className="mt-4 text-zinc-400 max-w-2xl">
             Gestioná clubes, temporadas, partidos, jugadores, noticias,
             plantillas y mercado sin tocar código.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mt-8">
           <Link
             href="/admin/subir-txt"
             className="group rounded-3xl border border-sky-500/20 bg-[#11151c] p-6 transition hover:border-sky-400 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]"
@@ -165,9 +172,7 @@ export default function AdminPage() {
               Estadísticas
             </p>
 
-            <h3 className="text-3xl font-black mt-3">
-              📄 Subir TXT
-            </h3>
+            <h3 className="text-3xl font-black mt-3">📄 Subir TXT</h3>
 
             <p className="text-zinc-400 mt-3">
               Cargá automáticamente los archivos de partidos.
@@ -180,51 +185,80 @@ export default function AdminPage() {
           >
             <p className="text-sky-400 text-xs uppercase tracking-[0.25em] font-black">
               Administración
-           </p>
+            </p>
 
-          <h3 className="text-3xl font-black mt-3">
-              📋 Listas
-          </h3>
+            <h3 className="text-3xl font-black mt-3">📋 Listas</h3>
 
-          <p className="text-zinc-400 mt-3">
-            Gestioná registros y datos cargados.
-          </p>
-        </Link>
+            <p className="text-zinc-400 mt-3">
+              Gestioná registros y datos cargados.
+            </p>
+          </Link>
 
-  <Link
-    href="/admin/plantillas"
-    className="group rounded-3xl border border-sky-500/20 bg-[#11151c] p-6 transition hover:border-sky-400 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]"
-  >
-    <p className="text-sky-400 text-xs uppercase tracking-[0.25em] font-black">
-      Equipos
-    </p>
+          <Link
+            href="/admin/plantillas"
+            className="group rounded-3xl border border-sky-500/20 bg-[#11151c] p-6 transition hover:border-sky-400 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]"
+          >
+            <p className="text-sky-400 text-xs uppercase tracking-[0.25em] font-black">
+              Equipos
+            </p>
 
-    <h3 className="text-3xl font-black mt-3">
-      👥 Plantillas
-    </h3>
+            <h3 className="text-3xl font-black mt-3">👥 Plantillas</h3>
 
-    <p className="text-zinc-400 mt-3">
-      Administrá jugadores y transferencias.
-    </p>
-  </Link>
-</div>
+            <p className="text-zinc-400 mt-3">
+              Administrá jugadores y transferencias.
+            </p>
+          </Link>
+          <Link
+            href="/admin/cargar-partido-manual"
+            className="group rounded-3xl border border-yellow-500/20 bg-[#11151c] p-6 transition hover:border-yellow-400 hover:shadow-[0_0_25px_rgba(250,204,21,.15)]"
+          >
+            <p className="text-yellow-300 text-xs uppercase tracking-[0.25em] font-black">
+              Históricos
+            </p>
+
+            <h3 className="text-3xl font-black mt-3">⚽ Partido Manual</h3>
+
+            <p className="text-zinc-400 mt-3">
+              Cargá partidos, goleadores, asistencias y MVP sin TXT.
+            </p>
+          </Link>
+        </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
             <h2 className="text-2xl font-black mb-5">Crear Club</h2>
 
             <div className="space-y-4">
-              <input className="input" placeholder="Nombre del club" value={clubNombre} onChange={(e) => setClubNombre(e.target.value)} />
+              <input
+                className="input"
+                placeholder="Nombre del club"
+                value={clubNombre}
+                onChange={(e) => setClubNombre(e.target.value)}
+              />
 
-              <select className="input" value={clubTemporada} onChange={(e) => setClubTemporada(e.target.value)}>
-                {temporadas.map((temp) => <option key={temp}>{temp}</option>)}
+              <select
+                className="input"
+                value={clubTemporada}
+                onChange={(e) => setClubTemporada(e.target.value)}
+              >
+                {temporadas.map((temp) => (
+                  <option key={temp}>{temp}</option>
+                ))}
               </select>
 
-              <select className="input" value={clubDivision} onChange={(e) => setClubDivision(e.target.value)}>
-                {divisiones.map((div) => <option key={div}>{div}</option>)}
+              <select
+                className="input"
+                value={clubDivision}
+                onChange={(e) => setClubDivision(e.target.value)}
+              >
+                {divisiones.map((div) => (
+                  <option key={div}>{div}</option>
+                ))}
               </select>
 
-              <button onClick={crearClub} className="btn">Guardar Club</button>
+              <button onClick={crearClub} className="btn">
+                Guardar Club
+              </button>
             </div>
           </section>
 
@@ -232,10 +266,22 @@ export default function AdminPage() {
             <h2 className="text-2xl font-black mb-5">Crear Temporada</h2>
 
             <div className="space-y-4">
-              <input className="input" placeholder="Ej: Temporada 1" value={temporadaNombre} onChange={(e) => setTemporadaNombre(e.target.value)} />
-              <input className="input" placeholder="Campeón" value={temporadaCampeon} onChange={(e) => setTemporadaCampeon(e.target.value)} />
+              <input
+                className="input"
+                placeholder="Ej: Temporada 1"
+                value={temporadaNombre}
+                onChange={(e) => setTemporadaNombre(e.target.value)}
+              />
+              <input
+                className="input"
+                placeholder="Campeón"
+                value={temporadaCampeon}
+                onChange={(e) => setTemporadaCampeon(e.target.value)}
+              />
 
-              <button onClick={crearTemporada} className="btn">Guardar Temporada</button>
+              <button onClick={crearTemporada} className="btn">
+                Guardar Temporada
+              </button>
             </div>
           </section>
 
@@ -243,20 +289,54 @@ export default function AdminPage() {
             <h2 className="text-2xl font-black mb-5">Cargar Partido</h2>
 
             <div className="space-y-4">
-              <input className="input" placeholder="Local" value={local} onChange={(e) => setLocal(e.target.value)} />
-              <input className="input" placeholder="Visitante" value={visitante} onChange={(e) => setVisitante(e.target.value)} />
-              <input className="input" placeholder="Resultado ej: 3-1" value={resultado} onChange={(e) => setResultado(e.target.value)} />
-              <input className="input" placeholder="Fecha ej: 1" value={fecha} onChange={(e) => setFecha(e.target.value)} />
+              <input
+                className="input"
+                placeholder="Local"
+                value={local}
+                onChange={(e) => setLocal(e.target.value)}
+              />
+              <input
+                className="input"
+                placeholder="Visitante"
+                value={visitante}
+                onChange={(e) => setVisitante(e.target.value)}
+              />
+              <input
+                className="input"
+                placeholder="Resultado ej: 3-1"
+                value={resultado}
+                onChange={(e) => setResultado(e.target.value)}
+              />
+              <input
+                className="input"
+                placeholder="Fecha ej: 1"
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+              />
 
-              <select className="input" value={partidoTemporada} onChange={(e) => setPartidoTemporada(e.target.value)}>
-                {temporadas.map((temp) => <option key={temp}>{temp}</option>)}
+              <select
+                className="input"
+                value={partidoTemporada}
+                onChange={(e) => setPartidoTemporada(e.target.value)}
+              >
+                {temporadas.map((temp) => (
+                  <option key={temp}>{temp}</option>
+                ))}
               </select>
 
-              <select className="input" value={partidoDivision} onChange={(e) => setPartidoDivision(e.target.value)}>
-                {divisiones.map((div) => <option key={div}>{div}</option>)}
+              <select
+                className="input"
+                value={partidoDivision}
+                onChange={(e) => setPartidoDivision(e.target.value)}
+              >
+                {divisiones.map((div) => (
+                  <option key={div}>{div}</option>
+                ))}
               </select>
 
-              <button onClick={crearPartido} className="btn">Guardar Partido</button>
+              <button onClick={crearPartido} className="btn">
+                Guardar Partido
+              </button>
             </div>
           </section>
 
@@ -264,21 +344,60 @@ export default function AdminPage() {
             <h2 className="text-2xl font-black mb-5">Cargar Jugador</h2>
 
             <div className="space-y-4">
-              <input className="input" placeholder="Jugador" value={jugadorNombre} onChange={(e) => setJugadorNombre(e.target.value)} />
-              <input className="input" placeholder="Equipo" value={jugadorEquipo} onChange={(e) => setJugadorEquipo(e.target.value)} />
-              <input className="input" placeholder="Goles" value={goles} onChange={(e) => setGoles(e.target.value)} />
-              <input className="input" placeholder="Asistencias" value={asistencias} onChange={(e) => setAsistencias(e.target.value)} />
-              <input className="input" placeholder="MVPs" value={mvps} onChange={(e) => setMvps(e.target.value)} />
+              <input
+                className="input"
+                placeholder="Jugador"
+                value={jugadorNombre}
+                onChange={(e) => setJugadorNombre(e.target.value)}
+              />
+              <input
+                className="input"
+                placeholder="Equipo"
+                value={jugadorEquipo}
+                onChange={(e) => setJugadorEquipo(e.target.value)}
+              />
+              <input
+                className="input"
+                placeholder="Goles"
+                value={goles}
+                onChange={(e) => setGoles(e.target.value)}
+              />
+              <input
+                className="input"
+                placeholder="Asistencias"
+                value={asistencias}
+                onChange={(e) => setAsistencias(e.target.value)}
+              />
+              <input
+                className="input"
+                placeholder="MVPs"
+                value={mvps}
+                onChange={(e) => setMvps(e.target.value)}
+              />
 
-              <select className="input" value={jugadorTemporada} onChange={(e) => setJugadorTemporada(e.target.value)}>
-                {temporadas.map((temp) => <option key={temp}>{temp}</option>)}
+              <select
+                className="input"
+                value={jugadorTemporada}
+                onChange={(e) => setJugadorTemporada(e.target.value)}
+              >
+                {temporadas.map((temp) => (
+                  <option key={temp}>{temp}</option>
+                ))}
               </select>
 
-              <select className="input" value={jugadorDivision} onChange={(e) => setJugadorDivision(e.target.value)}>
-                {divisiones.map((div) => <option key={div}>{div}</option>)}
+              <select
+                className="input"
+                value={jugadorDivision}
+                onChange={(e) => setJugadorDivision(e.target.value)}
+              >
+                {divisiones.map((div) => (
+                  <option key={div}>{div}</option>
+                ))}
               </select>
 
-              <button onClick={crearJugador} className="btn">Guardar Jugador</button>
+              <button onClick={crearJugador} className="btn">
+                Guardar Jugador
+              </button>
             </div>
           </section>
 
@@ -301,15 +420,21 @@ export default function AdminPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="bg-[#0b0f14] border border-white/[0.05] rounded-2xl p-5">
-                <p className="text-zinc-500 text-sm uppercase font-bold">Plantillas</p>
-                <h3 className="text-3xl font-black mt-3">Registrar jugadores</h3>
+                <p className="text-zinc-500 text-sm uppercase font-bold">
+                  Plantillas
+                </p>
+                <h3 className="text-3xl font-black mt-3">
+                  Registrar jugadores
+                </h3>
                 <p className="text-zinc-400 mt-3">
                   Agregá jugadores a clubes por temporada, división y posición.
                 </p>
               </div>
 
               <div className="bg-[#0b0f14] border border-white/[0.05] rounded-2xl p-5">
-                <p className="text-zinc-500 text-sm uppercase font-bold">Mercado</p>
+                <p className="text-zinc-500 text-sm uppercase font-bold">
+                  Mercado
+                </p>
                 <h3 className="text-3xl font-black mt-3">Transferencias</h3>
                 <p className="text-zinc-400 mt-3">
                   Registrá fichajes, salidas, libres y préstamos.
@@ -322,7 +447,12 @@ export default function AdminPage() {
             <h2 className="text-2xl font-black mb-5">Publicar Noticia</h2>
 
             <div className="space-y-4">
-              <input className="input" placeholder="Título" value={noticiaTitulo} onChange={(e) => setNoticiaTitulo(e.target.value)} />
+              <input
+                className="input"
+                placeholder="Título"
+                value={noticiaTitulo}
+                onChange={(e) => setNoticiaTitulo(e.target.value)}
+              />
 
               <textarea
                 className="input min-h-[120px]"
@@ -331,11 +461,19 @@ export default function AdminPage() {
                 onChange={(e) => setNoticiaDescripcion(e.target.value)}
               />
 
-              <select className="input" value={noticiaTemporada} onChange={(e) => setNoticiaTemporada(e.target.value)}>
-                {temporadas.map((temp) => <option key={temp}>{temp}</option>)}
+              <select
+                className="input"
+                value={noticiaTemporada}
+                onChange={(e) => setNoticiaTemporada(e.target.value)}
+              >
+                {temporadas.map((temp) => (
+                  <option key={temp}>{temp}</option>
+                ))}
               </select>
 
-              <button onClick={crearNoticia} className="btn">Publicar Noticia</button>
+              <button onClick={crearNoticia} className="btn">
+                Publicar Noticia
+              </button>
             </div>
           </section>
         </div>
