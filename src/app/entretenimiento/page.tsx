@@ -28,7 +28,8 @@ export default function EntretenimientoPage() {
 
               <p className="mt-5 max-w-2xl text-zinc-400">
                 Zona interactiva de APA PSO Argentina UE5. Pronosticá partidos,
-                armá tu Dream Team 8v8 y participá con la comunidad.
+                armá tu Dream Team 8v8, descubrí los premios de la fecha y
+                participá con la comunidad.
               </p>
             </div>
 
@@ -38,7 +39,7 @@ export default function EntretenimientoPage() {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Link
             href="/entretenimiento/predicciones"
             className="group relative overflow-hidden rounded-[38px] border border-yellow-400/30 bg-[#020714] p-7 md:p-8 min-h-[360px] transition hover:scale-[1.01] hover:border-yellow-300/70 hover:shadow-[0_0_45px_rgba(250,204,21,.16)]"
@@ -51,7 +52,7 @@ export default function EntretenimientoPage() {
             <div className="relative z-10 flex h-full flex-col justify-between">
               <div>
                 <p className="text-yellow-300 text-xs uppercase tracking-[0.35em] font-black">
-                  Próximamente
+                  Marcador Exacto
                 </p>
 
                 <h2 className="mt-5 text-5xl md:text-6xl font-black uppercase italic">
@@ -59,9 +60,8 @@ export default function EntretenimientoPage() {
                 </h2>
 
                 <p className="mt-5 text-zinc-400 max-w-xl">
-                  Elegí quién gana cada partido antes de que se juegue. Local,
-                  empate o visitante. Después se podrán ver porcentajes y ranking
-                  de pronosticadores.
+                  Pronosticá ganador o marcador exacto. Ganador correcto suma 1
+                  punto y marcador exacto suma 3 puntos.
                 </p>
               </div>
 
@@ -121,7 +121,7 @@ export default function EntretenimientoPage() {
                 </h2>
 
                 <p className="mt-5 text-zinc-400 max-w-xl">
-                  Armá el equipo ideal de la temporada con la formación oficial:
+                  Armá el equipo ideal de cada fecha con la formación oficial:
                   GK, LB, CB, RB, LCM, RCM, LST y RST.
                 </p>
               </div>
@@ -155,6 +155,74 @@ export default function EntretenimientoPage() {
                   Entrar
                 </span>
                 <span className="text-sky-300 text-2xl transition group-hover:translate-x-1">
+                  →
+                </span>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/entretenimiento/premios"
+            className="group relative overflow-hidden rounded-[38px] border border-orange-400/30 bg-[#020714] p-7 md:p-8 min-h-[360px] transition hover:scale-[1.01] hover:border-orange-300/70 hover:shadow-[0_0_45px_rgba(251,146,60,.16)]"
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,146,60,.18),transparent_42%)]" />
+            <div className="absolute -right-10 -bottom-10 text-[180px] opacity-10">
+              🏆
+            </div>
+
+            <div className="relative z-10 flex h-full flex-col justify-between">
+              <div>
+                <p className="text-orange-300 text-xs uppercase tracking-[0.35em] font-black">
+                  Estadísticas Automáticas
+                </p>
+
+                <h2 className="mt-5 text-5xl md:text-6xl font-black uppercase italic">
+                  Premios APA
+                </h2>
+
+                <p className="mt-5 text-zinc-400 max-w-xl">
+                  Descubrí quién fue el MVP, goleador, asistidor, arquero y
+                  defensor de cada fecha según las estadísticas oficiales.
+                </p>
+              </div>
+
+              <div className="mt-8 rounded-3xl border border-orange-400/25 bg-orange-400/10 p-5">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl bg-black/35 p-4 text-center">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
+                      MVP
+                    </p>
+                    <p className="mt-2 text-2xl font-black text-orange-300">⭐</p>
+                  </div>
+
+                  <div className="rounded-2xl bg-black/35 p-4 text-center">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
+                      Goleador
+                    </p>
+                    <p className="mt-2 text-2xl font-black text-orange-300">⚽</p>
+                  </div>
+
+                  <div className="rounded-2xl bg-black/35 p-4 text-center">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
+                      Arquero
+                    </p>
+                    <p className="mt-2 text-2xl font-black text-orange-300">🧤</p>
+                  </div>
+
+                  <div className="rounded-2xl bg-black/35 p-4 text-center">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
+                      Defensa
+                    </p>
+                    <p className="mt-2 text-2xl font-black text-orange-300">🛡️</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 flex items-center justify-between rounded-2xl border border-orange-400/25 bg-black/35 px-5 py-4">
+                <span className="text-orange-300 text-sm font-black uppercase tracking-[0.22em]">
+                  Entrar
+                </span>
+                <span className="text-orange-300 text-2xl transition group-hover:translate-x-1">
                   →
                 </span>
               </div>

@@ -23,6 +23,15 @@ const menus = [
       { nombre: "Jugadores", href: "/jugadores" },
     ],
   },
+  {
+    nombre: "Entretenimiento",
+    items: [
+      { nombre: "Inicio", href: "/entretenimiento" },
+      { nombre: "Predicciones", href: "/entretenimiento/predicciones" },
+      { nombre: "Dream Team", href: "/entretenimiento/dream-team" },
+      { nombre: "Premios APA", href: "/entretenimiento/premios" },
+    ],
+  },
 ];
 
 export default function Navbar() {
@@ -59,7 +68,7 @@ export default function Navbar() {
 
           {menus.map((menu) => {
             const activo = menu.items.some((item) =>
-              pathname.startsWith(item.href)
+              pathname.startsWith(item.href),
             );
 
             return (
