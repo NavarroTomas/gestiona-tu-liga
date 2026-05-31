@@ -10,28 +10,28 @@ const menus = [
     icon: "🏆",
     items: [
       {
-        nombre: "Divisiones",
-        href: "/divisiones",
-        icon: "📊",
-        descripcion: "Tablas y divisiones",
+        nombre: "Torneos",
+        href: "/competicion",
+        icon: "🏆",
+        descripcion: "Liga, copas y eventos",
       },
       {
         nombre: "Fixture",
         href: "/fixture",
         icon: "📅",
-        descripcion: "Fechas y partidos",
+        descripcion: "Calendario oficial",
       },
       {
         nombre: "Stats",
         href: "/estadisticas",
         icon: "📈",
-        descripcion: "Datos oficiales",
+        descripcion: "Estadísticas oficiales",
       },
       {
         nombre: "Historia",
         href: "/historia",
         icon: "🏛️",
-        descripcion: "Récords y legado",
+        descripcion: "Leyendas y récords",
       },
     ],
   },
@@ -99,6 +99,14 @@ const menus = [
 
 function linkActivo(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
+
+  if (href === "/competicion") {
+    return (
+      pathname.startsWith("/competicion") ||
+      pathname.startsWith("/divisiones")
+    );
+  }
+
   return pathname.startsWith(href);
 }
 

@@ -226,6 +226,48 @@ export default function JugadorPage() {
                   <span className="rounded-2xl border border-white/10 bg-black/30 px-4 py-2 text-sm font-black uppercase text-zinc-400">
                     {divisiones.length} divisiones
                   </span>
+
+                  <span
+                    className={`rounded-2xl border px-4 py-2 text-sm font-black uppercase ${
+                      esArquero
+                        ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-300"
+                        : "border-green-400/30 bg-green-400/10 text-green-300"
+                    }`}
+                  >
+                    {esArquero ? "🧤 Arquero" : "⚽ Jugador de campo"}
+                  </span>
+                </div>
+
+                <div className="mt-7 grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {[
+                    ["Rating", totales.rating, "⭐", "text-green-400"],
+                    [
+                      esArquero ? "Atajadas" : "Goles",
+                      esArquero ? totales.atajadas : totales.goles,
+                      esArquero ? "🧤" : "⚽",
+                      esArquero ? "text-cyan-300" : "text-yellow-400",
+                    ],
+                    [
+                      esArquero ? "Atrapadas" : "Asist.",
+                      esArquero ? totales.atrapadas : totales.asistencias,
+                      esArquero ? "🤲" : "🎯",
+                      esArquero ? "text-indigo-300" : "text-sky-300",
+                    ],
+                    ["MVP", totales.mvp, "🏆", "text-purple-300"],
+                  ].map(([label, value, icon, color]) => (
+                    <div
+                      key={label}
+                      className="rounded-2xl border border-white/10 bg-black/35 p-4 backdrop-blur"
+                    >
+                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
+                        {icon} {label}
+                      </p>
+
+                      <p className={`mt-2 text-3xl font-black ${color}`}>
+                        {value}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -385,27 +427,30 @@ export default function JugadorPage() {
                     <p className="text-zinc-500">{t.division}</p>
                   </div>
 
-                  <div className="flex flex-wrap gap-3">
-                    <span className="rounded-xl bg-green-500/10 border border-green-500/30 px-4 py-2 font-black text-green-400">
-                      ⭐ {t.rating}
-                    </span>
+                  <div className="min-w-[260px] flex-1">
+                    <div className="flex flex-wrap justify-start gap-3 md:justify-end">
+                      <span className="rounded-xl bg-green-500/10 border border-green-500/30 px-4 py-2 font-black text-green-400">
+                        ⭐ {t.rating}
+                      </span>
 
-                    <span className="rounded-xl bg-yellow-500/10 border border-yellow-500/30 px-4 py-2 font-black text-yellow-400">
-                      ⚽ {t.goles}
-                    </span>
+                      <span className="rounded-xl bg-yellow-500/10 border border-yellow-500/30 px-4 py-2 font-black text-yellow-400">
+                        ⚽ {t.goles}
+                      </span>
 
-                    <span className="rounded-xl bg-sky-500/10 border border-sky-500/30 px-4 py-2 font-black text-sky-300">
-                      🎯 {t.asistencias}
-                    </span>
+                      <span className="rounded-xl bg-sky-500/10 border border-sky-500/30 px-4 py-2 font-black text-sky-300">
+                        🎯 {t.asistencias}
+                      </span>
 
-                    <span className="rounded-xl bg-purple-500/10 border border-purple-500/30 px-4 py-2 font-black text-purple-300">
-                      👑 {t.mvps}
-                    </span>
+                      <span className="rounded-xl bg-purple-500/10 border border-purple-500/30 px-4 py-2 font-black text-purple-300">
+                        👑 {t.mvps}
+                      </span>
 
-                    <span className="rounded-xl bg-cyan-500/10 border border-cyan-500/30 px-4 py-2 font-black text-cyan-300">
-                      🧤 {t.atajadas}
-                    </span>
-                    <div className="mt-5">
+                      <span className="rounded-xl bg-cyan-500/10 border border-cyan-500/30 px-4 py-2 font-black text-cyan-300">
+                        🧤 {t.atajadas}
+                      </span>
+                    </div>
+
+                    <div className="mt-5 w-full">
                       <div className="mb-2 flex items-center justify-between">
                         <p className="text-[10px] uppercase tracking-[0.25em] text-zinc-500 font-black">
                           Nivel de rendimiento

@@ -51,29 +51,51 @@ export default function DivisionesPage() {
             <div className="relative z-10 flex items-center justify-between gap-8 p-7 md:p-10">
               <div>
                 <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black">
-                  APA PSO ARGENTINA
+                  Competición · Torneos
                 </p>
 
                 <h1 className="mt-4 text-5xl md:text-7xl font-black uppercase italic leading-none">
                   <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
-                    APA PSO
+                    Torneo
                   </span>
                   <span className="block text-sky-400 drop-shadow-[0_0_18px_rgba(56,189,248,.65)]">
-                    ARGENTINA
+                    de Liga APA
                   </span>
                 </h1>
 
-                <p className="mt-4 text-zinc-300 max-w-xl">
-                  Competición oficial por temporadas, divisiones y tablas de posiciones.
+                <p className="mt-5 max-w-2xl text-lg leading-8 text-zinc-300">
+                  La competencia principal de APA PSO Argentina. Primera,
+                  Segunda, Tercera y Cuarta división compiten por puntos,
+                  clasificación y gloria temporada tras temporada.
                 </p>
+
+                <div className="mt-7 flex flex-wrap gap-3">
+                  <a
+                    href="/competicion"
+                    className="rounded-2xl border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-sm font-black uppercase text-sky-300 transition hover:bg-sky-400/20"
+                  >
+                    ← Volver a torneos
+                  </a>
+
+                  <span className="rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-sm font-black uppercase text-yellow-300">
+                    🏆 Liga oficial
+                  </span>
+
+                  <span className="rounded-2xl border border-green-400/30 bg-green-400/10 px-4 py-2 text-sm font-black uppercase text-green-300">
+                    ● Activa
+                  </span>
+                </div>
               </div>
 
-              <div className="hidden lg:flex w-36 h-36 rounded-full border border-sky-400/40 bg-black/40 overflow-hidden shadow-[0_0_35px_rgba(0,120,255,.45)]">
-                <img
-                  src="/logo-apa.png"
-                  alt="APA PSO"
-                  className="w-full h-full object-cover"
-                />
+              <div className="hidden lg:flex w-40 h-40 rounded-[36px] border border-sky-400/40 bg-black/40 overflow-hidden shadow-[0_0_42px_rgba(0,120,255,.45)] items-center justify-center">
+                <div className="relative h-full w-full">
+                  <div className="absolute inset-0 bg-sky-400/10 blur-2xl" />
+                  <img
+                    src="/logo-apa.png"
+                    alt="APA PSO"
+                    className="relative z-10 w-full h-full object-cover"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -103,7 +125,7 @@ export default function DivisionesPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-[120px_1fr] gap-3 items-center">
               <p className="text-sky-300 uppercase tracking-[0.25em] text-xs font-black">
-                Divisiones
+                Categoría
               </p>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -117,7 +139,7 @@ export default function DivisionesPage() {
                         : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/50 hover:text-white"
                     }`}
                   >
-                    🛡️ {div}
+                    🏆 {div}
                   </button>
                 ))}
               </div>
@@ -125,12 +147,33 @@ export default function DivisionesPage() {
           </div>
         </div>
 
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          {[
+            ["🏆", "Torneo", "Liga APA"],
+            ["📅", "Temporada", temporada],
+            ["🛡️", "Categoría", `${division} División`],
+            ["🟢", "Estado", "Activa"],
+          ].map(([icon, label, value]) => (
+            <div
+              key={label}
+              className="rounded-[26px] border border-sky-500/20 bg-[#020714]/90 p-5 shadow-[0_0_25px_rgba(0,120,255,.10)]"
+            >
+              <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
+                {icon} {label}
+              </p>
+              <p className="mt-2 text-2xl font-black uppercase text-white">
+                {value}
+              </p>
+            </div>
+          ))}
+        </section>
+
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
           <section className="overflow-hidden rounded-[30px] border border-sky-500/40 bg-[#020714] shadow-[0_0_40px_rgba(0,120,255,.2)]">
             <div className="flex items-center justify-between gap-4 border-b border-sky-500/30 bg-gradient-to-r from-[#061a33] to-[#020714] px-5 py-4">
               <div>
                 <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black">
-                  Tabla de posiciones
+                  Torneo de Liga
                 </p>
 
                 <h2 className="text-2xl md:text-4xl font-black uppercase mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 leading-tight">
@@ -139,7 +182,7 @@ export default function DivisionesPage() {
                   </span>
 
                   <span className="inline-block text-sky-400">
-                    / {division}
+                    / {division} División
                   </span>
                 </h2>
               </div>
@@ -157,7 +200,7 @@ export default function DivisionesPage() {
           <aside className="space-y-4">
             <div className="rounded-[26px] border border-sky-500/40 bg-[#020714] p-5 shadow-[0_0_30px_rgba(0,120,255,.18)]">
               <h3 className="text-sky-300 uppercase tracking-[0.25em] text-xs font-black mb-4">
-                Información
+                Torneo actual
               </h3>
 
               <div className="space-y-3 text-sm">
@@ -167,8 +210,8 @@ export default function DivisionesPage() {
                 </p>
 
                 <p className="flex justify-between gap-4">
-                  <span className="text-zinc-400">División</span>
-                  <b className="text-sky-400">{division}</b>
+                  <span className="text-zinc-400">Categoría</span>
+                  <b className="text-sky-400">{division} División</b>
                 </p>
 
                 <p className="flex justify-between gap-4">
@@ -178,14 +221,14 @@ export default function DivisionesPage() {
 
                 <p className="flex justify-between gap-4">
                   <span className="text-zinc-400">Formato</span>
-                  <b>Liga</b>
+                  <b>Todos contra todos</b>
                 </p>
               </div>
             </div>
 
             <div className="rounded-[26px] border border-yellow-500/35 bg-gradient-to-b from-[#18120a] to-[#050505] p-5 shadow-[0_0_30px_rgba(250,204,21,.12)]">
               <h3 className="text-yellow-300 uppercase tracking-[0.25em] text-xs font-black mb-4">
-                Clasificación
+                Zonas del torneo
               </h3>
 
               <div className="space-y-3 text-sm font-black uppercase">
@@ -218,11 +261,11 @@ export default function DivisionesPage() {
             <div className="rounded-[26px] border border-sky-500/40 bg-[#020714] p-5 shadow-[0_0_30px_rgba(0,120,255,.18)]">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sky-300 uppercase tracking-[0.25em] text-xs font-black">
-                  Últimos resultados
+                  Últimos partidos
                 </h3>
 
                 <span className="text-[10px] text-zinc-500 uppercase font-black">
-                  Liga
+                  Torneo
                 </span>
               </div>
 
@@ -298,15 +341,15 @@ export default function DivisionesPage() {
 
               <div className="relative z-10">
                 <p className="text-sky-300 uppercase tracking-[0.25em] text-xs font-black">
-                  APA PSO
+                  Torneo de Liga
                 </p>
 
                 <h3 className="text-2xl font-black mt-2 uppercase">
-                  Más que una liga
+                  Camino al campeonato
                 </h3>
 
                 <p className="text-zinc-400 text-sm mt-2">
-                  Somos una familia competitiva.
+                  Cada punto cuenta. Cada fecha importa. Cada división escribe su historia.
                 </p>
               </div>
             </div>

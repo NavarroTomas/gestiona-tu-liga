@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../../lib/supabase";
 
@@ -22,19 +22,22 @@ const nombresDivision: Record<string, string> = {
 export default function FixtureDivisionPage() {
   const params = useParams();
   const division = params.division as string;
+  const searchParams = useSearchParams();
+  const temporada = searchParams.get("temporada") || "Temporada 1";
 
   const [partidos, setPartidos] = useState<any[]>([]);
   const [fechaActiva, setFechaActiva] = useState("1");
 
   useEffect(() => {
     cargarPartidos();
-  }, [division]);
+  }, [division, temporada]);
 
   async function cargarPartidos() {
     const { data, error } = await supabase
       .from("partidos")
       .select("*")
       .eq("division", division)
+      .eq("temporada", temporada)
       .order("fecha", { ascending: true });
 
     if (error) {
@@ -74,7 +77,7 @@ export default function FixtureDivisionPage() {
             </h1>
 
             <p className="text-blue-400 text-2xl font-black mt-2">
-              Temporada 1
+              {temporada}
             </p>
           </div>
 
