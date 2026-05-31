@@ -1,0 +1,489 @@
+"use client";
+
+import Link from "next/link";
+
+const secciones = [
+  { id: "inicio", nombre: "Inicio", icono: "🏠" },
+  { id: "divisiones", nombre: "Divisiones", icono: "📊" },
+  { id: "fixture", nombre: "Fixture", icono: "📅" },
+  { id: "clubes", nombre: "Clubes", icono: "👥" },
+  { id: "jugadores", nombre: "Jugadores", icono: "🧍" },
+  { id: "historia", nombre: "Historia", icono: "📜" },
+  { id: "predicciones", nombre: "Predicciones", icono: "🎯" },
+  { id: "dream-team", nombre: "Dream Team", icono: "⭐" },
+  { id: "premios", nombre: "Premios APA", icono: "🏆" },
+  { id: "faq", nombre: "Preguntas", icono: "❓" },
+  { id: "mapa", nombre: "Mapa", icono: "🗺️" },
+];
+
+function GuiaCard({
+  id,
+  icono,
+  titulo,
+  descripcion,
+  items,
+  consejo,
+  href,
+}: {
+  id: string;
+  icono: string;
+  titulo: string;
+  descripcion: string;
+  items: string[];
+  consejo?: string;
+  href?: string;
+}) {
+  return (
+    <section
+      id={id}
+      className="scroll-mt-28 rounded-[34px] border border-sky-500/25 bg-[#020714] p-6 md:p-8 shadow-[0_0_35px_rgba(0,120,255,.12)]"
+    >
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-sky-400/30 bg-sky-400/10 text-3xl">
+              {icono}
+            </div>
+
+            <div className="min-w-0">
+              <p className="text-sky-300 text-xs uppercase tracking-[0.3em] font-black">
+                Guía APA
+              </p>
+
+              <h2 className="mt-2 break-words text-3xl md:text-5xl font-black uppercase leading-tight">
+                {titulo}
+              </h2>
+            </div>
+          </div>
+
+          <p className="mt-5 max-w-4xl text-zinc-400 text-base md:text-lg leading-relaxed break-words">
+            {descripcion}
+          </p>
+        </div>
+
+        {href && (
+          <Link
+            href={href}
+            className="shrink-0 rounded-2xl border border-sky-400/30 bg-sky-400/10 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.2em] text-sky-300 transition hover:border-sky-300 hover:bg-sky-400 hover:text-black"
+          >
+            Ir ahora
+          </Link>
+        )}
+      </div>
+
+      <div className="mt-7 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        {items.map((item, index) => (
+          <div
+            key={`${id}-${index}`}
+            className="rounded-2xl border border-white/10 bg-black/35 p-4"
+          >
+            <p className="text-zinc-300 leading-relaxed break-words">
+              {item}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {consejo && (
+        <div className="mt-7 rounded-3xl border border-yellow-400/25 bg-yellow-400/10 p-5">
+          <p className="text-yellow-300 text-xs uppercase tracking-[0.25em] font-black">
+            Consejo APA
+          </p>
+
+          <p className="mt-3 text-zinc-200 leading-relaxed break-words">
+            {consejo}
+          </p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function FAQItem({ pregunta, respuesta }: { pregunta: string; respuesta: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/35 p-5">
+      <h3 className="text-xl font-black text-white leading-snug break-words">
+        {pregunta}
+      </h3>
+
+      <p className="mt-3 text-zinc-400 leading-relaxed break-words">
+        {respuesta}
+      </p>
+    </div>
+  );
+}
+
+export default function GuiaPage() {
+  return (
+    <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
+      <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-8 space-y-8">
+        <section
+          id="top"
+          className="relative overflow-hidden rounded-[38px] border border-sky-500/30 bg-[#020714] p-7 md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]"
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_42%)]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/20" />
+
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+            <div className="min-w-0">
+              <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black break-words">
+                APA PSO ARGENTINA
+              </p>
+
+              <h1 className="mt-4 text-5xl md:text-7xl font-black uppercase italic leading-none break-words">
+                <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
+                  Guía Oficial
+                </span>
+
+                <span className="block text-sky-400 drop-shadow-[0_0_18px_rgba(56,189,248,.65)]">
+                  Plataforma APA
+                </span>
+              </h1>
+
+              <p className="mt-5 max-w-3xl text-zinc-400 text-base md:text-lg leading-relaxed break-words">
+                Todo lo que necesitás saber para usar la web de APA PSO Argentina:
+                tablas, fixture, clubes, jugadores, historia y funciones de comunidad.
+              </p>
+            </div>
+
+            <div className="hidden lg:flex h-40 w-40 items-center justify-center rounded-full border border-sky-400/40 bg-black/40 shadow-[0_0_35px_rgba(0,120,255,.45)]">
+              <span className="text-6xl">📖</span>
+            </div>
+          </div>
+        </section>
+
+        <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr] gap-8 items-start">
+          <aside className="hidden xl:block sticky top-[92px] max-h-[calc(100vh-120px)] overflow-y-auto rounded-[28px] border border-sky-500/25 bg-[#020714]/90 p-4 shadow-[0_0_30px_rgba(0,120,255,.12)] backdrop-blur-xl scrollbar-thin scrollbar-thumb-sky-500/40 scrollbar-track-black/30">
+            <p className="mb-4 text-sky-300 text-xs uppercase tracking-[0.3em] font-black">
+              Navegación rápida
+            </p>
+
+            <div className="space-y-2">
+              {secciones.map((s) => (
+                <a
+                  key={s.id}
+                  href={`#${s.id}`}
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-zinc-300 transition hover:border-sky-400/60 hover:bg-sky-400/10 hover:text-white"
+                >
+                  <span className="text-lg">{s.icono}</span>
+                  <span className="break-words leading-tight">{s.nombre}</span>
+                </a>
+              ))}
+            </div>
+
+            <a
+              href="#top"
+              className="mt-4 block rounded-2xl border border-green-400/30 bg-green-400/10 px-4 py-3 text-center text-xs font-black uppercase tracking-[0.18em] text-green-300 transition hover:bg-green-400 hover:text-black"
+            >
+              Volver arriba
+            </a>
+          </aside>
+
+          <div className="min-w-0 space-y-8">
+            <section className="xl:hidden sticky top-[76px] z-40 rounded-[28px] border border-sky-500/25 bg-[#020714]/90 p-4 shadow-[0_0_30px_rgba(0,120,255,.12)] backdrop-blur-xl">
+              <p className="mb-3 text-sky-300 text-xs uppercase tracking-[0.3em] font-black">
+                Navegación rápida
+              </p>
+
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {secciones.map((s) => (
+                  <a
+                    key={s.id}
+                    href={`#${s.id}`}
+                    className="whitespace-nowrap rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-zinc-300 transition hover:border-sky-400/60 hover:bg-sky-400/10 hover:text-white"
+                  >
+                    <span className="mr-2">{s.icono}</span>
+                    {s.nombre}
+                  </a>
+                ))}
+              </div>
+            </section>
+
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="rounded-[30px] border border-sky-500/25 bg-[#020714] p-6">
+            <p className="text-sky-300 text-xs uppercase tracking-[0.25em] font-black">
+              Para nuevos usuarios
+            </p>
+            <h3 className="mt-3 text-3xl font-black uppercase break-words">
+              Empezá rápido
+            </h3>
+            <p className="mt-3 text-zinc-400 leading-relaxed">
+              Mirá el Inicio, buscá tu club y entrá a tu perfil de jugador.
+            </p>
+          </div>
+
+          <div className="rounded-[30px] border border-yellow-500/25 bg-[#020714] p-6">
+            <p className="text-yellow-300 text-xs uppercase tracking-[0.25em] font-black">
+              Comunidad
+            </p>
+            <h3 className="mt-3 text-3xl font-black uppercase break-words">
+              Participá
+            </h3>
+            <p className="mt-3 text-zinc-400 leading-relaxed">
+              Votá en Predicciones, armá tu Dream Team y revisá los premios.
+            </p>
+          </div>
+
+          <div className="rounded-[30px] border border-green-500/25 bg-[#020714] p-6">
+            <p className="text-green-300 text-xs uppercase tracking-[0.25em] font-black">
+              Datos oficiales
+            </p>
+            <h3 className="mt-3 text-3xl font-black uppercase break-words">
+              Estadísticas
+            </h3>
+            <p className="mt-3 text-zinc-400 leading-relaxed">
+              Los rankings y perfiles se actualizan con los partidos cargados.
+            </p>
+          </div>
+        </section>
+
+        <GuiaCard
+          id="inicio"
+          icono="🏠"
+          titulo="Inicio"
+          href="/"
+          descripcion="La página principal reúne la información más importante de la liga en un solo lugar. Es el punto ideal para empezar si entrás por primera vez."
+          items={[
+            "Podés ver accesos rápidos a las secciones principales de la web.",
+            "Sirve para orientarte entre divisiones, clubes, jugadores e historia.",
+            "También puede mostrar información destacada de la temporada activa.",
+            "Desde el Inicio podés entrar rápidamente a Entretenimiento y participar.",
+            "Es la puerta de entrada para seguir todo lo que pasa en APA PSO Argentina.",
+            "Si sos nuevo, lo mejor es empezar por Inicio, luego Divisiones y después buscar tu club.",
+          ]}
+          consejo="Recorrido recomendado: Inicio → Divisiones → Clubes → Tu perfil de jugador → Predicciones → Dream Team."
+        />
+
+        <GuiaCard
+          id="divisiones"
+          icono="📊"
+          titulo="Divisiones"
+          href="/divisiones"
+          descripcion="La sección de Divisiones muestra las tablas de posiciones de cada categoría y temporada."
+          items={[
+            "Consultá puntos, partidos jugados, victorias, empates y derrotas.",
+            "Revisá goles a favor, goles en contra y diferencia de gol.",
+            "Cada temporada y división se puede consultar por separado.",
+            "Los equipos pueden aparecer aunque todavía no hayan jugado si están cargados en la tabla de equipos.",
+            "Los resultados de los partidos actualizan automáticamente la tabla.",
+            "Si una división aparece vacía, puede ser porque todavía no se cargaron equipos o partidos.",
+          ]}
+          consejo="Para ver una tabla correctamente, elegí la temporada y división donde tu club está cargado."
+        />
+
+        <GuiaCard
+          id="fixture"
+          icono="📅"
+          titulo="Fixture"
+          href="/fixture"
+          descripcion="El Fixture permite ver los partidos organizados por división, fecha y temporada."
+          items={[
+            "Podés consultar qué equipos se enfrentan en cada fecha.",
+            "Los partidos con resultado ya cargado muestran el marcador final.",
+            "Los partidos sin resultado sirven como futuros encuentros.",
+            "Si el partido tiene estadísticas, se puede abrir el Match Center.",
+            "La fecha del fixture ayuda a organizar predicciones y premios.",
+            "Cuando un partido se carga con resultado, también impacta en la tabla de posiciones.",
+          ]}
+          consejo="Si querés hacer predicciones, mirá primero el Fixture para saber qué partidos están pendientes."
+        />
+
+        <GuiaCard
+          id="clubes"
+          icono="👥"
+          titulo="Clubes"
+          href="/clubes"
+          descripcion="La sección de Clubes reúne la identidad y el rendimiento de cada equipo dentro de la liga."
+          items={[
+            "Cada club puede tener escudo, banner, descripción y color principal.",
+            "Desde un club podés acceder a su perfil completo.",
+            "El perfil de club puede mostrar estadísticas, plantel, historial y partidos.",
+            "Los jugadores del plantel pueden llevarte directamente a su perfil.",
+            "Si un club no tiene logo, puede ser porque todavía no fue configurado.",
+            "Si hay clubes con nombres repetidos, se recomienda diferenciarlos con slug o temporada.",
+          ]}
+          consejo="Buscá tu club para revisar su plantel, sus estadísticas y acceder rápido a los jugadores."
+        />
+
+        <GuiaCard
+          id="jugadores"
+          icono="🧍"
+          titulo="Jugadores"
+          href="/jugadores"
+          descripcion="Cada jugador tiene un perfil individual basado en su PlayerId. Esto evita confusiones entre jugadores con nombres parecidos."
+          items={[
+            "Podés consultar goles, asistencias, MVP, rating, score y más estadísticas.",
+            "Los arqueros se diferencian por atajadas y atrapadas.",
+            "El historial puede mostrar rendimiento por temporada, división y equipo.",
+            "Los rankings de jugadores usan playerId para agrupar correctamente.",
+            "Si un jugador no aparece, puede ser porque todavía no se cargaron sus estadísticas.",
+            "Desde clubes, plantillas, historia y premios podés entrar a perfiles de jugadores.",
+          ]}
+          consejo="El PlayerId es la clave más importante: la web identifica jugadores por PlayerId, no solo por nombre."
+        />
+
+        <GuiaCard
+          id="historia"
+          icono="📜"
+          titulo="Historia"
+          href="/historia"
+          descripcion="Historia muestra los grandes rankings acumulados de la liga. Es la sección para ver quiénes dejaron huella en APA."
+          items={[
+            "Consultá goleadores históricos de todas las temporadas cargadas.",
+            "Revisá máximos asistidores, MVPs y mejores ratings.",
+            "Los arqueros pueden aparecer en rankings de atajadas y atrapadas.",
+            "Los datos históricos dependen de las estadísticas cargadas en la base.",
+            "Si faltan temporadas viejas, los rankings irán creciendo cuando se carguen.",
+            "Es ideal para comparar jugadores de distintas temporadas.",
+          ]}
+          consejo="Historia mejora muchísimo cuando se cargan temporadas anteriores con playerId correcto."
+        />
+
+        <GuiaCard
+          id="predicciones"
+          icono="🎯"
+          titulo="Predicciones"
+          href="/entretenimiento/predicciones"
+          descripcion="Predicciones permite pronosticar partidos antes de que se jueguen y competir en un ranking de usuarios."
+          items={[
+            "Escribí tu nombre o usuario antes de votar.",
+            "Podés elegir ganador: local, empate o visitante.",
+            "También podés cargar marcador exacto.",
+            "Ganador correcto suma 1 punto.",
+            "Marcador exacto suma 3 puntos.",
+            "Cuando se carga el resultado real, la página calcula si acertaste o fallaste.",
+          ]}
+          consejo="Si querés competir en el ranking, usá siempre el mismo nombre de usuario."
+        />
+
+        <GuiaCard
+          id="dream-team"
+          icono="⭐"
+          titulo="Dream Team"
+          href="/entretenimiento/dream-team"
+          descripcion="Dream Team permite votar el equipo ideal de una fecha con formación oficial de fútbol 8."
+          items={[
+            "La formación oficial es: GK, LB, CB, RB, LCM, RCM, LST y RST.",
+            "Elegí una posición en la cancha y luego seleccioná un jugador.",
+            "No se puede repetir el mismo jugador en varias posiciones.",
+            "El equipo final se arma con los jugadores más votados por la comunidad.",
+            "Los candidatos salen de las estadísticas cargadas para esa fecha.",
+            "Podés cambiar tu voto en una posición si te arrepentís.",
+          ]}
+          consejo="Si no aparecen candidatos, probablemente no haya estadísticas cargadas para esa temporada, división y fecha."
+        />
+
+        <GuiaCard
+          id="premios"
+          icono="🏆"
+          titulo="Premios APA"
+          href="/entretenimiento/premios"
+          descripcion="Premios APA destaca automáticamente a los mejores jugadores de cada fecha usando estadísticas oficiales."
+          items={[
+            "MVP de la fecha se calcula usando MVP, rating y score.",
+            "Goleador destaca al jugador con más goles.",
+            "Asistidor destaca al jugador con más asistencias y pases.",
+            "Arquero toma atajadas y atrapadas.",
+            "Defensa considera tackles, intercepciones y rating.",
+            "Si no aparecen premios, puede ser porque esa fecha todavía no tiene estadísticas cargadas.",
+          ]}
+          consejo="Premios APA no requiere votos manuales: todo se calcula automáticamente desde las estadísticas."
+        />
+
+        <section
+          id="faq"
+          className="scroll-mt-28 rounded-[34px] border border-yellow-500/25 bg-[#020714] p-6 md:p-8 shadow-[0_0_35px_rgba(250,204,21,.10)]"
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-yellow-400/30 bg-yellow-400/10 text-3xl">
+              ❓
+            </div>
+
+            <div>
+              <p className="text-yellow-300 text-xs uppercase tracking-[0.3em] font-black">
+                Ayuda rápida
+              </p>
+
+              <h2 className="mt-2 text-3xl md:text-5xl font-black uppercase leading-tight">
+                Preguntas Frecuentes
+              </h2>
+            </div>
+          </div>
+
+          <div className="mt-7 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FAQItem pregunta="¿Por qué no aparezco en la web?" respuesta="Puede ser porque todavía no jugaste partidos cargados o porque tus estadísticas no tienen playerId correcto." />
+            <FAQItem pregunta="¿Por qué mi club no tiene logo?" respuesta="Porque todavía no fue configurado en la base de datos o el link del logo está mal cargado." />
+            <FAQItem pregunta="¿Por qué no puedo votar el mismo jugador dos veces en Dream Team?" respuesta="Porque cada jugador solo puede ocupar una posición en tu equipo ideal." />
+            <FAQItem pregunta="¿Cómo sumo puntos en Predicciones?" respuesta="Sumás 1 punto por acertar el ganador y 3 puntos por acertar el marcador exacto." />
+            <FAQItem pregunta="¿Por qué no aparecen premios en una fecha?" respuesta="Porque todavía no hay estadísticas de jugadores cargadas para esa fecha." />
+            <FAQItem pregunta="¿Por qué una tabla aparece vacía?" respuesta="Puede ser porque no hay equipos o partidos cargados para la temporada y división seleccionadas." />
+          </div>
+        </section>
+
+        <section
+          id="mapa"
+          className="scroll-mt-28 rounded-[34px] border border-green-500/25 bg-[#020714] p-6 md:p-8 shadow-[0_0_35px_rgba(34,197,94,.10)]"
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-green-400/30 bg-green-400/10 text-3xl">
+              🗺️
+            </div>
+
+            <div>
+              <p className="text-green-300 text-xs uppercase tracking-[0.3em] font-black">
+                Organización
+              </p>
+
+              <h2 className="mt-2 text-3xl md:text-5xl font-black uppercase leading-tight">
+                Mapa de la Web
+              </h2>
+            </div>
+          </div>
+
+          <div className="mt-7 rounded-3xl border border-white/10 bg-black/35 p-5 overflow-x-auto">
+            <pre className="text-sm md:text-base leading-relaxed text-zinc-300 whitespace-pre-wrap break-words">{`Inicio
+│
+├─ Divisiones
+│  └─ Tabla de posiciones
+│
+├─ Fixture
+│  └─ Partidos por fecha
+│
+├─ Clubes
+│  └─ Perfil de club
+│     └─ Jugadores del club
+│
+├─ Jugadores
+│  └─ Perfil individual por PlayerId
+│
+├─ Historia
+│  └─ Rankings históricos
+│
+└─ Entretenimiento
+   ├─ Predicciones
+   ├─ Dream Team
+   └─ Premios APA`}</pre>
+          </div>
+
+          <div className="mt-7 flex flex-col sm:flex-row gap-3">
+            <a
+              href="#top"
+              className="rounded-2xl border border-green-400/30 bg-green-400/10 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.2em] text-green-300 transition hover:bg-green-400 hover:text-black"
+            >
+              Volver arriba
+            </a>
+
+            <Link
+              href="/entretenimiento"
+              className="rounded-2xl border border-sky-400/30 bg-sky-400/10 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.2em] text-sky-300 transition hover:bg-sky-400 hover:text-black"
+            >
+              Ir a entretenimiento
+            </Link>
+          </div>
+        </section>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "../components/Navbar";
+import BienvenidaAPA from "../components/BienvenidaAPA";
 import { Orbitron } from "next/font/google";
 
 const orbitron = Orbitron({
@@ -21,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${orbitron.className} bg-black text-white`}>
+        <BienvenidaAPA />
         <Navbar />
         {children}
       </body>

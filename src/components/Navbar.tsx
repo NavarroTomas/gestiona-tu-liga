@@ -53,7 +53,6 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-[9999] border-b border-white/10 bg-[#050914]/90 px-6 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-6">
-        {/* Lado izquierdo */}
         <div className="flex items-center gap-3">
           <Link
             href="/"
@@ -64,6 +63,17 @@ export default function Navbar() {
             }`}
           >
             Inicio
+          </Link>
+
+          <Link
+            href="/guia"
+            className={`group relative overflow-hidden rounded-2xl px-4 py-2 text-sm font-black transition ${
+              pathname.startsWith("/guia")
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
+                : "text-zinc-300 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            📖 Guía
           </Link>
 
           {menus.map((menu) => {
@@ -127,7 +137,6 @@ export default function Navbar() {
           })}
         </div>
 
-        {/* Lado derecho */}
         <div className="flex items-center gap-3">
           <Link
             href="/admin"
