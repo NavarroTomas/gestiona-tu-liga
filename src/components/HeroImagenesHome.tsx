@@ -108,73 +108,73 @@ export default function HeroImagenesHome() {
               className="w-full h-full object-cover"
             />
 
-            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 to-black/20" />
-
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,140,255,.18),transparent_45%)]" />
-
-            <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(0,0,0,.7)_0%,rgba(0,0,0,.45)_45%,rgba(0,153,255,.12)_100%)]" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/78 to-black/18" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/45" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_45%,rgba(56,189,248,.18),transparent_28%)]" />
           </div>
         ))}
 
         <div className="absolute top-4 left-6 z-30 flex items-center gap-2">
-          <span className="text-yellow-300 text-[10px]">★ ★ ★</span>
+          <span className="text-yellow-300 text-[10px] leading-none">★ ★ ★</span>
 
-          <span className="text-sky-300 text-[10px] font-black tracking-[0.35em] uppercase">
+          <span className="text-sky-300 text-[10px] font-black tracking-[0.26em] uppercase leading-none">
             APA PSO ARGENTINA
           </span>
         </div>
 
-        <div className="relative z-20 h-full grid grid-cols-1 lg:grid-cols-[1fr_340px] items-center gap-4 pl-16 pr-10 md:pl-24 md:pr-14 pt-5 pb-20">
-          <div className="max-w-2xl">
-            <h1 className="text-4xl md:text-6xl xl:text-7xl leading-[0.9] font-black uppercase italic">
+        <div className="relative z-20 h-full grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] items-center gap-8 px-10 md:px-16 lg:px-20 pt-10 pb-16">
+          <div className="max-w-[660px]">
+            <h1 className="text-[42px] md:text-[58px] xl:text-[68px] leading-[1.02] font-black uppercase italic">
               <span className="block bg-gradient-to-b from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(255,255,255,.2)]">
                 {slide.titulo1}
               </span>
 
-              <span className="block text-sky-400 drop-shadow-[0_0_25px_rgba(56,189,248,.75)]">
+              <span className="block mt-2 text-sky-400 drop-shadow-[0_0_25px_rgba(56,189,248,.72)]">
                 {slide.titulo2}
               </span>
 
-              <span className="block text-yellow-400 drop-shadow-[0_0_25px_rgba(250,204,21,.55)]">
+              <span className="block mt-2 text-yellow-400 drop-shadow-[0_0_25px_rgba(250,204,21,.55)]">
                 {slide.titulo3}
               </span>
             </h1>
 
-            <p className="mt-3 text-lg md:text-xl font-black uppercase text-white drop-shadow">
+            <p className="mt-5 text-base md:text-lg font-black uppercase text-white drop-shadow leading-snug">
               {slide.bajada}
             </p>
 
-            <p className="mt-1 text-zinc-300 text-sm md:text-base max-w-xl">
+            <p className="mt-2 text-zinc-300 text-sm md:text-base max-w-xl leading-relaxed">
               {slide.descripcion}
             </p>
 
-            <div className="flex flex-wrap gap-3 mt-4">
+            <div className="flex flex-wrap gap-3 mt-5">
               <a
                 href={slide.href}
                 target={slide.href.startsWith("http") ? "_blank" : "_self"}
-                className="bg-sky-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-sm shadow-[0_0_25px_rgba(56,189,248,.9)] hover:scale-105 transition-all"
+                className="bg-sky-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-sm shadow-[0_0_25px_rgba(56,189,248,.75)] hover:scale-105 hover:bg-sky-300 transition-all"
               >
                 {slide.boton}
               </a>
 
               <a
                 href="/jugadores"
-                className="bg-white/10 backdrop-blur border border-white/20 px-6 py-3 rounded-2xl font-black uppercase text-sm hover:border-sky-400/60 transition-all"
+                className="bg-white/10 backdrop-blur border border-white/20 px-6 py-3 rounded-2xl font-black uppercase text-sm hover:border-sky-400/60 hover:bg-sky-400/10 transition-all"
               >
                 VER RANKINGS
               </a>
             </div>
           </div>
 
-          <div className="hidden lg:flex justify-center">
-            <div className="relative w-[260px] h-[260px] rounded-full border border-sky-400/40 bg-black/40 shadow-[0_0_45px_rgba(0,120,255,.45)] flex items-center justify-center overflow-hidden">
+          <div className="hidden lg:flex justify-end">
+            <div className="relative w-[230px] h-[230px] rounded-full border border-sky-400/40 bg-black/40 shadow-[0_0_45px_rgba(0,120,255,.42)] flex items-center justify-center overflow-hidden">
+              <div className="absolute -inset-4 rounded-full bg-sky-400/10 blur-2xl" />
+
               <img
                 src="/logo-apa.png"
                 alt="APA PSO"
-                className="w-full h-full object-cover opacity-90"
+                className="relative z-10 w-full h-full object-cover opacity-95"
               />
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
             </div>
           </div>
         </div>
@@ -193,7 +193,7 @@ export default function HeroImagenesHome() {
           ›
         </button>
 
-        <div className="absolute bottom-[92px] right-6 z-40 flex gap-2">
+        <div className="absolute bottom-8 right-7 z-40 flex gap-2">
           {slides.map((_, index) => (
             <button
               key={index}
