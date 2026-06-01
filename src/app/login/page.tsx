@@ -31,10 +31,10 @@ export default function LoginPage() {
     setLoading(false);
 
     if (error) {
-      console.log(error);
-      setMensaje("Error enviando el link de acceso.");
-      return;
-    }
+  console.log("ERROR LOGIN:", error);
+  setMensaje(error.message || "Error enviando el link de acceso.");
+  return;
+}
 
     setMensaje("Listo. Revisá tu email y abrí el link de acceso.");
   }
