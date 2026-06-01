@@ -21,6 +21,7 @@ export default function EstadisticasPage() {
 
   const [fechas, setFechas] = useState<string[]>([]);
   const [partidos, setPartidos] = useState<any[]>([]);
+  const [clubesInfo, setClubesInfo] = useState<any[]>([]);
 
   useEffect(() => {
     cargarFechas();
@@ -88,7 +89,65 @@ export default function EstadisticasPage() {
       (a: any, b: any) => Number(b.fecha) - Number(a.fecha),
     );
 
+    const nombresEquipos = Array.from(
+      new Set(
+        (lista as any[])
+          .flatMap((p: any) => p.equipos.map((e: any) => e.equipo))
+          .filter(Boolean),
+      ),
+    );
+
+    if (nombresEquipos.length > 0) {
+      const { data: clubesData, error: clubesError } = await supabase
+        .from("clubes_info")
+        .select("nombre, logo_url")
+        .in("nombre", nombresEquipos);
+
+      if (clubesError) {
+        console.log(clubesError);
+      }
+
+      setClubesInfo(clubesData || []);
+    } else {
+      setClubesInfo([]);
+    }
+
     setPartidos(lista);
+  }
+
+
+  function logoEquipo(nombre?: string) {
+    if (!nombre) return null;
+
+    const club = clubesInfo.find(
+      (c) =>
+        String(c.nombre || "").toLowerCase().trim() ===
+        String(nombre || "").toLowerCase().trim(),
+    );
+
+    return club?.logo_url || null;
+  }
+
+  function EscudoEquipo({
+    nombre,
+    logo,
+  }: {
+    nombre?: string;
+    logo?: string | null;
+  }) {
+    return (
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-sky-400/30 bg-gradient-to-br from-sky-500 to-blue-950 text-sm font-black shadow-[0_0_15px_rgba(56,189,248,.22)]">
+        {logo ? (
+          <img
+            src={logo}
+            alt={nombre || "Equipo"}
+            className="h-full w-full object-contain p-1.5"
+          />
+        ) : (
+          nombre?.slice(0, 2).toUpperCase()
+        )}
+      </div>
+    );
   }
 
   return (
@@ -261,9 +320,10 @@ export default function EstadisticasPage() {
 
                     <div className="grid grid-cols-1 xl:grid-cols-[1fr_auto_1fr] items-center gap-4 md:gap-8">
                       <div className="flex items-center gap-4 min-w-0">
-                        <div className="h-14 w-14 shrink-0 rounded-full border border-sky-400/30 bg-gradient-to-b from-sky-400/20 to-blue-950 flex items-center justify-center text-sm font-black shadow-[0_0_15px_rgba(56,189,248,.2)]">
-                          {e1?.equipo?.slice(0, 2).toUpperCase()}
-                        </div>
+                        <EscudoEquipo
+                          nombre={e1?.equipo}
+                          logo={logoEquipo(e1?.equipo)}
+                        />
 
                         <div className="min-w-0">
                           <h2 className="truncate text-lg md:text-3xl font-black uppercase">
@@ -287,9 +347,10 @@ export default function EstadisticasPage() {
                           </h2>
                         </div>
 
-                        <div className="h-14 w-14 shrink-0 rounded-full border border-sky-400/30 bg-gradient-to-b from-sky-400/20 to-blue-950 flex items-center justify-center text-sm font-black shadow-[0_0_15px_rgba(56,189,248,.2)]">
-                          {e2?.equipo?.slice(0, 2).toUpperCase()}
-                        </div>
+                        <EscudoEquipo
+                          nombre={e2?.equipo}
+                          logo={logoEquipo(e2?.equipo)}
+                        />
                       </div>
                     </div>
                   </div>

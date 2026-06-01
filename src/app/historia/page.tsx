@@ -21,6 +21,7 @@ interface RankingJugador {
 
 export default function HistoriaPage() {
   const [jugadores, setJugadores] = useState<RankingJugador[]>([]);
+  const [clubesInfo, setClubesInfo] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -93,8 +94,71 @@ export default function HistoriaPage() {
           : 0,
     }));
 
+    const nombresEquipos = Array.from(
+      new Set(lista.map((j: any) => j.equipo).filter(Boolean)),
+    );
+
+    if (nombresEquipos.length > 0) {
+      const { data: clubesData, error: clubesError } = await supabase
+        .from("clubes_info")
+        .select("nombre, logo_url")
+        .in("nombre", nombresEquipos);
+
+      if (clubesError) {
+        console.log(clubesError);
+      }
+
+      setClubesInfo(clubesData || []);
+    } else {
+      setClubesInfo([]);
+    }
+
     setJugadores(lista);
     setLoading(false);
+  }
+
+  function logoEquipo(nombre?: string) {
+    if (!nombre) return null;
+
+    const club = clubesInfo.find(
+      (c) =>
+        String(c.nombre || "").toLowerCase().trim() ===
+        String(nombre || "").toLowerCase().trim(),
+    );
+
+    return club?.logo_url || null;
+  }
+
+  function EscudoEquipo({
+    nombre,
+    size = "md",
+  }: {
+    nombre?: string;
+    size?: "sm" | "md" | "lg";
+  }) {
+    const logo = logoEquipo(nombre);
+
+    const sizes = {
+      sm: "h-10 w-10 rounded-xl text-[10px]",
+      md: "h-12 w-12 rounded-2xl text-xs",
+      lg: "h-16 w-16 rounded-3xl text-base",
+    };
+
+    return (
+      <div
+        className={`flex shrink-0 items-center justify-center overflow-hidden border border-sky-400/30 bg-gradient-to-br from-sky-500 to-blue-950 font-black shadow-[0_0_16px_rgba(56,189,248,.35)] ${sizes[size]}`}
+      >
+        {logo ? (
+          <img
+            src={logo}
+            alt={nombre || "Club"}
+            className="h-full w-full object-contain p-1.5"
+          />
+        ) : (
+          nombre?.slice(0, 2).toUpperCase() || "CL"
+        )}
+      </div>
+    );
   }
 
   function top(campo: keyof RankingJugador) {
@@ -182,6 +246,8 @@ export default function HistoriaPage() {
                         {index + 1}
                       </div>
 
+                      <EscudoEquipo nombre={j.equipo} size="sm" />
+
                       <div className="min-w-0">
                         <p className="truncate font-black uppercase text-white">
                           {j.nombre}
@@ -250,13 +316,19 @@ export default function HistoriaPage() {
             </div>
           </div>
 
-          <h3 className="truncate text-3xl font-black uppercase">
-            {jugador?.nombre || "-"}
-          </h3>
+          <div className="flex items-center gap-4">
+            <EscudoEquipo nombre={jugador?.equipo} size="lg" />
 
-          <p className="mt-2 truncate text-sm uppercase tracking-[0.12em] text-zinc-500">
-            {jugador?.equipo || "Sin datos"}
-          </p>
+            <div className="min-w-0">
+              <h3 className="truncate text-3xl font-black uppercase">
+                {jugador?.nombre || "-"}
+              </h3>
+
+              <p className="mt-2 truncate text-sm uppercase tracking-[0.12em] text-zinc-500">
+                {jugador?.equipo || "Sin datos"}
+              </p>
+            </div>
+          </div>
 
           <div className="mt-7 flex items-end justify-between gap-4">
             <p className={`text-6xl font-black ${color}`}>{valor || 0}</p>

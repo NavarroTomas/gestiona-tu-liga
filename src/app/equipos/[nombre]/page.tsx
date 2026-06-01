@@ -59,6 +59,7 @@ export default function PaginaEquipo() {
   const [loading, setLoading] = useState(true);
   const [nombreRealEquipo, setNombreRealEquipo] = useState(nombreEquipoUrl);
   const [posicionLiga, setPosicionLiga] = useState<number | null>(null);
+  const [titulos, setTitulos] = useState<any[]>([]);
 
   const [stats, setStats] = useState({
     pj: 0,
@@ -134,6 +135,13 @@ export default function PaginaEquipo() {
           setClubVisual(clubData);
         }
       }
+
+      const { data: titulosData } = await supabase
+        .from("titulos")
+        .select("*")
+        .ilike("equipo", nombreExacto);
+
+      setTitulos(titulosData || []);
 
       const { data: partidosData } = await supabase.from("partidos").select("*");
 
@@ -322,6 +330,25 @@ export default function PaginaEquipo() {
   const diferenciaGol = stats.gf - stats.gc;
   const figuraClub = topGoleador || topAsistidor || topMvp;
 
+  const proximosPartidos = partidos.filter(
+    (p) => !p.resultado || !p.resultado.includes("-"),
+  );
+
+  const proximoPartido = proximosPartidos[0];
+
+  const palmaresAgrupado = titulos.reduce((acc: Record<string, number>, t: any) => {
+    const key = t.competicion || "Título";
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+
+  const totalTitulos = titulos.length;
+
+  const ultimosPartidos = partidos
+    .filter((p) => p.resultado && p.resultado.includes("-"))
+    .slice(-5)
+    .reverse();
+
   function textoPosicion(posicion: number | null) {
     if (!posicion) return "Sin posición";
     if (posicion === 1) return "👑 Líder";
@@ -501,6 +528,255 @@ export default function PaginaEquipo() {
               </div>
             </div>
           </div>
+        </section>
+
+        <section className="rounded-[34px] border border-yellow-500/25 bg-[#020714] p-6 shadow-[0_0_35px_rgba(250,204,21,.08)]">
+          <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-yellow-300">
+                Palmarés oficial
+              </p>
+
+              <h2 className="mt-2 text-3xl font-black uppercase">
+                Títulos del club
+              </h2>
+            </div>
+
+            <span className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-5 py-3 text-sm font-black uppercase text-yellow-300">
+              🏆 {totalTitulos} títulos
+            </span>
+          </div>
+
+          {titulos.length === 0 ? (
+            <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
+              Este club todavía no tiene títulos cargados en el palmarés.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-[420px_1fr]">
+              <div className="rounded-[28px] border border-yellow-400/20 bg-gradient-to-br from-yellow-400/10 via-black/30 to-black/50 p-6">
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-yellow-300">
+                  Resumen
+                </p>
+
+                <div className="mt-5 space-y-3">
+                  {Object.entries(palmaresAgrupado).map(([competicion, cantidad]) => (
+                    <div
+                      key={competicion}
+                      className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/35 p-4"
+                    >
+                      <span className="font-black uppercase text-zinc-200">
+                        {competicion}
+                      </span>
+
+                      <span className="text-2xl font-black text-yellow-300">
+                        ×{cantidad}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                {titulos.map((titulo: any) => (
+                  <div
+                    key={titulo.id}
+                    className="rounded-2xl border border-white/10 bg-black/35 p-5"
+                  >
+                    <p className="text-2xl font-black text-yellow-300">
+                      🏆 {titulo.competicion}
+                    </p>
+
+                    <p className="mt-2 text-sm font-black uppercase tracking-[0.12em] text-zinc-500">
+                      {titulo.temporada}
+                      {titulo.division ? ` · ${titulo.division}` : ""}
+                    </p>
+
+                    {titulo.descripcion && (
+                      <p className="mt-3 text-sm leading-6 text-zinc-400">
+                        {titulo.descripcion}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+
+        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_1fr]">
+          <div className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6 shadow-[0_0_35px_rgba(0,120,255,.10)]">
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-300">
+                  Agenda del club
+                </p>
+
+                <h2 className="mt-2 text-3xl font-black uppercase">
+                  Próximo partido
+                </h2>
+              </div>
+
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-yellow-400/25 bg-yellow-400/10 text-2xl">
+                📅
+              </div>
+            </div>
+
+            {proximoPartido ? (
+              <Link
+                href={proximoPartido.partido_id ? `/estadisticas/${proximoPartido.partido_id}` : "#"}
+                className="block rounded-[28px] border border-sky-500/20 bg-gradient-to-r from-[#06152c] via-[#071a33] to-[#030b18] p-5 transition hover:border-sky-400/45 hover:shadow-[0_0_25px_rgba(56,189,248,.14)]"
+              >
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <span className="rounded-full border border-sky-400/25 bg-sky-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">
+                    Fecha {proximoPartido.fecha || "-"}
+                  </span>
+
+                  <span className="rounded-full border border-yellow-400/25 bg-yellow-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-yellow-300">
+                    {proximoPartido.dia || "Sin día"} · {proximoPartido.hora || "Sin hora"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-[1fr_80px_1fr] items-center gap-3">
+                  <p className="text-right text-xl font-black uppercase md:text-2xl">
+                    {proximoPartido.local}
+                  </p>
+
+                  <div className="rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-3 py-3 text-center text-xl font-black text-yellow-300">
+                    VS
+                  </div>
+
+                  <p className="text-left text-xl font-black uppercase md:text-2xl">
+                    {proximoPartido.visitante}
+                  </p>
+                </div>
+
+                <p className="mt-4 text-center text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
+                  {proximoPartido.temporada || equipoTemporada?.temporada} · {proximoPartido.division || equipoTemporada?.division}
+                </p>
+              </Link>
+            ) : (
+              <div className="rounded-[28px] border border-white/10 bg-black/35 p-6 text-zinc-500">
+                No hay próximos partidos programados para este club.
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-[34px] border border-yellow-500/25 bg-[#020714] p-6 shadow-[0_0_35px_rgba(250,204,21,.08)]">
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-yellow-300">
+                  Historia competitiva
+                </p>
+
+                <h2 className="mt-2 text-3xl font-black uppercase">
+                  Récord del club
+                </h2>
+              </div>
+
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-yellow-400/25 bg-yellow-400/10 text-2xl">
+                🏟️
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-2">
+              {[
+                ["PJ", stats.pj, "text-sky-300"],
+                ["PG", stats.pg, "text-emerald-300"],
+                ["PE", stats.pe, "text-yellow-300"],
+                ["PP", stats.pp, "text-red-300"],
+                ["GF", stats.gf, "text-emerald-300"],
+                ["GC", stats.gc, "text-red-300"],
+                ["DG", diferenciaGol > 0 ? `+${diferenciaGol}` : diferenciaGol, "text-sky-300"],
+                ["PTS", stats.puntos, "text-yellow-300"],
+              ].map(([label, value, color]) => (
+                <div
+                  key={label}
+                  className="rounded-2xl border border-white/10 bg-black/35 p-4"
+                >
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
+                    {label}
+                  </p>
+
+                  <p className={`mt-2 text-3xl font-black ${color}`}>
+                    {value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6">
+          <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-300">
+                Forma reciente
+              </p>
+
+              <h2 className="mt-2 text-3xl font-black uppercase">
+                Últimos partidos
+              </h2>
+            </div>
+
+            <div className="flex gap-2">
+              {stats.racha.length === 0 ? (
+                <span className="text-sm text-zinc-500">Sin racha</span>
+              ) : (
+                stats.racha.map((r, index) => (
+                  <span
+                    key={`${r}-forma-${index}`}
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl border text-sm font-black ${claseResultado(r)}`}
+                  >
+                    {r}
+                  </span>
+                ))
+              )}
+            </div>
+          </div>
+
+          {ultimosPartidos.length === 0 ? (
+            <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
+              Todavía no hay partidos finalizados.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-5">
+              {ultimosPartidos.map((partido) => {
+                const parsed = parsePartido(partido);
+
+                return (
+                  <Link
+                    key={`forma-${partido.id}`}
+                    href={partido.partido_id ? `/estadisticas/${partido.partido_id}` : "#"}
+                    className="rounded-2xl border border-white/10 bg-black/35 p-4 transition hover:border-sky-400/40 hover:bg-sky-500/10"
+                  >
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <span
+                        className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase ${claseResultado(parsed.estado)}`}
+                      >
+                        {parsed.texto}
+                      </span>
+
+                      <span className="text-[10px] font-black uppercase text-zinc-600">
+                        F{partido.fecha || "-"}
+                      </span>
+                    </div>
+
+                    <p className="truncate text-sm font-black uppercase text-zinc-300">
+                      {partido.local}
+                    </p>
+
+                    <p className="my-2 rounded-xl border border-yellow-400/25 bg-yellow-400/10 py-2 text-center text-xl font-black text-yellow-300">
+                      {parsed.golesLocal}-{parsed.golesVisitante}
+                    </p>
+
+                    <p className="truncate text-sm font-black uppercase text-zinc-300">
+                      {partido.visitante}
+                    </p>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         <section className="grid grid-cols-1 gap-5 xl:grid-cols-[1.25fr_1fr_1fr_1fr]">

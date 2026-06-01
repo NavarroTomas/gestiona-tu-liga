@@ -5,10 +5,46 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../../lib/supabase";
 
-function Escudo({ nombre }: { nombre: string }) {
+function Escudo({
+  nombre,
+  logo,
+}: {
+  nombre: string;
+  logo?: string | null;
+}) {
   return (
-    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-sky-300/30 bg-gradient-to-br from-sky-500 to-blue-950 text-sm font-black shadow-[0_0_18px_rgba(0,140,255,.55)]">
-      {nombre?.slice(0, 2).toUpperCase()}
+    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-sky-300/30 bg-gradient-to-br from-sky-500 to-blue-950 text-sm font-black shadow-[0_0_18px_rgba(0,140,255,.55)]">
+      {logo ? (
+        <img
+          src={logo}
+          alt={nombre}
+          className="h-full w-full object-contain p-1.5"
+        />
+      ) : (
+        nombre?.slice(0, 2).toUpperCase()
+      )}
+    </div>
+  );
+}
+
+function MiniEscudo({
+  nombre,
+  logo,
+}: {
+  nombre: string;
+  logo?: string | null;
+}) {
+  return (
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-sky-300/25 bg-gradient-to-br from-sky-500 to-blue-950 text-[10px] font-black shadow-[0_0_12px_rgba(0,140,255,.35)]">
+      {logo ? (
+        <img
+          src={logo}
+          alt={nombre}
+          className="h-full w-full object-contain p-1"
+        />
+      ) : (
+        nombre?.slice(0, 2).toUpperCase()
+      )}
     </div>
   );
 }
@@ -23,21 +59,34 @@ const nombresDivision: Record<string, string> = {
 export default function FixtureDivisionPage() {
   const params = useParams();
   const division = params.division as string;
+
+  const divisionDb =
+    division === "primera"
+      ? "Primera"
+      : division === "segunda"
+      ? "Segunda"
+      : division === "tercera"
+      ? "Tercera"
+      : division === "cuarta"
+      ? "Cuarta"
+      : division;
+
   const searchParams = useSearchParams();
   const temporada = searchParams.get("temporada") || "Temporada 1";
 
   const [partidos, setPartidos] = useState<any[]>([]);
+  const [clubesInfo, setClubesInfo] = useState<any[]>([]);
   const [fechaActiva, setFechaActiva] = useState("1");
 
   useEffect(() => {
     cargarPartidos();
-  }, [division, temporada]);
+  }, [divisionDb, temporada]);
 
   async function cargarPartidos() {
     const { data, error } = await supabase
       .from("partidos")
       .select("*")
-      .eq("division", division)
+      .eq("division", divisionDb)
       .eq("temporada", temporada)
       .order("fecha", { ascending: true });
 
@@ -48,6 +97,29 @@ export default function FixtureDivisionPage() {
 
     const partidosLimpios = data || [];
     setPartidos(partidosLimpios);
+
+    const nombresEquipos = Array.from(
+      new Set(
+        partidosLimpios
+          .flatMap((p: any) => [p.local, p.visitante])
+          .filter(Boolean),
+      ),
+    );
+
+    if (nombresEquipos.length > 0) {
+      const { data: clubesData, error: clubesError } = await supabase
+        .from("clubes_info")
+        .select("nombre, logo_url")
+        .in("nombre", nombresEquipos);
+
+      if (clubesError) {
+        console.log(clubesError);
+      }
+
+      setClubesInfo(clubesData || []);
+    } else {
+      setClubesInfo([]);
+    }
 
     const primeraFecha = partidosLimpios[0]?.fecha;
     if (primeraFecha) setFechaActiva(String(primeraFecha));
@@ -86,6 +158,18 @@ export default function FixtureDivisionPage() {
     }
 
     return "border-sky-400/30 bg-sky-400/10 text-sky-300";
+  }
+
+  function logoEquipo(nombre?: string) {
+    if (!nombre) return null;
+
+    const club = clubesInfo.find(
+      (c) =>
+        String(c.nombre || "").toLowerCase().trim() ===
+        String(nombre || "").toLowerCase().trim(),
+    );
+
+    return club?.logo_url || null;
   }
 
   const equiposCantidad = new Set(
@@ -323,8 +407,17 @@ export default function FixtureDivisionPage() {
                             {index + 1}
                           </td>
 
-                          <td className="max-w-[170px] truncate px-3 py-3 text-sm font-black uppercase">
-                            {e.equipo}
+                          <td className="max-w-[170px] px-3 py-3">
+                            <div className="flex items-center gap-2">
+                              <MiniEscudo
+                                nombre={e.equipo}
+                                logo={logoEquipo(e.equipo)}
+                              />
+
+                              <span className="truncate text-sm font-black uppercase">
+                                {e.equipo}
+                              </span>
+                            </div>
                           </td>
 
                           <td className="py-3 text-center text-sm font-black text-yellow-300">
@@ -476,7 +569,7 @@ export default function FixtureDivisionPage() {
                         <p className="max-w-[380px] break-words text-center text-2xl font-black uppercase leading-tight xl:text-right md:text-3xl">
                           {p.local}
                         </p>
-                        <Escudo nombre={p.local} />
+                        <Escudo nombre={p.local} logo={logoEquipo(p.local)} />
                       </div>
 
                       <div className="mx-auto min-w-[132px] rounded-2xl border border-yellow-400/35 bg-yellow-400/10 px-5 py-4 text-center shadow-[0_0_22px_rgba(250,204,21,.18)]">
@@ -486,7 +579,7 @@ export default function FixtureDivisionPage() {
                       </div>
 
                       <div className="flex items-center justify-center gap-4 xl:justify-start">
-                        <Escudo nombre={p.visitante} />
+                        <Escudo nombre={p.visitante} logo={logoEquipo(p.visitante)} />
                         <p className="max-w-[380px] break-words text-center text-2xl font-black uppercase leading-tight xl:text-left md:text-3xl">
                           {p.visitante}
                         </p>

@@ -11,6 +11,7 @@ export default function PartidoEstadisticasPage() {
 
   const [equipos, setEquipos] = useState<any[]>([]);
   const [jugadores, setJugadores] = useState<any[]>([]);
+  const [clubesInfo, setClubesInfo] = useState<any[]>([]);
   const [verDetalleCompleto, setVerDetalleCompleto] = useState(false);
 
   useEffect(() => {
@@ -33,8 +34,18 @@ export default function PartidoEstadisticasPage() {
       .eq("partido_id", partidoId)
       .order("score", { ascending: false });
 
+    const nombresEquipos = (equiposData || [])
+      .map((e: any) => e.equipo)
+      .filter(Boolean);
+
+    const { data: clubesData } = await supabase
+      .from("clubes_info")
+      .select("*")
+      .in("nombre", nombresEquipos);
+
     setEquipos(equiposData || []);
     setJugadores(jugadoresData || []);
+    setClubesInfo(clubesData || []);
   }
 
   const local = equipos[0];
@@ -43,6 +54,26 @@ export default function PartidoEstadisticasPage() {
   const mvp = jugadores.find((j) => Number(j.mvp) === 1);
 
   const topJugadores = jugadores.slice(0, 6);
+
+  const goleadores = jugadores
+    .filter((j) => Number(j.goals || 0) > 0)
+    .sort((a, b) => Number(b.goals || 0) - Number(a.goals || 0));
+
+  const asistidores = jugadores
+    .filter((j) => Number(j.assists || 0) > 0)
+    .sort((a, b) => Number(b.assists || 0) - Number(a.assists || 0));
+
+  function logoEquipo(nombre?: string) {
+    if (!nombre) return null;
+
+    const club = clubesInfo.find(
+      (c) =>
+        String(c.nombre || "").toLowerCase().trim() ===
+        String(nombre || "").toLowerCase().trim(),
+    );
+
+    return club?.logo_url || null;
+  }
 
   const arqueros = jugadores.filter(
     (j) => valorGKSave(j) > 0 || Number(j.gKCatches) > 0,
@@ -72,6 +103,83 @@ export default function PartidoEstadisticasPage() {
 
         return Number(b.score || 0) - Number(a.score || 0);
       });
+  }
+
+
+  function EscudoReal({ nombre, grande = false }: { nombre?: string; grande?: boolean }) {
+    const logo = logoEquipo(nombre);
+    const size = grande ? "h-28 w-28 text-3xl" : "h-16 w-16 text-lg";
+
+    return (
+      <div
+        className={`${size} overflow-hidden rounded-full border border-sky-400/30 bg-gradient-to-b from-sky-400/20 to-blue-950 flex items-center justify-center font-black shadow-[0_0_25px_rgba(56,189,248,.18)]`}
+      >
+        {logo ? (
+          <img
+            src={logo}
+            alt={nombre || "Equipo"}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          nombre?.slice(0, 2).toUpperCase()
+        )}
+      </div>
+    );
+  }
+
+  function EventoCard({
+    icon,
+    title,
+    lista,
+    stat,
+    empty,
+  }: {
+    icon: string;
+    title: string;
+    lista: any[];
+    stat: "goals" | "assists";
+    empty: string;
+  }) {
+    return (
+      <div className="rounded-[30px] border border-sky-500/20 bg-[#020714] p-6 shadow-[0_0_24px_rgba(0,120,255,.08)]">
+        <div className="mb-5 flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-2xl">
+            {icon}
+          </div>
+
+          <h3 className="text-2xl font-black uppercase">{title}</h3>
+        </div>
+
+        {lista.length === 0 ? (
+          <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
+            {empty}
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {lista.slice(0, 5).map((j) => (
+              <div
+                key={`${title}-${j.id}`}
+                className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/35 p-4"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-lg font-black uppercase">
+                    {j.nombre}
+                  </p>
+
+                  <p className="mt-1 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                    {j.equipo}
+                  </p>
+                </div>
+
+                <p className="text-4xl font-black text-yellow-300">
+                  {Number(j[stat] || 0)}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   }
 
   function StatBar({ label, a, b }: { label: string; a: number; b: number }) {
@@ -194,9 +302,7 @@ export default function PartidoEstadisticasPage() {
             <div className="mt-8 grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-8">
               <div className="text-center lg:text-left">
                 <div className="flex lg:block justify-center">
-                  <div className="h-28 w-28 rounded-full border border-sky-400/30 bg-gradient-to-b from-sky-400/20 to-blue-950 flex items-center justify-center text-3xl font-black shadow-[0_0_25px_rgba(56,189,248,.18)]">
-                    {local?.equipo?.slice(0, 2).toUpperCase()}
-                  </div>
+                  <EscudoReal nombre={local?.equipo} grande />
                 </div>
 
                 <h1 className="mt-5 text-3xl md:text-5xl font-black uppercase leading-tight">
@@ -222,9 +328,7 @@ export default function PartidoEstadisticasPage() {
 
               <div className="text-center lg:text-right">
                 <div className="flex lg:block justify-center">
-                  <div className="h-28 w-28 rounded-full border border-sky-400/30 bg-gradient-to-b from-sky-400/20 to-blue-950 flex items-center justify-center text-3xl font-black shadow-[0_0_25px_rgba(56,189,248,.18)]">
-                    {visitante?.equipo?.slice(0, 2).toUpperCase()}
-                  </div>
+                  <EscudoReal nombre={visitante?.equipo} grande />
                 </div>
 
                 <h1 className="mt-5 text-3xl md:text-5xl font-black uppercase leading-tight">
@@ -263,6 +367,24 @@ export default function PartidoEstadisticasPage() {
               </div>
             )}
           </div>
+        </section>
+
+        <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <EventoCard
+            icon="⚽"
+            title="Goleadores"
+            lista={goleadores}
+            stat="goals"
+            empty="No hay goles registrados."
+          />
+
+          <EventoCard
+            icon="🎯"
+            title="Asistidores"
+            lista={asistidores}
+            stat="assists"
+            empty="No hay asistencias registradas."
+          />
         </section>
 
         {local && visitante && (
@@ -353,9 +475,7 @@ export default function PartidoEstadisticasPage() {
                 className="rounded-[34px] border border-sky-500/20 bg-[#020714] p-6 md:p-8"
               >
                 <div className="flex items-center gap-4 mb-8">
-                  <div className="h-16 w-16 rounded-full border border-sky-400/30 bg-gradient-to-b from-sky-400/20 to-blue-950 flex items-center justify-center text-lg font-black">
-                    {equipo.equipo?.slice(0, 2).toUpperCase()}
-                  </div>
+                  <EscudoReal nombre={equipo.equipo} />
 
                   <div>
                     <h2 className="text-3xl font-black uppercase">

@@ -497,6 +497,19 @@ hr {
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.28), transparent);
 }
+select {
+  color: white;
+  background-color: #020714;
+}
+
+select option {
+  color: white;
+  background-color: #020714;
+}
+
+select:focus {
+  outline: none;
+}
 
 /* RESPETO A USUARIOS CON MENOS ANIMACION */
 

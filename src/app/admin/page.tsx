@@ -72,16 +72,18 @@ export default function AdminPage() {
 
   async function crearClub() {
     const { error } = await supabase.from("equipos").insert([
-      {
-        nombre: clubNombre,
-        temporada: clubTemporada,
-        division: clubDivision,
-      },
-    ]);
+  {
+    nombre: clubNombre,
+    temporada: clubTemporada,
+    division: clubDivision,
+    puntos: 0,
+    pj: 0,
+  },
+]);
 
     if (error) {
       console.log(error);
-      alert("Error creando club");
+      alert("Error creando club: " + error.message);
       return;
     }
 
@@ -200,7 +202,21 @@ export default function AdminPage() {
             plantillas y mercado sin tocar código.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-5 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-5 mt-8">
+          <Link
+            href="/admin/titulos"
+            className="group rounded-3xl border border-yellow-500/20 bg-[#11151c] p-6 transition hover:border-yellow-400 hover:shadow-[0_0_25px_rgba(250,204,21,.15)]"
+          >
+            <p className="text-yellow-300 text-xs uppercase tracking-[0.25em] font-black">
+              Historia
+            </p>
+
+            <h3 className="text-3xl font-black mt-3">🏆 Palmarés</h3>
+
+            <p className="text-zinc-400 mt-3">
+              Cargá campeones, copas y títulos oficiales.
+            </p>
+          </Link>
 
           <Link
             href="/admin/fixture"

@@ -33,11 +33,55 @@ function SeparadorHome({ label }: { label: string }) {
   );
 }
 
+function EscudoEquipo({
+  nombre,
+  logo,
+  size = "md",
+}: {
+  nombre?: string;
+  logo?: string | null;
+  size?: "sm" | "md" | "lg";
+}) {
+  const sizes = {
+    sm: "h-9 w-9 rounded-xl text-[10px]",
+    md: "h-14 w-14 rounded-2xl text-sm",
+    lg: "h-20 w-20 rounded-[24px] text-xl",
+  };
+
+  return (
+    <div
+      className={`flex shrink-0 items-center justify-center overflow-hidden border border-sky-300/30 bg-gradient-to-br from-sky-500 to-blue-950 font-black shadow-[0_0_18px_rgba(0,140,255,.45)] ${sizes[size]}`}
+    >
+      {logo ? (
+        <img
+          src={logo}
+          alt={nombre || "Club"}
+          className="h-full w-full object-contain p-1.5"
+        />
+      ) : (
+        nombre?.slice(0, 2).toUpperCase() || "CL"
+      )}
+    </div>
+  );
+}
+
 export default function Home() {
   const [partidos, setPartidos] = useState<any[]>([]);
   const [jugadores, setJugadores] = useState<any[]>([]);
+  const [clubesInfo, setClubesInfo] = useState<any[]>([]);
   const [division, setDivision] = useState("primera");
   const [temporada, setTemporada] = useState("Temporada 5");
+
+  const divisionDb =
+    division === "primera"
+      ? "Primera"
+      : division === "segunda"
+      ? "Segunda"
+      : division === "tercera"
+      ? "Tercera"
+      : division === "cuarta"
+      ? "Cuarta"
+      : division;
 
   useEffect(() => {
     cargarDatos();
@@ -47,15 +91,39 @@ export default function Home() {
     const { data: partidosData } = await supabase
       .from("partidos")
       .select("*")
-      .eq("division", division)
+      .in("division", [division, divisionDb])
       .eq("temporada", temporada)
       .order("fecha", { ascending: true });
 
     const { data: jugadoresData } = await supabase
       .from("partido_jugadores")
       .select("*")
-      .eq("division", division)
+      .in("division", [division, divisionDb])
       .eq("temporada", temporada);
+
+    const nombresClubes = Array.from(
+      new Set(
+        [
+          ...(partidosData || []).flatMap((p: any) => [p.local, p.visitante]),
+          ...(jugadoresData || []).map((j: any) => j.equipo),
+        ].filter(Boolean),
+      ),
+    );
+
+    if (nombresClubes.length > 0) {
+      const { data: clubesData, error: clubesError } = await supabase
+        .from("clubes_info")
+        .select("nombre, logo_url")
+        .in("nombre", nombresClubes);
+
+      if (clubesError) {
+        console.log(clubesError);
+      }
+
+      setClubesInfo(clubesData || []);
+    } else {
+      setClubesInfo([]);
+    }
 
     setPartidos(partidosData || []);
     setJugadores(jugadoresData || []);
@@ -63,6 +131,18 @@ export default function Home() {
 
   const divisionActual =
     divisiones.find((d) => d.nombre === division) || divisiones[0];
+
+  function logoEquipo(nombre?: string) {
+    if (!nombre) return null;
+
+    const club = clubesInfo.find(
+      (c) =>
+        String(c.nombre || "").toLowerCase().trim() ===
+        String(nombre || "").toLowerCase().trim(),
+    );
+
+    return club?.logo_url || null;
+  }
 
   const equiposCantidad = new Set(
     partidos.flatMap((p) => [p.local, p.visitante]).filter(Boolean),
@@ -431,6 +511,14 @@ export default function Home() {
                 <>
                   <div className="grid items-center gap-4 lg:grid-cols-[minmax(0,1fr)_110px_minmax(0,1fr)]">
                     <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5 text-center">
+                      <div className="mb-4 flex justify-center">
+                        <EscudoEquipo
+                          nombre={partidoDestacado.local}
+                          logo={logoEquipo(partidoDestacado.local)}
+                          size="lg"
+                        />
+                      </div>
+
                       <p className="mb-2 text-[9px] font-black uppercase tracking-[0.22em] text-zinc-500">
                         Local
                       </p>
@@ -445,6 +533,14 @@ export default function Home() {
                     </div>
 
                     <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5 text-center">
+                      <div className="mb-4 flex justify-center">
+                        <EscudoEquipo
+                          nombre={partidoDestacado.visitante}
+                          logo={logoEquipo(partidoDestacado.visitante)}
+                          size="lg"
+                        />
+                      </div>
+
                       <p className="mb-2 text-[9px] font-black uppercase tracking-[0.22em] text-zinc-500">
                         Visitante
                       </p>
@@ -499,14 +595,34 @@ export default function Home() {
                   className="rounded-2xl border border-white/10 bg-black/35 p-4"
                 >
                   <div className="flex items-center justify-between gap-4">
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
-                        {label}
-                      </p>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <EscudoEquipo
+                        nombre={
+                          label === "⚽ Goleador"
+                            ? rankings.goleador?.equipo
+                            : label === "🎯 Asistidor"
+                            ? rankings.asistidor?.equipo
+                            : rankings.mvp?.equipo
+                        }
+                        logo={logoEquipo(
+                          label === "⚽ Goleador"
+                            ? rankings.goleador?.equipo
+                            : label === "🎯 Asistidor"
+                            ? rankings.asistidor?.equipo
+                            : rankings.mvp?.equipo,
+                        )}
+                        size="sm"
+                      />
 
-                      <h3 className="mt-2 truncate text-xl font-black uppercase text-white">
-                        {name}
-                      </h3>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
+                          {label}
+                        </p>
+
+                        <h3 className="mt-2 truncate text-xl font-black uppercase text-white">
+                          {name}
+                        </h3>
+                      </div>
                     </div>
 
                     <p className="text-4xl font-black text-yellow-300">
@@ -557,15 +673,31 @@ export default function Home() {
                     key={p.id}
                     className="grid grid-cols-[1fr_70px_1fr] items-center gap-3 rounded-2xl border border-sky-500/15 bg-black/35 p-4"
                   >
-                    <p className="truncate text-right text-sm font-black uppercase">
-                      {p.local}
-                    </p>
+                    <div className="flex min-w-0 items-center justify-end gap-2">
+                      <p className="truncate text-right text-sm font-black uppercase">
+                        {p.local}
+                      </p>
+                      <EscudoEquipo
+                        nombre={p.local}
+                        logo={logoEquipo(p.local)}
+                        size="sm"
+                      />
+                    </div>
+
                     <p className="rounded-xl border border-sky-400/25 bg-sky-400/10 px-2 py-1 text-center text-sm font-black text-sky-300">
                       VS
                     </p>
-                    <p className="truncate text-left text-sm font-black uppercase">
-                      {p.visitante}
-                    </p>
+
+                    <div className="flex min-w-0 items-center gap-2">
+                      <EscudoEquipo
+                        nombre={p.visitante}
+                        logo={logoEquipo(p.visitante)}
+                        size="sm"
+                      />
+                      <p className="truncate text-left text-sm font-black uppercase">
+                        {p.visitante}
+                      </p>
+                    </div>
                   </div>
                 ))
               )}
@@ -604,15 +736,31 @@ export default function Home() {
                     }
                     className="grid grid-cols-[1fr_90px_1fr] items-center gap-3 rounded-2xl border border-emerald-500/15 bg-black/35 p-4 transition hover:border-emerald-400/40 hover:bg-emerald-400/10"
                   >
-                    <p className="truncate text-right text-sm font-black uppercase">
-                      {p.local}
-                    </p>
+                    <div className="flex min-w-0 items-center justify-end gap-2">
+                      <p className="truncate text-right text-sm font-black uppercase">
+                        {p.local}
+                      </p>
+                      <EscudoEquipo
+                        nombre={p.local}
+                        logo={logoEquipo(p.local)}
+                        size="sm"
+                      />
+                    </div>
+
                     <p className="rounded-xl border border-yellow-400/25 bg-yellow-400/10 px-2 py-1 text-center text-lg font-black text-yellow-300">
                       {p.resultado}
                     </p>
-                    <p className="truncate text-left text-sm font-black uppercase">
-                      {p.visitante}
-                    </p>
+
+                    <div className="flex min-w-0 items-center gap-2">
+                      <EscudoEquipo
+                        nombre={p.visitante}
+                        logo={logoEquipo(p.visitante)}
+                        size="sm"
+                      />
+                      <p className="truncate text-left text-sm font-black uppercase">
+                        {p.visitante}
+                      </p>
+                    </div>
                   </Link>
                 ))
               )}

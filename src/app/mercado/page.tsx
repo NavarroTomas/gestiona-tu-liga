@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 export default function MercadoPage() {
@@ -24,6 +25,7 @@ export default function MercadoPage() {
   const [division, setDivision] = useState("Primera");
   const [tipoActivo, setTipoActivo] = useState("Todos");
   const [movimientos, setMovimientos] = useState<any[]>([]);
+  const [clubesInfo, setClubesInfo] = useState<any[]>([]);
 
   useEffect(() => {
     cargarMovimientos();
@@ -42,7 +44,35 @@ export default function MercadoPage() {
       return;
     }
 
-    setMovimientos(data || []);
+    const movimientosBase = data || [];
+    setMovimientos(movimientosBase);
+
+    const nombresClubes = Array.from(
+      new Set(
+        movimientosBase
+          .flatMap((m: any) => [m.desde, m.hacia])
+          .filter(Boolean)
+          .filter((nombre: string) => {
+            const n = String(nombre).toLowerCase().trim();
+            return n !== "libre" && n !== "sin destino" && n !== "sin club";
+          }),
+      ),
+    );
+
+    if (nombresClubes.length > 0) {
+      const { data: clubesData, error: clubesError } = await supabase
+        .from("clubes_info")
+        .select("nombre, logo_url")
+        .in("nombre", nombresClubes);
+
+      if (clubesError) {
+        console.log(clubesError);
+      }
+
+      setClubesInfo(clubesData || []);
+    } else {
+      setClubesInfo([]);
+    }
   }
 
   function colorTipo(tipo: string) {
@@ -62,6 +92,97 @@ export default function MercadoPage() {
     if (tipo === "Préstamo") return "🔄";
     if (tipo === "Libre") return "🆓";
     return "⚡";
+  }
+
+  function esClubValido(nombre?: string | null) {
+    if (!nombre) return false;
+
+    const normalizado = String(nombre).toLowerCase().trim();
+
+    return (
+      normalizado !== "libre" &&
+      normalizado !== "sin destino" &&
+      normalizado !== "sin club"
+    );
+  }
+
+  function logoEquipo(nombre?: string | null) {
+    if (!nombre) return null;
+
+    const club = clubesInfo.find(
+      (c) =>
+        String(c.nombre || "").toLowerCase().trim() ===
+        String(nombre || "").toLowerCase().trim(),
+    );
+
+    return club?.logo_url || null;
+  }
+
+  function EscudoEquipo({
+    nombre,
+    size = "md",
+  }: {
+    nombre?: string | null;
+    size?: "sm" | "md";
+  }) {
+    const logo = logoEquipo(nombre);
+
+    const sizes = {
+      sm: "h-9 w-9 rounded-xl text-[10px]",
+      md: "h-12 w-12 rounded-2xl text-xs",
+    };
+
+    return (
+      <div
+        className={`flex shrink-0 items-center justify-center overflow-hidden border border-sky-400/30 bg-gradient-to-br from-sky-500 to-blue-950 font-black shadow-[0_0_15px_rgba(56,189,248,.28)] ${sizes[size]}`}
+      >
+        {logo ? (
+          <img
+            src={logo}
+            alt={nombre || "Club"}
+            className="h-full w-full object-contain p-1.5"
+          />
+        ) : (
+          nombre?.slice(0, 2).toUpperCase() || "?"
+        )}
+      </div>
+    );
+  }
+
+  function EquipoLink({
+    nombre,
+    variant = "normal",
+  }: {
+    nombre?: string | null;
+    variant?: "normal" | "highlight";
+  }) {
+    const texto = nombre || (variant === "highlight" ? "Sin destino" : "Libre");
+
+    const contenido = (
+      <span className="inline-flex min-w-0 items-center gap-2">
+        <EscudoEquipo nombre={texto} size="sm" />
+        <span className="truncate">{texto}</span>
+      </span>
+    );
+
+    if (!esClubValido(nombre)) {
+      return (
+        <span className="inline-flex min-w-0 items-center gap-2 text-zinc-400">
+          {contenido}
+        </span>
+      );
+    }
+
+    return (
+      <Link
+        href={`/equipos/${encodeURIComponent(String(nombre))}`}
+        className={`inline-flex min-w-0 items-center gap-2 transition hover:text-sky-300 ${
+          variant === "highlight" ? "font-black text-white" : ""
+        }`}
+      >
+        {contenido}
+      </Link>
+    );
   }
 
   const movimientosFiltrados =
@@ -251,11 +372,19 @@ export default function MercadoPage() {
                     {movimientoDestacado.jugador}
                   </h2>
 
-                  <p className="mt-3 text-zinc-400 text-lg">
-                    {movimientoDestacado.desde || "Libre"}{" "}
-                    <span className="text-sky-300 font-black">→</span>{" "}
-                    {movimientoDestacado.hacia || "Sin destino"}
-                  </p>
+                  <div className="mt-4 flex flex-wrap items-center gap-3 text-lg font-black">
+                    <EquipoLink
+                      nombre={movimientoDestacado.desde}
+                      variant="highlight"
+                    />
+
+                    <span className="text-sky-300">→</span>
+
+                    <EquipoLink
+                      nombre={movimientoDestacado.hacia}
+                      variant="highlight"
+                    />
+                  </div>
                 </div>
 
                 <div
@@ -353,9 +482,9 @@ export default function MercadoPage() {
                       <p className="text-zinc-500 text-[10px] uppercase tracking-[0.2em] font-black">
                         Desde
                       </p>
-                      <p className="mt-2 truncate font-black">
-                        {m.desde || "Libre"}
-                      </p>
+                      <div className="mt-2 min-w-0 font-black">
+                        <EquipoLink nombre={m.desde} />
+                      </div>
                     </div>
 
                     <div className="text-2xl text-sky-300 font-black">→</div>
@@ -364,9 +493,9 @@ export default function MercadoPage() {
                       <p className="text-sky-300 text-[10px] uppercase tracking-[0.2em] font-black">
                         Hacia
                       </p>
-                      <p className="mt-2 truncate font-black">
-                        {m.hacia || "Sin destino"}
-                      </p>
+                      <div className="mt-2 min-w-0 font-black">
+                        <EquipoLink nombre={m.hacia} />
+                      </div>
                     </div>
                   </div>
 

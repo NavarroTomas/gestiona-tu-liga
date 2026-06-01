@@ -8,6 +8,7 @@ export default function DivisionesPage() {
   const [temporada, setTemporada] = useState("Temporada 1");
   const [division, setDivision] = useState("Primera");
   const [ultimosResultados, setUltimosResultados] = useState<any[]>([]);
+  const [clubesInfo, setClubesInfo] = useState<any[]>([]);
 
   const temporadas = [
     "Temporada 1",
@@ -23,6 +24,36 @@ export default function DivisionesPage() {
     cargarUltimosResultados();
   }, []);
 
+  function logoEquipo(nombre?: string) {
+    if (!nombre) return null;
+
+    const club = clubesInfo.find(
+      (c) =>
+        String(c.nombre || "").toLowerCase().trim() ===
+        String(nombre || "").toLowerCase().trim(),
+    );
+
+    return club?.logo_url || null;
+  }
+
+  function EscudoMini({ nombre }: { nombre: string }) {
+    const logo = logoEquipo(nombre);
+
+    return (
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-sky-400/40 bg-gradient-to-br from-sky-500 to-blue-950 text-[10px] font-black shadow-[0_0_12px_rgba(56,189,248,.35)]">
+        {logo ? (
+          <img
+            src={logo}
+            alt={nombre}
+            className="h-full w-full object-contain p-1"
+          />
+        ) : (
+          nombre?.slice(0, 2).toUpperCase()
+        )}
+      </div>
+    );
+  }
+
   async function cargarUltimosResultados() {
     const { data, error } = await supabase
       .from("partidos")
@@ -37,7 +68,31 @@ export default function DivisionesPage() {
       return;
     }
 
-    setUltimosResultados(data || []);
+    const resultados = data || [];
+    setUltimosResultados(resultados);
+
+    const nombresEquipos = Array.from(
+      new Set(
+        resultados
+          .flatMap((p: any) => [p.local, p.visitante])
+          .filter(Boolean),
+      ),
+    );
+
+    if (nombresEquipos.length > 0) {
+      const { data: clubesData, error: clubesError } = await supabase
+        .from("clubes_info")
+        .select("nombre, logo_url")
+        .in("nombre", nombresEquipos);
+
+      if (clubesError) {
+        console.log(clubesError);
+      }
+
+      setClubesInfo(clubesData || []);
+    } else {
+      setClubesInfo([]);
+    }
   }
 
   return (
@@ -283,11 +338,7 @@ export default function DivisionesPage() {
                     >
                       <div className="grid grid-cols-[1fr_78px_1fr] items-center gap-3">
                         <div className="min-w-0 flex items-center gap-2">
-                          <img
-                            src="/logo-apa.png"
-                            alt={partido.local}
-                            className="h-8 w-8 shrink-0 rounded-full border border-sky-400/40 bg-black object-cover"
-                          />
+                          <EscudoMini nombre={partido.local} />
 
                           <span className="truncate text-[11px] font-black text-white">
                             {partido.local}
@@ -305,11 +356,7 @@ export default function DivisionesPage() {
                             {partido.visitante}
                           </span>
 
-                          <img
-                            src="/logo-apa.png"
-                            alt={partido.visitante}
-                            className="h-8 w-8 shrink-0 rounded-full border border-sky-400/40 bg-black object-cover"
-                          />
+                          <EscudoMini nombre={partido.visitante} />
                         </div>
                       </div>
 

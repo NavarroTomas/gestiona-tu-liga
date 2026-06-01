@@ -20,6 +20,7 @@ export default function PlantillasPage() {
 
   const [plantillas, setPlantillas] = useState<any[]>([]);
   const [equipos, setEquipos] = useState<string[]>([]);
+  const [clubesInfo, setClubesInfo] = useState<any[]>([]);
 
   useEffect(() => {
     cargarDatos();
@@ -83,6 +84,21 @@ export default function PlantillasPage() {
       new Set((equiposData || []).map((e: any) => e.equipo).filter(Boolean)),
     ).sort();
 
+    if (equiposUnicos.length > 0) {
+      const { data: clubesData, error: clubesError } = await supabase
+        .from("clubes_info")
+        .select("nombre, logo_url")
+        .in("nombre", equiposUnicos);
+
+      if (clubesError) {
+        console.log(clubesError);
+      }
+
+      setClubesInfo(clubesData || []);
+    } else {
+      setClubesInfo([]);
+    }
+
     setEquipos(equiposUnicos as string[]);
   }
 
@@ -94,6 +110,49 @@ export default function PlantillasPage() {
   function cambiarDivision(div: string) {
     setDivision(div);
     setEquipoSeleccionado("Todos");
+  }
+
+  function logoEquipo(nombre?: string) {
+    if (!nombre) return null;
+
+    const club = clubesInfo.find(
+      (c) =>
+        String(c.nombre || "").toLowerCase().trim() ===
+        String(nombre || "").toLowerCase().trim(),
+    );
+
+    return club?.logo_url || null;
+  }
+
+  function EscudoEquipo({
+    nombre,
+    logo,
+    size = "md",
+  }: {
+    nombre?: string;
+    logo?: string | null;
+    size?: "sm" | "md";
+  }) {
+    const sizes = {
+      sm: "h-9 w-9 rounded-xl text-[10px]",
+      md: "h-16 w-16 rounded-2xl text-xl",
+    };
+
+    return (
+      <div
+        className={`flex shrink-0 items-center justify-center overflow-hidden border border-sky-300 bg-gradient-to-br from-sky-500 to-blue-950 font-black shadow-[0_0_20px_rgba(56,189,248,.3)] ${sizes[size]}`}
+      >
+        {logo ? (
+          <img
+            src={logo}
+            alt={nombre || "Club"}
+            className="h-full w-full object-contain p-1.5"
+          />
+        ) : (
+          nombre?.slice(0, 2).toUpperCase() || "CL"
+        )}
+      </div>
+    );
   }
 
   const agrupadoPorEquipo: any = {};
@@ -236,13 +295,19 @@ export default function PlantillasPage() {
                   <button
                     key={equipo}
                     onClick={() => setEquipoSeleccionado(equipo)}
-                    className={`rounded-2xl border px-5 py-3 text-sm font-black uppercase transition-all ${
+                    className={`flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-black uppercase transition-all ${
                       equipoSeleccionado === equipo
                         ? "border-sky-300 bg-sky-400 text-black shadow-[0_0_20px_rgba(56,189,248,.35)]"
                         : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
                     }`}
                   >
-                    {equipo}
+                    <EscudoEquipo
+                      nombre={equipo}
+                      logo={logoEquipo(equipo)}
+                      size="sm"
+                    />
+
+                    <span>{equipo}</span>
                   </button>
                 ))}
               </div>
@@ -307,9 +372,10 @@ export default function PlantillasPage() {
                 >
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                     <div className="flex items-center gap-4">
-                      <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-950 border border-sky-300 flex items-center justify-center text-xl font-black shadow-[0_0_20px_rgba(56,189,248,.3)]">
-                        {equipo.slice(0, 2).toUpperCase()}
-                      </div>
+                      <EscudoEquipo
+                        nombre={equipo}
+                        logo={logoEquipo(equipo)}
+                      />
 
                       <div>
                         <h2 className="text-3xl font-black uppercase">
