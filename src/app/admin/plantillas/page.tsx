@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import AdminGuard from "@/components/AdminGuard";
 
 export default function AdminPlantillasPage() {
   const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4"];
@@ -78,7 +79,8 @@ export default function AdminPlantillasPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0b0f14] text-white">
+    <AdminGuard>
+      <main className="min-h-screen bg-[#0b0f14] text-white">
       <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-10 space-y-10">
         <div>
           <p className="text-sky-400 text-xs uppercase tracking-[4px] font-bold">
@@ -156,6 +158,7 @@ export default function AdminPlantillasPage() {
           </section>
         </div>
       </div>
-    </main>
+      </main>
+    </AdminGuard>
   );
 }

@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../../lib/supabase";
 
 function Escudo({ nombre }: { nombre: string }) {
   return (
-    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-950 border border-blue-300 flex items-center justify-center font-black text-sm shadow-[0_0_18px_rgba(0,140,255,.8)]">
+    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-sky-300/30 bg-gradient-to-br from-sky-500 to-blue-950 text-sm font-black shadow-[0_0_18px_rgba(0,140,255,.55)]">
       {nombre?.slice(0, 2).toUpperCase()}
     </div>
   );
@@ -61,6 +61,13 @@ export default function FixtureDivisionPage() {
     (p) => String(p.fecha || "1") === fechaActiva,
   );
 
+  const indiceFecha = fechas.indexOf(fechaActiva);
+  const fechaAnterior = indiceFecha > 0 ? fechas[indiceFecha - 1] : null;
+  const fechaSiguiente =
+    indiceFecha >= 0 && indiceFecha < fechas.length - 1
+      ? fechas[indiceFecha + 1]
+      : null;
+
   function estadoPartido(p: any) {
     if (p.resultado) return "finalizado";
     if (p.dia || p.hora) return "programado";
@@ -81,153 +88,454 @@ export default function FixtureDivisionPage() {
     return "border-sky-400/30 bg-sky-400/10 text-sky-300";
   }
 
+  const equiposCantidad = new Set(
+    partidos.flatMap((p) => [p.local, p.visitante]).filter(Boolean),
+  ).size;
+
+  const jugados = partidos.filter((p) => estadoPartido(p) === "finalizado").length;
+  const programados = partidos.filter(
+    (p) => estadoPartido(p) === "programado",
+  ).length;
+  const pendientes = partidos.filter(
+    (p) => estadoPartido(p) === "pendiente",
+  ).length;
+
+  const tabla = useMemo(() => {
+    const mapa: Record<
+      string,
+      {
+        equipo: string;
+        pts: number;
+        pj: number;
+        pg: number;
+        pe: number;
+        pp: number;
+        gf: number;
+        gc: number;
+        dg: number;
+        ultimos: string[];
+      }
+    > = {};
+
+    function asegurar(nombre: string) {
+      if (!nombre) return;
+
+      if (!mapa[nombre]) {
+        mapa[nombre] = {
+          equipo: nombre,
+          pts: 0,
+          pj: 0,
+          pg: 0,
+          pe: 0,
+          pp: 0,
+          gf: 0,
+          gc: 0,
+          dg: 0,
+          ultimos: [],
+        };
+      }
+    }
+
+    partidos.forEach((p) => {
+      asegurar(p.local);
+      asegurar(p.visitante);
+
+      if (!p.resultado || !p.resultado.includes("-")) return;
+
+      const [glRaw, gvRaw] = String(p.resultado).split("-");
+      const gl = Number(glRaw?.trim());
+      const gv = Number(gvRaw?.trim());
+
+      if (Number.isNaN(gl) || Number.isNaN(gv)) return;
+
+      mapa[p.local].pj += 1;
+      mapa[p.visitante].pj += 1;
+
+      mapa[p.local].gf += gl;
+      mapa[p.local].gc += gv;
+
+      mapa[p.visitante].gf += gv;
+      mapa[p.visitante].gc += gl;
+
+      if (gl > gv) {
+        mapa[p.local].pg += 1;
+        mapa[p.local].pts += 3;
+        mapa[p.visitante].pp += 1;
+        mapa[p.local].ultimos.push("G");
+        mapa[p.visitante].ultimos.push("P");
+      } else if (gl < gv) {
+        mapa[p.visitante].pg += 1;
+        mapa[p.visitante].pts += 3;
+        mapa[p.local].pp += 1;
+        mapa[p.visitante].ultimos.push("G");
+        mapa[p.local].ultimos.push("P");
+      } else {
+        mapa[p.local].pe += 1;
+        mapa[p.visitante].pe += 1;
+        mapa[p.local].pts += 1;
+        mapa[p.visitante].pts += 1;
+        mapa[p.local].ultimos.push("E");
+        mapa[p.visitante].ultimos.push("E");
+      }
+    });
+
+    return Object.values(mapa)
+      .map((e) => ({ ...e, dg: e.gf - e.gc, ultimos: e.ultimos.slice(-5) }))
+      .sort((a, b) => {
+        if (b.pts !== a.pts) return b.pts - a.pts;
+        if (b.dg !== a.dg) return b.dg - a.dg;
+        return b.gf - a.gf;
+      });
+  }, [partidos]);
+
+  const lider = tabla[0];
+
   return (
-    <main className="min-h-screen bg-[#020714] text-white px-6 py-8">
-      <section className="max-w-[1250px] mx-auto">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] px-4 py-8 text-white md:px-6">
+      <section className="mx-auto max-w-[1600px] space-y-8">
         <Link
           href="/fixture"
-          className="text-blue-300 font-black text-sm uppercase"
+          className="inline-flex rounded-2xl border border-sky-400/20 bg-sky-400/10 px-4 py-2 text-sm font-black uppercase text-sky-300 transition hover:bg-sky-400 hover:text-black"
         >
           ← Volver a fixture
         </Link>
 
-        <div className="flex items-center justify-between mt-8 mb-8">
-          <div>
-            <h1 className="text-5xl font-black uppercase">
-              Fixture {nombresDivision[division] || division}
-            </h1>
+        <section className="relative overflow-hidden rounded-[40px] border border-sky-500/30 bg-[#020714] p-7 shadow-[0_0_55px_rgba(0,120,255,.22)] md:p-10">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.18),transparent_42%)]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/84 to-black/25" />
 
-            <p className="text-blue-400 text-2xl font-black mt-2">
-              {temporada}
-            </p>
-          </div>
-
-          <div className="w-28 h-28 rounded-3xl border border-blue-500 bg-blue-950 flex items-center justify-center text-center font-black text-2xl shadow-[0_0_25px_rgba(0,120,255,.6)]">
-            APA
-            <br />
-            PSO
-          </div>
-        </div>
-
-        <div className="flex gap-4 mb-10 overflow-x-auto pb-2">
-          {fechas.map((f) => (
-            <button
-              key={f}
-              onClick={() => setFechaActiva(f)}
-              className={`min-w-[130px] px-6 py-4 rounded-xl border font-black ${
-                fechaActiva === f
-                  ? "bg-blue-600 border-blue-400 text-white shadow-[0_0_20px_rgba(0,120,255,.8)]"
-                  : "bg-[#061226] border-blue-900 text-blue-200"
-              }`}
-            >
-              FECHA {f}
-            </button>
-          ))}
-        </div>
-
-        <div className="rounded-3xl overflow-hidden border border-blue-500/70 bg-[#050b18] shadow-[0_0_35px_rgba(0,120,255,.35)]">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-blue-900 via-blue-950 to-black px-8 py-5 border-b border-blue-500/50">
+          <div className="relative z-10 grid gap-8 xl:grid-cols-[1fr_360px] xl:items-center">
             <div>
-              <h2 className="text-4xl font-black text-blue-100">
-                📅 FECHA {fechaActiva}
-              </h2>
+              <p className="text-xs font-black uppercase tracking-[0.45em] text-sky-400">
+                Fixture oficial APA
+              </p>
 
-              <p className="text-zinc-400 text-sm mt-2">
-                {partidosFecha.length} partidos visibles
+              <h1 className="mt-4 text-5xl font-black uppercase italic leading-none md:text-7xl">
+                <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
+                  {nombresDivision[division] || division}
+                </span>
+                <span className="block text-sky-400 drop-shadow-[0_0_22px_rgba(56,189,248,.55)]">
+                  {temporada}
+                </span>
+              </h1>
+
+              <p className="mt-6 max-w-3xl text-lg leading-8 text-zinc-300">
+                Centro de calendario, resultados, programación y tabla de
+                posiciones de la categoría seleccionada.
               </p>
             </div>
 
-            <div className="bg-black/60 border border-blue-500/40 rounded-2xl px-6 py-3 text-right">
-              <p className="text-blue-200 font-black">APA PSO</p>
-              <p className="text-blue-400 text-sm">Argentina</p>
+            <div className="rounded-[34px] border border-sky-400/25 bg-black/35 p-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-300">
+                Resumen competitivo
+              </p>
+
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                {[
+                  ["Equipos", equiposCantidad, "text-sky-300"],
+                  ["Fechas", fechas.length, "text-yellow-300"],
+                  ["Partidos", partidos.length, "text-white"],
+                  ["Jugados", jugados, "text-emerald-300"],
+                ].map(([label, value, color]) => (
+                  <div
+                    key={label}
+                    className="rounded-2xl border border-white/10 bg-white/[0.04] p-4"
+                  >
+                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                      {label}
+                    </p>
+                    <p className={`mt-2 text-3xl font-black ${color}`}>
+                      {value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-yellow-400/20 bg-yellow-400/10 p-4">
+                  <p className="text-[10px] font-black uppercase text-yellow-300">
+                    Programados
+                  </p>
+                  <p className="mt-2 text-3xl font-black text-yellow-300">
+                    {programados}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-sky-400/20 bg-sky-400/10 p-4">
+                  <p className="text-[10px] font-black uppercase text-sky-300">
+                    Pendientes
+                  </p>
+                  <p className="mt-2 text-3xl font-black text-sky-300">
+                    {pendientes}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
+        </section>
 
-          <div className="p-5 space-y-3">
-            {partidosFecha.length === 0 && (
-              <div className="p-10 text-zinc-500">
-                No hay partidos cargados para esta fecha.
-              </div>
-            )}
+        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[480px_1fr]">
+          <aside className="space-y-6">
+            <section className="rounded-[34px] border border-yellow-500/25 bg-[#020714]/95 p-6 shadow-[0_0_35px_rgba(250,204,21,.08)]">
+              <div className="mb-5 flex items-end justify-between gap-4">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-300">
+                    Tabla de posiciones
+                  </p>
 
-            {partidosFecha.map((p, index) => {
-              const contenido = (
-                <div className="grid grid-cols-1 xl:grid-cols-[1fr_110px_1fr_150px] min-h-[82px] rounded-2xl overflow-hidden border border-blue-500/40 bg-gradient-to-r from-[#020814] via-[#071b36] to-[#020814] hover:border-sky-400/60 transition">
-                  <div className="flex items-center justify-center xl:justify-end gap-5 px-6 py-5">
-                    <p className="text-2xl font-black uppercase text-center xl:text-right">
-                      {p.local}
-                    </p>
-                    <Escudo nombre={p.local} />
-                  </div>
-
-                  <div className="flex items-center justify-center px-4 py-5">
-                    <div className="min-w-[130px] rounded-2xl border border-yellow-400/35 bg-yellow-400/10 px-5 py-3 text-center shadow-[0_0_22px_rgba(250,204,21,.18)]">
-                      <p className="text-4xl font-black text-yellow-400 whitespace-nowrap drop-shadow-[0_0_10px_rgba(250,204,21,.45)]">
-                        {p.resultado ? p.resultado.replace(/\s/g, "") : "VS"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-center xl:justify-start gap-5 px-6 py-5">
-                    <Escudo nombre={p.visitante} />
-                    <p className="text-2xl font-black uppercase text-center xl:text-left">
-                      {p.visitante}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-center bg-black/50 border-l border-blue-500/40 px-4 py-5">
-                    <div className="text-center">
-                      {p.dia || p.hora ? (
-                        <>
-                          <p className="text-blue-200 font-black">
-                            {p.dia || "-"}
-                          </p>
-
-                          <p className="text-blue-400 font-black text-lg">
-                            {p.hora || "-"}
-                          </p>
-                        </>
-                      ) : (
-                        <p className="text-zinc-500 text-sm font-black uppercase">
-                          Sin programación
-                        </p>
-                      )}
-
-                      <p
-                        className={`mt-3 rounded-full border px-3 py-1 text-xs font-black uppercase ${claseEstado(
-                          p,
-                        )}`}
-                      >
-                        {estadoPartido(p) === "finalizado"
-                          ? "🟢 Finalizado"
-                          : estadoPartido(p) === "programado"
-                          ? "🟡 Programado"
-                          : "🔵 Pendiente"}
-                      </p>
-
-                      {p.partido_id && (
-                        <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-sky-300">
-                          Ver estadísticas →
-                        </p>
-                      )}
-                    </div>
-                  </div>
+                  <h2 className="mt-2 text-3xl font-black uppercase">
+                    Clasificación
+                  </h2>
                 </div>
-              );
 
-              return p.partido_id ? (
-                <Link
-                  key={p.id || index}
-                  href={`/estadisticas/${encodeURIComponent(p.partido_id)}`}
-                >
-                  {contenido}
-                </Link>
+                {lider && (
+                  <span className="rounded-full border border-yellow-400/25 bg-yellow-400/10 px-3 py-2 text-[10px] font-black uppercase text-yellow-300">
+                    👑 Líder
+                  </span>
+                )}
+              </div>
+
+              {tabla.length === 0 ? (
+                <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
+                  La tabla aparecerá cuando haya resultados cargados.
+                </p>
               ) : (
-                <div key={p.id || index}>{contenido}</div>
-              );
-            })}
-          </div>
-        </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[440px] border-separate border-spacing-y-2">
+                    <thead>
+                      <tr className="text-[9px] uppercase tracking-[0.18em] text-sky-300/80">
+                        <th className="py-2 text-left">#</th>
+                        <th className="py-2 text-left">Equipo</th>
+                        <th className="py-2 text-center">PTS</th>
+                        <th className="py-2 text-center">PJ</th>
+                        <th className="py-2 text-center">DG</th>
+                        <th className="py-2 text-center">Últ.</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {tabla.map((e, index) => (
+                        <tr
+                          key={e.equipo}
+                          className="bg-gradient-to-r from-[#06152c] via-[#071a33] to-[#030b18]"
+                        >
+                          <td className="rounded-l-xl px-3 py-3 text-sm font-black text-sky-300">
+                            {index + 1}
+                          </td>
+
+                          <td className="max-w-[170px] truncate px-3 py-3 text-sm font-black uppercase">
+                            {e.equipo}
+                          </td>
+
+                          <td className="py-3 text-center text-sm font-black text-yellow-300">
+                            {e.pts}
+                          </td>
+
+                          <td className="py-3 text-center text-sm font-black">
+                            {e.pj}
+                          </td>
+
+                          <td className="py-3 text-center text-sm font-black text-sky-300">
+                            {e.dg > 0 ? `+${e.dg}` : e.dg}
+                          </td>
+
+                          <td className="rounded-r-xl py-3 text-center">
+                            <div className="flex justify-center gap-1">
+                              {e.ultimos.length === 0 ? (
+                                <span className="text-xs text-zinc-600">-</span>
+                              ) : (
+                                e.ultimos.map((r, i) => (
+                                  <span
+                                    key={`${e.equipo}-${i}`}
+                                    className={`h-2.5 w-2.5 rounded-full ${
+                                      r === "G"
+                                        ? "bg-emerald-400"
+                                        : r === "E"
+                                        ? "bg-zinc-400"
+                                        : "bg-red-400"
+                                    }`}
+                                  />
+                                ))
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+
+            <section className="rounded-[34px] border border-sky-500/25 bg-[#020714]/95 p-6">
+              <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
+                Fechas
+              </p>
+
+              <h2 className="mt-2 text-3xl font-black uppercase">
+                Navegación
+              </h2>
+
+              <div className="mt-5 grid max-h-[390px] grid-cols-2 gap-3 overflow-y-auto pr-1 md:grid-cols-3 xl:grid-cols-2">
+                {fechas.length === 0 ? (
+                  <p className="col-span-2 rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
+                    No hay fechas cargadas.
+                  </p>
+                ) : (
+                  fechas.map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setFechaActiva(f)}
+                      className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
+                        fechaActiva === f
+                          ? "border-sky-300 bg-gradient-to-b from-sky-400 to-blue-700 text-white shadow-[0_0_20px_rgba(56,189,248,.45)]"
+                          : "border-white/10 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
+                      }`}
+                    >
+                      Fecha {f}
+                    </button>
+                  ))
+                )}
+              </div>
+            </section>
+          </aside>
+
+          <section className="rounded-[34px] border border-sky-500/25 bg-[#020714]/95 shadow-[0_0_35px_rgba(0,120,255,.12)]">
+            <div className="border-b border-sky-500/25 bg-gradient-to-r from-blue-900 via-blue-950 to-black p-6 md:p-8">
+              <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
+                    Calendario
+                  </p>
+
+                  <h2 className="mt-2 text-4xl font-black uppercase text-blue-100">
+                    📅 Fecha {fechaActiva}
+                  </h2>
+
+                  <p className="mt-2 text-zinc-400">
+                    {partidosFecha.length} partidos visibles
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    disabled={!fechaAnterior}
+                    onClick={() => fechaAnterior && setFechaActiva(fechaAnterior)}
+                    className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-xs font-black uppercase text-zinc-300 transition hover:border-sky-400/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+                  >
+                    ← Anterior
+                  </button>
+
+                  <button
+                    disabled={!fechaSiguiente}
+                    onClick={() =>
+                      fechaSiguiente && setFechaActiva(fechaSiguiente)
+                    }
+                    className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-xs font-black uppercase text-zinc-300 transition hover:border-sky-400/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+                  >
+                    Siguiente →
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4 p-5 md:p-6">
+              {partidosFecha.length === 0 && (
+                <div className="rounded-2xl border border-white/10 bg-black/35 p-10 text-zinc-500">
+                  No hay partidos cargados para esta fecha.
+                </div>
+              )}
+
+              {partidosFecha.map((p, index) => {
+                const estado = estadoPartido(p);
+
+                const contenido = (
+                  <div className="group overflow-hidden rounded-[28px] border border-sky-500/20 bg-gradient-to-r from-[#020814] via-[#071b36] to-[#020814] transition hover:border-sky-400/60 hover:shadow-[0_0_28px_rgba(56,189,248,.12)]">
+                    <div className="border-b border-white/10 bg-black/25 px-5 py-3">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <span
+                          className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase ${claseEstado(
+                            p,
+                          )}`}
+                        >
+                          {estado === "finalizado"
+                            ? "🟢 Finalizado"
+                            : estado === "programado"
+                            ? "🟡 Programado"
+                            : "🔵 Pendiente"}
+                        </span>
+
+                        <span className="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
+                          {p.dia || "Sin día"} · {p.hora || "Sin hora"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 items-center gap-4 p-5 xl:grid-cols-[1fr_140px_1fr]">
+                      <div className="flex items-center justify-center gap-4 xl:justify-end">
+                        <p className="max-w-[380px] break-words text-center text-2xl font-black uppercase leading-tight xl:text-right md:text-3xl">
+                          {p.local}
+                        </p>
+                        <Escudo nombre={p.local} />
+                      </div>
+
+                      <div className="mx-auto min-w-[132px] rounded-2xl border border-yellow-400/35 bg-yellow-400/10 px-5 py-4 text-center shadow-[0_0_22px_rgba(250,204,21,.18)]">
+                        <p className="text-4xl font-black text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,.45)]">
+                          {p.resultado ? p.resultado.replace(/\s/g, "") : "VS"}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-center gap-4 xl:justify-start">
+                        <Escudo nombre={p.visitante} />
+                        <p className="max-w-[380px] break-words text-center text-2xl font-black uppercase leading-tight xl:text-left md:text-3xl">
+                          {p.visitante}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3 border-t border-white/10 bg-black/25 px-5 py-4 md:flex-row md:items-center md:justify-between">
+                      <div className="text-sm font-bold text-zinc-400">
+                        {p.dia || p.hora ? (
+                          <>
+                            Programación:{" "}
+                            <span className="text-sky-300">
+                              {p.dia || "-"} · {p.hora || "-"}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-zinc-500">
+                            Sin programación confirmada
+                          </span>
+                        )}
+                      </div>
+
+                      {p.partido_id ? (
+                        <span className="text-xs font-black uppercase tracking-[0.18em] text-sky-300 transition group-hover:text-white">
+                          Ver estadísticas →
+                        </span>
+                      ) : (
+                        <span className="text-xs font-black uppercase tracking-[0.18em] text-zinc-600">
+                          Stats no cargadas
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+
+                return p.partido_id ? (
+                  <Link
+                    key={p.id || index}
+                    href={`/estadisticas/${encodeURIComponent(p.partido_id)}`}
+                  >
+                    {contenido}
+                  </Link>
+                ) : (
+                  <div key={p.id || index}>{contenido}</div>
+                );
+              })}
+            </div>
+          </section>
+        </section>
       </section>
     </main>
   );

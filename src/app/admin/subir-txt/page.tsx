@@ -1,22 +1,98 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import AdminGuard from "@/components/AdminGuard";
+
+type PartidoProgramado = {
+  id: string;
+  partido_id?: string | null;
+  local: string;
+  visitante: string;
+  resultado?: string | null;
+  fecha?: string | number | null;
+  temporada: string;
+  division: string;
+  dia?: string | null;
+  hora?: string | null;
+};
+
+type Equipo = {
+  id?: string;
+  nombre: string;
+  temporada?: string;
+  division?: string;
+};
 
 export default function SubirTxtPage() {
+
   const temporadas = [
     "Temporada 1",
     "Temporada 2",
     "Temporada 3",
     "Temporada 4",
+    "Temporada 5",
+    "Temporada 6",
   ];
+
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 
   const [archivo, setArchivo] = useState<File | null>(null);
-  const [temporada, setTemporada] = useState("Temporada 1");
+  const [temporada, setTemporada] = useState("Temporada 5");
   const [division, setDivision] = useState("Primera");
   const [fecha, setFecha] = useState("1");
+
+  const [equipos, setEquipos] = useState<Equipo[]>([]);
+  const [partidosProgramados, setPartidosProgramados] = useState<
+    PartidoProgramado[]
+  >([]);
+  const [partidoSeleccionadoId, setPartidoSeleccionadoId] = useState("");
+  const [ordenTxt, setOrdenTxt] = useState<"normal" | "invertido">("normal");
+
   const [mensaje, setMensaje] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    cargarContexto();
+  }, [temporada, division, fecha]);
+
+  async function cargarContexto() {
+    setMensaje("");
+
+    const { data: equiposData, error: equiposError } = await supabase
+      .from("equipos")
+      .select("*")
+      .eq("temporada", temporada)
+      .eq("division", division)
+      .order("nombre", { ascending: true });
+
+    if (equiposError) {
+      console.log(equiposError);
+    }
+
+    const { data: partidosData, error: partidosError } = await supabase
+      .from("partidos")
+      .select("*")
+      .eq("temporada", temporada)
+      .eq("division", division)
+      .eq("fecha", fecha)
+      .order("local", { ascending: true });
+
+    if (partidosError) {
+      console.log(partidosError);
+    }
+
+    setEquipos(equiposData || []);
+    setPartidosProgramados(partidosData || []);
+
+    const existeSeleccion = (partidosData || []).some(
+      (p: any) => p.id === partidoSeleccionadoId,
+    );
+
+    if (!existeSeleccion) {
+      setPartidoSeleccionadoId((partidosData || [])[0]?.id || "");
+    }
+  }
 
   function n(valor: any) {
     return Number(valor || 0);
@@ -30,10 +106,10 @@ export default function SubirTxtPage() {
     return `${temporada}-${division}-fecha-${fecha}-${local}-${resultado}-${visitante}`;
   }
 
-  function normalizarEquipo(stats: any, idPartido: string) {
+  function normalizarEquipo(stats: any, idPartido: string, equipoOficial: string) {
     return {
       partido_id: idPartido,
-      equipo: limpiar(stats.teamName),
+      equipo: equipoOficial,
       temporada,
       division,
       fecha,
@@ -64,13 +140,18 @@ export default function SubirTxtPage() {
     };
   }
 
-  function normalizarJugador(j: any, idPartido: string, esMvp: boolean) {
+  function normalizarJugador(
+    j: any,
+    idPartido: string,
+    esMvp: boolean,
+    equipoOficial: string,
+  ) {
     return {
       partido_id: idPartido,
       nombre: limpiar(j.playerName),
       playerId: j.playerId || "",
       posicion: j.postion || j.position || "",
-      equipo: limpiar(j.team),
+      equipo: equipoOficial,
       temporada,
       division,
       fecha,
@@ -94,6 +175,10 @@ export default function SubirTxtPage() {
     };
   }
 
+  const partidoSeleccionado = partidosProgramados.find(
+    (p) => p.id === partidoSeleccionadoId,
+  );
+
   async function subirTxt() {
     try {
       setMensaje("");
@@ -103,6 +188,13 @@ export default function SubirTxtPage() {
         return;
       }
 
+      if (!partidoSeleccionado) {
+        alert("Elegí un partido programado antes de cargar el TXT");
+        return;
+      }
+
+      setLoading(true);
+
       const texto = await archivo.text();
       const data = JSON.parse(texto);
 
@@ -111,81 +203,129 @@ export default function SubirTxtPage() {
 
       if (!team1 || !team2) {
         alert("El TXT no tiene team1Stats o team2Stats");
+        setLoading(false);
         return;
       }
 
-      const local = limpiar(team1.teamName);
-      const visitante = limpiar(team2.teamName);
+      const localOficial = partidoSeleccionado.local;
+      const visitanteOficial = partidoSeleccionado.visitante;
 
-      const golesLocal = n(team1.goals);
-      const golesVisitante = n(team2.goals);
+      const statsLocal = ordenTxt === "normal" ? team1 : team2;
+      const statsVisitante = ordenTxt === "normal" ? team2 : team1;
+
+      const jugadoresLocalRaw =
+        ordenTxt === "normal"
+          ? data.team1PlayerStats || []
+          : data.team2PlayerStats || [];
+
+      const jugadoresVisitanteRaw =
+        ordenTxt === "normal"
+          ? data.team2PlayerStats || []
+          : data.team1PlayerStats || [];
+
+      const golesLocal = n(statsLocal.goals);
+      const golesVisitante = n(statsVisitante.goals);
 
       const resultado = `${golesLocal}-${golesVisitante}`;
-      const idPartido = partidoId(local, visitante, resultado);
+      const idPartido = partidoId(localOficial, visitanteOficial, resultado);
 
-      const { data: existe } = await supabase
-        .from("partidos")
-        .select("*")
-        .eq("local", local)
-        .eq("visitante", visitante)
-        .eq("resultado", resultado)
-        .eq("fecha", fecha)
-        .eq("temporada", temporada)
-        .eq("division", division);
+      const confirmar = window.confirm(
+        `Vas a cargar el TXT para:\n\n${localOficial} ${resultado} ${visitanteOficial}\n\nOrden TXT: ${
+          ordenTxt === "normal"
+            ? "team1 = local / team2 = visitante"
+            : "team1 = visitante / team2 = local"
+        }\n\n¿Confirmar carga?`,
+      );
 
-      if (existe && existe.length > 0) {
-        alert("Este partido ya fue cargado");
+      if (!confirmar) {
+        setLoading(false);
         return;
       }
 
-      const { error: partidoError } = await supabase.from("partidos").insert([
-        {
-          local,
-          visitante,
+      const { data: partidoYaCargado } = await supabase
+        .from("partidos")
+        .select("*")
+        .eq("partido_id", idPartido);
+
+      if (
+        partidoYaCargado &&
+        partidoYaCargado.length > 0 &&
+        partidoYaCargado[0].id !== partidoSeleccionado.id
+      ) {
+        alert("Este partido ya existe con otro registro.");
+        setLoading(false);
+        return;
+      }
+
+      const { error: updatePartidoError } = await supabase
+        .from("partidos")
+        .update({
+          local: localOficial,
+          visitante: visitanteOficial,
           resultado,
           fecha,
           temporada,
           division,
-        },
-      ]);
+          partido_id: idPartido,
+        })
+        .eq("id", partidoSeleccionado.id);
 
-      if (partidoError) {
-        console.log(partidoError);
-        alert("Error cargando partido");
+      if (updatePartidoError) {
+        console.log(updatePartidoError);
+        alert("Error actualizando el partido programado");
+        setLoading(false);
         return;
       }
 
-      const equipos = [
-        normalizarEquipo(team1, idPartido),
-        normalizarEquipo(team2, idPartido),
+      await supabase
+        .from("estadisticas_equipos")
+        .delete()
+        .eq("partido_id", idPartido);
+
+      await supabase
+        .from("estadisticas_jugadores")
+        .delete()
+        .eq("partido_id", idPartido);
+
+      const equiposStats = [
+        normalizarEquipo(statsLocal, idPartido, localOficial),
+        normalizarEquipo(statsVisitante, idPartido, visitanteOficial),
       ];
 
       const { error: equiposError } = await supabase
         .from("estadisticas_equipos")
-        .insert(equipos);
+        .insert(equiposStats);
 
       if (equiposError) {
         console.log(equiposError);
-        alert("Partido cargado, pero error guardando estadísticas de equipos");
+        alert("Partido actualizado, pero error guardando estadísticas de equipos");
+        setLoading(false);
         return;
       }
 
-      const jugadoresRaw = [
-        ...(data.team1PlayerStats || []),
-        ...(data.team2PlayerStats || []),
+      const jugadoresRawConEquipo = [
+        ...jugadoresLocalRaw.map((j: any) => ({
+          ...j,
+          equipoOficial: localOficial,
+        })),
+        ...jugadoresVisitanteRaw.map((j: any) => ({
+          ...j,
+          equipoOficial: visitanteOficial,
+        })),
       ];
 
-      const mejorJugador = jugadoresRaw
+      const mejorJugador = jugadoresRawConEquipo
         .filter((j: any) => limpiar(j.playerName))
         .sort((a: any, b: any) => n(b.score) - n(a.score))[0];
 
-      const jugadoresDetallados = jugadoresRaw
+      const jugadoresDetallados = jugadoresRawConEquipo
         .filter((j: any) => limpiar(j.playerName))
         .map((j: any) =>
           normalizarJugador(
             j,
             idPartido,
             mejorJugador?.playerId === j.playerId,
+            j.equipoOficial,
           ),
         );
 
@@ -199,6 +339,7 @@ export default function SubirTxtPage() {
           "Error guardando estadísticas detalladas de jugadores: " +
             jugadoresDetalleError.message,
         );
+        setLoading(false);
         return;
       }
 
@@ -266,84 +407,216 @@ export default function SubirTxtPage() {
         alert(
           "Stats detalladas cargadas, pero error cargando ranking de jugadores",
         );
+        setLoading(false);
         return;
       }
 
       setMensaje(
-        `Cargado perfecto: ${local} ${resultado} ${visitante}. Jugadores: ${jugadoresDetallados.length}. MVP por score: ${
+        `Cargado perfecto: ${localOficial} ${resultado} ${visitanteOficial}. Jugadores: ${jugadoresDetallados.length}. MVP por score: ${
           mejorJugador?.playerName || "Sin MVP"
         }`,
       );
 
       setArchivo(null);
+      await cargarContexto();
+      setLoading(false);
     } catch (error) {
       console.log(error);
+      setLoading(false);
       alert(
         "No pude leer el TXT. Tiene que ser el formato JSON del MatchStats.",
       );
     }
   }
+return (
+    <AdminGuard>
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] text-white">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-10 space-y-8">
+        <section className="relative overflow-hidden rounded-[38px] border border-sky-500/30 bg-[#020714] p-7 md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.18),transparent_42%)]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/82 to-black/30" />
 
-  return (
-    <main className="min-h-screen bg-[#0b0f14] text-white">
-      <div className="max-w-[1000px] mx-auto px-4 md:px-8 py-10 space-y-8">
-        <div>
-          <p className="text-sky-400 text-xs uppercase tracking-[4px] font-bold">
-            ADMIN APA PSO
-          </p>
+          <div className="relative z-10">
+            <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black">
+              Admin APA PSO
+            </p>
 
-          <h1 className="mt-3 text-4xl md:text-5xl font-black">
-            Subir TXT del Partido
-          </h1>
+            <h1 className="mt-4 text-5xl md:text-6xl font-black uppercase italic leading-none">
+              Subir TXT
+            </h1>
 
-          <p className="mt-4 text-zinc-400">
-            Subí el MatchStats. Se cargan automáticamente partido, tabla,
-            jugadores, MVP por score y estadísticas avanzadas.
-          </p>
-        </div>
+            <p className="mt-5 max-w-3xl text-zinc-300">
+              Primero elegí el partido programado. El TXT carga estadísticas,
+              pero los equipos oficiales salen del fixture creado en Admin.
+            </p>
+          </div>
+        </section>
 
-        <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6 space-y-4">
-          <input
-            className="input"
-            type="file"
-            accept=".txt,.json"
-            onChange={(e) => setArchivo(e.target.files?.[0] || null)}
-          />
+        <section className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6 md:p-8 shadow-[0_0_35px_rgba(0,120,255,.12)] space-y-6">
+          <div>
+            <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+              1. Contexto del partido
+            </p>
 
-          <input
-            className="input"
-            value={fecha}
-            onChange={(e) => setFecha(e.target.value)}
-            placeholder="Fecha"
-          />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <select
+                className="input"
+                value={temporada}
+                onChange={(e) => setTemporada(e.target.value)}
+              >
+                {temporadas.map((temp) => (
+                  <option key={temp}>{temp}</option>
+                ))}
+              </select>
 
-          <select
-            className="input"
-            value={temporada}
-            onChange={(e) => setTemporada(e.target.value)}
+              <select
+                className="input"
+                value={division}
+                onChange={(e) => setDivision(e.target.value)}
+              >
+                {divisiones.map((div) => (
+                  <option key={div}>{div}</option>
+                ))}
+              </select>
+
+              <input
+                className="input"
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+                placeholder="Fecha"
+              />
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+              2. Partido programado
+            </p>
+
+            {partidosProgramados.length === 0 ? (
+              <div className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 p-5 text-yellow-300">
+                No hay partidos programados para esta fecha. Primero crealo en
+                <b> /admin/fixture</b>.
+              </div>
+            ) : (
+              <select
+                className="input"
+                value={partidoSeleccionadoId}
+                onChange={(e) => setPartidoSeleccionadoId(e.target.value)}
+              >
+                {partidosProgramados.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.local} vs {p.visitante}
+                    {p.resultado ? ` · ${p.resultado}` : " · pendiente"}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {partidoSeleccionado && (
+              <div className="mt-5 rounded-[28px] border border-sky-500/25 bg-black/35 p-5">
+                <p className="text-[10px] uppercase tracking-[0.28em] text-sky-300 font-black">
+                  Partido seleccionado
+                </p>
+
+                <div className="mt-4 grid grid-cols-[1fr_90px_1fr] items-center gap-4">
+                  <div className="rounded-2xl border border-white/10 bg-black/35 p-4 text-center">
+                    <p className="text-xs uppercase text-zinc-500">Local</p>
+                    <p className="mt-2 text-xl font-black uppercase">
+                      {partidoSeleccionado.local}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 p-4 text-center text-2xl font-black text-yellow-300">
+                    VS
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-black/35 p-4 text-center">
+                    <p className="text-xs uppercase text-zinc-500">Visitante</p>
+                    <p className="mt-2 text-xl font-black uppercase">
+                      {partidoSeleccionado.visitante}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-3 text-sm font-black uppercase">
+                  <span className="rounded-xl border border-sky-400/25 bg-sky-400/10 px-3 py-2 text-sky-300">
+                    Fecha {partidoSeleccionado.fecha || fecha}
+                  </span>
+
+                  <span className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-zinc-400">
+                    {partidoSeleccionado.dia || "Sin día"}
+                  </span>
+
+                  <span className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-zinc-400">
+                    {partidoSeleccionado.hora || "Sin hora"}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+              3. Orden del TXT
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <button
+                onClick={() => setOrdenTxt("normal")}
+                className={`rounded-2xl border px-5 py-4 text-sm font-black uppercase transition ${
+                  ordenTxt === "normal"
+                    ? "border-sky-300 bg-sky-400 text-black"
+                    : "border-white/10 bg-black/35 text-zinc-400 hover:border-sky-400/30 hover:text-white"
+                }`}
+              >
+                team1 = local / team2 = visitante
+              </button>
+
+              <button
+                onClick={() => setOrdenTxt("invertido")}
+                className={`rounded-2xl border px-5 py-4 text-sm font-black uppercase transition ${
+                  ordenTxt === "invertido"
+                    ? "border-yellow-300 bg-yellow-400 text-black"
+                    : "border-white/10 bg-black/35 text-zinc-400 hover:border-yellow-400/30 hover:text-white"
+                }`}
+              >
+                team1 = visitante / team2 = local
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+              4. Archivo MatchStats
+            </p>
+
+            <input
+              className="input"
+              type="file"
+              accept=".txt,.json"
+              onChange={(e) => setArchivo(e.target.files?.[0] || null)}
+            />
+          </div>
+
+          <button
+            onClick={subirTxt}
+            disabled={loading}
+            className="btn disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {temporadas.map((temp) => (
-              <option key={temp}>{temp}</option>
-            ))}
-          </select>
-
-          <select
-            className="input"
-            value={division}
-            onChange={(e) => setDivision(e.target.value)}
-          >
-            {divisiones.map((div) => (
-              <option key={div}>{div}</option>
-            ))}
-          </select>
-
-          <button onClick={subirTxt} className="btn">
-            Cargar Partido Automático
+            {loading ? "Cargando..." : "Cargar TXT al partido seleccionado"}
           </button>
 
           {mensaje && <p className="text-emerald-400 font-bold">{mensaje}</p>}
         </section>
+
+        <section className="rounded-[28px] border border-yellow-400/20 bg-yellow-400/10 p-5 text-sm leading-7 text-yellow-100">
+          <b>Importante:</b> el nombre del equipo ya no depende del TXT. El TXT
+          solo aporta estadísticas. Los equipos oficiales salen del partido
+          seleccionado en el fixture.
+        </section>
       </div>
-    </main>
+      </main>
+    </AdminGuard>
   );
 }

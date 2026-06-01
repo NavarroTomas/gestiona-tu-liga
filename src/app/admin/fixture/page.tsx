@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import AdminGuard from "@/components/AdminGuard";
 
 type Partido = {
   id: string;
@@ -71,6 +72,7 @@ function generarRoundRobin(equiposOriginales: string[]) {
 }
 
 export default function AdminFixturePage() {
+
   const [temporada, setTemporada] = useState("Temporada 5");
   const [division, setDivision] = useState("Primera");
   const [equipos, setEquipos] = useState<Equipo[]>([]);
@@ -327,9 +329,9 @@ export default function AdminFixturePage() {
 
     return "border-sky-400/30 bg-sky-400/10 text-sky-300";
   }
-
-  return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] px-4 py-8 text-white md:px-8">
+return (
+    <AdminGuard>
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] px-4 py-8 text-white md:px-8">
       <section className="mx-auto max-w-[1600px] space-y-8">
         <section className="relative overflow-hidden rounded-[40px] border border-sky-500/30 bg-[#020714] p-7 shadow-[0_0_55px_rgba(0,120,255,.22)] md:p-10">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.18),transparent_42%)]" />
@@ -779,6 +781,7 @@ export default function AdminFixturePage() {
           </section>
         </section>
       </section>
-    </main>
+      </main>
+    </AdminGuard>
   );
 }

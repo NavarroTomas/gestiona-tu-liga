@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 const menus = [
   {
@@ -113,6 +114,7 @@ function linkActivo(pathname: string, href: string) {
 export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState<string | null>(null);
+  const [esAdmin, setEsAdmin] = useState(false);
 
   useEffect(() => {
     function cerrar() {
@@ -129,6 +131,39 @@ export default function Navbar() {
   useEffect(() => {
     setOpen(null);
   }, [pathname]);
+
+  useEffect(() => {
+    verificarAdminNavbar();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      verificarAdminNavbar();
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  async function verificarAdminNavbar() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setEsAdmin(false);
+      return;
+    }
+
+    const { data: admin } = await supabase
+      .from("admins")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    setEsAdmin(!!admin);
+  }
 
   return (
     <nav className="sticky top-0 z-[9999] border-b border-white/10 bg-[#050914]/82 shadow-[0_14px_50px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
@@ -284,19 +319,21 @@ export default function Navbar() {
           })}
         </div>
 
-        <div className="flex min-w-fit items-center gap-3">
-          <Link
-            href="/admin"
-            className={`relative overflow-hidden rounded-2xl border px-4 py-2 text-sm font-black transition-all md:px-5 ${
-              pathname.startsWith("/admin")
-                ? "border-sky-300 bg-sky-500 text-black shadow-[0_0_24px_rgba(56,189,248,.45)]"
-                : "border-sky-500/35 bg-sky-500/10 text-sky-300 hover:border-sky-300 hover:bg-sky-500 hover:text-black hover:shadow-[0_0_24px_rgba(56,189,248,.32)]"
-            }`}
-          >
-            <span className="hidden sm:inline">⚡ Admin</span>
-            <span className="sm:hidden">⚡</span>
-          </Link>
-        </div>
+        {esAdmin && (
+          <div className="flex min-w-fit items-center gap-3">
+            <Link
+              href="/admin"
+              className={`relative overflow-hidden rounded-2xl border px-4 py-2 text-sm font-black transition-all md:px-5 ${
+                pathname.startsWith("/admin")
+                  ? "border-sky-300 bg-sky-500 text-black shadow-[0_0_24px_rgba(56,189,248,.45)]"
+                  : "border-sky-500/35 bg-sky-500/10 text-sky-300 hover:border-sky-300 hover:bg-sky-500 hover:text-black hover:shadow-[0_0_24px_rgba(56,189,248,.32)]"
+              }`}
+            >
+              <span className="hidden sm:inline">⚡ Admin</span>
+              <span className="sm:hidden">⚡</span>
+            </Link>
+          </div>
+        )}
       </div>
     </nav>
   );

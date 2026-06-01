@@ -1,10 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 export default function AdminPage() {
+  const router = useRouter();
+  const [verificando, setVerificando] = useState(true);
+
+  useEffect(() => {
+    verificarAdmin();
+  }, []);
+
+  async function verificarAdmin() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    const { data: admin } = await supabase
+      .from("admins")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!admin) {
+      router.push("/");
+      return;
+    }
+
+    setVerificando(false);
+  }
   const temporadas = [
     "Temporada 1",
     "Temporada 2",
@@ -147,7 +178,13 @@ export default function AdminPage() {
     setNoticiaTitulo("");
     setNoticiaDescripcion("");
   }
-
+  if (verificando) {
+    return (
+      <main className="min-h-screen bg-black flex items-center justify-center text-white">
+        <p className="text-2xl font-black">Verificando acceso...</p>
+      </main>
+    );
+  }
   return (
     <main className="min-h-screen bg-[#0b0f14] text-white">
       <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-10 space-y-10">
@@ -163,7 +200,23 @@ export default function AdminPage() {
             plantillas y mercado sin tocar código.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-5 mt-8">
+
+          <Link
+            href="/admin/fixture"
+            className="group rounded-3xl border border-yellow-500/20 bg-[#11151c] p-6 transition hover:border-yellow-400 hover:shadow-[0_0_25px_rgba(250,204,21,.15)]"
+          >
+            <p className="text-yellow-300 text-xs uppercase tracking-[0.25em] font-black">
+              Competición
+            </p>
+
+            <h3 className="text-3xl font-black mt-3">📅 Fixture Manager</h3>
+
+            <p className="text-zinc-400 mt-3">
+              Generá fixtures, programá horarios y gestioná partidos.
+            </p>
+          </Link>
+
           <Link
             href="/admin/subir-txt"
             className="group rounded-3xl border border-sky-500/20 bg-[#11151c] p-6 transition hover:border-sky-400 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]"

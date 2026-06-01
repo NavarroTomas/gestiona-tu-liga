@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import AdminGuard from "@/components/AdminGuard";
 
 type JugadorManual = {
   nombre: string;
@@ -283,7 +284,8 @@ export default function CargarPartidoManualPage() {
   }
 
   return (
-    <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
+    <AdminGuard>
+      <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
       <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-8 space-y-8">
         <section className="relative overflow-hidden rounded-[38px] border border-sky-500/30 bg-[#020714] p-7 md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_42%)]" />
@@ -388,6 +390,7 @@ export default function CargarPartidoManualPage() {
           {mensaje && <p className="mt-5 rounded-2xl border border-sky-500/20 bg-black/35 p-4 text-center text-sky-300 font-black">{mensaje}</p>}
         </section>
       </div>
-    </main>
+      </main>
+    </AdminGuard>
   );
 }
