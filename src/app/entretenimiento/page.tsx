@@ -55,7 +55,7 @@ export default function EntretenimientoPage() {
                   Marcador Exacto
                 </p>
 
-                <h2 className="mt-5 text-5xl md:text-6xl font-black uppercase italic">
+                <h2 className="mt-5 text-4xl md:text-5xl font-black uppercase italic leading-none">
                   Predicciones
                 </h2>
 
@@ -116,7 +116,7 @@ export default function EntretenimientoPage() {
                   Formación 8v8
                 </p>
 
-                <h2 className="mt-5 text-5xl md:text-6xl font-black uppercase italic">
+                <h2 className="mt-5 text-4xl md:text-5xl font-black uppercase italic leading-none">
                   Dream Team
                 </h2>
 
@@ -176,7 +176,7 @@ export default function EntretenimientoPage() {
                   Estadísticas Automáticas
                 </p>
 
-                <h2 className="mt-5 text-5xl md:text-6xl font-black uppercase italic">
+                <h2 className="mt-5 text-4xl md:text-5xl font-black uppercase italic leading-none">
                   Premios APA
                 </h2>
 

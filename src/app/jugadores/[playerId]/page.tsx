@@ -195,7 +195,7 @@ export default function JugadorPage() {
 
           <div className="relative z-10 p-7 md:p-10">
             <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black">
-              Perfil histórico por Player ID
+              Jugador APA · Perfil oficial
             </p>
 
             <div className="mt-8 flex flex-col lg:flex-row lg:items-center gap-8">
@@ -212,6 +212,10 @@ export default function JugadorPage() {
 
                 <p className="mt-4 text-zinc-500 text-xs uppercase tracking-[0.25em]">
                   Player ID: {playerId}
+                </p>
+
+                <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-300 md:text-lg">
+                  Carrera completa registrada en APA PSO Argentina UE5.
                 </p>
 
                 <div className="mt-5 flex flex-wrap gap-3">
@@ -234,7 +238,7 @@ export default function JugadorPage() {
                         : "border-green-400/30 bg-green-400/10 text-green-300"
                     }`}
                   >
-                    {esArquero ? "🧤 Arquero" : "⚽ Jugador de campo"}
+                    {esArquero ? "🧤 Especialista defensivo" : "⚽ Especialista ofensivo"}
                   </span>
                 </div>
 
@@ -270,6 +274,50 @@ export default function JugadorPage() {
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="relative overflow-hidden rounded-[34px] border border-sky-500/25 bg-[#020714] p-6 shadow-[0_0_35px_rgba(0,120,255,.12)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.14),transparent_38%)]" />
+
+          <div className="relative z-10">
+            <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
+                  Trayectoria
+                </p>
+
+                <h2 className="mt-2 text-3xl font-black uppercase md:text-5xl">
+                  Carrera registrada
+                </h2>
+              </div>
+
+              <p className="max-w-xl text-base leading-7 text-zinc-400">
+                Resumen general del recorrido competitivo del jugador dentro de APA.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              {[
+                ["Temporadas", temporadas.length, "📅", "text-sky-300"],
+                ["Clubes", equipos.length, "🛡️", "text-yellow-300"],
+                ["Divisiones", divisiones.length, "🏆", "text-purple-300"],
+                ["Partidos", totales.partidos, "⚽", "text-green-300"],
+              ].map(([label, value, icon, color]) => (
+                <div
+                  key={label}
+                  className="rounded-[26px] border border-white/10 bg-black/35 p-5"
+                >
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
+                    {icon} {label}
+                  </p>
+
+                  <p className={`mt-3 text-4xl font-black ${color}`}>
+                    {value}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -598,12 +646,30 @@ export default function JugadorPage() {
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+                    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+                      <div className="rounded-2xl border border-green-400/35 bg-green-400/10 p-3 text-center shadow-[0_0_18px_rgba(34,197,94,.08)]">
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-green-300">
+                          ⭐ Rating
+                        </p>
+                        <p className="mt-2 text-4xl font-black text-green-400">
+                          {r.overallRating || 0}
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl border border-purple-400/35 bg-purple-400/10 p-3 text-center shadow-[0_0_18px_rgba(168,85,247,.08)]">
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-purple-300">
+                          🏆 MVP
+                        </p>
+                        <p className="mt-2 text-4xl font-black text-purple-300">
+                          {Number(r.mvp || 0) > 0 ? "Sí" : "No"}
+                        </p>
+                      </div>
+
                       {esPartidoArquero(r) ? (
                         <>
-                          <div className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 p-3 text-center">
-                            <p className="text-[10px] uppercase text-cyan-300">
-                              Atajadas
+                          <div className="rounded-2xl border border-cyan-400/35 bg-cyan-400/10 p-3 text-center">
+                            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-cyan-300">
+                              🧤 Atajadas
                             </p>
                             <p className="mt-2 text-3xl font-black text-cyan-300">
                               {valorGKSave(r)}
@@ -611,8 +677,8 @@ export default function JugadorPage() {
                           </div>
 
                           <div className="rounded-2xl border border-indigo-400/30 bg-indigo-400/10 p-3 text-center">
-                            <p className="text-[10px] uppercase text-indigo-300">
-                              Atrapadas
+                            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-indigo-300">
+                              🤲 Atrap.
                             </p>
                             <p className="mt-2 text-3xl font-black text-indigo-300">
                               {r.gKCatches || 0}
@@ -621,9 +687,9 @@ export default function JugadorPage() {
                         </>
                       ) : (
                         <>
-                          <div className="rounded-2xl border border-yellow-400/30 bg-yellow-400/10 p-3 text-center">
-                            <p className="text-[10px] uppercase text-yellow-300">
-                              Goles
+                          <div className="rounded-2xl border border-yellow-400/35 bg-yellow-400/10 p-3 text-center">
+                            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-yellow-300">
+                              ⚽ Goles
                             </p>
                             <p className="mt-2 text-3xl font-black text-yellow-400">
                               {r.goals || 0}
@@ -631,8 +697,8 @@ export default function JugadorPage() {
                           </div>
 
                           <div className="rounded-2xl border border-sky-400/30 bg-sky-400/10 p-3 text-center">
-                            <p className="text-[10px] uppercase text-sky-300">
-                              Asist.
+                            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-sky-300">
+                              🎯 Asist.
                             </p>
                             <p className="mt-2 text-3xl font-black text-sky-300">
                               {r.assists || 0}
@@ -641,8 +707,8 @@ export default function JugadorPage() {
                         </>
                       )}
 
-                      <div className="rounded-2xl border border-purple-400/30 bg-purple-400/10 p-3 text-center">
-                        <p className="text-[10px] uppercase text-purple-300">
+                      <div className="rounded-2xl border border-purple-400/20 bg-purple-400/5 p-3 text-center">
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-purple-300">
                           Pases
                         </p>
                         <p className="mt-2 text-3xl font-black text-purple-300">
@@ -650,8 +716,8 @@ export default function JugadorPage() {
                         </p>
                       </div>
 
-                      <div className="rounded-2xl border border-blue-400/30 bg-blue-400/10 p-3 text-center">
-                        <p className="text-[10px] uppercase text-blue-300">
+                      <div className="rounded-2xl border border-blue-400/20 bg-blue-400/5 p-3 text-center">
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-blue-300">
                           Tackles
                         </p>
                         <p className="mt-2 text-3xl font-black text-white">
@@ -659,17 +725,8 @@ export default function JugadorPage() {
                         </p>
                       </div>
 
-                      <div className="rounded-2xl border border-green-400/30 bg-green-400/10 p-3 text-center">
-                        <p className="text-[10px] uppercase text-green-300">
-                          Rating
-                        </p>
-                        <p className="mt-2 text-3xl font-black text-green-400">
-                          {r.overallRating || 0}
-                        </p>
-                      </div>
-
-                      <div className="rounded-2xl border border-yellow-400/30 bg-yellow-400/10 p-3 text-center">
-                        <p className="text-[10px] uppercase text-yellow-300">
+                      <div className="rounded-2xl border border-yellow-400/20 bg-yellow-400/5 p-3 text-center">
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-yellow-300">
                           Score
                         </p>
                         <p className="mt-2 text-3xl font-black text-yellow-400">

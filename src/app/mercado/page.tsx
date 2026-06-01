@@ -12,7 +12,12 @@ export default function MercadoPage() {
     "Temporada 5",
   ];
 
-  const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
+  const divisiones = [
+    { nombre: "Primera", icon: "🏆" },
+    { nombre: "Segunda", icon: "🥈" },
+    { nombre: "Tercera", icon: "🥉" },
+    { nombre: "Cuarta", icon: "⭐" },
+  ];
   const tipos = ["Todos", "Fichaje", "Salida", "Préstamo", "Libre"];
 
   const [temporada, setTemporada] = useState("Temporada 1");
@@ -41,9 +46,12 @@ export default function MercadoPage() {
   }
 
   function colorTipo(tipo: string) {
-    if (tipo === "Fichaje") return "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
-    if (tipo === "Salida") return "border-red-400/30 bg-red-400/10 text-red-300";
-    if (tipo === "Préstamo") return "border-yellow-400/30 bg-yellow-400/10 text-yellow-300";
+    if (tipo === "Fichaje")
+      return "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
+    if (tipo === "Salida")
+      return "border-red-400/30 bg-red-400/10 text-red-300";
+    if (tipo === "Préstamo")
+      return "border-yellow-400/30 bg-yellow-400/10 text-yellow-300";
     if (tipo === "Libre") return "border-sky-400/30 bg-sky-400/10 text-sky-300";
     return "border-purple-400/30 bg-purple-400/10 text-purple-300";
   }
@@ -173,15 +181,15 @@ export default function MercadoPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {divisiones.map((div) => (
                   <button
-                    key={div}
-                    onClick={() => setDivision(div)}
+                    key={div.nombre}
+                    onClick={() => setDivision(div.nombre)}
                     className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
-                      division === div
+                      division === div.nombre
                         ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
                         : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
                     }`}
                   >
-                    {div}
+                    {div.icon} {div.nombre}
                   </button>
                 ))}
               </div>
@@ -259,10 +267,18 @@ export default function MercadoPage() {
                 </div>
               </div>
 
-              <p className="mt-5 text-zinc-500 uppercase tracking-[0.18em] text-xs font-black">
-                {movimientoDestacado.temporada} · {movimientoDestacado.division} ·{" "}
-                {movimientoDestacado.fecha || "Sin fecha"}
-              </p>
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                <p className="text-zinc-500 uppercase tracking-[0.18em] text-xs font-black">
+                  {movimientoDestacado.temporada} ·{" "}
+                  {movimientoDestacado.division}
+                </p>
+
+                {movimientoDestacado.fecha && (
+                  <span className="rounded-xl border border-yellow-400/20 bg-yellow-400/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-yellow-300">
+                    Movimiento #{movimientoDestacado.fecha}
+                  </span>
+                )}
+              </div>
             </div>
           </section>
         )}
@@ -324,7 +340,7 @@ export default function MercadoPage() {
                     </span>
 
                     <p className="text-zinc-500 text-xs font-black uppercase tracking-[0.18em]">
-                      {m.fecha || "Sin fecha"}
+                      {m.fecha ? `Movimiento #${m.fecha}` : "Sin registro"}
                     </p>
                   </div>
 

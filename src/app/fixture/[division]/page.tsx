@@ -17,6 +17,7 @@ const nombresDivision: Record<string, string> = {
   primera: "Primera División",
   segunda: "Segunda División",
   tercera: "Tercera División",
+  cuarta: "Cuarta División",
 };
 
 export default function FixtureDivisionPage() {
@@ -59,6 +60,26 @@ export default function FixtureDivisionPage() {
   const partidosFecha = partidos.filter(
     (p) => String(p.fecha || "1") === fechaActiva,
   );
+
+  function estadoPartido(p: any) {
+    if (p.resultado) return "finalizado";
+    if (p.dia || p.hora) return "programado";
+    return "pendiente";
+  }
+
+  function claseEstado(p: any) {
+    const estado = estadoPartido(p);
+
+    if (estado === "finalizado") {
+      return "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
+    }
+
+    if (estado === "programado") {
+      return "border-yellow-400/30 bg-yellow-400/10 text-yellow-300";
+    }
+
+    return "border-sky-400/30 bg-sky-400/10 text-sky-300";
+  }
 
   return (
     <main className="min-h-screen bg-[#020714] text-white px-6 py-8">
@@ -112,7 +133,7 @@ export default function FixtureDivisionPage() {
               </h2>
 
               <p className="text-zinc-400 text-sm mt-2">
-                {partidosFecha.length} partidos programados
+                {partidosFecha.length} partidos visibles
               </p>
             </div>
 
@@ -156,20 +177,32 @@ export default function FixtureDivisionPage() {
 
                   <div className="flex items-center justify-center bg-black/50 border-l border-blue-500/40 px-4 py-5">
                     <div className="text-center">
-                      <p className="text-blue-200 font-black">
-                        {p.dia || "SÁB"} {p.fecha || fechaActiva}
-                      </p>
+                      {p.dia || p.hora ? (
+                        <>
+                          <p className="text-blue-200 font-black">
+                            {p.dia || "-"}
+                          </p>
 
-                      <p className="text-blue-400 font-black text-lg">
-                        {p.hora || "21:00"}
-                      </p>
+                          <p className="text-blue-400 font-black text-lg">
+                            {p.hora || "-"}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-zinc-500 text-sm font-black uppercase">
+                          Sin programación
+                        </p>
+                      )}
 
                       <p
-                        className={`mt-2 text-xs font-black uppercase ${
-                          p.resultado ? "text-green-400" : "text-yellow-400"
-                        }`}
+                        className={`mt-3 rounded-full border px-3 py-1 text-xs font-black uppercase ${claseEstado(
+                          p,
+                        )}`}
                       >
-                        {p.resultado ? "Finalizado" : "Pendiente"}
+                        {estadoPartido(p) === "finalizado"
+                          ? "🟢 Finalizado"
+                          : estadoPartido(p) === "programado"
+                          ? "🟡 Programado"
+                          : "🔵 Pendiente"}
                       </p>
 
                       {p.partido_id && (
