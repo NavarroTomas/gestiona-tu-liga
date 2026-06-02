@@ -76,6 +76,30 @@ function tipoJugador(j: Jugador) {
   return "medio";
 }
 
+function fechaActualISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function crearFallbackKey() {
+  return `dt_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+}
+
+function getVotarKey() {
+  if (typeof window === "undefined") return "";
+
+  let key = localStorage.getItem("dream_team_votar_key");
+
+  if (!key) {
+    key = typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : crearFallbackKey();
+
+    localStorage.setItem("dream_team_votar_key", key);
+  }
+
+  return key;
+}
+
 export default function DreamTeamPage() {
   const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4", "Temporada 5"];
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
@@ -90,6 +114,11 @@ export default function DreamTeamPage() {
   const [logos, setLogos] = useState<Record<string, string>>({});
   const [posicionActiva, setPosicionActiva] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState("");
+  const [votarKey, setVotarKey] = useState("");
+
+  useEffect(() => {
+    setVotarKey(getVotarKey());
+  }, []);
 
   useEffect(() => {
     cargarDatos();
@@ -212,16 +241,20 @@ export default function DreamTeamPage() {
 
   const miDreamTeam = useMemo(() => {
     const map: Record<string, any> = {};
-    if (!usuario.trim()) return map;
+    const usuarioLimpio = usuario.trim();
 
     votos
-      .filter((v) => v.usuario === usuario.trim())
+      .filter((v) => {
+        if (votarKey && v.votar_key) return v.votar_key === votarKey;
+        if (usuarioLimpio) return v.usuario === usuarioLimpio;
+        return false;
+      })
       .forEach((v) => {
         map[v.posicion] = v;
       });
 
     return map;
-  }, [votos, usuario]);
+  }, [votos, usuario, votarKey]);
 
   const jugadorMasVotado = useMemo(() => {
     const conteo: Record<string, any> = {};
@@ -280,33 +313,52 @@ export default function DreamTeamPage() {
   async function votar(jugador: Jugador) {
     setMensaje("");
 
-    if (!usuario.trim()) {
+    const usuarioLimpio = usuario.trim();
+
+    if (!usuarioLimpio) {
       setMensaje("Primero escribí tu nombre o usuario para votar.");
       return;
     }
 
     if (!posicionActiva) return;
 
-    const yaVotoEseJugador = votos.some(
+    const key = getVotarKey();
+    setVotarKey(key);
+
+    const votosMismaFecha = votos.filter(
       (v) =>
-        v.usuario === usuario.trim() &&
-        v.playerId === jugador.playerId &&
-        v.posicion !== posicionActiva,
+        v.temporada === temporada &&
+        v.division === division &&
+        String(v.fecha) === String(fecha) &&
+        ((key && v.votar_key === key) || (!v.votar_key && v.usuario === usuarioLimpio)),
     );
 
-    if (yaVotoEseJugador) {
-      setMensaje(`${jugador.nombre} ya está en otra posición de tu Dream Team de la Fecha ${fecha}. Elegí otro jugador.`);
+    const yaVotoEstaPosicion = votosMismaFecha.some((v) => v.posicion === posicionActiva);
+
+    if (yaVotoEstaPosicion) {
+      setMensaje(
+        `Ya votaste la posición ${posicionActiva} en tu Dream Team de la Fecha ${fecha}.`,
+      );
       return;
     }
 
-    await supabase
-      .from("dream_team_votos")
-      .delete()
-      .eq("temporada", temporada)
-      .eq("division", division)
-      .eq("fecha", fecha)
-      .eq("usuario", usuario.trim())
-      .eq("posicion", posicionActiva);
+    const yaCompletoDreamTeam = votosMismaFecha.length >= posiciones.length;
+
+    if (yaCompletoDreamTeam) {
+      setMensaje(`Ya completaste tu Dream Team de la Fecha ${fecha}.`);
+      return;
+    }
+
+    const yaVotoEseJugador = votosMismaFecha.some(
+      (v) => (v.playerId || v.nombre) === (jugador.playerId || jugador.nombre),
+    );
+
+    if (yaVotoEseJugador) {
+      setMensaje(
+        `${jugador.nombre} ya está en otra posición de tu Dream Team de la Fecha ${fecha}. Elegí otro jugador.`,
+      );
+      return;
+    }
 
     const { error } = await supabase.from("dream_team_votos").insert([
       {
@@ -317,12 +369,20 @@ export default function DreamTeamPage() {
         playerId: jugador.playerId,
         nombre: jugador.nombre,
         equipo: jugador.equipo,
-        usuario: usuario.trim(),
+        usuario: usuarioLimpio,
+        votar_key: key,
+        fecha_voto: fechaActualISO(),
       },
     ]);
 
     if (error) {
       console.log(error);
+
+      if (error.code === "23505") {
+        setMensaje("Ya registraste ese voto para esta fecha.");
+        return;
+      }
+
       setMensaje("Error guardando voto.");
       return;
     }
