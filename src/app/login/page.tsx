@@ -1,14 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function loginConEmail() {
+  async function loginConPassword() {
     setMensaje("");
 
     if (!email.trim()) {
@@ -16,27 +20,28 @@ export default function LoginPage() {
       return;
     }
 
+    if (!password.trim()) {
+      setMensaje("Escribí tu contraseña.");
+      return;
+    }
+
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
-      options: {
-        emailRedirectTo:
-          typeof window !== "undefined"
-            ? `${window.location.origin}/debug-user`
-            : undefined,
-      },
+      password,
     });
 
     setLoading(false);
 
     if (error) {
-  console.log("ERROR LOGIN:", error);
-  setMensaje(error.message || "Error enviando el link de acceso.");
-  return;
-}
+      console.log("ERROR LOGIN:", error);
+      setMensaje(error.message || "Email o contraseña incorrectos.");
+      return;
+    }
 
-    setMensaje("Listo. Revisá tu email y abrí el link de acceso.");
+    setMensaje("Sesión iniciada correctamente.");
+    router.push("/admin");
   }
 
   return (
@@ -56,8 +61,7 @@ export default function LoginPage() {
             </h1>
 
             <p className="mt-5 text-zinc-400">
-              Ingresá tu email. Supabase te va a mandar un link mágico para
-              iniciar sesión.
+              Ingresá con tu email y contraseña de administrador.
             </p>
 
             <div className="mt-8 space-y-4">
@@ -69,12 +73,23 @@ export default function LoginPage() {
                 className="w-full rounded-2xl border border-white/10 bg-black/35 px-5 py-4 text-white outline-none placeholder:text-zinc-600 focus:border-sky-400/50"
               />
 
+              <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type="password"
+                placeholder="Contraseña"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") loginConPassword();
+                }}
+                className="w-full rounded-2xl border border-white/10 bg-black/35 px-5 py-4 text-white outline-none placeholder:text-zinc-600 focus:border-sky-400/50"
+              />
+
               <button
-                onClick={loginConEmail}
+                onClick={loginConPassword}
                 disabled={loading}
                 className="w-full rounded-2xl border border-sky-400/30 bg-sky-400 px-5 py-4 text-sm font-black uppercase text-black transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {loading ? "Enviando..." : "Enviar link de acceso"}
+                {loading ? "Entrando..." : "Entrar al admin"}
               </button>
 
               {mensaje && (
