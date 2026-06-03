@@ -13,6 +13,7 @@ export default function JugadorPage() {
 
   const [stats, setStats] = useState<any[]>([]);
   const [partidos, setPartidos] = useState<any[]>([]);
+  const [perfilAPA, setPerfilAPA] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,6 +41,19 @@ export default function JugadorPage() {
 
     const registros = data || [];
     setStats(registros);
+
+    const { data: perfilData, error: perfilError } = await supabase
+      .from("profiles")
+      .select("id, display_name, username, playerid, avatar_url, bio, status, visible_role")
+      .eq("playerid", playerId)
+      .maybeSingle();
+
+    if (perfilError) {
+      console.log(perfilError);
+      setPerfilAPA(null);
+    } else {
+      setPerfilAPA(perfilData || null);
+    }
 
     const partidosIds = registros.map((r: any) => r.partido_id).filter(Boolean);
 
@@ -199,24 +213,58 @@ export default function JugadorPage() {
             </p>
 
             <div className="mt-8 flex flex-col lg:flex-row lg:items-center gap-8">
-              <div className="h-36 w-36 shrink-0 rounded-full border border-sky-400/40 bg-gradient-to-b from-sky-400/30 to-blue-950 shadow-[0_0_35px_rgba(56,189,248,.28)] flex items-center justify-center text-5xl font-black">
-                {nombreActual.slice(0, 2).toUpperCase()}
+              <div className="flex h-40 w-40 shrink-0 items-center justify-center overflow-hidden rounded-full border border-sky-400/40 bg-gradient-to-b from-sky-400/30 to-blue-950 text-5xl font-black shadow-[0_0_35px_rgba(56,189,248,.28)]">
+                {perfilAPA?.avatar_url ? (
+                  <img
+                    src={perfilAPA.avatar_url}
+                    alt={perfilAPA.display_name || nombreActual}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  nombreActual.slice(0, 2).toUpperCase()
+                )}
               </div>
 
               <div>
                 <h1 className="text-5xl md:text-7xl font-black uppercase italic leading-none">
                   <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
-                    {nombreActual}
+                    {perfilAPA?.display_name || nombreActual}
                   </span>
                 </h1>
 
-                <p className="mt-4 text-zinc-500 text-xs uppercase tracking-[0.25em]">
-                  Player ID: {playerId}
-                </p>
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
+                    Player ID: {playerId}
+                  </p>
+
+                  {perfilAPA?.username && (
+                    <Link
+                      href={`/u/${perfilAPA.username}`}
+                      className="rounded-xl border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-sky-300 transition hover:bg-sky-400 hover:text-black"
+                    >
+                      @{perfilAPA.username}
+                    </Link>
+                  )}
+
+                  {perfilAPA?.visible_role && (
+                    <span className="rounded-xl border border-yellow-400/25 bg-yellow-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-yellow-300">
+                      {perfilAPA.visible_role}
+                    </span>
+                  )}
+                </div>
 
                 <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-300 md:text-lg">
-                  Carrera completa registrada en APA PSO Argentina UE5.
+                  {perfilAPA?.bio || "Carrera completa registrada en APA PSO Argentina UE5."}
                 </p>
+
+                {perfilAPA?.username && (
+                  <Link
+                    href={`/u/${perfilAPA.username}`}
+                    className="mt-5 inline-flex rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-white transition hover:border-yellow-400/40 hover:bg-yellow-400/10 hover:text-yellow-300"
+                  >
+                    Ver perfil APA
+                  </Link>
+                )}
 
                 <div className="mt-5 flex flex-wrap gap-3">
                   <span className="rounded-2xl border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-sm font-black uppercase text-sky-300">
@@ -652,7 +700,7 @@ export default function JugadorPage() {
                           ⭐ Rating
                         </p>
                         <p className="mt-2 text-4xl font-black text-green-400">
-                          {r.overallRating || 0}
+                          {r.rating_apa || r.overallRating || 0}
                         </p>
                       </div>
 
