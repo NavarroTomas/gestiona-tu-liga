@@ -15,6 +15,12 @@ type Jugador = {
   atajadas: number;
 };
 
+type PerfilDreamTeam = {
+  id: string;
+  display_name: string | null;
+  username: string | null;
+};
+
 const posiciones = [
   { id: "LST", tipo: "delantero" },
   { id: "RST", tipo: "delantero" },
@@ -80,25 +86,6 @@ function fechaActualISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function crearFallbackKey() {
-  return `dt_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-}
-
-function getVotarKey() {
-  if (typeof window === "undefined") return "";
-
-  let key = localStorage.getItem("dream_team_votar_key");
-
-  if (!key) {
-    key = typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : crearFallbackKey();
-
-    localStorage.setItem("dream_team_votar_key", key);
-  }
-
-  return key;
-}
 
 export default function DreamTeamPage() {
   const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4", "Temporada 5"];
@@ -108,17 +95,45 @@ export default function DreamTeamPage() {
   const [temporada, setTemporada] = useState("Temporada 1");
   const [division, setDivision] = useState("Primera");
   const [fecha, setFecha] = useState("1");
-  const [usuario, setUsuario] = useState("");
+  const [usuarioId, setUsuarioId] = useState("");
+  const [miPerfil, setMiPerfil] = useState<PerfilDreamTeam | null>(null);
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
   const [votos, setVotos] = useState<any[]>([]);
   const [logos, setLogos] = useState<Record<string, string>>({});
   const [posicionActiva, setPosicionActiva] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState("");
-  const [votarKey, setVotarKey] = useState("");
 
   useEffect(() => {
-    setVotarKey(getVotarKey());
+    cargarUsuario();
   }, []);
+
+  async function cargarUsuario() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setUsuarioId("");
+      setMiPerfil(null);
+      return;
+    }
+
+    setUsuarioId(user.id);
+
+    const { data: perfilData, error } = await supabase
+      .from("profiles")
+      .select("id, display_name, username")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.log(error);
+      setMiPerfil(null);
+      return;
+    }
+
+    setMiPerfil((perfilData || null) as PerfilDreamTeam | null);
+  }
 
   useEffect(() => {
     cargarDatos();
@@ -241,20 +256,17 @@ export default function DreamTeamPage() {
 
   const miDreamTeam = useMemo(() => {
     const map: Record<string, any> = {};
-    const usuarioLimpio = usuario.trim();
+
+    if (!usuarioId) return map;
 
     votos
-      .filter((v) => {
-        if (votarKey && v.votar_key) return v.votar_key === votarKey;
-        if (usuarioLimpio) return v.usuario === usuarioLimpio;
-        return false;
-      })
+      .filter((v) => v.usuario === usuarioId)
       .forEach((v) => {
         map[v.posicion] = v;
       });
 
     return map;
-  }, [votos, usuario, votarKey]);
+  }, [votos, usuarioId]);
 
   const jugadorMasVotado = useMemo(() => {
     const conteo: Record<string, any> = {};
@@ -313,24 +325,25 @@ export default function DreamTeamPage() {
   async function votar(jugador: Jugador) {
     setMensaje("");
 
-    const usuarioLimpio = usuario.trim();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!usuarioLimpio) {
-      setMensaje("Primero escribí tu nombre o usuario para votar.");
+    if (!user) {
+      setMensaje("Tenés que iniciar sesión para votar el Dream Team.");
       return;
     }
 
-    if (!posicionActiva) return;
+    setUsuarioId(user.id);
 
-    const key = getVotarKey();
-    setVotarKey(key);
+    if (!posicionActiva) return;
 
     const votosMismaFecha = votos.filter(
       (v) =>
         v.temporada === temporada &&
         v.division === division &&
         String(v.fecha) === String(fecha) &&
-        ((key && v.votar_key === key) || (!v.votar_key && v.usuario === usuarioLimpio)),
+        v.usuario === user.id,
     );
 
     const yaVotoEstaPosicion = votosMismaFecha.some((v) => v.posicion === posicionActiva);
@@ -369,8 +382,8 @@ export default function DreamTeamPage() {
         playerId: jugador.playerId,
         nombre: jugador.nombre,
         equipo: jugador.equipo,
-        usuario: usuarioLimpio,
-        votar_key: key,
+        usuario: user.id,
+        votar_key: null,
         fecha_voto: fechaActualISO(),
       },
     ]);
@@ -478,12 +491,14 @@ export default function DreamTeamPage() {
             </p>
 
             <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-              <input
-                value={usuario}
-                onChange={(e) => setUsuario(e.target.value)}
-                placeholder="Tu nombre o usuario"
-                className="rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4 text-white outline-none focus:border-sky-400/60"
-              />
+              <div className="rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4">
+                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">Cuenta</p>
+                <p className="mt-1 truncate font-black text-sky-300">
+                  {usuarioId
+                    ? miPerfil?.display_name || miPerfil?.username || "Usuario APA"
+                    : "Iniciá sesión"}
+                </p>
+              </div>
 
               <div className="rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4">
                 <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">Temporada</p>

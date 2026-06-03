@@ -29,6 +29,12 @@ type Prediccion = {
   goles_visitante?: number | null;
 };
 
+type PerfilPrediccion = {
+  id: string;
+  display_name: string | null;
+  username: string | null;
+};
+
 export default function PrediccionesPage() {
   const temporadas = [
     "Temporada 1",
@@ -43,7 +49,9 @@ export default function PrediccionesPage() {
   const [temporada, setTemporada] = useState("Temporada 1");
   const [division, setDivision] = useState("Primera");
   const [fechaActiva, setFechaActiva] = useState("Todas");
-  const [usuario, setUsuario] = useState("");
+  const [usuarioId, setUsuarioId] = useState("");
+  const [miPerfil, setMiPerfil] = useState<PerfilPrediccion | null>(null);
+  const [perfiles, setPerfiles] = useState<Record<string, PerfilPrediccion>>({});
   const [partidos, setPartidos] = useState<Partido[]>([]);
   const [predicciones, setPredicciones] = useState<Prediccion[]>([]);
   const [marcadores, setMarcadores] = useState<
@@ -59,6 +67,25 @@ export default function PrediccionesPage() {
   async function cargarDatos() {
     setCargando(true);
     setMensaje("");
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      setUsuarioId(user.id);
+
+      const { data: perfilData } = await supabase
+        .from("profiles")
+        .select("id, display_name, username")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      setMiPerfil((perfilData || null) as PerfilPrediccion | null);
+    } else {
+      setUsuarioId("");
+      setMiPerfil(null);
+    }
 
     const { data: partidosData, error: partidosError } = await supabase
       .from("partidos")
@@ -87,7 +114,32 @@ export default function PrediccionesPage() {
       return;
     }
 
-    setPredicciones(predData || []);
+    const prediccionesData = (predData || []) as Prediccion[];
+    setPredicciones(prediccionesData);
+
+    const usuariosIds = Array.from(
+      new Set(prediccionesData.map((p) => p.usuario).filter(Boolean)),
+    );
+
+    if (usuariosIds.length > 0) {
+      const { data: perfilesData, error: perfilesError } = await supabase
+        .from("profiles")
+        .select("id, display_name, username")
+        .in("id", usuariosIds);
+
+      if (perfilesError) {
+        console.log(perfilesError);
+      } else {
+        const mapa: Record<string, PerfilPrediccion> = {};
+        (perfilesData || []).forEach((perfil: any) => {
+          mapa[perfil.id] = perfil;
+        });
+        setPerfiles(mapa);
+      }
+    } else {
+      setPerfiles({});
+    }
+
     setCargando(false);
   }
 
@@ -287,8 +339,20 @@ export default function PrediccionesPage() {
 
   function votoUsuario(partido: Partido) {
     const key = partidoKey(partido);
+    if (!usuarioId) return undefined;
+
     return predicciones.find(
-      (p) => p.partido_id === key && p.usuario === usuario.trim(),
+      (p) => p.partido_id === key && p.usuario === usuarioId,
+    );
+  }
+
+  function nombreUsuario(userId: string) {
+    const perfil = perfiles[userId];
+
+    return (
+      perfil?.display_name ||
+      perfil?.username ||
+      (userId ? userId.slice(0, 8) + "..." : "Usuario")
     );
   }
 
@@ -307,8 +371,12 @@ export default function PrediccionesPage() {
   ) {
     setMensaje("");
 
-    if (!usuario.trim()) {
-      setMensaje("Primero escribí tu nombre o usuario para votar.");
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setMensaje("Tenés que iniciar sesión para hacer una predicción.");
       return;
     }
 
@@ -334,18 +402,15 @@ export default function PrediccionesPage() {
       return;
     }
 
-    await supabase
+    const { error: borrarError } = await supabase
       .from("predicciones")
       .delete()
       .eq("partido_id", key)
-      .eq("usuario", usuario.trim());
+      .eq("usuario", user.id);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      alert("Tenés que iniciar sesión para hacer una predicción.");
+    if (borrarError) {
+      console.log(borrarError);
+      setMensaje("No pude actualizar tu predicción anterior.");
       return;
     }
 
@@ -467,12 +532,16 @@ export default function PrediccionesPage() {
               </p>
 
               <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-                <input
-                  value={usuario}
-                  onChange={(e) => setUsuario(e.target.value)}
-                  placeholder="Tu nombre o usuario"
-                  className="rounded-2xl border border-yellow-500/20 bg-black/35 px-5 py-4 text-white outline-none focus:border-yellow-400/60"
-                />
+                <div className="rounded-2xl border border-yellow-500/20 bg-black/35 px-5 py-4">
+                  <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
+                    Cuenta
+                  </p>
+                  <p className="mt-1 truncate text-lg font-black text-yellow-300">
+                    {usuarioId
+                      ? miPerfil?.display_name || miPerfil?.username || "Usuario APA"
+                      : "Iniciá sesión"}
+                  </p>
+                </div>
 
                 <div className="rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4">
                   <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
@@ -813,7 +882,7 @@ export default function PrediccionesPage() {
                     >
                       <div>
                         <p className="font-black uppercase text-white">
-                          {index + 1}. {r.usuario}
+                          {index + 1}. {nombreUsuario(r.usuario)}
                         </p>
                         <p className="text-xs text-zinc-500">
                           {r.aciertos}/{r.jugadas} aciertos · {r.exactos}{" "}
@@ -834,22 +903,24 @@ export default function PrediccionesPage() {
                 Mis predicciones
               </p>
               <h2 className="mt-3 text-3xl font-black uppercase">
-                {usuario.trim() || "Usuario"}
+                {usuarioId
+                  ? miPerfil?.display_name || miPerfil?.username || "Usuario"
+                  : "Sin sesión"}
               </h2>
 
               <div className="mt-5 space-y-3">
-                {!usuario.trim() ? (
+                {!usuarioId ? (
                   <p className="rounded-2xl border border-white/10 bg-black/35 p-4 text-zinc-500">
-                    Escribí tu usuario para ver tus votos.
+                    Iniciá sesión para ver tus predicciones.
                   </p>
-                ) : predicciones.filter((p) => p.usuario === usuario.trim())
+                ) : predicciones.filter((p) => p.usuario === usuarioId)
                     .length === 0 ? (
                   <p className="rounded-2xl border border-white/10 bg-black/35 p-4 text-zinc-500">
                     Todavía no votaste.
                   </p>
                 ) : (
                   predicciones
-                    .filter((p) => p.usuario === usuario.trim())
+                    .filter((p) => p.usuario === usuarioId)
                     .slice(0, 8)
                     .map((p) => {
                       const estado = estadoPrediccion(p);
