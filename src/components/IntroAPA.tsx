@@ -345,7 +345,7 @@ export default function IntroAPA() {
             />
 
             <IntroCopy
-              eyebrow="Una liga en expansión"
+              eyebrow="Una liga en expansion"
               title={<>12+ temporadas. 3500+ miembros.</>}
               description="Lo que comenzó como una liga nacional se transformó en un punto de encuentro para jugadores, clubes y comunidades de toda la región."
               opacity={copyGrowthOpacity}
