@@ -381,6 +381,18 @@ export default function PrediccionesPage() {
     }
 
     const key = partidoKey(partido);
+
+    const yaVoto = predicciones.some(
+      (p) => p.partido_id === key && p.usuario === user.id,
+    );
+
+    if (yaVoto) {
+      setMensaje(
+        "Ya realizaste una predicción para este partido y no puede modificarse.",
+      );
+      return;
+    }
+
     const marcador = marcadores[key] || { local: "", visitante: "" };
 
     const tieneMarcador =
@@ -785,8 +797,9 @@ export default function PrediccionesPage() {
 
                           <button
                             type="button"
+                            disabled={!!miVoto}
                             onClick={() => votar(partido)}
-                            className="mt-4 w-full rounded-2xl bg-yellow-400 px-4 py-4 text-sm font-black uppercase tracking-[0.2em] text-black"
+                            className="mt-4 w-full rounded-2xl bg-yellow-400 px-4 py-4 text-sm font-black uppercase tracking-[0.2em] text-black disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Guardar marcador exacto
                           </button>
@@ -801,8 +814,9 @@ export default function PrediccionesPage() {
                               return (
                                 <button
                                   key={tipo}
+                                  disabled={!!miVoto}
                                   onClick={() => votar(partido, tipo)}
-                                  className={`rounded-2xl border px-4 py-4 text-center transition ${
+                                  className={`rounded-2xl border px-4 py-4 text-center transition disabled:opacity-50 disabled:cursor-not-allowed ${
                                     activo
                                       ? "border-yellow-300 bg-yellow-400 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
                                       : "border-sky-500/20 bg-black/35 text-zinc-300 hover:border-yellow-300/60 hover:text-white"
