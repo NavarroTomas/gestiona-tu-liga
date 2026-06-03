@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import PermissionGuard from "@/components/PermissionGuard";
+
 
 type Tab = "usuarios" | "roles" | "permisos";
 
@@ -452,7 +454,8 @@ export default function AdminUsuariosPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#050914] text-white">
+    <PermissionGuard permission="admin.users.manage">
+      <main className="min-h-screen bg-[#050914] text-white">
       <div className="mx-auto max-w-[1500px] space-y-8 px-4 py-10 md:px-8">
         <section className="relative overflow-hidden rounded-[34px] border border-purple-500/25 bg-[#0b1020] p-7 shadow-[0_0_45px_rgba(168,85,247,.12)] md:p-9">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,.18),transparent_42%)]" />
@@ -898,6 +901,7 @@ export default function AdminUsuariosPage() {
           </>
         )}
       </div>
-    </main>
+      </main>
+    </PermissionGuard>
   );
 }

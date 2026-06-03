@@ -4,6 +4,19 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+const permisosPanel = [
+  "admin.users.manage",
+  "clubs.manage",
+  "competitions.manage",
+  "fixtures.manage",
+  "matches.edit",
+  "matches.upload_manual",
+  "matches.upload_txt",
+  "news.manage",
+  "titles.manage",
+  "transfers.manage",
+];
+
 export default function AdminGuard({
   children,
 }: {
@@ -27,17 +40,28 @@ export default function AdminGuard({
       return;
     }
 
-    const { data, error } = await supabase.rpc("has_permission", {
-      requested_permission: "admin.users.manage",
+    const resultados = await Promise.all(
+      permisosPanel.map(async (permission) => {
+        const res = await supabase.rpc("has_permission", {
+          requested_permission: permission,
+        });
+
+        console.log("PERMISO:", permission, res.data, res.error);
+
+        return res;
+      }),
+    );
+
+    const puedeEntrar = resultados.some((res) => {
+      if (res.error) {
+        console.log(res.error);
+        return false;
+      }
+
+      return !!res.data;
     });
 
-    if (error) {
-      console.log(error);
-      router.push("/");
-      return;
-    }
-
-    if (!data) {
+    if (!puedeEntrar) {
       router.push("/");
       return;
     }
