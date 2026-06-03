@@ -52,6 +52,7 @@ export default function JugadoresPage() {
 
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
   const [clubesInfo, setClubesInfo] = useState<any[]>([]);
+  const [clubActualPorPlayerId, setClubActualPorPlayerId] = useState<Record<string, string>>({});
 
   useEffect(() => {
     cargarJugadores();
@@ -119,7 +120,47 @@ export default function JugadoresPage() {
       if (j.playerId) mapa[clave].playerId = j.playerId;
     });
 
-    const lista = Object.values(mapa);
+    const listaBase = Object.values(mapa);
+
+    const playerIds = listaBase
+      .map((j: any) => String(j.playerId || "").trim())
+      .filter(Boolean);
+
+    let mapaClubActual: Record<string, string> = {};
+
+    if (playerIds.length > 0) {
+      let plantillasQuery = supabase
+        .from("plantillas")
+        .select("playerid,equipo,temporada,division,estado")
+        .in("playerid", playerIds)
+        .neq("estado", "baja");
+
+      if (modo === "temporada") {
+        plantillasQuery = plantillasQuery
+          .eq("temporada", temporada)
+          .eq("division", division);
+      }
+
+      const { data: plantillasData, error: plantillasError } =
+        await plantillasQuery;
+
+      if (plantillasError) {
+        console.log(plantillasError);
+      } else {
+        (plantillasData || []).forEach((p: any) => {
+          const pid = String(p.playerid || "").trim();
+          if (!pid || !p.equipo) return;
+          mapaClubActual[pid] = p.equipo;
+        });
+      }
+    }
+
+    setClubActualPorPlayerId(mapaClubActual);
+
+    const lista = listaBase.map((j: any) => ({
+      ...j,
+      equipo: mapaClubActual[j.playerId] || j.equipo,
+    }));
 
     const nombresEquipos = Array.from(
       new Set(lista.map((j: any) => j.equipo).filter(Boolean)),
