@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import AdminGuard from "@/components/AdminGuard";
+import PermissionGuard from "@/components/PermissionGuard";
 
 type JugadorManual = {
   nombre: string;
@@ -284,7 +284,7 @@ export default function CargarPartidoManualPage() {
   }
 
   return (
-    <AdminGuard>
+    <PermissionGuard permission="matches.upload_manual">
       <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
       <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-8 space-y-8">
         <section className="relative overflow-hidden rounded-[38px] border border-sky-500/30 bg-[#020714] p-7 md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
@@ -391,6 +391,6 @@ export default function CargarPartidoManualPage() {
         </section>
       </div>
       </main>
-    </AdminGuard>
+    </PermissionGuard>
   );
 }

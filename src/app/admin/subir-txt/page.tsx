@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import AdminGuard from "@/components/AdminGuard";
+import PermissionGuard from "@/components/PermissionGuard";
 
 type PartidoProgramado = {
   id: string;
@@ -429,7 +429,7 @@ export default function SubirTxtPage() {
     }
   }
 return (
-    <AdminGuard>
+    <PermissionGuard permission="matches.upload_txt">
       <main className="min-h-screen bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] text-white">
       <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-10 space-y-8">
         <section className="relative overflow-hidden rounded-[38px] border border-sky-500/30 bg-[#020714] p-7 md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
@@ -617,6 +617,6 @@ return (
         </section>
       </div>
       </main>
-    </AdminGuard>
+    </PermissionGuard>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import AdminGuard from "@/components/AdminGuard";
+import PermissionGuard from "@/components/PermissionGuard";
 
 export default function AdminPlantillasPage() {
   const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4"];
@@ -79,7 +79,7 @@ export default function AdminPlantillasPage() {
   }
 
   return (
-    <AdminGuard>
+    <PermissionGuard permission="transfers.manage">
       <main className="min-h-screen bg-[#0b0f14] text-white">
       <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-10 space-y-10">
         <div>
@@ -159,6 +159,6 @@ export default function AdminPlantillasPage() {
         </div>
       </div>
       </main>
-    </AdminGuard>
+    </PermissionGuard>
   );
 }

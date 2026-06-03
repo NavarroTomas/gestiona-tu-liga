@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import AdminGuard from "@/components/AdminGuard";
+import PermissionGuard from "@/components/PermissionGuard";
 
 type Partido = {
   id: string;
@@ -330,7 +330,7 @@ export default function AdminFixturePage() {
     return "border-sky-400/30 bg-sky-400/10 text-sky-300";
   }
 return (
-    <AdminGuard>
+    <PermissionGuard permission="competitions.manage">
       <main className="min-h-screen bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] px-4 py-8 text-white md:px-8">
       <section className="mx-auto max-w-[1600px] space-y-8">
         <section className="relative overflow-hidden rounded-[40px] border border-sky-500/30 bg-[#020714] p-7 shadow-[0_0_55px_rgba(0,120,255,.22)] md:p-10">
@@ -782,6 +782,6 @@ return (
         </section>
       </section>
       </main>
-    </AdminGuard>
+    </PermissionGuard>
   );
 }

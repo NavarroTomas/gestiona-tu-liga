@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import AdminGuard from "@/components/AdminGuard";
+import PermissionGuard from "@/components/PermissionGuard";
 
 type Titulo = {
   id: string;
@@ -106,7 +106,7 @@ export default function AdminTitulosPage() {
   }
 
   return (
-    <AdminGuard>
+    <PermissionGuard permission="titles.manage">
       <main className="min-h-screen bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] px-4 py-10 text-white md:px-8">
         <section className="mx-auto max-w-[1400px] space-y-8">
           <section className="relative overflow-hidden rounded-[38px] border border-yellow-500/30 bg-[#020714] p-7 shadow-[0_0_55px_rgba(250,204,21,.14)] md:p-10">
@@ -253,6 +253,6 @@ export default function AdminTitulosPage() {
           </section>
         </section>
       </main>
-    </AdminGuard>
+    </PermissionGuard>
   );
 }
