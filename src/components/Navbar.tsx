@@ -10,102 +10,52 @@ const menus = [
     nombre: "Competición",
     icon: "🏆",
     items: [
-      {
-        nombre: "Torneos",
-        href: "/competicion",
-        icon: "🏆",
-        descripcion: "Liga, copas y eventos",
-      },
-      {
-        nombre: "Fixture",
-        href: "/fixture",
-        icon: "📅",
-        descripcion: "Calendario oficial",
-      },
-      {
-        nombre: "Stats",
-        href: "/estadisticas",
-        icon: "📈",
-        descripcion: "Estadísticas oficiales",
-      },
-      {
-        nombre: "Historia",
-        href: "/historia",
-        icon: "🏛️",
-        descripcion: "Leyendas y récords",
-      },
+      { nombre: "Torneos", href: "/competicion", icon: "🏆", descripcion: "Liga, copas y eventos" },
+      { nombre: "Fixture", href: "/fixture", icon: "📅", descripcion: "Calendario oficial" },
+      { nombre: "Stats", href: "/estadisticas", icon: "📈", descripcion: "Estadísticas oficiales" },
+      { nombre: "Historia", href: "/historia", icon: "🏛️", descripcion: "Leyendas y récords" },
     ],
   },
   {
     nombre: "Clubes",
     icon: "🛡️",
     items: [
-      {
-        nombre: "Clubes",
-        href: "/clubes",
-        icon: "🏟️",
-        descripcion: "Identidad de equipos",
-      },
-      {
-        nombre: "Plantillas",
-        href: "/plantillas",
-        icon: "👥",
-        descripcion: "Jugadores por club",
-      },
-      {
-        nombre: "Mercado",
-        href: "/mercado",
-        icon: "🔁",
-        descripcion: "Fichajes y movimientos",
-      },
-      {
-        nombre: "Jugadores",
-        href: "/jugadores",
-        icon: "⭐",
-        descripcion: "Rankings y perfiles",
-      },
+      { nombre: "Clubes", href: "/clubes", icon: "🏟️", descripcion: "Identidad de equipos" },
+      { nombre: "Plantillas", href: "/plantillas", icon: "👥", descripcion: "Jugadores por club" },
+      { nombre: "Mercado", href: "/mercado", icon: "🔁", descripcion: "Fichajes y movimientos" },
+      { nombre: "Jugadores", href: "/jugadores", icon: "⭐", descripcion: "Rankings y perfiles" },
     ],
   },
   {
     nombre: "Entretenimiento",
     icon: "🎮",
     items: [
-      {
-        nombre: "Inicio",
-        href: "/entretenimiento",
-        icon: "✨",
-        descripcion: "Zona interactiva",
-      },
-      {
-        nombre: "Predicciones",
-        href: "/entretenimiento/predicciones",
-        icon: "🔮",
-        descripcion: "Adiviná resultados",
-      },
-      {
-        nombre: "Dream Team",
-        href: "/entretenimiento/dream-team",
-        icon: "💫",
-        descripcion: "Equipo ideal",
-      },
-      {
-        nombre: "Premios APA",
-        href: "/entretenimiento/premios",
-        icon: "🏅",
-        descripcion: "Reconocimientos",
-      },
+      { nombre: "Inicio", href: "/entretenimiento", icon: "✨", descripcion: "Zona interactiva" },
+      { nombre: "Predicciones", href: "/entretenimiento/predicciones", icon: "🔮", descripcion: "Adiviná resultados" },
+      { nombre: "Dream Team", href: "/entretenimiento/dream-team", icon: "💫", descripcion: "Equipo ideal" },
+      { nombre: "Premios APA", href: "/entretenimiento/premios", icon: "🏅", descripcion: "Reconocimientos" },
     ],
   },
+];
+
+const permisosPanel = [
+  "admin.users.manage",
+  "clubs.manage",
+  "fixtures.manage",
+  "matches.upload_txt",
+  "matches.upload_manual",
+  "matches.edit",
+  "transfers.manage",
+  "titles.manage",
+  "news.manage",
+  "audit.view",
 ];
 
 function linkActivo(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
 
   if (href === "/competicion") {
-    return (
-      pathname.startsWith("/competicion") ||
-      pathname.startsWith("/divisiones")
-    );
+    return pathname.startsWith("/competicion") || pathname.startsWith("/divisiones");
   }
 
   return pathname.startsWith(href);
@@ -114,7 +64,7 @@ function linkActivo(pathname: string, href: string) {
 export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState<string | null>(null);
-  const [esAdmin, setEsAdmin] = useState(false);
+  const [puedeVerPanel, setPuedeVerPanel] = useState(false);
 
   useEffect(() => {
     function cerrar() {
@@ -133,12 +83,12 @@ export default function Navbar() {
   }, [pathname]);
 
   useEffect(() => {
-    verificarAdminNavbar();
+    verificarPermisosNavbar();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(() => {
-      verificarAdminNavbar();
+      verificarPermisosNavbar();
     });
 
     return () => {
@@ -146,23 +96,34 @@ export default function Navbar() {
     };
   }, []);
 
-  async function verificarAdminNavbar() {
+  async function verificarPermisosNavbar() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) {
-      setEsAdmin(false);
+      setPuedeVerPanel(false);
       return;
     }
 
-    const { data: admin } = await supabase
-      .from("admins")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
+    const resultados = await Promise.all(
+      permisosPanel.map((permission) =>
+        supabase.rpc("has_permission", {
+          requested_permission: permission,
+        }),
+      ),
+    );
 
-    setEsAdmin(!!admin);
+    const tieneAlgunPermiso = resultados.some((res) => {
+      if (res.error) {
+        console.log(res.error);
+        return false;
+      }
+
+      return !!res.data;
+    });
+
+    setPuedeVerPanel(tieneAlgunPermiso);
   }
 
   return (
@@ -175,11 +136,7 @@ export default function Navbar() {
           className="group hidden min-w-fit items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] px-3 py-2 transition hover:border-sky-400/35 hover:bg-sky-500/10 hover:shadow-[0_0_22px_rgba(56,189,248,.13)] lg:flex"
         >
           <div className="relative h-9 w-9 overflow-hidden rounded-xl border border-sky-400/30 bg-black/40 shadow-[0_0_18px_rgba(56,189,248,.20)]">
-            <img
-              src="/logo-apa.png"
-              alt="APA PSO"
-              className="h-full w-full object-cover transition duration-300 group-hover:scale-110"
-            />
+            <img src="/logo-apa.png" alt="APA PSO" className="h-full w-full object-cover transition duration-300 group-hover:scale-110" />
           </div>
 
           <div className="leading-none">
@@ -223,21 +180,13 @@ export default function Navbar() {
           </Link>
 
           {menus.map((menu) => {
-            const activo = menu.items.some((item) =>
-              linkActivo(pathname, item.href),
-            );
+            const activo = menu.items.some((item) => linkActivo(pathname, item.href));
 
             return (
-              <div
-                key={menu.nombre}
-                className="relative"
-                onClick={(e) => e.stopPropagation()}
-              >
+              <div key={menu.nombre} className="relative" onClick={(e) => e.stopPropagation()}>
                 <button
                   type="button"
-                  onClick={() =>
-                    setOpen(open === menu.nombre ? null : menu.nombre)
-                  }
+                  onClick={() => setOpen(open === menu.nombre ? null : menu.nombre)}
                   className={`group relative flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-black transition-all ${
                     activo
                       ? "border-sky-400/50 bg-sky-500/15 text-white shadow-[0_0_22px_rgba(56,189,248,.18)]"
@@ -247,11 +196,7 @@ export default function Navbar() {
                   <span className="hidden sm:inline">{menu.icon}</span>
                   <span>{menu.nombre}</span>
 
-                  <span
-                    className={`text-[10px] text-sky-300 transition-transform duration-300 ${
-                      open === menu.nombre ? "rotate-180" : ""
-                    }`}
-                  >
+                  <span className={`text-[10px] text-sky-300 transition-transform duration-300 ${open === menu.nombre ? "rotate-180" : ""}`}>
                     ▾
                   </span>
 
@@ -319,7 +264,7 @@ export default function Navbar() {
           })}
         </div>
 
-        {esAdmin && (
+        {puedeVerPanel && (
           <div className="flex min-w-fit items-center gap-3">
             <Link
               href="/admin"
@@ -329,7 +274,7 @@ export default function Navbar() {
                   : "border-sky-500/35 bg-sky-500/10 text-sky-300 hover:border-sky-300 hover:bg-sky-500 hover:text-black hover:shadow-[0_0_24px_rgba(56,189,248,.32)]"
               }`}
             >
-              <span className="hidden sm:inline">⚡ Admin</span>
+              <span className="hidden sm:inline">⚡ Panel</span>
               <span className="sm:hidden">⚡</span>
             </Link>
           </div>

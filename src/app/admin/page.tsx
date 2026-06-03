@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
@@ -39,7 +39,77 @@ export default function AdminPage() {
   const [noticiaDescripcion, setNoticiaDescripcion] = useState("");
   const [noticiaTemporada, setNoticiaTemporada] = useState("Temporada 1");
 
+  const [cargandoPermisos, setCargandoPermisos] = useState(true);
+  const [canUploadTxt, setCanUploadTxt] = useState(false);
+  const [canManualMatch, setCanManualMatch] = useState(false);
+  const [canNews, setCanNews] = useState(false);
+  const [canTransfers, setCanTransfers] = useState(false);
+  const [canCompetitions, setCanCompetitions] = useState(false);
+  const [canTitles, setCanTitles] = useState(false);
+  const [canUsers, setCanUsers] = useState(false);
+  const [canLists, setCanLists] = useState(false);
+  const [canClubs, setCanClubs] = useState(false);
+
+  useEffect(() => {
+    cargarPermisos();
+  }, []);
+
+  async function checkPermission(permission: string) {
+    const { data, error } = await supabase.rpc("has_permission", {
+      requested_permission: permission,
+    });
+
+    if (error) {
+      console.log(error);
+      return false;
+    }
+
+    return !!data;
+  }
+
+  async function cargarPermisos() {
+    setCargandoPermisos(true);
+
+    const [
+      uploadTxt,
+      manualMatch,
+      news,
+      transfers,
+      competitions,
+      titles,
+      users,
+      lists,
+      clubs,
+    ] = await Promise.all([
+      checkPermission("matches.upload_txt"),
+      checkPermission("matches.upload_manual"),
+      checkPermission("news.manage"),
+      checkPermission("transfers.manage"),
+      checkPermission("competitions.manage"),
+      checkPermission("titles.manage"),
+      checkPermission("admin.users.manage"),
+      checkPermission("matches.edit"),
+      checkPermission("clubs.manage"),
+    ]);
+
+    setCanUploadTxt(uploadTxt);
+    setCanManualMatch(manualMatch);
+    setCanNews(news);
+    setCanTransfers(transfers);
+    setCanCompetitions(competitions);
+    setCanTitles(titles);
+    setCanUsers(users);
+    setCanLists(lists);
+    setCanClubs(clubs);
+    setCargandoPermisos(false);
+  }
+
   async function crearClub() {
+    if (!canClubs) {
+      alert("No tenés permiso para crear clubes.");
+      return;
+    }
+
     const { error } = await supabase.from("equipos").insert([
   {
     nombre: clubNombre,
@@ -61,6 +131,11 @@ export default function AdminPage() {
   }
 
   async function crearTemporada() {
+    if (!canCompetitions) {
+      alert("No tenés permiso para crear temporadas.");
+      return;
+    }
+
     const { error } = await supabase
       .from("temporadas")
       .insert([{ nombre: temporadaNombre, campeon: temporadaCampeon }]);
@@ -77,6 +152,11 @@ export default function AdminPage() {
   }
 
   async function crearPartido() {
+    if (!canManualMatch) {
+      alert("No tenés permiso para cargar partidos manuales.");
+      return;
+    }
+
     const { error } = await supabase.from("partidos").insert([
       {
         local,
@@ -102,6 +182,11 @@ export default function AdminPage() {
   }
 
   async function crearJugador() {
+    if (!canTransfers) {
+      alert("No tenés permiso para cargar jugadores desde este panel.");
+      return;
+    }
+
     const { error } = await supabase.from("jugadores").insert([
       {
         nombre: jugadorNombre,
@@ -131,6 +216,11 @@ export default function AdminPage() {
   }
 
   async function crearNoticia() {
+    if (!canNews) {
+      alert("No tenés permiso para publicar noticias.");
+      return;
+    }
+
     const { error } = await supabase.from("noticias").insert([
       {
         titulo: noticiaTitulo,
@@ -149,6 +239,16 @@ export default function AdminPage() {
     setNoticiaTitulo("");
     setNoticiaDescripcion("");
   }
+  if (cargandoPermisos) {
+    return (
+      <main className="min-h-screen bg-[#0b0f14] text-white flex items-center justify-center">
+        <p className="text-2xl font-black uppercase tracking-[0.18em] text-sky-300">
+          Cargando permisos...
+        </p>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#0b0f14] text-white">
       <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-10 space-y-10">
@@ -165,6 +265,7 @@ export default function AdminPage() {
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-5 mt-8">
+          {canTitles && (
           <Link
             href="/admin/titulos"
             className="group rounded-3xl border border-yellow-500/20 bg-[#11151c] p-6 transition hover:border-yellow-400 hover:shadow-[0_0_25px_rgba(250,204,21,.15)]"
@@ -179,7 +280,9 @@ export default function AdminPage() {
               Cargá campeones, copas y títulos oficiales.
             </p>
           </Link>
+          )}
 
+          {canCompetitions && (
           <Link
             href="/admin/fixture"
             className="group rounded-3xl border border-yellow-500/20 bg-[#11151c] p-6 transition hover:border-yellow-400 hover:shadow-[0_0_25px_rgba(250,204,21,.15)]"
@@ -194,7 +297,9 @@ export default function AdminPage() {
               Generá fixtures, programá horarios y gestioná partidos.
             </p>
           </Link>
+          )}
 
+          {canUploadTxt && (
           <Link
             href="/admin/subir-txt"
             className="group rounded-3xl border border-sky-500/20 bg-[#11151c] p-6 transition hover:border-sky-400 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]"
@@ -209,7 +314,9 @@ export default function AdminPage() {
               Cargá automáticamente los archivos de partidos.
             </p>
           </Link>
+          )}
 
+          {canLists && (
           <Link
             href="/admin/listas"
             className="group rounded-3xl border border-sky-500/20 bg-[#11151c] p-6 transition hover:border-sky-400 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]"
@@ -224,7 +331,9 @@ export default function AdminPage() {
               Gestioná registros y datos cargados.
             </p>
           </Link>
+          )}
 
+          {canTransfers && (
           <Link
             href="/admin/plantillas"
             className="group rounded-3xl border border-sky-500/20 bg-[#11151c] p-6 transition hover:border-sky-400 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]"
@@ -239,6 +348,8 @@ export default function AdminPage() {
               Administrá jugadores y transferencias.
             </p>
           </Link>
+          )}
+          {canManualMatch && (
           <Link
             href="/admin/cargar-partido-manual"
             className="group rounded-3xl border border-yellow-500/20 bg-[#11151c] p-6 transition hover:border-yellow-400 hover:shadow-[0_0_25px_rgba(250,204,21,.15)]"
@@ -253,7 +364,9 @@ export default function AdminPage() {
               Cargá partidos, goleadores, asistencias y MVP sin TXT.
             </p>
           </Link>
+          )}
 
+          {canUsers && (
           <Link
             href="/admin/usuarios"
             className="group rounded-3xl border border-purple-500/20 bg-[#11151c] p-6 transition hover:border-purple-400 hover:shadow-[0_0_25px_rgba(168,85,247,.15)]"
@@ -268,9 +381,11 @@ export default function AdminPage() {
               Gestioná usuarios, roles, aprobaciones y suspensiones.
             </p>
           </Link>
+          )}
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          {canClubs && (
           <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
             <h2 className="text-2xl font-black mb-5">Crear Club</h2>
 
@@ -307,7 +422,9 @@ export default function AdminPage() {
               </button>
             </div>
           </section>
+          )}
 
+          {canCompetitions && (
           <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
             <h2 className="text-2xl font-black mb-5">Crear Temporada</h2>
 
@@ -330,7 +447,9 @@ export default function AdminPage() {
               </button>
             </div>
           </section>
+          )}
 
+          {canManualMatch && (
           <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
             <h2 className="text-2xl font-black mb-5">Cargar Partido</h2>
 
@@ -385,7 +504,9 @@ export default function AdminPage() {
               </button>
             </div>
           </section>
+          )}
 
+          {canTransfers && (
           <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
             <h2 className="text-2xl font-black mb-5">Cargar Jugador</h2>
 
@@ -446,7 +567,9 @@ export default function AdminPage() {
               </button>
             </div>
           </section>
+          )}
 
+          {canTransfers && (
           <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6 xl:col-span-2">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
               <div>
@@ -488,7 +611,9 @@ export default function AdminPage() {
               </div>
             </div>
           </section>
+          )}
 
+          {canNews && (
           <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6 xl:col-span-2">
             <h2 className="text-2xl font-black mb-5">Publicar Noticia</h2>
 
@@ -522,6 +647,7 @@ export default function AdminPage() {
               </button>
             </div>
           </section>
+          )}
         </div>
       </div>
     </main>
