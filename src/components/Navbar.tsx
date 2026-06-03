@@ -1,9 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+
+type PerfilNavbar = {
+  id: string;
+  display_name: string | null;
+  username: string | null;
+  visible_role: string | null;
+  status: string | null;
+};
 
 const menus = [
   {
@@ -42,6 +50,7 @@ const permisosPanel = [
   "admin.users.manage",
   "clubs.manage",
   "fixtures.manage",
+  "competitions.manage",
   "matches.upload_txt",
   "matches.upload_manual",
   "matches.edit",
@@ -63,12 +72,18 @@ function linkActivo(pathname: string, href: string) {
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+
   const [open, setOpen] = useState<string | null>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [puedeVerPanel, setPuedeVerPanel] = useState(false);
+  const [perfil, setPerfil] = useState<PerfilNavbar | null>(null);
+  const [cargandoUsuario, setCargandoUsuario] = useState(true);
 
   useEffect(() => {
     function cerrar() {
       setOpen(null);
+      setUserMenuOpen(false);
     }
 
     window.addEventListener("click", cerrar);
@@ -80,15 +95,16 @@ export default function Navbar() {
 
   useEffect(() => {
     setOpen(null);
+    setUserMenuOpen(false);
   }, [pathname]);
 
   useEffect(() => {
-    verificarPermisosNavbar();
+    cargarSesionNavbar();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(() => {
-      verificarPermisosNavbar();
+      cargarSesionNavbar();
     });
 
     return () => {
@@ -96,14 +112,31 @@ export default function Navbar() {
     };
   }, []);
 
-  async function verificarPermisosNavbar() {
+  async function cargarSesionNavbar() {
+    setCargandoUsuario(true);
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) {
+      setPerfil(null);
       setPuedeVerPanel(false);
+      setCargandoUsuario(false);
       return;
+    }
+
+    const { data: perfilData, error: perfilError } = await supabase
+      .from("profiles")
+      .select("id, display_name, username, visible_role, status")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (perfilError) {
+      console.log(perfilError);
+      setPerfil(null);
+    } else {
+      setPerfil((perfilData || null) as PerfilNavbar | null);
     }
 
     const resultados = await Promise.all(
@@ -124,7 +157,18 @@ export default function Navbar() {
     });
 
     setPuedeVerPanel(tieneAlgunPermiso);
+    setCargandoUsuario(false);
   }
+
+  async function cerrarSesion() {
+    await supabase.auth.signOut();
+    setPerfil(null);
+    setPuedeVerPanel(false);
+    router.push("/login");
+  }
+
+  const nombreVisible = perfil?.display_name || perfil?.username || "Usuario";
+  const inicial = nombreVisible.slice(0, 1).toUpperCase();
 
   return (
     <nav className="sticky top-0 z-[9999] border-b border-white/10 bg-[#050914]/82 shadow-[0_14px_50px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
@@ -264,8 +308,8 @@ export default function Navbar() {
           })}
         </div>
 
-        {puedeVerPanel && (
-          <div className="flex min-w-fit items-center gap-3">
+        <div className="flex min-w-fit items-center gap-3">
+          {puedeVerPanel && (
             <Link
               href="/admin"
               className={`relative overflow-hidden rounded-2xl border px-4 py-2 text-sm font-black transition-all md:px-5 ${
@@ -277,8 +321,117 @@ export default function Navbar() {
               <span className="hidden sm:inline">⚡ Panel</span>
               <span className="sm:hidden">⚡</span>
             </Link>
-          </div>
-        )}
+          )}
+
+          {!cargandoUsuario && !perfil && (
+            <div className="hidden items-center gap-2 md:flex">
+              <Link
+                href="/login"
+                className="rounded-2xl border border-sky-400/25 bg-sky-400/10 px-4 py-2 text-sm font-black uppercase text-sky-300 transition hover:bg-sky-400 hover:text-black"
+              >
+                Login
+              </Link>
+
+              <Link
+                href="/registro"
+                className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-4 py-2 text-sm font-black uppercase text-yellow-300 transition hover:bg-yellow-400 hover:text-black"
+              >
+                Registro
+              </Link>
+            </div>
+          )}
+
+          {!cargandoUsuario && perfil && (
+            <div className="relative" onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center gap-3 rounded-2xl border border-sky-400/25 bg-sky-400/10 px-3 py-2 transition hover:border-sky-300 hover:bg-sky-400/15"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-full border border-sky-400/35 bg-black/35 text-sm font-black text-sky-300">
+                  {inicial}
+                </div>
+
+                <div className="hidden min-w-0 text-left md:block">
+                  <p className="max-w-[120px] truncate text-xs font-black uppercase text-white">
+                    {nombreVisible}
+                  </p>
+                  <p className="mt-0.5 max-w-[120px] truncate text-[9px] font-black uppercase tracking-[0.18em] text-yellow-300">
+                    {perfil.visible_role || "usuario"}
+                  </p>
+                </div>
+
+                <span className={`text-[10px] text-sky-300 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}>
+                  ▾
+                </span>
+              </button>
+
+              {userMenuOpen && (
+                <div className="absolute right-0 top-full z-[99999] mt-3 w-[280px] overflow-hidden rounded-[24px] border border-sky-400/20 bg-[#050914]/96 p-2 shadow-[0_24px_70px_rgba(0,0,0,.62)] backdrop-blur-2xl">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_36%)]" />
+
+                  <div className="relative z-10 border-b border-white/10 px-3 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full border border-sky-400/35 bg-sky-400/10 text-lg font-black text-sky-300">
+                        {inicial}
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-black uppercase text-white">
+                          {nombreVisible}
+                        </p>
+                        <p className="truncate text-xs font-bold text-zinc-500">
+                          @{perfil.username || "usuario"}
+                        </p>
+                        <p className="mt-1 text-[10px] font-black uppercase tracking-[0.18em] text-yellow-300">
+                          {perfil.visible_role || "usuario"} · {perfil.status || "pending"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="relative z-10 mt-2 space-y-1">
+                    <Link
+                      href="/perfil"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="block rounded-2xl border border-transparent px-4 py-3 text-sm font-black uppercase text-zinc-300 transition hover:border-sky-400/25 hover:bg-sky-400/10 hover:text-white"
+                    >
+                      👤 Mi perfil
+                    </Link>
+
+                    {perfil.username && (
+                      <Link
+                        href={`/u/${perfil.username}`}
+                        onClick={() => setUserMenuOpen(false)}
+                        className="block rounded-2xl border border-transparent px-4 py-3 text-sm font-black uppercase text-zinc-300 transition hover:border-yellow-400/25 hover:bg-yellow-400/10 hover:text-white"
+                      >
+                        🌐 Perfil público
+                      </Link>
+                    )}
+
+                    {puedeVerPanel && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="block rounded-2xl border border-transparent px-4 py-3 text-sm font-black uppercase text-sky-300 transition hover:border-sky-400/25 hover:bg-sky-400/10 hover:text-white"
+                      >
+                        ⚡ Panel admin
+                      </Link>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={cerrarSesion}
+                      className="w-full rounded-2xl border border-transparent px-4 py-3 text-left text-sm font-black uppercase text-red-300 transition hover:border-red-400/25 hover:bg-red-400/10 hover:text-white"
+                    >
+                      🚪 Cerrar sesión
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   );

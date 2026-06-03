@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -274,7 +275,7 @@ export default function PerfilPage() {
               </p>
 
               <p className="mt-4 text-sm text-zinc-400">
-                Email: <span className="font-black text-white">{perfil?.email}</span>
+                Email: <span className="font-black text-zinc-300">privado</span>
               </p>
 
               <p className="mt-3 text-sm text-zinc-400">
@@ -289,6 +290,15 @@ export default function PerfilPage() {
                 No podés modificar tu rango, permisos ni estado desde acá.
               </p>
             </section>
+
+            {perfil?.username && (
+              <Link
+                href={`/u/${perfil.username}`}
+                className="block w-full rounded-2xl border border-sky-400/25 bg-sky-400 px-5 py-4 text-center text-sm font-black uppercase text-black transition hover:bg-white"
+              >
+                Ver perfil público
+              </Link>
+            )}
 
             <button
               onClick={cerrarSesion}
