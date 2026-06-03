@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -28,7 +29,7 @@ export default function LoginPage() {
     setLoading(true);
 
     const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
+      email: email.trim().toLowerCase(),
       password,
     });
 
@@ -36,12 +37,11 @@ export default function LoginPage() {
 
     if (error) {
       console.log("ERROR LOGIN:", error);
-      setMensaje(error.message || "Email o contraseña incorrectos.");
+      setMensaje("Email o contraseña incorrectos.");
       return;
     }
 
-    setMensaje("Sesión iniciada correctamente.");
-    router.push("/admin");
+    router.push("/perfil");
   }
 
   return (
@@ -57,11 +57,11 @@ export default function LoginPage() {
             </p>
 
             <h1 className="mt-4 text-5xl font-black uppercase italic leading-none md:text-6xl">
-              Login Admin
+              Iniciar sesión
             </h1>
 
             <p className="mt-5 text-zinc-400">
-              Ingresá con tu email y contraseña de administrador.
+              Entrá con tu cuenta APA para votar, hacer predicciones y administrar si tenés permisos.
             </p>
 
             <div className="mt-8 space-y-4">
@@ -89,14 +89,21 @@ export default function LoginPage() {
                 disabled={loading}
                 className="w-full rounded-2xl border border-sky-400/30 bg-sky-400 px-5 py-4 text-sm font-black uppercase text-black transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {loading ? "Entrando..." : "Entrar al admin"}
+                {loading ? "Entrando..." : "Entrar"}
               </button>
 
               {mensaje && (
-                <p className="rounded-2xl border border-sky-400/20 bg-sky-400/10 p-4 text-sm font-black text-sky-300">
+                <p className="rounded-2xl border border-red-400/20 bg-red-400/10 p-4 text-sm font-black text-red-300">
                   {mensaje}
                 </p>
               )}
+
+              <p className="text-center text-sm text-zinc-500">
+                ¿No tenés cuenta?{" "}
+                <Link href="/registro" className="font-black text-sky-300 hover:text-white">
+                  Registrate
+                </Link>
+              </p>
             </div>
           </div>
         </div>

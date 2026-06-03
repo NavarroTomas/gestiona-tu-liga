@@ -30,7 +30,13 @@ type Prediccion = {
 };
 
 export default function PrediccionesPage() {
-  const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4", "Temporada 5"];
+  const temporadas = [
+    "Temporada 1",
+    "Temporada 2",
+    "Temporada 3",
+    "Temporada 4",
+    "Temporada 5",
+  ];
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
   const fechas = ["Todas", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
@@ -40,7 +46,9 @@ export default function PrediccionesPage() {
   const [usuario, setUsuario] = useState("");
   const [partidos, setPartidos] = useState<Partido[]>([]);
   const [predicciones, setPredicciones] = useState<Prediccion[]>([]);
-  const [marcadores, setMarcadores] = useState<Record<string, { local: string; visitante: string }>>({});
+  const [marcadores, setMarcadores] = useState<
+    Record<string, { local: string; visitante: string }>
+  >({});
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(true);
 
@@ -89,7 +97,9 @@ export default function PrediccionesPage() {
 
   function esPendiente(partido: Partido) {
     const resultado = String(partido.resultado || "").trim();
-    return !resultado || resultado === "-" || resultado.toLowerCase() === "null";
+    return (
+      !resultado || resultado === "-" || resultado.toLowerCase() === "null"
+    );
   }
 
   function golesReales(partido: Partido) {
@@ -102,7 +112,9 @@ export default function PrediccionesPage() {
     return { local: a, visitante: b };
   }
 
-  function ganadorReal(partido: Partido): "local" | "empate" | "visitante" | null {
+  function ganadorReal(
+    partido: Partido,
+  ): "local" | "empate" | "visitante" | null {
     const goles = golesReales(partido);
     if (!goles) return null;
 
@@ -187,7 +199,9 @@ export default function PrediccionesPage() {
   const partidosFiltrados = useMemo(() => {
     return partidos
       .filter((p) => esPendiente(p))
-      .filter((p) => fechaActiva === "Todas" || String(p.fecha || "") === fechaActiva);
+      .filter(
+        (p) => fechaActiva === "Todas" || String(p.fecha || "") === fechaActiva,
+      );
   }, [partidos, fechaActiva]);
 
   const partidosJugados = useMemo(() => {
@@ -195,7 +209,16 @@ export default function PrediccionesPage() {
   }, [partidos]);
 
   const ranking = useMemo(() => {
-    const tabla: Record<string, { usuario: string; puntos: number; exactos: number; aciertos: number; jugadas: number }> = {};
+    const tabla: Record<
+      string,
+      {
+        usuario: string;
+        puntos: number;
+        exactos: number;
+        aciertos: number;
+        jugadas: number;
+      }
+    > = {};
 
     predicciones.forEach((pred) => {
       if (!tabla[pred.usuario]) {
@@ -228,7 +251,12 @@ export default function PrediccionesPage() {
     });
 
     return Object.values(tabla)
-      .sort((a, b) => b.puntos - a.puntos || b.exactos - a.exactos || b.aciertos - a.aciertos)
+      .sort(
+        (a, b) =>
+          b.puntos - a.puntos ||
+          b.exactos - a.exactos ||
+          b.aciertos - a.aciertos,
+      )
       .slice(0, 10);
   }, [predicciones, partidos]);
 
@@ -246,7 +274,10 @@ export default function PrediccionesPage() {
     return predicciones.filter((p) => p.partido_id === key);
   }
 
-  function porcentaje(partido: Partido, tipo: "local" | "empate" | "visitante") {
+  function porcentaje(
+    partido: Partido,
+    tipo: "local" | "empate" | "visitante",
+  ) {
     const votos = votosDelPartido(partido);
     if (votos.length === 0) return 0;
 
@@ -256,16 +287,24 @@ export default function PrediccionesPage() {
 
   function votoUsuario(partido: Partido) {
     const key = partidoKey(partido);
-    return predicciones.find((p) => p.partido_id === key && p.usuario === usuario.trim());
+    return predicciones.find(
+      (p) => p.partido_id === key && p.usuario === usuario.trim(),
+    );
   }
 
-  function prediccionPorMarcador(local: number, visitante: number): "local" | "empate" | "visitante" {
+  function prediccionPorMarcador(
+    local: number,
+    visitante: number,
+  ): "local" | "empate" | "visitante" {
     if (local > visitante) return "local";
     if (visitante > local) return "visitante";
     return "empate";
   }
 
-  async function votar(partido: Partido, prediccionManual?: "local" | "empate" | "visitante") {
+  async function votar(
+    partido: Partido,
+    prediccionManual?: "local" | "empate" | "visitante",
+  ) {
     setMensaje("");
 
     if (!usuario.trim()) {
@@ -301,6 +340,15 @@ export default function PrediccionesPage() {
       .eq("partido_id", key)
       .eq("usuario", usuario.trim());
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      alert("Tenés que iniciar sesión para hacer una predicción.");
+      return;
+    }
+
     const { error } = await supabase.from("predicciones").insert([
       {
         partido_id: key,
@@ -309,7 +357,7 @@ export default function PrediccionesPage() {
         local: partido.local,
         visitante: partido.visitante,
         prediccion,
-        usuario: usuario.trim(),
+        usuario: user.id,
         goles_local: golesLocal,
         goles_visitante: golesVisitante,
       },
@@ -325,7 +373,11 @@ export default function PrediccionesPage() {
     await cargarDatos();
   }
 
-  function actualizarMarcador(partido: Partido, lado: "local" | "visitante", valor: string) {
+  function actualizarMarcador(
+    partido: Partido,
+    lado: "local" | "visitante",
+    valor: string,
+  ) {
     const key = partidoKey(partido);
 
     setMarcadores((prev) => ({
@@ -338,7 +390,10 @@ export default function PrediccionesPage() {
     }));
   }
 
-  function textoPrediccion(partido: Partido, prediccion: "local" | "empate" | "visitante") {
+  function textoPrediccion(
+    partido: Partido,
+    prediccion: "local" | "empate" | "visitante",
+  ) {
     if (prediccion === "local") return partido.local;
     if (prediccion === "visitante") return partido.visitante;
     return "Empate";
@@ -346,9 +401,21 @@ export default function PrediccionesPage() {
 
   function favoritoComunidad(partido: Partido) {
     const opciones = [
-      { tipo: "local" as const, nombre: partido.local, porcentaje: porcentaje(partido, "local") },
-      { tipo: "empate" as const, nombre: "Empate", porcentaje: porcentaje(partido, "empate") },
-      { tipo: "visitante" as const, nombre: partido.visitante, porcentaje: porcentaje(partido, "visitante") },
+      {
+        tipo: "local" as const,
+        nombre: partido.local,
+        porcentaje: porcentaje(partido, "local"),
+      },
+      {
+        tipo: "empate" as const,
+        nombre: "Empate",
+        porcentaje: porcentaje(partido, "empate"),
+      },
+      {
+        tipo: "visitante" as const,
+        nombre: partido.visitante,
+        porcentaje: porcentaje(partido, "visitante"),
+      },
     ];
 
     return opciones.sort((a, b) => b.porcentaje - a.porcentaje)[0];
@@ -395,8 +462,8 @@ export default function PrediccionesPage() {
               </h1>
 
               <p className="mt-5 max-w-2xl text-zinc-400">
-                Pronosticá ganador o marcador exacto. Ganador correcto suma 1 punto;
-                marcador exacto suma 3 puntos.
+                Pronosticá ganador o marcador exacto. Ganador correcto suma 1
+                punto; marcador exacto suma 3 puntos.
               </p>
 
               <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -408,18 +475,30 @@ export default function PrediccionesPage() {
                 />
 
                 <div className="rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4">
-                  <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">Disponibles</p>
-                  <p className="mt-1 text-2xl font-black text-sky-300">{resumenGlobal.partidos}</p>
+                  <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
+                    Disponibles
+                  </p>
+                  <p className="mt-1 text-2xl font-black text-sky-300">
+                    {resumenGlobal.partidos}
+                  </p>
                 </div>
 
                 <div className="rounded-2xl border border-yellow-500/20 bg-black/35 px-5 py-4">
-                  <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">Votos</p>
-                  <p className="mt-1 text-2xl font-black text-yellow-300">{resumenGlobal.votos}</p>
+                  <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
+                    Votos
+                  </p>
+                  <p className="mt-1 text-2xl font-black text-yellow-300">
+                    {resumenGlobal.votos}
+                  </p>
                 </div>
 
                 <div className="rounded-2xl border border-green-500/20 bg-black/35 px-5 py-4">
-                  <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">Usuarios</p>
-                  <p className="mt-1 text-2xl font-black text-green-400">{resumenGlobal.usuarios}</p>
+                  <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
+                    Usuarios
+                  </p>
+                  <p className="mt-1 text-2xl font-black text-green-400">
+                    {resumenGlobal.usuarios}
+                  </p>
                 </div>
               </div>
             </div>
@@ -433,7 +512,9 @@ export default function PrediccionesPage() {
         <section className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6 md:p-8 shadow-[0_0_35px_rgba(0,120,255,.12)]">
           <div className="grid gap-7">
             <div>
-              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">Temporada</p>
+              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+                Temporada
+              </p>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 {temporadas.map((temp) => (
                   <button
@@ -452,7 +533,9 @@ export default function PrediccionesPage() {
             </div>
 
             <div>
-              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">División</p>
+              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+                División
+              </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {divisiones.map((div) => (
                   <button
@@ -471,7 +554,9 @@ export default function PrediccionesPage() {
             </div>
 
             <div>
-              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">Fecha</p>
+              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+                Fecha
+              </p>
               <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
                 {fechas.map((f) => (
                   <button
@@ -500,13 +585,17 @@ export default function PrediccionesPage() {
         <section className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-8">
           <div className="space-y-6">
             <section>
-              <p className="text-yellow-300 uppercase tracking-[0.35em] text-xs font-black">Partidos disponibles</p>
+              <p className="text-yellow-300 uppercase tracking-[0.35em] text-xs font-black">
+                Partidos disponibles
+              </p>
               <h2 className="mt-3 text-3xl md:text-5xl font-black uppercase">
                 {temporada}
                 <span className="text-sky-400"> / </span>
                 {division}
               </h2>
-              <p className="mt-3 text-zinc-500">Solo aparecen partidos sin resultado cargado.</p>
+              <p className="mt-3 text-zinc-500">
+                Solo aparecen partidos sin resultado cargado.
+              </p>
             </section>
 
             {cargando ? (
@@ -517,9 +606,16 @@ export default function PrediccionesPage() {
               <section className="relative overflow-hidden rounded-[34px] border border-yellow-500/20 bg-[#020714] p-10 text-center shadow-[0_0_35px_rgba(250,204,21,.10)]">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(250,204,21,.12),transparent_45%)]" />
                 <div className="relative z-10 max-w-2xl mx-auto">
-                  <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border border-yellow-400/30 bg-yellow-400/10 text-5xl">🎯</div>
-                  <h2 className="mt-6 text-4xl font-black uppercase">No hay partidos para predecir</h2>
-                  <p className="mt-4 text-zinc-400">Cargá partidos futuros sin resultado en la tabla partidos y van a aparecer acá.</p>
+                  <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border border-yellow-400/30 bg-yellow-400/10 text-5xl">
+                    🎯
+                  </div>
+                  <h2 className="mt-6 text-4xl font-black uppercase">
+                    No hay partidos para predecir
+                  </h2>
+                  <p className="mt-4 text-zinc-400">
+                    Cargá partidos futuros sin resultado en la tabla partidos y
+                    van a aparecer acá.
+                  </p>
                 </div>
               </section>
             ) : (
@@ -529,28 +625,45 @@ export default function PrediccionesPage() {
                   const miVoto = votoUsuario(partido);
                   const votosTotal = votosDelPartido(partido).length;
                   const favorito = favoritoComunidad(partido);
-                  const marcadorActual = marcadores[key] || { local: "", visitante: "" };
+                  const marcadorActual = marcadores[key] || {
+                    local: "",
+                    visitante: "",
+                  };
 
                   return (
-                    <article key={key} className="relative overflow-hidden rounded-[34px] border border-sky-500/20 bg-[#020714] p-6 shadow-[0_0_30px_rgba(0,120,255,.10)]">
+                    <article
+                      key={key}
+                      className="relative overflow-hidden rounded-[34px] border border-sky-500/20 bg-[#020714] p-6 shadow-[0_0_30px_rgba(0,120,255,.10)]"
+                    >
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.11),transparent_40%)]" />
 
                       <div className="relative z-10">
                         <div className="flex flex-wrap items-center justify-between gap-4">
                           <div>
-                            <p className="text-yellow-300 text-xs uppercase tracking-[0.3em] font-black">Fecha {partido.fecha || "-"}</p>
+                            <p className="text-yellow-300 text-xs uppercase tracking-[0.3em] font-black">
+                              Fecha {partido.fecha || "-"}
+                            </p>
                             <h3 className="mt-3 text-3xl font-black uppercase">
                               {partido.local}
                               <span className="text-sky-400"> vs </span>
                               {partido.visitante}
                             </h3>
-                            <p className="mt-2 text-zinc-500">{partido.dia || "Sin día"} · {partido.hora || "Sin hora"}</p>
+                            <p className="mt-2 text-zinc-500">
+                              {partido.dia || "Sin día"} ·{" "}
+                              {partido.hora || "Sin hora"}
+                            </p>
                           </div>
 
                           <div className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-5 py-3 text-center">
-                            <p className="text-[10px] uppercase tracking-[0.2em] text-yellow-300 font-black">Favorito APA</p>
-                            <p className="text-xl font-black text-yellow-300">{favorito?.nombre || "-"}</p>
-                            <p className="text-xs text-zinc-500">{favorito?.porcentaje || 0}% · {votosTotal} votos</p>
+                            <p className="text-[10px] uppercase tracking-[0.2em] text-yellow-300 font-black">
+                              Favorito APA
+                            </p>
+                            <p className="text-xl font-black text-yellow-300">
+                              {favorito?.nombre || "-"}
+                            </p>
+                            <p className="text-xs text-zinc-500">
+                              {favorito?.porcentaje || 0}% · {votosTotal} votos
+                            </p>
                           </div>
                         </div>
 
@@ -560,27 +673,45 @@ export default function PrediccionesPage() {
                           </p>
 
                           <div className="grid grid-cols-[1fr_90px_40px_90px_1fr] items-center gap-3">
-                            <p className="truncate text-right font-black uppercase">{partido.local}</p>
+                            <p className="truncate text-right font-black uppercase">
+                              {partido.local}
+                            </p>
 
                             <input
                               type="number"
                               min="0"
                               value={marcadorActual.local}
-                              onChange={(e) => actualizarMarcador(partido, "local", e.target.value)}
+                              onChange={(e) =>
+                                actualizarMarcador(
+                                  partido,
+                                  "local",
+                                  e.target.value,
+                                )
+                              }
                               className="rounded-2xl border border-yellow-400/25 bg-black/50 px-3 py-3 text-center text-2xl font-black text-white outline-none"
                             />
 
-                            <p className="text-center text-2xl font-black text-yellow-300">-</p>
+                            <p className="text-center text-2xl font-black text-yellow-300">
+                              -
+                            </p>
 
                             <input
                               type="number"
                               min="0"
                               value={marcadorActual.visitante}
-                              onChange={(e) => actualizarMarcador(partido, "visitante", e.target.value)}
+                              onChange={(e) =>
+                                actualizarMarcador(
+                                  partido,
+                                  "visitante",
+                                  e.target.value,
+                                )
+                              }
                               className="rounded-2xl border border-yellow-400/25 bg-black/50 px-3 py-3 text-center text-2xl font-black text-white outline-none"
                             />
 
-                            <p className="truncate font-black uppercase">{partido.visitante}</p>
+                            <p className="truncate font-black uppercase">
+                              {partido.visitante}
+                            </p>
                           </div>
 
                           <button
@@ -593,37 +724,58 @@ export default function PrediccionesPage() {
                         </div>
 
                         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3">
-                          {(["local", "empate", "visitante"] as const).map((tipo) => {
-                            const activo = miVoto?.prediccion === tipo && miVoto?.goles_local == null;
-                            return (
-                              <button
-                                key={tipo}
-                                onClick={() => votar(partido, tipo)}
-                                className={`rounded-2xl border px-4 py-4 text-center transition ${
-                                  activo
-                                    ? "border-yellow-300 bg-yellow-400 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
-                                    : "border-sky-500/20 bg-black/35 text-zinc-300 hover:border-yellow-300/60 hover:text-white"
-                                }`}
-                              >
-                                <p className="text-[10px] uppercase tracking-[0.2em] font-black opacity-80">
-                                  {tipo === "local" ? "Gana local" : tipo === "visitante" ? "Gana visita" : "Empate"}
-                                </p>
-                                <p className="mt-2 text-lg font-black uppercase truncate">{textoPrediccion(partido, tipo)}</p>
-                              </button>
-                            );
-                          })}
+                          {(["local", "empate", "visitante"] as const).map(
+                            (tipo) => {
+                              const activo =
+                                miVoto?.prediccion === tipo &&
+                                miVoto?.goles_local == null;
+                              return (
+                                <button
+                                  key={tipo}
+                                  onClick={() => votar(partido, tipo)}
+                                  className={`rounded-2xl border px-4 py-4 text-center transition ${
+                                    activo
+                                      ? "border-yellow-300 bg-yellow-400 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
+                                      : "border-sky-500/20 bg-black/35 text-zinc-300 hover:border-yellow-300/60 hover:text-white"
+                                  }`}
+                                >
+                                  <p className="text-[10px] uppercase tracking-[0.2em] font-black opacity-80">
+                                    {tipo === "local"
+                                      ? "Gana local"
+                                      : tipo === "visitante"
+                                        ? "Gana visita"
+                                        : "Empate"}
+                                  </p>
+                                  <p className="mt-2 text-lg font-black uppercase truncate">
+                                    {textoPrediccion(partido, tipo)}
+                                  </p>
+                                </button>
+                              );
+                            },
+                          )}
                         </div>
 
                         <div className="mt-6 space-y-4">
-                          <Barra label={partido.local} value={porcentaje(partido, "local")} />
-                          <Barra label="Empate" value={porcentaje(partido, "empate")} />
-                          <Barra label={partido.visitante} value={porcentaje(partido, "visitante")} />
+                          <Barra
+                            label={partido.local}
+                            value={porcentaje(partido, "local")}
+                          />
+                          <Barra
+                            label="Empate"
+                            value={porcentaje(partido, "empate")}
+                          />
+                          <Barra
+                            label={partido.visitante}
+                            value={porcentaje(partido, "visitante")}
+                          />
                         </div>
 
                         {miVoto && (
                           <p className="mt-5 rounded-2xl border border-green-400/20 bg-green-400/10 p-4 text-sm font-black text-green-300">
-                            Tu voto: {textoPrediccion(partido, miVoto.prediccion)}
-                            {miVoto.goles_local != null && miVoto.goles_visitante != null
+                            Tu voto:{" "}
+                            {textoPrediccion(partido, miVoto.prediccion)}
+                            {miVoto.goles_local != null &&
+                            miVoto.goles_visitante != null
                               ? ` · ${miVoto.goles_local}-${miVoto.goles_visitante}`
                               : ""}
                           </p>
@@ -638,21 +790,39 @@ export default function PrediccionesPage() {
 
           <aside className="space-y-6">
             <section className="rounded-[34px] border border-yellow-500/25 bg-[#020714] p-6">
-              <p className="text-yellow-300 uppercase tracking-[0.3em] text-xs font-black">Ranking</p>
-              <h2 className="mt-3 text-3xl font-black uppercase">Pronosticadores</h2>
-              <p className="mt-2 text-zinc-500">Exacto = 3 pts · Ganador = 1 pt.</p>
+              <p className="text-yellow-300 uppercase tracking-[0.3em] text-xs font-black">
+                Ranking
+              </p>
+              <h2 className="mt-3 text-3xl font-black uppercase">
+                Pronosticadores
+              </h2>
+              <p className="mt-2 text-zinc-500">
+                Exacto = 3 pts · Ganador = 1 pt.
+              </p>
 
               <div className="mt-5 space-y-3">
                 {ranking.length === 0 ? (
-                  <p className="rounded-2xl border border-white/10 bg-black/35 p-4 text-zinc-500">Todavía no hay puntos.</p>
+                  <p className="rounded-2xl border border-white/10 bg-black/35 p-4 text-zinc-500">
+                    Todavía no hay puntos.
+                  </p>
                 ) : (
                   ranking.map((r, index) => (
-                    <div key={r.usuario} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/35 px-4 py-3">
+                    <div
+                      key={r.usuario}
+                      className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/35 px-4 py-3"
+                    >
                       <div>
-                        <p className="font-black uppercase text-white">{index + 1}. {r.usuario}</p>
-                        <p className="text-xs text-zinc-500">{r.aciertos}/{r.jugadas} aciertos · {r.exactos} exactos</p>
+                        <p className="font-black uppercase text-white">
+                          {index + 1}. {r.usuario}
+                        </p>
+                        <p className="text-xs text-zinc-500">
+                          {r.aciertos}/{r.jugadas} aciertos · {r.exactos}{" "}
+                          exactos
+                        </p>
                       </div>
-                      <p className="text-3xl font-black text-yellow-300">{r.puntos}</p>
+                      <p className="text-3xl font-black text-yellow-300">
+                        {r.puntos}
+                      </p>
                     </div>
                   ))
                 )}
@@ -660,14 +830,23 @@ export default function PrediccionesPage() {
             </section>
 
             <section className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6">
-              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black">Mis predicciones</p>
-              <h2 className="mt-3 text-3xl font-black uppercase">{usuario.trim() || "Usuario"}</h2>
+              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black">
+                Mis predicciones
+              </p>
+              <h2 className="mt-3 text-3xl font-black uppercase">
+                {usuario.trim() || "Usuario"}
+              </h2>
 
               <div className="mt-5 space-y-3">
                 {!usuario.trim() ? (
-                  <p className="rounded-2xl border border-white/10 bg-black/35 p-4 text-zinc-500">Escribí tu usuario para ver tus votos.</p>
-                ) : predicciones.filter((p) => p.usuario === usuario.trim()).length === 0 ? (
-                  <p className="rounded-2xl border border-white/10 bg-black/35 p-4 text-zinc-500">Todavía no votaste.</p>
+                  <p className="rounded-2xl border border-white/10 bg-black/35 p-4 text-zinc-500">
+                    Escribí tu usuario para ver tus votos.
+                  </p>
+                ) : predicciones.filter((p) => p.usuario === usuario.trim())
+                    .length === 0 ? (
+                  <p className="rounded-2xl border border-white/10 bg-black/35 p-4 text-zinc-500">
+                    Todavía no votaste.
+                  </p>
                 ) : (
                   predicciones
                     .filter((p) => p.usuario === usuario.trim())
@@ -695,7 +874,8 @@ export default function PrediccionesPage() {
                               </p>
 
                               <p className="mt-1 text-xs text-zinc-500">
-                                Resultado real: {resultadoRealTexto(p.partido_id)}
+                                Resultado real:{" "}
+                                {resultadoRealTexto(p.partido_id)}
                               </p>
                             </div>
 

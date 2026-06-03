@@ -11,6 +11,7 @@ export default function RegistroPage() {
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
   const [playerId, setPlayerId] = useState("");
+  const [steamId, setSteamId] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmarPassword, setConfirmarPassword] = useState("");
@@ -34,6 +35,7 @@ export default function RegistroPage() {
     const nombreLimpio = displayName.trim();
     const usernameLimpio = limpiarUsername(username);
     const playerIdLimpio = playerId.trim();
+    const steamIdLimpio = steamId.trim();
     const emailLimpio = email.trim().toLowerCase();
 
     if (!nombreLimpio) {
@@ -45,6 +47,18 @@ export default function RegistroPage() {
     if (!usernameLimpio) {
       setTipoMensaje("error");
       setMensaje("Escribí un nombre de usuario válido.");
+      return;
+    }
+
+    if (!playerIdLimpio) {
+      setTipoMensaje("error");
+      setMensaje("Escribí tu PSO ID / Player ID.");
+      return;
+    }
+
+    if (!steamIdLimpio) {
+      setTipoMensaje("error");
+      setMensaje("Escribí tu Steam ID.");
       return;
     }
 
@@ -75,7 +89,8 @@ export default function RegistroPage() {
         data: {
           display_name: nombreLimpio,
           username: usernameLimpio,
-          playerId: playerIdLimpio,
+          playerid: playerIdLimpio,
+          steam_id: steamIdLimpio,
         },
       },
     });
@@ -102,7 +117,9 @@ export default function RegistroPage() {
         .update({
           display_name: nombreLimpio,
           username: usernameLimpio,
-          playerId: playerIdLimpio || null,
+          playerid: playerIdLimpio,
+          steam_id: steamIdLimpio,
+          avatar_url: null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId);
@@ -116,6 +133,7 @@ export default function RegistroPage() {
     setDisplayName("");
     setUsername("");
     setPlayerId("");
+    setSteamId("");
     setEmail("");
     setPassword("");
     setConfirmarPassword("");
@@ -190,7 +208,7 @@ export default function RegistroPage() {
               Crear cuenta APA
             </h2>
             <p className="mt-3 text-sm text-zinc-500">
-              Usá un email real y una contraseña segura.
+              Creá tu cuenta APA con usuario, PSO ID, Steam ID y contraseña.
             </p>
           </div>
 
@@ -221,12 +239,24 @@ export default function RegistroPage() {
 
             <div>
               <label className="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
-                PlayerId PSO / FC 25
+                PSO ID / Player ID
               </label>
               <input
                 value={playerId}
                 onChange={(e) => setPlayerId(e.target.value)}
-                placeholder="Opcional"
+                placeholder="Obligatorio"
+                className="w-full rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-sky-400/60"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
+                Steam ID
+              </label>
+              <input
+                value={steamId}
+                onChange={(e) => setSteamId(e.target.value)}
+                placeholder="Obligatorio"
                 className="w-full rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-sky-400/60"
               />
             </div>
