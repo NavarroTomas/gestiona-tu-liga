@@ -29,6 +29,7 @@ type StatJugador = {
   assists?: number | null;
   mvp?: number | null;
   overallRating?: number | null;
+  rating_apa?: number | null;
   score?: number | null;
   gKSaves?: number | null;
   gKCatches?: number | null;
@@ -250,7 +251,7 @@ export default function PerfilPublicoPage() {
     const score = stats.reduce((acc, s) => acc + Number(s.score || 0), 0);
 
     const ratings = stats
-      .map((s) => Number(s.overallRating || 0))
+      .map((s) => Number(s.rating_apa || s.overallRating || 0))
       .filter((n) => n > 0);
 
     const ratingPromedio =
@@ -326,7 +327,7 @@ export default function PerfilPublicoPage() {
       map[key].mvps += Number(s.mvp || 0);
       map[key].atajadas += Number(s.gKSaves || 0);
 
-      const rating = Number(s.overallRating || 0);
+      const rating = Number(s.rating_apa || s.overallRating || 0);
       if (rating > 0) {
         map[key].ratingTotal += rating;
         map[key].ratings += 1;
@@ -852,7 +853,7 @@ export default function PerfilPublicoPage() {
                             MVP {Number(s.mvp || 0)}
                           </span>
                           <span className="rounded-xl border border-green-400/20 bg-green-400/10 px-3 py-2 text-green-300">
-                            RT {Number(s.overallRating || 0)}
+                            RT {Number(s.rating_apa || s.overallRating || 0)}
                           </span>
                         </div>
                       </article>

@@ -109,7 +109,7 @@ export default function JugadoresPage() {
       mapa[clave].score += Number(j.score) || 0;
       mapa[clave].pases += Number(j.passes) || 0;
       mapa[clave].tackles += Number(j.tackles) || 0;
-      mapa[clave].ratingTotal += Number(j.overallRating) || 0;
+      mapa[clave].ratingTotal += Number(j.rating_apa || j.overallRating) || 0;
       mapa[clave].partidos += 1;
       mapa[clave].atajadas += valorGKSave(j);
       mapa[clave].atrapadas += Number(j.gKCatches) || 0;

@@ -13,6 +13,7 @@ type Jugador = {
   goles: number;
   asistencias: number;
   rating: number;
+  rating_apa: number;
   atajadas: number;
 };
 
@@ -177,7 +178,9 @@ export default function DreamTeamPage() {
           goles: 0,
           asistencias: 0,
           ratingTotal: 0,
+          ratingApaTotal: 0,
           rating: 0,
+          rating_apa: 0,
           atajadas: 0,
         };
       }
@@ -186,6 +189,7 @@ export default function DreamTeamPage() {
       mapa[clave].goles += Number(r.goals || 0);
       mapa[clave].asistencias += Number(r.assists || 0);
       mapa[clave].ratingTotal += Number(r.overallRating || 0);
+      mapa[clave].ratingApaTotal += Number(r.rating_apa || r.overallRating || 0);
       mapa[clave].atajadas += valorGKSave(r);
 
       if (r.equipo) mapa[clave].equipo = r.equipo;
@@ -197,7 +201,8 @@ export default function DreamTeamPage() {
     setJugadores(
       Object.values(mapa).map((j: any) => ({
         ...j,
-        rating: j.partidos > 0 ? Math.round((j.ratingTotal / j.partidos) * 10) / 10 : 0,
+        rating_apa: j.partidos > 0 ? Math.round((j.ratingApaTotal / j.partidos) * 10) / 10 : 0,
+        rating: j.partidos > 0 ? Math.round((j.ratingApaTotal / j.partidos) * 10) / 10 : 0,
       })),
     );
 

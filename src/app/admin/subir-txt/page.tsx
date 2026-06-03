@@ -140,6 +140,51 @@ export default function SubirTxtPage() {
     };
   }
 
+
+  function calcularRatingAPA(j: any) {
+    const goles = n(j.goals);
+    const asistencias = n(j.assists);
+    const pasesClave = n(j.keyPasses);
+    const tirosAlArco = n(j.shotsOnTarget);
+    const tackles = n(j.tackles);
+    const intercepciones = n(j.interceptions);
+    const perdidas = n(j.possessionsLost);
+    const amarillas = n(j.yellowCards);
+    const rojas = n(j.redCards);
+
+    const atajadas = n(j.gKSaves);
+    const atrapadas = n(j.gKCatches);
+
+    const esArquero =
+      atajadas > 0 ||
+      atrapadas > 0 ||
+      String(j.position || j.postion || "")
+        .toUpperCase()
+        .includes("GK");
+
+    let rating = 6;
+
+    if (esArquero) {
+      rating += atajadas * 0.35;
+      rating += atrapadas * 0.20;
+    } else {
+      rating += goles * 1.2;
+      rating += asistencias * 0.9;
+      rating += pasesClave * 0.18;
+      rating += tirosAlArco * 0.12;
+      rating += tackles * 0.10;
+      rating += intercepciones * 0.10;
+    }
+
+    rating -= perdidas * 0.05;
+    rating -= amarillas * 0.20;
+    rating -= rojas * 1.00;
+
+    rating = Math.max(1, Math.min(10, rating));
+
+    return Math.round(rating * 100) / 100;
+  }
+
   function normalizarJugador(
     j: any,
     idPartido: string,
@@ -170,6 +215,7 @@ export default function SubirTxtPage() {
       gKSaves: n(j.gKSaves),
       gKCatches: n(j.gKCatches),
       overallRating: n(j.overallRating),
+      rating_apa: calcularRatingAPA(j),
       score: n(j.score),
       mvp: esMvp ? 1 : 0,
     };

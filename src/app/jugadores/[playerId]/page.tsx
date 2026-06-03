@@ -101,7 +101,7 @@ export default function JugadorPage() {
     atrapadas: sumar("gKCatches"),
     atajadas: stats.reduce((acc, r) => acc + valorGKSave(r), 0),
     score: sumar("score"),
-    rating: promedio("overallRating"),
+    rating: promedio("rating_apa") || promedio("overallRating"),
   };
   const carreraPorTemporada = Object.values(
     stats.reduce((acc: any, r: any) => {
@@ -130,7 +130,7 @@ export default function JugadorPage() {
       acc[key].atrapadas += Number(r.gKCatches) || 0;
       acc[key].mvps += Number(r.mvp) || 0;
       acc[key].score += Number(r.score) || 0;
-      acc[key].ratingTotal += Number(r.overallRating) || 0;
+      acc[key].ratingTotal += Number(r.rating_apa || r.overallRating) || 0;
 
       return acc;
     }, {}),
@@ -144,7 +144,7 @@ export default function JugadorPage() {
   const mejorPartido =
     stats.length > 0
       ? [...stats].sort(
-          (a, b) => Number(b.overallRating || 0) - Number(a.overallRating || 0),
+          (a, b) => Number(b.rating_apa || b.overallRating || 0) - Number(a.rating_apa || a.overallRating || 0),
         )[0]
       : null;
 
@@ -362,7 +362,7 @@ export default function JugadorPage() {
                     Rating
                   </p>
                   <p className="text-5xl font-black text-green-400">
-                    {mejorPartido.overallRating || 0}
+                    {mejorPartido.rating_apa || mejorPartido.overallRating || 0}
                   </p>
                 </div>
               </div>
@@ -505,7 +505,7 @@ export default function JugadorPage() {
                         </p>
 
                         <p className="text-sm font-black text-green-400">
-                          {t.rating}/100
+                          {t.rating}/10
                         </p>
                       </div>
 
@@ -513,7 +513,7 @@ export default function JugadorPage() {
                         <div
                           className="h-full rounded-full bg-gradient-to-r from-green-500 via-yellow-400 to-emerald-300"
                           style={{
-                            width: `${Math.min(Number(t.rating || 0), 100)}%`,
+                            width: `${Math.min(Number(t.rating || 0) * 10, 100)}%`,
                           }}
                         />
                       </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const INTRO_CLOSED_EVENT = "apa:intro-closed";
+const INTRO_STORAGE_KEY = "apa_intro_vista";
 
 export default function BienvenidaAPA() {
   const pathname = usePathname();
@@ -46,6 +47,11 @@ export default function BienvenidaAPA() {
       programarApertura();
     } else {
       cancelarTimer();
+
+      const introYaVista = localStorage.getItem(INTRO_STORAGE_KEY);
+      if (introYaVista) {
+        programarApertura();
+      }
     }
 
     return () => {

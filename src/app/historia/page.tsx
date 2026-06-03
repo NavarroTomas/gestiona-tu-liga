@@ -76,7 +76,7 @@ export default function HistoriaPage() {
       mapa[clave].asistencias += Number(j.assists) || 0;
       mapa[clave].mvps += Number(j.mvp) || 0;
       mapa[clave].score += Number(j.score) || 0;
-      mapa[clave].ratingTotal += Number(j.overallRating) || 0;
+      mapa[clave].ratingTotal += Number(j.rating_apa || j.overallRating) || 0;
       mapa[clave].atajadas += valorGKSave(j);
       mapa[clave].tackles += Number(j.tackles) || 0;
       mapa[clave].intercepciones += Number(j.interceptions) || 0;
