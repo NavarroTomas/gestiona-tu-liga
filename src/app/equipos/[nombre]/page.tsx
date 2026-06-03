@@ -35,6 +35,14 @@ interface ClubVisual {
   color_principal?: string | null;
 }
 
+interface PlantillaClub {
+  jugador: string;
+  playerid: string;
+  equipo: string;
+  posicion?: string;
+  estado?: string;
+}
+
 interface EquipoTemporada {
   nombre: string;
   temporada: string;
@@ -157,9 +165,20 @@ export default function PaginaEquipo() {
         .from("jugadores")
         .select("*");
 
-      const jugadoresFiltrados = (jugadoresData || []).filter(
-        (j: any) => j.equipo?.toLowerCase() === nombreExacto.toLowerCase(),
+      const { data: plantillasData } = await supabase
+        .from("plantillas")
+        .select("*")
+        .eq("equipo", nombreExacto)
+        .neq("estado", "baja");
+
+      const playerIdsActivos = new Set(
+        (plantillasData || []).map((p: any) => String(p.playerid || "").trim()),
       );
+
+      const jugadoresFiltrados = (jugadoresData || []).filter((j: any) => {
+        const pid = String(j.playerId || j.player_id || "").trim();
+        return playerIdsActivos.has(pid);
+      });
 
       const mapaAgrupado: { [key: string]: EstadisticasJugador } = {};
 

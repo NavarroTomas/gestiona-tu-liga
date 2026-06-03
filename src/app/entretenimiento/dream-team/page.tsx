@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 type Jugador = {
@@ -19,6 +20,8 @@ type PerfilDreamTeam = {
   id: string;
   display_name: string | null;
   username: string | null;
+  playerid?: string | null;
+  avatar_url?: string | null;
 };
 
 const posiciones = [
@@ -100,6 +103,7 @@ export default function DreamTeamPage() {
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
   const [votos, setVotos] = useState<any[]>([]);
   const [logos, setLogos] = useState<Record<string, string>>({});
+  const [perfilesJugadores, setPerfilesJugadores] = useState<Record<string, PerfilDreamTeam>>({});
   const [posicionActiva, setPosicionActiva] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState("");
 
@@ -122,7 +126,7 @@ export default function DreamTeamPage() {
 
     const { data: perfilData, error } = await supabase
       .from("profiles")
-      .select("id, display_name, username")
+      .select("id, display_name, username, playerid, avatar_url")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -210,6 +214,33 @@ export default function DreamTeamPage() {
     }
 
     setVotos(votosData || []);
+
+    const playerIdsPerfil = Array.from(
+      new Set([
+        ...Object.values(mapa).map((j: any) => j.playerId).filter(Boolean),
+        ...(votosData || []).map((v: any) => v.playerId).filter(Boolean),
+      ]),
+    );
+
+    if (playerIdsPerfil.length > 0) {
+      const { data: perfilesData, error: perfilesError } = await supabase
+        .from("profiles")
+        .select("id, display_name, username, playerid, avatar_url")
+        .in("playerid", playerIdsPerfil);
+
+      if (perfilesError) {
+        console.log(perfilesError);
+        setPerfilesJugadores({});
+      } else {
+        const mapaPerfiles: Record<string, PerfilDreamTeam> = {};
+        (perfilesData || []).forEach((p: any) => {
+          if (p.playerid) mapaPerfiles[p.playerid] = p;
+        });
+        setPerfilesJugadores(mapaPerfiles);
+      }
+    } else {
+      setPerfilesJugadores({});
+    }
 
     const { data: equiposData } = await supabase
       .from("equipos")
@@ -383,7 +414,6 @@ export default function DreamTeamPage() {
         nombre: jugador.nombre,
         equipo: jugador.equipo,
         usuario: user.id,
-        votar_key: null,
         fecha_voto: fechaActualISO(),
       },
     ]);
@@ -416,6 +446,74 @@ export default function DreamTeamPage() {
     setMensaje("Dream Team copiado al portapapeles.");
   }
 
+  function perfilPorPlayerId(playerId?: string | null) {
+    if (!playerId) return null;
+    return perfilesJugadores[playerId] || null;
+  }
+
+  function AvatarJugador({
+    playerId,
+    nombre,
+    size = "md",
+  }: {
+    playerId?: string | null;
+    nombre?: string | null;
+    size?: "sm" | "md";
+  }) {
+    const perfil = perfilPorPlayerId(playerId || "");
+    const inicial = String(nombre || "J").slice(0, 1).toUpperCase();
+    const sizeClass = size === "sm" ? "h-10 w-10 text-sm" : "h-14 w-14 text-lg";
+
+    const avatar = (
+      <div
+        className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-yellow-400/25 bg-yellow-400/10 font-black text-yellow-300 ${sizeClass}`}
+      >
+        {perfil?.avatar_url ? (
+          <img
+            src={perfil.avatar_url}
+            alt={nombre || "Jugador"}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          inicial
+        )}
+      </div>
+    );
+
+    if (perfil?.username) {
+      return (
+        <Link href={`/u/${perfil.username}`} className="transition hover:scale-105">
+          {avatar}
+        </Link>
+      );
+    }
+
+    return avatar;
+  }
+
+  function NombreJugadorLink({
+    playerId,
+    nombre,
+    className = "",
+  }: {
+    playerId?: string | null;
+    nombre?: string | null;
+    className?: string;
+  }) {
+    const perfil = perfilPorPlayerId(playerId || "");
+    const texto = nombre || "Sin nombre";
+
+    if (perfil?.username) {
+      return (
+        <Link href={`/u/${perfil.username}`} className={`transition hover:text-yellow-300 ${className}`}>
+          {texto}
+        </Link>
+      );
+    }
+
+    return <span className={className}>{texto}</span>;
+  }
+
   function LogoEquipo({ equipo }: { equipo?: string }) {
     const logo = equipo ? logos[equipo] : "";
 
@@ -442,7 +540,11 @@ export default function DreamTeamPage() {
         className="group relative min-h-[106px] rounded-3xl border border-sky-400/30 bg-black/55 p-3 text-center shadow-[0_0_24px_rgba(56,189,248,.10)] transition hover:scale-[1.04] hover:border-yellow-300/70 hover:shadow-[0_0_30px_rgba(250,204,21,.20)]"
       >
         <div className="mx-auto mb-2 flex justify-center">
-          <LogoEquipo equipo={elegido?.equipo} />
+          {elegido ? (
+            <AvatarJugador playerId={elegido.playerId} nombre={elegido.nombre} />
+          ) : (
+            <LogoEquipo equipo={elegido?.equipo} />
+          )}
         </div>
 
         <p className="text-[11px] font-black uppercase tracking-[0.25em] text-yellow-300">
@@ -450,7 +552,11 @@ export default function DreamTeamPage() {
         </p>
 
         <h3 className="mt-1 truncate text-base font-black uppercase text-white">
-          {elegido?.nombre || "Elegir"}
+          {elegido ? (
+            <NombreJugadorLink playerId={elegido.playerId} nombre={elegido.nombre} />
+          ) : (
+            "Elegir"
+          )}
         </h3>
 
         <p className="mt-1 truncate text-xs text-zinc-500">
@@ -625,8 +731,21 @@ export default function DreamTeamPage() {
           <aside className="space-y-6">
             <section className="rounded-[34px] border border-yellow-500/25 bg-[#020714] p-6">
               <p className="text-yellow-300 uppercase tracking-[0.3em] text-xs font-black">MVP de la fecha</p>
-              <h2 className="mt-3 text-3xl font-black uppercase">{jugadorMasVotado?.nombre || "-"}</h2>
-              <p className="mt-2 text-zinc-500">{jugadorMasVotado?.equipo || "Sin votos todavía"}</p>
+              <div className="mt-4 flex items-center gap-4">
+                <AvatarJugador
+                  playerId={jugadorMasVotado?.playerId}
+                  nombre={jugadorMasVotado?.nombre || "-"}
+                />
+                <div className="min-w-0">
+                  <h2 className="truncate text-3xl font-black uppercase">
+                    <NombreJugadorLink
+                      playerId={jugadorMasVotado?.playerId}
+                      nombre={jugadorMasVotado?.nombre || "-"}
+                    />
+                  </h2>
+                  <p className="mt-2 truncate text-zinc-500">{jugadorMasVotado?.equipo || "Sin votos todavía"}</p>
+                </div>
+              </div>
               <p className="mt-5 text-5xl font-black text-yellow-300">{jugadorMasVotado?.votos || 0}</p>
               <p className="text-[10px] uppercase tracking-[0.25em] text-zinc-500 font-black">votos totales</p>
             </section>
@@ -649,9 +768,27 @@ export default function DreamTeamPage() {
 
               <div className="mt-5 grid grid-cols-1 gap-2">
                 {posiciones.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/35 px-4 py-3">
+                  <div key={p.id} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/35 px-4 py-3">
                     <span className="font-black text-yellow-300">{p.id}</span>
-                    <span className="truncate text-sm text-zinc-300">{miDreamTeam[p.id]?.nombre || "-"}</span>
+                    <div className="flex min-w-0 items-center gap-2">
+                      {miDreamTeam[p.id] && (
+                        <AvatarJugador
+                          playerId={miDreamTeam[p.id]?.playerId}
+                          nombre={miDreamTeam[p.id]?.nombre}
+                          size="sm"
+                        />
+                      )}
+                      <span className="truncate text-sm text-zinc-300">
+                        {miDreamTeam[p.id] ? (
+                          <NombreJugadorLink
+                            playerId={miDreamTeam[p.id]?.playerId}
+                            nombre={miDreamTeam[p.id]?.nombre}
+                          />
+                        ) : (
+                          "-"
+                        )}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -674,8 +811,14 @@ export default function DreamTeamPage() {
                       <p className="text-zinc-500 text-sm">Sin votos todavía.</p>
                     ) : (
                       topPorPosicion(posicionActiva).map((j: any, index) => (
-                        <div key={j.playerId || j.nombre} className="flex items-center justify-between text-sm">
-                          <span className="truncate text-white">{index + 1}. {j.nombre}</span>
+                        <div key={j.playerId || j.nombre} className="flex items-center justify-between gap-3 text-sm">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span className="font-black text-zinc-500">{index + 1}.</span>
+                            <AvatarJugador playerId={j.playerId} nombre={j.nombre} size="sm" />
+                            <span className="truncate text-white">
+                              <NombreJugadorLink playerId={j.playerId} nombre={j.nombre} />
+                            </span>
+                          </div>
                           <span className="font-black text-yellow-300">{j.votos}</span>
                         </div>
                       ))
@@ -700,9 +843,11 @@ export default function DreamTeamPage() {
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex min-w-0 items-center gap-3">
-                          <LogoEquipo equipo={j.equipo} />
+                          <AvatarJugador playerId={j.playerId} nombre={j.nombre} />
                           <div className="min-w-0">
-                            <p className="truncate text-lg font-black uppercase">{j.nombre}</p>
+                            <p className="truncate text-lg font-black uppercase">
+                              <NombreJugadorLink playerId={j.playerId} nombre={j.nombre} />
+                            </p>
                             <p className="truncate text-sm text-zinc-500">{j.equipo} · {j.posicion || "Sin posición"}</p>
                           </div>
                         </div>

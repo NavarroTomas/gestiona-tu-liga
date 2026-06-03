@@ -25,6 +25,7 @@ type Equipo = {
 };
 
 export default function SubirTxtPage() {
+
   const temporadas = [
     "Temporada 1",
     "Temporada 2",
@@ -105,11 +106,7 @@ export default function SubirTxtPage() {
     return `${temporada}-${division}-fecha-${fecha}-${local}-${resultado}-${visitante}`;
   }
 
-  function normalizarEquipo(
-    stats: any,
-    idPartido: string,
-    equipoOficial: string,
-  ) {
+  function normalizarEquipo(stats: any, idPartido: string, equipoOficial: string) {
     return {
       partido_id: idPartido,
       equipo: equipoOficial,
@@ -301,9 +298,7 @@ export default function SubirTxtPage() {
 
       if (equiposError) {
         console.log(equiposError);
-        alert(
-          "Partido actualizado, pero error guardando estadísticas de equipos",
-        );
+        alert("Partido actualizado, pero error guardando estadísticas de equipos");
         setLoading(false);
         return;
       }
@@ -415,28 +410,74 @@ export default function SubirTxtPage() {
         setLoading(false);
         return;
       }
-      const plantillasData = jugadoresDetallados.map((j) => ({
-        jugador: j.nombre,
-        playerid: j.playerId,
-        equipo: j.equipo,
-        posicion: j.posicion || "N/D",
-        temporada,
-        division,
-        estado: "activo",
-      }));
 
-      const { error: plantillasError } = await supabase
-        .from("plantillas")
-        .upsert(plantillasData, {
-          onConflict: "temporada,division,equipo,playerid",
-        });
+      const jugadoresParaPlantilla = jugadoresDetallados
+        .filter((j) => j.playerId)
+        .reduce((acc: any[], jugadorActual: any) => {
+          const yaExiste = acc.some(
+            (j) => j.playerid === jugadorActual.playerId,
+          );
 
-      if (plantillasError) {
-        console.log(plantillasError);
+          if (!yaExiste) {
+            acc.push({
+              jugador: jugadorActual.nombre,
+              playerid: jugadorActual.playerId,
+              equipo: jugadorActual.equipo,
+              posicion: jugadorActual.posicion || "N/D",
+              temporada,
+              division,
+              estado: "activo",
+            });
+          }
+
+          return acc;
+        }, []);
+
+      let jugadoresNuevosPlantilla = 0;
+
+      if (jugadoresParaPlantilla.length > 0) {
+        const playerIdsTxt = jugadoresParaPlantilla.map((j) => j.playerid);
+
+        const { data: plantillasExistentes, error: plantillasExistentesError } =
+          await supabase
+            .from("plantillas")
+            .select("playerid")
+            .eq("temporada", temporada)
+            .eq("division", division)
+            .in("playerid", playerIdsTxt);
+
+        if (plantillasExistentesError) {
+          console.log(plantillasExistentesError);
+        } else {
+          const playerIdsExistentes = new Set(
+            (plantillasExistentes || []).map((p: any) => p.playerid),
+          );
+
+          const plantillasNuevas = jugadoresParaPlantilla.filter(
+            (j) => !playerIdsExistentes.has(j.playerid),
+          );
+
+          jugadoresNuevosPlantilla = plantillasNuevas.length;
+
+          if (plantillasNuevas.length > 0) {
+            const { error: plantillasError } = await supabase
+              .from("plantillas")
+              .insert(plantillasNuevas);
+
+            if (plantillasError) {
+              console.log(plantillasError);
+              alert(
+                "Stats cargadas, pero hubo un error agregando jugadores nuevos a plantillas.",
+              );
+              setLoading(false);
+              return;
+            }
+          }
+        }
       }
 
       setMensaje(
-        `Cargado perfecto: ${localOficial} ${resultado} ${visitanteOficial}. Jugadores: ${jugadoresDetallados.length}. MVP por score: ${
+        `Cargado perfecto: ${localOficial} ${resultado} ${visitanteOficial}. Jugadores: ${jugadoresDetallados.length}. Nuevos en plantilla: ${jugadoresNuevosPlantilla}. MVP por score: ${
           mejorJugador?.playerName || "Sin MVP"
         }`,
       );
@@ -452,196 +493,194 @@ export default function SubirTxtPage() {
       );
     }
   }
-  return (
+return (
     <PermissionGuard permission="matches.upload_txt">
       <main className="min-h-screen bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] text-white">
-        <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-10 space-y-8">
-          <section className="relative overflow-hidden rounded-[38px] border border-sky-500/30 bg-[#020714] p-7 md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.18),transparent_42%)]" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/82 to-black/30" />
+      <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-10 space-y-8">
+        <section className="relative overflow-hidden rounded-[38px] border border-sky-500/30 bg-[#020714] p-7 md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.18),transparent_42%)]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/82 to-black/30" />
 
-            <div className="relative z-10">
-              <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black">
-                Admin APA PSO
-              </p>
+          <div className="relative z-10">
+            <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black">
+              Admin APA PSO
+            </p>
 
-              <h1 className="mt-4 text-5xl md:text-6xl font-black uppercase italic leading-none">
-                Subir TXT
-              </h1>
+            <h1 className="mt-4 text-5xl md:text-6xl font-black uppercase italic leading-none">
+              Subir TXT
+            </h1>
 
-              <p className="mt-5 max-w-3xl text-zinc-300">
-                Primero elegí el partido programado. El TXT carga estadísticas,
-                pero los equipos oficiales salen del fixture creado en Admin.
-              </p>
-            </div>
-          </section>
+            <p className="mt-5 max-w-3xl text-zinc-300">
+              Primero elegí el partido programado. El TXT carga estadísticas,
+              pero los equipos oficiales salen del fixture creado en Admin.
+            </p>
+          </div>
+        </section>
 
-          <section className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6 md:p-8 shadow-[0_0_35px_rgba(0,120,255,.12)] space-y-6">
-            <div>
-              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
-                1. Contexto del partido
-              </p>
+        <section className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6 md:p-8 shadow-[0_0_35px_rgba(0,120,255,.12)] space-y-6">
+          <div>
+            <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+              1. Contexto del partido
+            </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <select
-                  className="input"
-                  value={temporada}
-                  onChange={(e) => setTemporada(e.target.value)}
-                >
-                  {temporadas.map((temp) => (
-                    <option key={temp}>{temp}</option>
-                  ))}
-                </select>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <select
+                className="input"
+                value={temporada}
+                onChange={(e) => setTemporada(e.target.value)}
+              >
+                {temporadas.map((temp) => (
+                  <option key={temp}>{temp}</option>
+                ))}
+              </select>
 
-                <select
-                  className="input"
-                  value={division}
-                  onChange={(e) => setDivision(e.target.value)}
-                >
-                  {divisiones.map((div) => (
-                    <option key={div}>{div}</option>
-                  ))}
-                </select>
-
-                <input
-                  className="input"
-                  value={fecha}
-                  onChange={(e) => setFecha(e.target.value)}
-                  placeholder="Fecha"
-                />
-              </div>
-            </div>
-
-            <div>
-              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
-                2. Partido programado
-              </p>
-
-              {partidosProgramados.length === 0 ? (
-                <div className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 p-5 text-yellow-300">
-                  No hay partidos programados para esta fecha. Primero crealo en
-                  <b> /admin/fixture</b>.
-                </div>
-              ) : (
-                <select
-                  className="input"
-                  value={partidoSeleccionadoId}
-                  onChange={(e) => setPartidoSeleccionadoId(e.target.value)}
-                >
-                  {partidosProgramados.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.local} vs {p.visitante}
-                      {p.resultado ? ` · ${p.resultado}` : " · pendiente"}
-                    </option>
-                  ))}
-                </select>
-              )}
-
-              {partidoSeleccionado && (
-                <div className="mt-5 rounded-[28px] border border-sky-500/25 bg-black/35 p-5">
-                  <p className="text-[10px] uppercase tracking-[0.28em] text-sky-300 font-black">
-                    Partido seleccionado
-                  </p>
-
-                  <div className="mt-4 grid grid-cols-[1fr_90px_1fr] items-center gap-4">
-                    <div className="rounded-2xl border border-white/10 bg-black/35 p-4 text-center">
-                      <p className="text-xs uppercase text-zinc-500">Local</p>
-                      <p className="mt-2 text-xl font-black uppercase">
-                        {partidoSeleccionado.local}
-                      </p>
-                    </div>
-
-                    <div className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 p-4 text-center text-2xl font-black text-yellow-300">
-                      VS
-                    </div>
-
-                    <div className="rounded-2xl border border-white/10 bg-black/35 p-4 text-center">
-                      <p className="text-xs uppercase text-zinc-500">
-                        Visitante
-                      </p>
-                      <p className="mt-2 text-xl font-black uppercase">
-                        {partidoSeleccionado.visitante}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 flex flex-wrap gap-3 text-sm font-black uppercase">
-                    <span className="rounded-xl border border-sky-400/25 bg-sky-400/10 px-3 py-2 text-sky-300">
-                      Fecha {partidoSeleccionado.fecha || fecha}
-                    </span>
-
-                    <span className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-zinc-400">
-                      {partidoSeleccionado.dia || "Sin día"}
-                    </span>
-
-                    <span className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-zinc-400">
-                      {partidoSeleccionado.hora || "Sin hora"}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
-                3. Orden del TXT
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <button
-                  onClick={() => setOrdenTxt("normal")}
-                  className={`rounded-2xl border px-5 py-4 text-sm font-black uppercase transition ${
-                    ordenTxt === "normal"
-                      ? "border-sky-300 bg-sky-400 text-black"
-                      : "border-white/10 bg-black/35 text-zinc-400 hover:border-sky-400/30 hover:text-white"
-                  }`}
-                >
-                  team1 = local / team2 = visitante
-                </button>
-
-                <button
-                  onClick={() => setOrdenTxt("invertido")}
-                  className={`rounded-2xl border px-5 py-4 text-sm font-black uppercase transition ${
-                    ordenTxt === "invertido"
-                      ? "border-yellow-300 bg-yellow-400 text-black"
-                      : "border-white/10 bg-black/35 text-zinc-400 hover:border-yellow-400/30 hover:text-white"
-                  }`}
-                >
-                  team1 = visitante / team2 = local
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
-                4. Archivo MatchStats
-              </p>
+              <select
+                className="input"
+                value={division}
+                onChange={(e) => setDivision(e.target.value)}
+              >
+                {divisiones.map((div) => (
+                  <option key={div}>{div}</option>
+                ))}
+              </select>
 
               <input
                 className="input"
-                type="file"
-                accept=".txt,.json"
-                onChange={(e) => setArchivo(e.target.files?.[0] || null)}
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+                placeholder="Fecha"
               />
             </div>
+          </div>
 
-            <button
-              onClick={subirTxt}
-              disabled={loading}
-              className="btn disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {loading ? "Cargando..." : "Cargar TXT al partido seleccionado"}
-            </button>
+          <div>
+            <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+              2. Partido programado
+            </p>
 
-            {mensaje && <p className="text-emerald-400 font-bold">{mensaje}</p>}
-          </section>
+            {partidosProgramados.length === 0 ? (
+              <div className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 p-5 text-yellow-300">
+                No hay partidos programados para esta fecha. Primero crealo en
+                <b> /admin/fixture</b>.
+              </div>
+            ) : (
+              <select
+                className="input"
+                value={partidoSeleccionadoId}
+                onChange={(e) => setPartidoSeleccionadoId(e.target.value)}
+              >
+                {partidosProgramados.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.local} vs {p.visitante}
+                    {p.resultado ? ` · ${p.resultado}` : " · pendiente"}
+                  </option>
+                ))}
+              </select>
+            )}
 
-          <section className="rounded-[28px] border border-yellow-400/20 bg-yellow-400/10 p-5 text-sm leading-7 text-yellow-100">
-            <b>Importante:</b> el nombre del equipo ya no depende del TXT. El
-            TXT solo aporta estadísticas. Los equipos oficiales salen del
-            partido seleccionado en el fixture.
-          </section>
-        </div>
+            {partidoSeleccionado && (
+              <div className="mt-5 rounded-[28px] border border-sky-500/25 bg-black/35 p-5">
+                <p className="text-[10px] uppercase tracking-[0.28em] text-sky-300 font-black">
+                  Partido seleccionado
+                </p>
+
+                <div className="mt-4 grid grid-cols-[1fr_90px_1fr] items-center gap-4">
+                  <div className="rounded-2xl border border-white/10 bg-black/35 p-4 text-center">
+                    <p className="text-xs uppercase text-zinc-500">Local</p>
+                    <p className="mt-2 text-xl font-black uppercase">
+                      {partidoSeleccionado.local}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 p-4 text-center text-2xl font-black text-yellow-300">
+                    VS
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-black/35 p-4 text-center">
+                    <p className="text-xs uppercase text-zinc-500">Visitante</p>
+                    <p className="mt-2 text-xl font-black uppercase">
+                      {partidoSeleccionado.visitante}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-3 text-sm font-black uppercase">
+                  <span className="rounded-xl border border-sky-400/25 bg-sky-400/10 px-3 py-2 text-sky-300">
+                    Fecha {partidoSeleccionado.fecha || fecha}
+                  </span>
+
+                  <span className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-zinc-400">
+                    {partidoSeleccionado.dia || "Sin día"}
+                  </span>
+
+                  <span className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-zinc-400">
+                    {partidoSeleccionado.hora || "Sin hora"}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+              3. Orden del TXT
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <button
+                onClick={() => setOrdenTxt("normal")}
+                className={`rounded-2xl border px-5 py-4 text-sm font-black uppercase transition ${
+                  ordenTxt === "normal"
+                    ? "border-sky-300 bg-sky-400 text-black"
+                    : "border-white/10 bg-black/35 text-zinc-400 hover:border-sky-400/30 hover:text-white"
+                }`}
+              >
+                team1 = local / team2 = visitante
+              </button>
+
+              <button
+                onClick={() => setOrdenTxt("invertido")}
+                className={`rounded-2xl border px-5 py-4 text-sm font-black uppercase transition ${
+                  ordenTxt === "invertido"
+                    ? "border-yellow-300 bg-yellow-400 text-black"
+                    : "border-white/10 bg-black/35 text-zinc-400 hover:border-yellow-400/30 hover:text-white"
+                }`}
+              >
+                team1 = visitante / team2 = local
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+              4. Archivo MatchStats
+            </p>
+
+            <input
+              className="input"
+              type="file"
+              accept=".txt,.json"
+              onChange={(e) => setArchivo(e.target.files?.[0] || null)}
+            />
+          </div>
+
+          <button
+            onClick={subirTxt}
+            disabled={loading}
+            className="btn disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? "Cargando..." : "Cargar TXT al partido seleccionado"}
+          </button>
+
+          {mensaje && <p className="text-emerald-400 font-bold">{mensaje}</p>}
+        </section>
+
+        <section className="rounded-[28px] border border-yellow-400/20 bg-yellow-400/10 p-5 text-sm leading-7 text-yellow-100">
+          <b>Importante:</b> el nombre del equipo ya no depende del TXT. El TXT
+          solo aporta estadísticas. Los equipos oficiales salen del partido
+          seleccionado en el fixture.
+        </section>
+      </div>
       </main>
     </PermissionGuard>
   );

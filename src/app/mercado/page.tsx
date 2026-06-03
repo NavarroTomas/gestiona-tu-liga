@@ -4,6 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
+type PerfilMercado = {
+  id: string;
+  display_name: string | null;
+  username: string | null;
+  avatar_url: string | null;
+};
+
 export default function MercadoPage() {
   const temporadas = [
     "Temporada 1",
@@ -26,6 +33,7 @@ export default function MercadoPage() {
   const [tipoActivo, setTipoActivo] = useState("Todos");
   const [movimientos, setMovimientos] = useState<any[]>([]);
   const [clubesInfo, setClubesInfo] = useState<any[]>([]);
+  const [perfiles, setPerfiles] = useState<PerfilMercado[]>([]);
 
   useEffect(() => {
     cargarMovimientos();
@@ -46,6 +54,34 @@ export default function MercadoPage() {
 
     const movimientosBase = data || [];
     setMovimientos(movimientosBase);
+
+    const nombresJugadores = Array.from(
+      new Set(
+        movimientosBase
+          .map((m: any) => String(m.jugador || "").trim())
+          .filter(Boolean),
+      ),
+    );
+
+    if (nombresJugadores.length > 0) {
+      const { data: perfilesData, error: perfilesError } = await supabase
+        .from("profiles")
+        .select("id, display_name, username, avatar_url")
+        .or(
+          nombresJugadores
+            .map((nombre) => `display_name.ilike.${nombre},username.ilike.${nombre}`)
+            .join(","),
+        );
+
+      if (perfilesError) {
+        console.log(perfilesError);
+        setPerfiles([]);
+      } else {
+        setPerfiles((perfilesData || []) as PerfilMercado[]);
+      }
+    } else {
+      setPerfiles([]);
+    }
 
     const nombresClubes = Array.from(
       new Set(
@@ -161,7 +197,7 @@ export default function MercadoPage() {
     const contenido = (
       <span className="inline-flex min-w-0 items-center gap-2">
         <EscudoEquipo nombre={texto} size="sm" />
-        <span className="truncate">{texto}</span>
+        <span className="min-w-0 break-words leading-tight">{texto}</span>
       </span>
     );
 
@@ -183,6 +219,71 @@ export default function MercadoPage() {
         {contenido}
       </Link>
     );
+  }
+
+  function normalizarTexto(valor?: string | null) {
+    return String(valor || "").trim().toLowerCase();
+  }
+
+  function perfilJugador(nombre?: string | null) {
+    const n = normalizarTexto(nombre);
+
+    if (!n) return null;
+
+    return (
+      perfiles.find(
+        (p) =>
+          normalizarTexto(p.display_name) === n ||
+          normalizarTexto(p.username) === n,
+      ) || null
+    );
+  }
+
+  function AvatarJugador({ nombre }: { nombre?: string | null }) {
+    const perfil = perfilJugador(nombre);
+    const inicial = String(nombre || "J").slice(0, 1).toUpperCase();
+
+    const avatar = (
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-yellow-400/25 bg-yellow-400/10 text-xl font-black text-yellow-300 shadow-[0_0_18px_rgba(250,204,21,.12)]">
+        {perfil?.avatar_url ? (
+          <img
+            src={perfil.avatar_url}
+            alt={nombre || "Jugador"}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          inicial
+        )}
+      </div>
+    );
+
+    if (perfil?.username) {
+      return (
+        <Link href={`/u/${perfil.username}`} className="transition hover:scale-105">
+          {avatar}
+        </Link>
+      );
+    }
+
+    return avatar;
+  }
+
+  function NombreJugadorLink({ nombre }: { nombre?: string | null }) {
+    const perfil = perfilJugador(nombre);
+    const texto = nombre || "Sin nombre";
+
+    if (perfil?.username) {
+      return (
+        <Link
+          href={`/u/${perfil.username}`}
+          className="break-words transition hover:text-yellow-300"
+        >
+          {texto}
+        </Link>
+      );
+    }
+
+    return <span className="break-words">{texto}</span>;
   }
 
   const movimientosFiltrados =
@@ -367,12 +468,16 @@ export default function MercadoPage() {
 
               <div className="mt-5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                 <div>
-                  <h2 className="text-4xl md:text-5xl font-black uppercase">
-                    {iconoTipo(movimientoDestacado.tipo)}{" "}
-                    {movimientoDestacado.jugador}
-                  </h2>
+                  <div className="flex items-center gap-4">
+                    <AvatarJugador nombre={movimientoDestacado.jugador} />
 
-                  <div className="mt-4 flex flex-wrap items-center gap-3 text-lg font-black">
+                    <h2 className="break-words text-4xl font-black uppercase md:text-5xl">
+                      {iconoTipo(movimientoDestacado.tipo)}{" "}
+                      <NombreJugadorLink nombre={movimientoDestacado.jugador} />
+                    </h2>
+                  </div>
+
+                  <div className="mt-4 flex flex-col gap-3 text-lg font-black sm:flex-row sm:flex-wrap sm:items-center">
                     <EquipoLink
                       nombre={movimientoDestacado.desde}
                       variant="highlight"
@@ -450,7 +555,7 @@ export default function MercadoPage() {
             </div>
           </section>
         ) : (
-          <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {movimientosFiltrados.map((m) => (
               <div
                 key={m.id}
@@ -473,12 +578,16 @@ export default function MercadoPage() {
                     </p>
                   </div>
 
-                  <h2 className="mt-6 text-3xl font-black uppercase">
-                    {m.jugador}
-                  </h2>
+                  <div className="mt-6 flex items-center gap-4">
+                    <AvatarJugador nombre={m.jugador} />
 
-                  <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                    <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
+                    <h2 className="min-w-0 break-words text-3xl font-black uppercase">
+                      <NombreJugadorLink nombre={m.jugador} />
+                    </h2>
+                  </div>
+
+                  <div className="mt-5 flex flex-col gap-3 md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-stretch">
+                    <div className="min-w-0 rounded-2xl border border-white/10 bg-black/35 p-4">
                       <p className="text-zinc-500 text-[10px] uppercase tracking-[0.2em] font-black">
                         Desde
                       </p>
@@ -487,9 +596,9 @@ export default function MercadoPage() {
                       </div>
                     </div>
 
-                    <div className="text-2xl text-sky-300 font-black">→</div>
+                    <div className="flex items-center justify-center text-2xl text-sky-300 font-black">→</div>
 
-                    <div className="rounded-2xl border border-sky-400/20 bg-sky-400/10 p-4">
+                    <div className="min-w-0 rounded-2xl border border-sky-400/20 bg-sky-400/10 p-4">
                       <p className="text-sky-300 text-[10px] uppercase tracking-[0.2em] font-black">
                         Hacia
                       </p>

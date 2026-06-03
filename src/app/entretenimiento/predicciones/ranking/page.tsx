@@ -32,6 +32,7 @@ type Perfil = {
   display_name: string | null;
   username: string | null;
   visible_role: string | null;
+  avatar_url: string | null;
 };
 
 type RankingItem = {
@@ -143,7 +144,7 @@ export default function RankingPrediccionesPage() {
     if (usuariosIds.length > 0) {
       const { data: perfilesData, error: perfilesError } = await supabase
         .from("profiles")
-        .select("id, display_name, username, visible_role")
+        .select("id, display_name, username, visible_role, avatar_url")
         .in("id", usuariosIds);
 
       if (perfilesError) {
@@ -390,41 +391,66 @@ export default function RankingPrediccionesPage() {
                     </div>
 
                     <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <h2 className="truncate text-2xl font-black uppercase">
-                          {item.nombre}
-                        </h2>
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-sky-400/25 bg-sky-400/10 text-xl font-black text-sky-300">
+                          {perfiles[item.usuario]?.avatar_url ? (
+                            <img
+                              src={perfiles[item.usuario].avatar_url!}
+                              alt={item.nombre}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            item.nombre.slice(0, 1).toUpperCase()
+                          )}
+                        </div>
 
-                        {item.rol && (
-                          <span className="rounded-full border border-sky-400/25 bg-sky-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">
-                            {item.rol}
-                          </span>
-                        )}
-                      </div>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-3">
+                            {item.username ? (
+                              <Link
+                                href={`/u/${item.username}`}
+                                className="truncate text-2xl font-black uppercase transition hover:text-yellow-300"
+                              >
+                                {item.nombre}
+                              </Link>
+                            ) : (
+                              <h2 className="truncate text-2xl font-black uppercase">
+                                {item.nombre}
+                              </h2>
+                            )}
 
-                      <div className="mt-3 flex flex-wrap gap-3">
-                        {item.username ? (
-                          <Link
-                            href={`/u/${item.username}`}
-                            className="rounded-xl border border-yellow-400/25 bg-yellow-400/10 px-3 py-2 text-xs font-black uppercase text-yellow-300 transition hover:bg-yellow-400 hover:text-black"
-                          >
-                            @{item.username}
-                          </Link>
-                        ) : (
-                          <span className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-black uppercase text-zinc-500">
-                            Sin perfil público
-                          </span>
-                        )}
+                            {item.rol && (
+                              <span className="rounded-full border border-sky-400/25 bg-sky-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">
+                                {item.rol}
+                              </span>
+                            )}
+                          </div>
 
-                        <span className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-black uppercase text-zinc-500">
-                          {item.jugadas} partidos resueltos
-                        </span>
+                          <div className="mt-3 flex flex-wrap gap-3">
+                            {item.username ? (
+                              <Link
+                                href={`/u/${item.username}`}
+                                className="rounded-xl border border-yellow-400/25 bg-yellow-400/10 px-3 py-2 text-xs font-black uppercase text-yellow-300 transition hover:bg-yellow-400 hover:text-black"
+                              >
+                                @{item.username}
+                              </Link>
+                            ) : (
+                              <span className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-black uppercase text-zinc-500">
+                                Sin perfil público
+                              </span>
+                            )}
 
-                        {item.pendientes > 0 && (
-                          <span className="rounded-xl border border-sky-400/20 bg-sky-400/10 px-3 py-2 text-xs font-black uppercase text-sky-300">
-                            {item.pendientes} pendientes
-                          </span>
-                        )}
+                            <span className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-black uppercase text-zinc-500">
+                              {item.jugadas} partidos resueltos
+                            </span>
+
+                            {item.pendientes > 0 && (
+                              <span className="rounded-xl border border-sky-400/20 bg-sky-400/10 px-3 py-2 text-xs font-black uppercase text-sky-300">
+                                {item.pendientes} pendientes
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
 

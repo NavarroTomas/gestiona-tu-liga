@@ -30,6 +30,7 @@ export default function PerfilPage() {
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
+  const [subiendoAvatar, setSubiendoAvatar] = useState(false);
 
   useEffect(() => {
     cargarPerfil();
@@ -76,6 +77,64 @@ export default function PerfilPage() {
     setSteamId(data.steam_id || "");
     setBio(data.bio || "");
     setLoading(false);
+  }
+
+  async function subirAvatar(file: File) {
+    setMensaje("");
+
+    if (!perfil) return;
+
+    if (!file.type.startsWith("image/")) {
+      setMensaje("El archivo debe ser una imagen.");
+      return;
+    }
+
+    const maxSizeMb = 3;
+    if (file.size > maxSizeMb * 1024 * 1024) {
+      setMensaje(`La imagen no puede pesar más de ${maxSizeMb}MB.`);
+      return;
+    }
+
+    setSubiendoAvatar(true);
+
+    const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const path = `${perfil.id}/avatar.${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(path, file, {
+        cacheControl: "3600",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.log(uploadError);
+      setMensaje("No pude subir la foto: " + uploadError.message);
+      setSubiendoAvatar(false);
+      return;
+    }
+
+    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+    const avatarUrl = `${data.publicUrl}?v=${Date.now()}`;
+
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({
+        avatar_url: avatarUrl,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", perfil.id);
+
+    setSubiendoAvatar(false);
+
+    if (updateError) {
+      console.log(updateError);
+      setMensaje("La foto subió, pero no pude guardarla en tu perfil.");
+      return;
+    }
+
+    setMensaje("Foto de perfil actualizada.");
+    await cargarPerfil();
   }
 
   async function guardarPerfil() {
@@ -172,8 +231,16 @@ export default function PerfilPage() {
             </div>
 
             <div className="rounded-[28px] border border-white/10 bg-black/35 p-5 text-center">
-              <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border border-sky-400/30 bg-sky-400/10 text-4xl font-black text-sky-300">
-                {(perfil?.display_name || perfil?.username || "A").slice(0, 1).toUpperCase()}
+              <div className="mx-auto flex h-36 w-36 items-center justify-center overflow-hidden rounded-full border border-sky-400/30 bg-sky-400/10 text-4xl font-black text-sky-300">
+                {perfil?.avatar_url ? (
+                  <img
+                    src={perfil.avatar_url}
+                    alt={perfil.display_name || perfil.username || "Avatar"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  (perfil?.display_name || perfil?.username || "A").slice(0, 1).toUpperCase()
+                )}
               </div>
 
               <p className="mt-4 text-xl font-black">
@@ -269,6 +336,50 @@ export default function PerfilPage() {
           </section>
 
           <aside className="space-y-5">
+            <section className="rounded-[34px] border border-sky-500/20 bg-[#020714] p-6">
+              <p className="text-xs font-black uppercase tracking-[0.25em] text-sky-300">
+                Foto de perfil
+              </p>
+
+              <div className="mt-5 flex items-center gap-4">
+                <div className="flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-full border border-sky-400/30 bg-sky-400/10 text-3xl font-black text-sky-300">
+                  {perfil?.avatar_url ? (
+                    <img
+                      src={perfil.avatar_url}
+                      alt={perfil.display_name || perfil.username || "Avatar"}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    (perfil?.display_name || perfil?.username || "A").slice(0, 1).toUpperCase()
+                  )}
+                </div>
+
+                <div className="min-w-0">
+                  <p className="text-sm text-zinc-400">
+                    Subí una imagen JPG, PNG o WEBP.
+                  </p>
+                  <p className="mt-1 text-xs text-zinc-600">
+                    Máximo 3MB.
+                  </p>
+                </div>
+              </div>
+
+              <label className="mt-5 block cursor-pointer rounded-2xl border border-sky-400/25 bg-sky-400/10 px-5 py-4 text-center text-sm font-black uppercase text-sky-300 transition hover:bg-sky-400 hover:text-black">
+                {subiendoAvatar ? "Subiendo..." : "Cambiar foto"}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  disabled={subiendoAvatar}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) subirAvatar(file);
+                    e.currentTarget.value = "";
+                  }}
+                  className="hidden"
+                />
+              </label>
+            </section>
+
             <section className="rounded-[34px] border border-white/10 bg-[#020714] p-6">
               <p className="text-xs font-black uppercase tracking-[0.25em] text-zinc-500">
                 Cuenta

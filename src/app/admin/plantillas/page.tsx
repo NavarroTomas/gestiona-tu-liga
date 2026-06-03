@@ -63,6 +63,7 @@ export default function AdminPlantillasPage() {
 
   const [plantillas, setPlantillas] = useState<Plantilla[]>([]);
   const [busqueda, setBusqueda] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState<"activos" | "bajas" | "todos">("activos");
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
   const [buscandoJugador, setBuscandoJugador] = useState(false);
@@ -302,22 +303,36 @@ export default function AdminPlantillasPage() {
   async function registrarTransferencia() {
     setMensaje("");
 
-    if (!transferJugador.trim()) {
+    const jugadorLimpio = transferJugador.trim();
+    const playeridLimpio = transferPlayerid.trim();
+    const desdeLimpio = desde.trim();
+    const haciaLimpio = hacia.trim();
+
+    if (!jugadorLimpio) {
       setMensaje("Escribí el jugador de la transferencia.");
       return;
     }
 
-    if (!hacia.trim() && tipo !== "Salida") {
-      setMensaje("Escribí el equipo destino.");
+    if (!desdeLimpio) {
+      setMensaje("Seleccioná el equipo origen.");
+      return;
+    }
+
+    if (!haciaLimpio && tipo !== "Salida" && tipo !== "Libre") {
+      setMensaje("Seleccioná el equipo destino.");
+      return;
+    }
+
+    if (desdeLimpio && haciaLimpio && desdeLimpio === haciaLimpio) {
+      setMensaje("El equipo origen y destino no pueden ser el mismo.");
       return;
     }
 
     const { error } = await supabase.from("transferencias").insert([
       {
-        jugador: transferJugador.trim(),
-        playerid: transferPlayerid.trim() || null,
-        desde: desde.trim() || null,
-        hacia: hacia.trim() || null,
+        jugador: jugadorLimpio,
+        desde: desdeLimpio || null,
+        hacia: haciaLimpio || null,
         temporada: transferTemporada,
         division: transferDivision,
         tipo,
@@ -331,14 +346,62 @@ export default function AdminPlantillasPage() {
       return;
     }
 
-    if (transferPlayerid.trim() && hacia.trim()) {
-      await supabase.from("plantillas").upsert(
+    let jugadorOrigen: Plantilla | null = null;
+
+    if (playeridLimpio) {
+      const { data: origenData, error: origenError } = await supabase
+        .from("plantillas")
+        .select("*")
+        .eq("temporada", transferTemporada)
+        .eq("division", transferDivision)
+        .eq("equipo", desdeLimpio)
+        .eq("playerid", playeridLimpio)
+        .maybeSingle();
+
+      if (origenError) {
+        console.log(origenError);
+      }
+
+      jugadorOrigen = (origenData || null) as Plantilla | null;
+
+      const { error: bajaError } = await supabase
+        .from("plantillas")
+        .update({ estado: "baja" })
+        .eq("temporada", transferTemporada)
+        .eq("division", transferDivision)
+        .eq("equipo", desdeLimpio)
+        .eq("playerid", playeridLimpio);
+
+      if (bajaError) {
+        console.log(bajaError);
+        setMensaje("Transferencia registrada, pero no pude marcar la baja en el club origen.");
+        await cargarPlantillas();
+        return;
+      }
+    } else {
+      const { error: bajaError } = await supabase
+        .from("plantillas")
+        .update({ estado: "baja" })
+        .eq("temporada", transferTemporada)
+        .eq("division", transferDivision)
+        .eq("equipo", desdeLimpio)
+        .eq("jugador", jugadorLimpio);
+
+      if (bajaError) {
+        console.log(bajaError);
+      }
+    }
+
+    if (playeridLimpio && haciaLimpio && tipo !== "Salida" && tipo !== "Libre") {
+      const { error: altaError } = await supabase.from("plantillas").upsert(
         [
           {
-            jugador: transferJugador.trim(),
-            playerid: transferPlayerid.trim(),
-            equipo: hacia.trim(),
-            posicion: "N/D",
+            jugador: jugadorOrigen?.jugador || jugadorLimpio,
+            playerid: playeridLimpio,
+            steam_id: jugadorOrigen?.steam_id || null,
+            profile_id: jugadorOrigen?.profile_id || null,
+            equipo: haciaLimpio,
+            posicion: jugadorOrigen?.posicion || "N/D",
             temporada: transferTemporada,
             division: transferDivision,
             estado: "activo",
@@ -348,9 +411,16 @@ export default function AdminPlantillasPage() {
           onConflict: "temporada,division,equipo,playerid",
         },
       );
+
+      if (altaError) {
+        console.log(altaError);
+        setMensaje("Transferencia registrada y baja aplicada, pero no pude crear el alta en destino.");
+        await cargarPlantillas();
+        return;
+      }
     }
 
-    setMensaje("Transferencia registrada.");
+    setMensaje("Transferencia inteligente aplicada: origen en baja y destino activo.");
     setTransferJugador("");
     setTransferPlayerid("");
     setDesde("");
@@ -371,9 +441,16 @@ export default function AdminPlantillasPage() {
         String(p.playerid || "").toLowerCase().includes(q) ||
         String(p.equipo || "").toLowerCase().includes(q);
 
-      return coincideEquipo && coincideBusqueda;
+      const coincideEstado =
+        filtroEstado === "todos"
+          ? true
+          : filtroEstado === "activos"
+            ? p.estado !== "baja"
+            : p.estado === "baja";
+
+      return coincideEstado && coincideEquipo && coincideBusqueda;
     });
-  }, [plantillas, busqueda, equipo]);
+  }, [plantillas, busqueda, equipo, filtroEstado]);
 
   return (
     <PermissionGuard permission="transfers.manage">
@@ -452,9 +529,49 @@ export default function AdminPlantillasPage() {
                   </h2>
                 </div>
 
-                <p className="text-sm font-black uppercase text-zinc-500">
-                  {plantillasFiltradas.length} jugadores
-                </p>
+                <div className="space-y-3">
+                  <p className="text-sm font-black uppercase text-zinc-500">
+                    {plantillasFiltradas.length} jugadores
+                  </p>
+
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFiltroEstado("activos")}
+                      className={`rounded-xl px-4 py-2 text-xs font-black uppercase transition ${
+                        filtroEstado === "activos"
+                          ? "bg-green-400 text-black"
+                          : "border border-white/10 bg-black/40 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      Activos
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setFiltroEstado("bajas")}
+                      className={`rounded-xl px-4 py-2 text-xs font-black uppercase transition ${
+                        filtroEstado === "bajas"
+                          ? "bg-red-400 text-black"
+                          : "border border-white/10 bg-black/40 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      Bajas
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setFiltroEstado("todos")}
+                      className={`rounded-xl px-4 py-2 text-xs font-black uppercase transition ${
+                        filtroEstado === "todos"
+                          ? "bg-sky-400 text-black"
+                          : "border border-white/10 bg-black/40 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      Todos
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {plantillasFiltradas.length === 0 ? (
@@ -489,7 +606,7 @@ export default function AdminPlantillasPage() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-2 md:grid-cols-4">
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-2">
                           <select
                             className="input"
                             value={p.posicion || "N/D"}
@@ -513,7 +630,7 @@ export default function AdminPlantillasPage() {
                           <button
                             type="button"
                             onClick={() => prepararTransferencia(p)}
-                            className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-4 py-3 text-xs font-black uppercase text-yellow-300 transition hover:bg-yellow-400 hover:text-black"
+                            className="w-full rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-4 py-3 text-xs font-black uppercase text-yellow-300 transition hover:bg-yellow-400 hover:text-black"
                           >
                             Transferir
                           </button>
@@ -521,7 +638,7 @@ export default function AdminPlantillasPage() {
                           <button
                             type="button"
                             onClick={() => quitarDePlantilla(p)}
-                            className="rounded-2xl border border-red-400/25 bg-red-400/10 px-4 py-3 text-xs font-black uppercase text-red-300 transition hover:bg-red-400 hover:text-black"
+                            className="w-full rounded-2xl border border-red-400/25 bg-red-400/10 px-4 py-3 text-xs font-black uppercase text-red-300 transition hover:bg-red-400 hover:text-black"
                           >
                             Quitar
                           </button>
@@ -632,19 +749,31 @@ export default function AdminPlantillasPage() {
                     onChange={(e) => setTransferPlayerid(e.target.value)}
                   />
 
-                  <input
+                  <select
                     className="input"
-                    placeholder="Desde"
                     value={desde}
                     onChange={(e) => setDesde(e.target.value)}
-                  />
+                  >
+                    <option value="">Equipo origen</option>
+                    {equipos.map((e) => (
+                      <option key={`desde-${e.nombre}`} value={e.nombre}>
+                        {e.nombre}
+                      </option>
+                    ))}
+                  </select>
 
-                  <input
+                  <select
                     className="input"
-                    placeholder="Hacia"
                     value={hacia}
                     onChange={(e) => setHacia(e.target.value)}
-                  />
+                  >
+                    <option value="">Equipo destino</option>
+                    {equipos.map((e) => (
+                      <option key={`hacia-${e.nombre}`} value={e.nombre}>
+                        {e.nombre}
+                      </option>
+                    ))}
+                  </select>
 
                   <input
                     className="input"

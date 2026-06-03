@@ -59,6 +59,17 @@ type DreamVote = {
   nombre: string | null;
 };
 
+type Plantilla = {
+  id: number;
+  jugador: string | null;
+  playerid: string | null;
+  equipo: string | null;
+  posicion: string | null;
+  temporada: string | null;
+  division: string | null;
+  estado: string | null;
+};
+
 function ocultarSteamId(steamId?: string | null) {
   if (!steamId) return "No vinculado";
   const limpio = steamId.trim();
@@ -101,6 +112,7 @@ export default function PerfilPublicoPage() {
   const [predicciones, setPredicciones] = useState<Prediccion[]>([]);
   const [partidos, setPartidos] = useState<Partido[]>([]);
   const [dreamVotes, setDreamVotes] = useState<DreamVote[]>([]);
+  const [plantillas, setPlantillas] = useState<Plantilla[]>([]);
   const [loading, setLoading] = useState(true);
   const [mensaje, setMensaje] = useState("");
 
@@ -163,12 +175,28 @@ export default function PerfilPublicoPage() {
 
     if (dreamError) console.log(dreamError);
 
+    let plantillasData: Plantilla[] = [];
+
+    if (perfilFinal.playerid) {
+      const { data: plantillasRaw, error: plantillasError } = await supabase
+        .from("plantillas")
+        .select("*")
+        .eq("playerid", perfilFinal.playerid);
+
+      if (plantillasError) {
+        console.log(plantillasError);
+      } else {
+        plantillasData = (plantillasRaw || []) as Plantilla[];
+      }
+    }
+
     const predData = (predDataRaw || []) as Prediccion[];
     const dreamData = (dreamDataRaw || []) as DreamVote[];
 
     setStats(statsData);
     setPredicciones(predData);
     setDreamVotes(dreamData);
+    setPlantillas(plantillasData);
 
     if (predData.length > 0) {
       const ids = Array.from(new Set(predData.map((p) => p.partido_id).filter(Boolean)));
@@ -199,6 +227,18 @@ export default function PerfilPublicoPage() {
     });
     return map;
   }, [partidos]);
+
+  const plantillaActual = useMemo(() => {
+    const activos = plantillas.filter((p) => p.estado !== "baja");
+
+    if (activos.length === 0) return null;
+
+    return activos[activos.length - 1];
+  }, [plantillas]);
+
+  const trayectoria = useMemo(() => {
+    return [...plantillas].reverse();
+  }, [plantillas]);
 
   const resumen = useMemo(() => {
     const partidosJugados = stats.length;
@@ -235,12 +275,12 @@ export default function PerfilPublicoPage() {
       score,
       ratingPromedio,
       esArquero,
-      equipoActual: ultimo?.equipo || "Sin equipo registrado",
-      temporadaActual: ultimo?.temporada || "-",
-      divisionActual: ultimo?.division || "-",
+      equipoActual: plantillaActual?.equipo || ultimo?.equipo || "Sin equipo registrado",
+      temporadaActual: plantillaActual?.temporada || ultimo?.temporada || "-",
+      divisionActual: plantillaActual?.division || ultimo?.division || "-",
       nombreJugador: ultimo?.nombre || perfil?.display_name || perfil?.username || "Jugador APA",
     };
-  }, [stats, perfil]);
+  }, [stats, perfil, plantillaActual]);
 
   const historial = useMemo(() => {
     const map: Record<
@@ -422,8 +462,16 @@ export default function PerfilPublicoPage() {
               </div>
 
               <div className="mt-7 flex justify-center">
-                <div className="flex h-36 w-36 items-center justify-center rounded-full border border-yellow-300/40 bg-black/45 text-6xl font-black text-yellow-300 shadow-[0_0_35px_rgba(250,204,21,.18)]">
-                  {inicial}
+                <div className="flex h-52 w-52 items-center justify-center overflow-hidden rounded-full border border-yellow-300/40 bg-black/45 text-6xl font-black text-yellow-300 shadow-[0_0_35px_rgba(250,204,21,.18)]">
+                  {perfil.avatar_url ? (
+                    <img
+                      src={perfil.avatar_url}
+                      alt={perfil.display_name || perfil.username || "Avatar"}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    inicial
+                  )}
                 </div>
               </div>
 
@@ -553,6 +601,59 @@ export default function PerfilPublicoPage() {
 
         <section className="grid grid-cols-1 gap-8 xl:grid-cols-[1fr_420px]">
           <section className="space-y-8">
+            <section className="rounded-[34px] border border-green-500/20 bg-[#020714] p-6 md:p-8">
+              <div className="mb-6">
+                <p className="text-xs font-black uppercase tracking-[0.35em] text-green-300">
+                  Clubes APA
+                </p>
+
+                <h2 className="mt-2 text-4xl font-black uppercase">
+                  Trayectoria oficial
+                </h2>
+              </div>
+
+              {trayectoria.length === 0 ? (
+                <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
+                  Todavía no hay clubes oficiales cargados en plantillas.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {trayectoria.map((p) => (
+                    <article
+                      key={`${p.id}-${p.equipo}`}
+                      className={`rounded-2xl border p-5 ${
+                        p.estado === "baja"
+                          ? "border-red-400/15 bg-red-400/5"
+                          : "border-green-400/20 bg-green-400/10"
+                      }`}
+                    >
+                      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <h3 className="text-2xl font-black uppercase text-white">
+                            {p.equipo || "Sin equipo"}
+                          </h3>
+
+                          <p className="mt-1 text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+                            {p.temporada || "-"} · {p.division || "-"} · {p.posicion || "N/D"}
+                          </p>
+                        </div>
+
+                        <span
+                          className={`rounded-2xl border px-4 py-2 text-xs font-black uppercase tracking-[0.18em] ${
+                            p.estado === "baja"
+                              ? "border-red-400/25 bg-red-400/10 text-red-300"
+                              : "border-green-400/25 bg-green-400/10 text-green-300"
+                          }`}
+                        >
+                          {p.estado === "baja" ? "Baja" : "Actual"}
+                        </span>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+
             <section className="rounded-[34px] border border-sky-500/20 bg-[#020714] p-6 md:p-8">
               <div className="mb-6">
                 <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
