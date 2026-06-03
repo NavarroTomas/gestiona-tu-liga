@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 type Partido = {
@@ -414,18 +415,6 @@ export default function PrediccionesPage() {
       return;
     }
 
-    const { error: borrarError } = await supabase
-      .from("predicciones")
-      .delete()
-      .eq("partido_id", key)
-      .eq("usuario", user.id);
-
-    if (borrarError) {
-      console.log(borrarError);
-      setMensaje("No pude actualizar tu predicción anterior.");
-      return;
-    }
-
     const { error } = await supabase.from("predicciones").insert([
       {
         partido_id: key,
@@ -542,6 +531,15 @@ export default function PrediccionesPage() {
                 Pronosticá ganador o marcador exacto. Ganador correcto suma 1
                 punto; marcador exacto suma 3 puntos.
               </p>
+
+              <div className="mt-6">
+                <Link
+                  href="/entretenimiento/predicciones/ranking"
+                  className="inline-flex items-center rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-yellow-300 transition hover:bg-yellow-400 hover:text-black"
+                >
+                  🏆 Ver Ranking de Pronosticadores
+                </Link>
+              </div>
 
               <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="rounded-2xl border border-yellow-500/20 bg-black/35 px-5 py-4">
