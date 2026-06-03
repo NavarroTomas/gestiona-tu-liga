@@ -1,41 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 export default function AdminPage() {
-  const router = useRouter();
-  const [verificando, setVerificando] = useState(true);
-
-  useEffect(() => {
-    verificarAdmin();
-  }, []);
-
-  async function verificarAdmin() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
-    const { data: admin } = await supabase
-      .from("admins")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (!admin) {
-      router.push("/");
-      return;
-    }
-
-    setVerificando(false);
-  }
   const temporadas = [
     "Temporada 1",
     "Temporada 2",
@@ -180,13 +149,6 @@ export default function AdminPage() {
     setNoticiaTitulo("");
     setNoticiaDescripcion("");
   }
-  if (verificando) {
-    return (
-      <main className="min-h-screen bg-black flex items-center justify-center text-white">
-        <p className="text-2xl font-black">Verificando acceso...</p>
-      </main>
-    );
-  }
   return (
     <main className="min-h-screen bg-[#0b0f14] text-white">
       <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-10 space-y-10">
@@ -289,6 +251,21 @@ export default function AdminPage() {
 
             <p className="text-zinc-400 mt-3">
               Cargá partidos, goleadores, asistencias y MVP sin TXT.
+            </p>
+          </Link>
+
+          <Link
+            href="/admin/usuarios"
+            className="group rounded-3xl border border-purple-500/20 bg-[#11151c] p-6 transition hover:border-purple-400 hover:shadow-[0_0_25px_rgba(168,85,247,.15)]"
+          >
+            <p className="text-purple-300 text-xs uppercase tracking-[0.25em] font-black">
+              Comunidad
+            </p>
+
+            <h3 className="text-3xl font-black mt-3">👥 Usuarios</h3>
+
+            <p className="text-zinc-400 mt-3">
+              Gestioná usuarios, roles, aprobaciones y suspensiones.
             </p>
           </Link>
         </div>

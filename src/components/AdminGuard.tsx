@@ -14,10 +14,10 @@ export default function AdminGuard({
   const [permitido, setPermitido] = useState(false);
 
   useEffect(() => {
-    verificarAdmin();
+    verificarAcceso();
   }, []);
 
-  async function verificarAdmin() {
+  async function verificarAcceso() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -27,11 +27,9 @@ export default function AdminGuard({
       return;
     }
 
-    const { data: admin, error } = await supabase
-      .from("admins")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
+    const { data, error } = await supabase.rpc("has_permission", {
+      requested_permission: "admin.users.manage",
+    });
 
     if (error) {
       console.log(error);
@@ -39,7 +37,7 @@ export default function AdminGuard({
       return;
     }
 
-    if (!admin) {
+    if (!data) {
       router.push("/");
       return;
     }
@@ -52,7 +50,7 @@ export default function AdminGuard({
     return (
       <main className="min-h-screen bg-black flex items-center justify-center text-white">
         <p className="text-2xl font-black uppercase tracking-[0.18em] text-sky-300">
-          Verificando acceso admin...
+          Verificando permisos...
         </p>
       </main>
     );
