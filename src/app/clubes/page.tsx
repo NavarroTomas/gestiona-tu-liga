@@ -97,7 +97,7 @@ export default function ClubesPage() {
                 Clubes APA · Instituciones oficiales
               </p>
 
-              <h1 className="mt-5 text-5xl font-black uppercase italic leading-none md:text-7xl">
+              <h1 className="mt-5 text-4xl font-black uppercase italic leading-none sm:text-5xl md:text-6xl xl:text-7xl">
                 <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
                   Clubes
                 </span>
@@ -241,7 +241,7 @@ export default function ClubesPage() {
                 >
                   <div className="flex items-center gap-5">
                     <div
-                      className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[28px] border bg-black/40 shadow-[0_0_25px_rgba(250,204,21,.14)]"
+                      className="flex h-20 w-20 md:h-24 md:w-24 shrink-0 items-center justify-center overflow-hidden rounded-[28px] border bg-black/40 shadow-[0_0_25px_rgba(250,204,21,.14)]"
                       style={{
                         borderColor: `${lider.color_principal || "#facc15"}99`,
                       }}
@@ -322,7 +322,7 @@ export default function ClubesPage() {
               <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
                 {icon} {label}
               </p>
-              <p className={`mt-2 truncate text-3xl font-black uppercase ${color}`}>
+              <p className={`mt-2 truncate text-2xl md:text-3xl font-black uppercase ${color}`}>
                 {value}
               </p>
             </div>
@@ -375,7 +375,7 @@ export default function ClubesPage() {
                   <div className="relative z-10">
                     <div className="mb-5 flex items-start justify-between gap-4">
                       <div
-                        className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[28px] border bg-black/45 shadow-[0_0_24px_rgba(56,189,248,.18)]"
+                        className="flex h-20 w-20 md:h-24 md:w-24 shrink-0 items-center justify-center overflow-hidden rounded-[28px] border bg-black/45 shadow-[0_0_24px_rgba(56,189,248,.18)]"
                         style={{ borderColor: `${colorClub}99` }}
                       >
                         {club.logo_url ? (

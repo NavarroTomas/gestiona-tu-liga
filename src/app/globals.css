@@ -526,3 +526,247 @@ select:focus {
     transition-duration: 0.001ms !important;
   }
 }
+
+
+/* =========================================================
+   APA RESPONSIVE GLOBAL SCALE
+   Objetivo:
+   - Que la web no se vea gigante en 1366x768 / 1280x720.
+   - Mejor lectura en notebook, tablet, celular y zoom alto.
+   - No cambia funcionalidad, sólo escala visual.
+   ========================================================= */
+
+html {
+  font-size: 16px;
+}
+
+/* Notebook común y pantallas de baja altura */
+@media (max-width: 1400px), (max-height: 820px) {
+  html {
+    font-size: 14.5px;
+  }
+
+  body {
+    line-height: 1.48;
+  }
+
+  h1,
+  h2,
+  h3 {
+    line-height: 1.02;
+  }
+
+  .card {
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  .card-premium {
+    border-radius: 24px;
+  }
+
+  .section-shell {
+    border-radius: 26px;
+  }
+
+  .section-title {
+    font-size: clamp(1.65rem, 3vw, 2rem);
+  }
+
+  .input,
+  .btn {
+    padding: 12px 16px;
+    border-radius: 14px;
+  }
+}
+
+/* Notebooks muy compactas: 1366x768 / 1280x720 */
+@media (max-width: 1380px) and (max-height: 800px) {
+  html {
+    font-size: 13.5px;
+  }
+
+  body::before {
+    background-size: 44px 44px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .section-shell {
+    border-radius: 24px;
+  }
+
+  .btn,
+  .input {
+    padding-top: 11px;
+    padding-bottom: 11px;
+  }
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  html {
+    font-size: 14px;
+  }
+
+  body {
+    line-height: 1.5;
+  }
+
+  .card {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .section-shell {
+    border-radius: 24px;
+  }
+
+  .section-title {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+  }
+}
+
+/* Celular */
+@media (max-width: 640px) {
+  html {
+    font-size: 13.5px;
+  }
+
+  body {
+    line-height: 1.45;
+  }
+
+  body::before {
+    background-size: 36px 36px;
+  }
+
+  p,
+  li,
+  td,
+  th,
+  label {
+    line-height: 1.5;
+  }
+
+  .card {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .card-premium,
+  .section-shell {
+    border-radius: 22px;
+  }
+
+  .btn,
+  .btn-premium,
+  .input {
+    border-radius: 14px;
+  }
+
+  .section-title {
+    font-size: clamp(1.35rem, 7vw, 1.8rem);
+  }
+
+  table {
+    font-size: 0.86rem;
+  }
+}
+
+/* Celulares muy angostos */
+@media (max-width: 380px) {
+  html {
+    font-size: 12.8px;
+  }
+
+  .card {
+    padding: 14px;
+  }
+}
+
+/* Evita que palabras, nombres raros o playerIds rompan el ancho */
+main,
+section,
+article,
+div,
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span,
+a,
+button {
+  min-width: 0;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: anywhere;
+}
+
+/* Imágenes y videos nunca deben salirse del viewport */
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+/* Tablas: si son grandes, que scrolleen sin romper la página */
+table {
+  max-width: 100%;
+}
+
+/* Mejor comportamiento táctil */
+@media (hover: none) {
+  .card:hover,
+  .card-premium:hover,
+  .btn:hover,
+  .btn-premium:hover {
+    transform: none;
+  }
+}
+
+
+/* =========================================================
+   APA TRUE GLOBAL VIEWPORT SCALE
+   Esto sí replica una escala visual global tipo zoom del navegador.
+   Pensado especialmente para 1366x768, 1280x720 y notebooks.
+   ========================================================= */
+
+@media (min-width: 1200px) and (max-width: 1400px) and (max-height: 850px) {
+  body {
+    zoom: 0.82;
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1380px) and (max-height: 790px) {
+  body {
+    zoom: 0.76;
+  }
+}
+
+@media (min-width: 1000px) and (max-width: 1199px) and (max-height: 850px) {
+  body {
+    zoom: 0.78;
+  }
+}
+
+/* Zoom alto del navegador / pantallas chicas */
+@media (max-width: 900px) {
+  body {
+    zoom: 1;
+  }
+}
+

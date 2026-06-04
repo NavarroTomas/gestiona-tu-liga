@@ -194,26 +194,26 @@ export default function JugadorPage() {
   }
 
   return (
-    <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
-      <section className="max-w-[1500px] mx-auto px-4 md:px-8 py-8 space-y-8">
+    <main className="min-h-screen overflow-x-hidden text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
+      <section className="mx-auto max-w-[1500px] space-y-6 px-3 py-5 sm:px-4 md:space-y-8 md:px-8 md:py-8">
         <Link
           href="/jugadores"
-          className="inline-flex rounded-2xl border border-sky-500/20 bg-sky-500/10 px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-sky-300 hover:bg-sky-500/20 transition"
+          className="inline-flex rounded-2xl border border-sky-500/20 bg-sky-500/10 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] sm:px-5 sm:text-sm sm:tracking-[0.18em] text-sky-300 hover:bg-sky-500/20 transition"
         >
           ← Volver a jugadores
         </Link>
 
-        <section className="relative overflow-hidden rounded-[38px] border border-sky-500/40 bg-[#020714] shadow-[0_0_55px_rgba(0,120,255,.28)]">
+        <section className="relative overflow-hidden rounded-[28px] border border-sky-500/40 bg-[#020714] sm:rounded-[38px] shadow-[0_0_55px_rgba(0,120,255,.28)]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.18),transparent_42%)]" />
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/30" />
 
-          <div className="relative z-10 p-7 md:p-10">
-            <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black">
+          <div className="relative z-10 p-5 sm:p-7 md:p-10">
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-400 sm:text-xs sm:tracking-[0.45em]">
               Jugador APA · Perfil oficial
             </p>
 
-            <div className="mt-8 flex flex-col lg:flex-row lg:items-center gap-8">
-              <div className="flex h-40 w-40 shrink-0 items-center justify-center overflow-hidden rounded-full border border-sky-400/40 bg-gradient-to-b from-sky-400/30 to-blue-950 text-5xl font-black shadow-[0_0_35px_rgba(56,189,248,.28)]">
+            <div className="mt-7 flex flex-col items-center gap-6 text-center lg:flex-row lg:items-center lg:text-left xl:gap-8">
+              <div className="flex h-32 w-32 shrink-0 sm:h-40 sm:w-40 items-center justify-center overflow-hidden rounded-full border border-sky-400/40 bg-gradient-to-b from-sky-400/30 to-blue-950 text-4xl font-black sm:text-5xl shadow-[0_0_35px_rgba(56,189,248,.28)]">
                 {perfilAPA?.avatar_url ? (
                   <img
                     src={perfilAPA.avatar_url}
@@ -226,13 +226,13 @@ export default function JugadorPage() {
               </div>
 
               <div>
-                <h1 className="text-5xl md:text-7xl font-black uppercase italic leading-none">
+                <h1 className="text-[clamp(2.6rem,10vw,5rem)] font-black uppercase italic leading-none">
                   <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
                     {perfilAPA?.display_name || nombreActual}
                   </span>
                 </h1>
 
-                <div className="mt-4 flex flex-wrap items-center gap-3">
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
                   <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
                     Player ID: {playerId}
                   </p>
@@ -253,7 +253,7 @@ export default function JugadorPage() {
                   )}
                 </div>
 
-                <p className="mt-3 max-w-2xl text-base leading-7 text-zinc-300 md:text-lg">
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-zinc-300 sm:text-base md:text-lg">
                   {perfilAPA?.bio || "Carrera completa registrada en APA PSO Argentina UE5."}
                 </p>
 
@@ -266,7 +266,7 @@ export default function JugadorPage() {
                   </Link>
                 )}
 
-                <div className="mt-5 flex flex-wrap gap-3">
+                <div className="mt-5 flex flex-wrap justify-center gap-3 lg:justify-start">
                   <span className="rounded-2xl border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-sm font-black uppercase text-sky-300">
                     {equipos.length} clubes
                   </span>
@@ -290,7 +290,7 @@ export default function JugadorPage() {
                   </span>
                 </div>
 
-                <div className="mt-7 grid grid-cols-2 gap-3 md:grid-cols-4">
+                <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {[
                     ["Rating", totales.rating, "⭐", "text-green-400"],
                     [
@@ -315,7 +315,7 @@ export default function JugadorPage() {
                         {icon} {label}
                       </p>
 
-                      <p className={`mt-2 text-3xl font-black ${color}`}>
+                      <p className={`mt-2 text-2xl font-black sm:text-3xl ${color}`}>
                         {value}
                       </p>
                     </div>
@@ -326,7 +326,7 @@ export default function JugadorPage() {
           </div>
         </section>
 
-        <section className="relative overflow-hidden rounded-[34px] border border-sky-500/25 bg-[#020714] p-6 shadow-[0_0_35px_rgba(0,120,255,.12)]">
+        <section className="relative overflow-hidden rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6 shadow-[0_0_35px_rgba(0,120,255,.12)]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.14),transparent_38%)]" />
 
           <div className="relative z-10">
@@ -336,7 +336,7 @@ export default function JugadorPage() {
                   Trayectoria
                 </p>
 
-                <h2 className="mt-2 text-3xl font-black uppercase md:text-5xl">
+                <h2 className="mt-2 text-[clamp(1.8rem,7vw,3rem)] font-black uppercase">
                   Carrera registrada
                 </h2>
               </div>
@@ -346,7 +346,7 @@ export default function JugadorPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
               {[
                 ["Temporadas", temporadas.length, "📅", "text-sky-300"],
                 ["Clubes", equipos.length, "🛡️", "text-yellow-300"],
@@ -355,13 +355,13 @@ export default function JugadorPage() {
               ].map(([label, value, icon, color]) => (
                 <div
                   key={label}
-                  className="rounded-[26px] border border-white/10 bg-black/35 p-5"
+                  className="rounded-[22px] border border-white/10 bg-black/35 p-4 sm:rounded-[26px] sm:p-5"
                 >
                   <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
                     {icon} {label}
                   </p>
 
-                  <p className={`mt-3 text-4xl font-black ${color}`}>
+                  <p className={`mt-3 text-3xl font-black sm:text-4xl ${color}`}>
                     {value}
                   </p>
                 </div>
@@ -370,7 +370,7 @@ export default function JugadorPage() {
           </div>
         </section>
 
-        <section className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-4">
+        <section className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 xl:grid-cols-6">
           {[
             ["Partidos", totales.partidos, "text-white"],
             ["Goles", totales.goles, "text-yellow-400"],
@@ -381,17 +381,17 @@ export default function JugadorPage() {
           ].map(([label, value, color]) => (
             <div
               key={label}
-              className="rounded-[26px] border border-sky-500/20 bg-[#020714] p-5"
+              className="rounded-[22px] border border-sky-500/20 bg-[#020714] p-4 sm:rounded-[26px] sm:p-5"
             >
               <p className="text-sky-300 uppercase tracking-[0.25em] text-xs font-black">
                 {label}
               </p>
-              <p className={`mt-3 text-4xl font-black ${color}`}>{value}</p>
+              <p className={`mt-3 text-3xl font-black sm:text-4xl ${color}`}>{value}</p>
             </div>
           ))}
         </section>
         {mejorPartido && (
-          <section className="relative overflow-hidden rounded-[34px] border border-yellow-400/30 bg-[#020714] p-6 shadow-[0_0_45px_rgba(250,204,21,.12)]">
+          <section className="relative overflow-hidden rounded-[28px] border border-yellow-400/30 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6 shadow-[0_0_45px_rgba(250,204,21,.12)]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,.16),transparent_40%)]" />
 
             <div className="relative z-10">
@@ -400,7 +400,7 @@ export default function JugadorPage() {
                   <p className="text-yellow-300 text-xs uppercase tracking-[0.35em] font-black">
                     Partido destacado
                   </p>
-                  <h2 className="mt-2 text-3xl md:text-4xl font-black uppercase italic">
+                  <h2 className="mt-2 text-[clamp(1.8rem,7vw,2.5rem)] font-black uppercase italic">
                     🏆 Mejor Partido
                   </h2>
                 </div>
@@ -409,13 +409,13 @@ export default function JugadorPage() {
                   <p className="text-[10px] uppercase tracking-[0.25em] text-green-300 font-black">
                     Rating
                   </p>
-                  <p className="text-5xl font-black text-green-400">
+                  <p className="text-4xl font-black sm:text-5xl text-green-400">
                     {mejorPartido.rating_apa || mejorPartido.overallRating || 0}
                   </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-4">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 xl:grid-cols-6">
                 <div className="rounded-2xl border border-sky-500/20 bg-black/35 p-4">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
                     Equipo
@@ -443,7 +443,7 @@ export default function JugadorPage() {
                   <p className="text-[10px] uppercase tracking-[0.2em] text-yellow-300 font-black">
                     Score
                   </p>
-                  <p className="mt-2 text-3xl font-black text-yellow-400">
+                  <p className="mt-2 text-2xl font-black sm:text-3xl text-yellow-400">
                     {mejorPartido.score || 0}
                   </p>
                 </div>
@@ -452,7 +452,7 @@ export default function JugadorPage() {
                   <p className="text-[10px] uppercase tracking-[0.2em] text-purple-300 font-black">
                     MVP
                   </p>
-                  <p className="mt-2 text-3xl font-black text-purple-300">
+                  <p className="mt-2 text-2xl font-black sm:text-3xl text-purple-300">
                     {Number(mejorPartido.mvp || 0) > 0 ? "Sí" : "No"}
                   </p>
                 </div>
@@ -465,7 +465,7 @@ export default function JugadorPage() {
                 </div>
               </div>
 
-              <div className="mt-5 flex flex-wrap gap-3">
+              <div className="mt-5 flex flex-wrap justify-center gap-3 lg:justify-start">
                 {esPartidoArquero(mejorPartido) ? (
                   <>
                     <span className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-5 py-3 font-black text-cyan-300">
@@ -499,8 +499,8 @@ export default function JugadorPage() {
             </div>
           </section>
         )}
-        <section className="rounded-[34px] border border-purple-500/25 bg-[#020714] p-6">
-          <h2 className="text-3xl font-black uppercase mb-6">
+        <section className="rounded-[28px] border border-purple-500/25 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6">
+          <h2 className="mb-6 break-words text-xl font-black uppercase sm:text-2xl sm:text-3xl">
             📈 Evolución por temporada
           </h2>
 
@@ -516,14 +516,14 @@ export default function JugadorPage() {
                       {t.temporada}
                     </p>
 
-                    <h3 className="text-2xl font-black uppercase">
+                    <h3 className="break-words text-xl font-black uppercase sm:text-2xl">
                       {t.equipo}
                     </h3>
 
                     <p className="text-zinc-500">{t.division}</p>
                   </div>
 
-                  <div className="min-w-[260px] flex-1">
+                  <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap justify-start gap-3 md:justify-end">
                       <span className="rounded-xl bg-green-500/10 border border-green-500/30 px-4 py-2 font-black text-green-400">
                         ⭐ {t.rating}
@@ -572,13 +572,13 @@ export default function JugadorPage() {
             ))}
           </div>
         </section>
-        <section className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6">
-          <h2 className="text-3xl font-black uppercase mb-6">
+        <section className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6">
+          <h2 className="mb-6 break-words text-xl font-black uppercase sm:text-2xl sm:text-3xl">
             Carrera por temporada
           </h2>
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px] border-separate border-spacing-y-2">
+            <table className="w-full min-w-[800px] border-separate border-spacing-y-2 text-sm">
               <thead>
                 <tr className="text-[11px] uppercase tracking-[0.25em] text-sky-300/80">
                   <th className="text-left py-3">Equipo</th>
@@ -637,12 +637,12 @@ export default function JugadorPage() {
             </table>
           </div>
         </section>
-        <section className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6">
-          <h2 className="text-3xl font-black uppercase mb-6">
+        <section className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6">
+          <h2 className="mb-6 break-words text-xl font-black uppercase sm:text-2xl sm:text-3xl">
             Estadísticas acumuladas
           </h2>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 xl:grid-cols-6">
             {[
               ["Pases", totales.pases],
               ["Pases clave", totales.pasesClave],
@@ -668,9 +668,9 @@ export default function JugadorPage() {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-8">
-          <div className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6">
-            <h2 className="text-3xl font-black uppercase mb-6">
+        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-8">
+          <div className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6">
+            <h2 className="mb-6 break-words text-xl font-black uppercase sm:text-2xl sm:text-3xl">
               Partidos jugados
             </h2>
 
@@ -678,13 +678,13 @@ export default function JugadorPage() {
               {stats.map((r) => (
                 <div
                   key={r.id}
-                  className="rounded-[28px] border border-sky-500/20 bg-gradient-to-r from-[#06152c] via-[#071a33] to-[#030b18] p-5"
+                  className="rounded-[24px] border border-sky-500/20 bg-gradient-to-r from-[#06152c] via-[#071a33] to-[#030b18] p-4 sm:rounded-[28px] sm:p-5"
                 >
-                  <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr] gap-5 items-center">
+                  <div className="grid grid-cols-1 items-center gap-5 xl:grid-cols-[minmax(210px,280px)_1fr]">
                     <div>
                       <Link
                         href={`/equipos/${encodeURIComponent(r.equipo)}`}
-                        className="text-xl font-black uppercase hover:text-sky-300 transition"
+                        className="break-words text-lg font-black uppercase transition hover:text-sky-300 sm:text-xl"
                       >
                         {r.equipo}
                       </Link>
@@ -699,7 +699,7 @@ export default function JugadorPage() {
                         <p className="text-[10px] font-black uppercase tracking-[0.16em] text-green-300">
                           ⭐ Rating
                         </p>
-                        <p className="mt-2 text-4xl font-black text-green-400">
+                        <p className="mt-2 text-2xl font-black sm:text-3xl sm:text-4xl text-green-400">
                           {r.rating_apa || r.overallRating || 0}
                         </p>
                       </div>
@@ -708,7 +708,7 @@ export default function JugadorPage() {
                         <p className="text-[10px] font-black uppercase tracking-[0.16em] text-purple-300">
                           🏆 MVP
                         </p>
-                        <p className="mt-2 text-4xl font-black text-purple-300">
+                        <p className="mt-2 text-2xl font-black sm:text-3xl sm:text-4xl text-purple-300">
                           {Number(r.mvp || 0) > 0 ? "Sí" : "No"}
                         </p>
                       </div>
@@ -719,7 +719,7 @@ export default function JugadorPage() {
                             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-cyan-300">
                               🧤 Atajadas
                             </p>
-                            <p className="mt-2 text-3xl font-black text-cyan-300">
+                            <p className="mt-2 text-2xl font-black sm:text-3xl text-cyan-300">
                               {valorGKSave(r)}
                             </p>
                           </div>
@@ -728,7 +728,7 @@ export default function JugadorPage() {
                             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-indigo-300">
                               🤲 Atrap.
                             </p>
-                            <p className="mt-2 text-3xl font-black text-indigo-300">
+                            <p className="mt-2 text-2xl font-black sm:text-3xl text-indigo-300">
                               {r.gKCatches || 0}
                             </p>
                           </div>
@@ -739,7 +739,7 @@ export default function JugadorPage() {
                             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-yellow-300">
                               ⚽ Goles
                             </p>
-                            <p className="mt-2 text-3xl font-black text-yellow-400">
+                            <p className="mt-2 text-2xl font-black sm:text-3xl text-yellow-400">
                               {r.goals || 0}
                             </p>
                           </div>
@@ -748,7 +748,7 @@ export default function JugadorPage() {
                             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-sky-300">
                               🎯 Asist.
                             </p>
-                            <p className="mt-2 text-3xl font-black text-sky-300">
+                            <p className="mt-2 text-2xl font-black sm:text-3xl text-sky-300">
                               {r.assists || 0}
                             </p>
                           </div>
@@ -759,7 +759,7 @@ export default function JugadorPage() {
                         <p className="text-[10px] font-black uppercase tracking-[0.16em] text-purple-300">
                           Pases
                         </p>
-                        <p className="mt-2 text-3xl font-black text-purple-300">
+                        <p className="mt-2 text-2xl font-black sm:text-3xl text-purple-300">
                           {r.passes || 0}
                         </p>
                       </div>
@@ -768,7 +768,7 @@ export default function JugadorPage() {
                         <p className="text-[10px] font-black uppercase tracking-[0.16em] text-blue-300">
                           Tackles
                         </p>
-                        <p className="mt-2 text-3xl font-black text-white">
+                        <p className="mt-2 text-2xl font-black sm:text-3xl text-white">
                           {r.tackles || 0}
                         </p>
                       </div>
@@ -777,7 +777,7 @@ export default function JugadorPage() {
                         <p className="text-[10px] font-black uppercase tracking-[0.16em] text-yellow-300">
                           Score
                         </p>
-                        <p className="mt-2 text-3xl font-black text-yellow-400">
+                        <p className="mt-2 text-2xl font-black sm:text-3xl text-yellow-400">
                           {r.score || 0}
                         </p>
                       </div>
@@ -788,8 +788,8 @@ export default function JugadorPage() {
             </div>
           </div>
 
-          <aside className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6">
-            <h2 className="text-2xl font-black uppercase mb-6">Partidos</h2>
+          <aside className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6">
+            <h2 className="break-words text-xl font-black uppercase sm:text-2xl mb-6">Partidos</h2>
 
             <div className="space-y-3 max-h-[620px] overflow-y-auto pr-1">
               {partidos.length === 0 ? (

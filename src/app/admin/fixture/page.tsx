@@ -219,6 +219,36 @@ export default function AdminFixturePage() {
       return;
     }
 
+    const cruceYaExiste = partidos.some((p) => {
+      const mismoCruce =
+        (p.local === localManual && p.visitante === visitanteManual) ||
+        (p.local === visitanteManual && p.visitante === localManual);
+
+      return mismoCruce;
+    });
+
+    if (cruceYaExiste) {
+      setMensaje("Ese cruce ya existe en el fixture. En ida sola no se repite.");
+      return;
+    }
+
+    const equipoYaJuegaFecha = partidos.some(
+      (p) =>
+        String(p.fecha) === String(fechaManual) &&
+        [p.local, p.visitante].includes(localManual),
+    );
+
+    const rivalYaJuegaFecha = partidos.some(
+      (p) =>
+        String(p.fecha) === String(fechaManual) &&
+        [p.local, p.visitante].includes(visitanteManual),
+    );
+
+    if (equipoYaJuegaFecha || rivalYaJuegaFecha) {
+      setMensaje("Uno de los equipos ya tiene partido en esa fecha.");
+      return;
+    }
+
     const { error } = await supabase.from("partidos").insert({
       local: localManual,
       visitante: visitanteManual,
@@ -249,11 +279,43 @@ export default function AdminFixturePage() {
       return;
     }
 
-    const confirmar = window.confirm(
-      `Vas a generar ${temporada} · ${division}. ¿Continuar?`,
-    );
+    const { count, error: countError } = await supabase
+      .from("partidos")
+      .select("*", { count: "exact", head: true })
+      .eq("temporada", temporada)
+      .eq("division", division);
 
-    if (!confirmar) return;
+    if (countError) {
+      console.log(countError);
+      setMensaje("No pude verificar si ya existe fixture.");
+      return;
+    }
+
+    if ((count || 0) > 0) {
+      const reemplazar = window.confirm(
+        `Ya existen ${count} partidos para ${temporada} · ${division}.\n\n¿Querés borrar el fixture actual y generar uno nuevo?`,
+      );
+
+      if (!reemplazar) return;
+
+      const { error: deleteError } = await supabase
+        .from("partidos")
+        .delete()
+        .eq("temporada", temporada)
+        .eq("division", division);
+
+      if (deleteError) {
+        console.log(deleteError);
+        setMensaje("No pude borrar el fixture anterior.");
+        return;
+      }
+    } else {
+      const confirmar = window.confirm(
+        `Vas a generar fixture de ida sola para ${temporada} · ${division}.\n\nEquipos: ${seleccionados.length}\n¿Continuar?`,
+      );
+
+      if (!confirmar) return;
+    }
 
     const fixture = generarRoundRobin(seleccionados);
 
@@ -281,7 +343,55 @@ export default function AdminFixturePage() {
     await cargarTodo();
   }
 
+  async function eliminarFixtureCompleto() {
+    if (partidos.length === 0) {
+      setMensaje("No hay partidos para eliminar en esta temporada/división.");
+      return;
+    }
+
+    const confirmar = window.confirm(
+      `Vas a eliminar TODO el fixture de ${temporada} · ${division}.\n\nPartidos: ${partidos.length}\n\nEsta acción no se puede deshacer. ¿Continuar?`,
+    );
+
+    if (!confirmar) return;
+
+    const { error } = await supabase
+      .from("partidos")
+      .delete()
+      .eq("temporada", temporada)
+      .eq("division", division);
+
+    if (error) {
+      console.log(error);
+      setMensaje("Error eliminando fixture completo.");
+      return;
+    }
+
+    setMensaje("Fixture completo eliminado.");
+    await cargarTodo();
+  }
+
   async function actualizarPartido(id: string, cambios: Partial<Partido>) {
+    const partidoActual = partidos.find((p) => p.id === id);
+    const nuevoLocal = cambios.local ?? partidoActual?.local;
+    const nuevoVisitante = cambios.visitante ?? partidoActual?.visitante;
+
+    if (nuevoLocal && nuevoVisitante && nuevoLocal === nuevoVisitante) {
+      setMensaje("Local y visitante no pueden ser el mismo equipo.");
+      return;
+    }
+
+    if (typeof cambios.resultado === "string" && cambios.resultado.trim()) {
+      const resultadoLimpio = cambios.resultado.trim();
+
+      if (!/^\d+\s*-\s*\d+$/.test(resultadoLimpio)) {
+        setMensaje("El resultado debe tener formato 1-0, 2-2, 3-1, etc.");
+        return;
+      }
+
+      cambios.resultado = resultadoLimpio.replace(/\s+/g, "");
+    }
+
     const { error } = await supabase.from("partidos").update(cambios).eq("id", id);
 
     if (error) {
@@ -498,8 +608,20 @@ return (
                 onClick={generarFixture}
                 className="mt-5 w-full rounded-2xl border border-yellow-400/30 bg-yellow-400 px-5 py-4 text-sm font-black uppercase text-black transition hover:bg-white"
               >
-                ⚡ Generar fixture
+                ⚡ Generar fixture ida sola
               </button>
+
+              <button
+                onClick={eliminarFixtureCompleto}
+                className="mt-3 w-full rounded-2xl border border-red-400/25 bg-red-400/10 px-5 py-4 text-sm font-black uppercase text-red-300 transition hover:bg-red-400 hover:text-black"
+              >
+                🗑 Eliminar fixture completo
+              </button>
+
+              <p className="mt-4 rounded-2xl border border-white/10 bg-black/35 p-4 text-xs leading-6 text-zinc-500">
+                El generador crea ida sola: cada equipo se cruza una única vez contra cada rival.
+                Si ya hay fixture, te pregunta antes de reemplazarlo.
+              </p>
             </section>
 
             <section className="rounded-[34px] border border-emerald-500/25 bg-[#020714]/95 p-6">
@@ -704,31 +826,70 @@ return (
                               </button>
                             </div>
 
-                            <div className="grid grid-cols-[1fr_78px_1fr] items-center gap-3">
-                              <input
+                            <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_130px_minmax(0,1fr)] xl:items-center">
+                              <select
                                 value={p.local}
                                 onChange={(e) =>
                                   actualizarPartido(p.id, {
                                     local: e.target.value,
                                   })
                                 }
-                                className="min-w-0 rounded-2xl border border-white/10 bg-black/35 px-3 py-3 text-right text-sm font-black uppercase text-white outline-none"
-                              />
+                                disabled={Boolean(p.partido_id)}
+                                className="min-w-0 rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                              >
+                                {equipos.map((e) => (
+                                  <option key={`edit-local-${p.id}-${e.nombre}`} value={e.nombre}>
+                                    {e.nombre}
+                                  </option>
+                                ))}
+                              </select>
 
-                              <div className="rounded-xl border border-yellow-400/25 bg-yellow-400/10 px-2 py-3 text-center text-lg font-black text-yellow-300">
-                                {p.resultado || "VS"}
+                              <div className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-3 py-3 text-center">
+                                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-yellow-300/70">
+                                  Resultado
+                                </p>
+
+                                {p.partido_id ? (
+                                  <p className="mt-1 text-xl font-black text-yellow-300">
+                                    {p.resultado || "VS"}
+                                  </p>
+                                ) : (
+                                  <input
+                                    value={p.resultado || ""}
+                                    onChange={(e) =>
+                                      actualizarPartido(p.id, {
+                                        resultado: e.target.value || null,
+                                      })
+                                    }
+                                    placeholder="VS"
+                                    className="mt-1 w-full rounded-xl border border-yellow-400/20 bg-black/35 px-2 py-2 text-center text-lg font-black uppercase text-yellow-300 outline-none placeholder:text-yellow-300"
+                                  />
+                                )}
                               </div>
 
-                              <input
+                              <select
                                 value={p.visitante}
                                 onChange={(e) =>
                                   actualizarPartido(p.id, {
                                     visitante: e.target.value,
                                   })
                                 }
-                                className="min-w-0 rounded-2xl border border-white/10 bg-black/35 px-3 py-3 text-left text-sm font-black uppercase text-white outline-none"
-                              />
+                                disabled={Boolean(p.partido_id)}
+                                className="min-w-0 rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                              >
+                                {equipos.map((e) => (
+                                  <option key={`edit-vis-${p.id}-${e.nombre}`} value={e.nombre}>
+                                    {e.nombre}
+                                  </option>
+                                ))}
+                              </select>
                             </div>
+
+                            {p.partido_id && (
+                              <p className="mt-3 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-300">
+                                🔒 Resultado bloqueado porque este partido ya tiene TXT cargado.
+                              </p>
+                            )}
 
                             <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
                               <input

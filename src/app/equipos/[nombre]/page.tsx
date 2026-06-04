@@ -431,7 +431,7 @@ export default function PaginaEquipo() {
 
                 <div className="flex flex-col gap-7 lg:flex-row lg:items-center">
                   <div
-                    className="h-36 w-36 shrink-0 overflow-hidden rounded-[34px] border bg-gradient-to-b from-sky-400/30 to-blue-950 shadow-[0_0_35px_rgba(56,189,248,.28)] md:h-40 md:w-40"
+                    className="h-28 w-28 shrink-0 overflow-hidden rounded-[34px] border bg-gradient-to-b from-sky-400/30 to-blue-950 shadow-[0_0_35px_rgba(56,189,248,.28)] sm:h-32 sm:w-32 md:h-40 md:w-40"
                     style={{ borderColor: `${colorPrincipal}99` }}
                   >
                     {clubVisual?.logo_url ? (
@@ -448,7 +448,7 @@ export default function PaginaEquipo() {
                   </div>
 
                   <div className="min-w-0">
-                    <h1 className="overflow-visible px-2 py-2 text-4xl font-black uppercase leading-[1.08] md:text-6xl xl:text-7xl">
+                    <h1 className="overflow-visible px-2 py-2 text-3xl font-black uppercase leading-[1.08] sm:text-4xl md:text-5xl xl:text-7xl">
                       <span className="block overflow-visible break-words bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
                         {nombreRealEquipo}
                       </span>
@@ -517,7 +517,7 @@ export default function PaginaEquipo() {
                         {label}
                       </p>
 
-                      <p className={`mt-2 text-5xl font-black leading-none ${color}`}>
+                      <p className={`mt-2 text-4xl md:text-5xl font-black leading-none ${color}`}>
                         {value}
                       </p>
                     </div>
@@ -655,8 +655,8 @@ export default function PaginaEquipo() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-[1fr_80px_1fr] items-center gap-3">
-                  <p className="text-right text-xl font-black uppercase md:text-2xl">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_80px_1fr] items-center gap-3">
+                  <p className="text-center md:text-right text-xl font-black uppercase md:text-2xl">
                     {proximoPartido.local}
                   </p>
 
@@ -664,7 +664,7 @@ export default function PaginaEquipo() {
                     VS
                   </div>
 
-                  <p className="text-left text-xl font-black uppercase md:text-2xl">
+                  <p className="text-center md:text-left text-xl font-black uppercase md:text-2xl">
                     {proximoPartido.visitante}
                   </p>
                 </div>
@@ -830,7 +830,7 @@ export default function PaginaEquipo() {
                 </div>
               </div>
 
-              <h3 className="truncate text-4xl font-black uppercase transition group-hover:text-yellow-300">
+              <h3 className="break-words text-2xl md:text-4xl font-black uppercase transition group-hover:text-yellow-300">
                 {figuraClub?.jugador || "Sin datos"}
               </h3>
 

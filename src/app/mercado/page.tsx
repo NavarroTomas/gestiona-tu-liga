@@ -300,18 +300,18 @@ export default function MercadoPage() {
 
   return (
     <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
-      <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-8 space-y-8">
-        <section className="relative overflow-hidden rounded-[38px] border border-sky-500/30 bg-[#020714] p-7 md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
+      <div className="mx-auto max-w-[1500px] px-3 py-5 sm:px-4 md:px-8 md:py-8 space-y-6 md:space-y-8">
+        <section className="relative overflow-hidden rounded-[28px] border border-sky-500/30 bg-[#020714] p-5 sm:rounded-[38px] md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_42%)]" />
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/20" />
 
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
             <div>
-              <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black">
+              <p className="text-[10px] sm:text-xs uppercase tracking-[0.25em] sm:tracking-[0.45em] font-black text-sky-400">
                 APA PSO ARGENTINA
               </p>
 
-              <h1 className="mt-4 text-5xl md:text-7xl font-black uppercase italic leading-none">
+              <h1 className="mt-4 text-[clamp(2.5rem,9vw,5rem)] font-black uppercase italic leading-none">
                 <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
                   Mercado
                 </span>
@@ -326,7 +326,7 @@ export default function MercadoPage() {
                 Argentina UE5. Seguimiento oficial por temporada y división.
               </p>
 
-              <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
                 <div className="rounded-2xl border border-emerald-500/20 bg-black/35 p-4">
                   <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
                     Fichajes
@@ -365,25 +365,25 @@ export default function MercadoPage() {
               </div>
             </div>
 
-            <div className="hidden lg:flex h-40 w-40 items-center justify-center rounded-full border border-sky-400/40 bg-black/40 shadow-[0_0_35px_rgba(0,120,255,.45)]">
+            <div className="hidden lg:flex h-32 w-32 xl:h-40 xl:w-40 items-center justify-center rounded-full border border-sky-400/40 bg-black/40 shadow-[0_0_35px_rgba(0,120,255,.45)]">
               <span className="text-6xl">🔁</span>
             </div>
           </div>
         </section>
 
-        <section className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6 md:p-8 shadow-[0_0_35px_rgba(0,120,255,.12)]">
+        <section className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] md:p-8 shadow-[0_0_35px_rgba(0,120,255,.12)]">
           <div className="grid gap-7">
             <div>
               <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
                 Temporada
               </p>
 
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
                 {temporadas.map((temp) => (
                   <button
                     key={temp}
                     onClick={() => setTemporada(temp)}
-                    className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
+                    className={`rounded-2xl border px-3 py-3 text-xs sm:text-sm font-black uppercase transition-all ${
                       temporada === temp
                         ? "border-sky-300 bg-gradient-to-b from-sky-400 to-blue-700 text-white shadow-[0_0_20px_rgba(56,189,248,.45)]"
                         : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
@@ -405,7 +405,7 @@ export default function MercadoPage() {
                   <button
                     key={div.nombre}
                     onClick={() => setDivision(div.nombre)}
-                    className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
+                    className={`rounded-2xl border px-3 py-3 text-xs sm:text-sm font-black uppercase transition-all ${
                       division === div.nombre
                         ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
                         : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
@@ -422,12 +422,12 @@ export default function MercadoPage() {
                 Tipo de movimiento
               </p>
 
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
                 {tipos.map((tipo) => (
                   <button
                     key={tipo}
                     onClick={() => setTipoActivo(tipo)}
-                    className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
+                    className={`rounded-2xl border px-3 py-3 text-xs sm:text-sm font-black uppercase transition-all ${
                       tipoActivo === tipo
                         ? "border-sky-300 bg-sky-400 text-black shadow-[0_0_20px_rgba(56,189,248,.35)]"
                         : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
@@ -446,7 +446,7 @@ export default function MercadoPage() {
             Selección actual
           </p>
 
-          <h2 className="mt-3 text-3xl md:text-5xl font-black uppercase">
+          <h2 className="mt-3 text-[clamp(1.8rem,7vw,3rem)] font-black uppercase">
             {temporada}
             <span className="text-sky-400"> / </span>
             {division}
@@ -458,7 +458,7 @@ export default function MercadoPage() {
         </section>
 
         {movimientoDestacado && (
-          <section className="relative overflow-hidden rounded-[34px] border border-yellow-400/30 bg-[#020714] p-6 shadow-[0_0_45px_rgba(250,204,21,.12)]">
+          <section className="relative overflow-hidden rounded-[28px] border border-yellow-400/30 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6 shadow-[0_0_45px_rgba(250,204,21,.12)]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,.16),transparent_40%)]" />
 
             <div className="relative z-10">
@@ -471,7 +471,7 @@ export default function MercadoPage() {
                   <div className="flex items-center gap-4">
                     <AvatarJugador nombre={movimientoDestacado.jugador} />
 
-                    <h2 className="break-words text-4xl font-black uppercase md:text-5xl">
+                    <h2 className="break-words text-2xl sm:text-3xl md:text-5xl font-black uppercase">
                       {iconoTipo(movimientoDestacado.tipo)}{" "}
                       <NombreJugadorLink nombre={movimientoDestacado.jugador} />
                     </h2>
@@ -493,7 +493,7 @@ export default function MercadoPage() {
                 </div>
 
                 <div
-                  className={`rounded-2xl border px-6 py-4 font-black uppercase ${colorTipo(
+                  className={`rounded-2xl border px-4 py-3 sm:px-6 sm:py-4 font-black uppercase ${colorTipo(
                     movimientoDestacado.tipo,
                   )}`}
                 >
@@ -518,7 +518,7 @@ export default function MercadoPage() {
         )}
 
         {movimientosFiltrados.length === 0 ? (
-          <section className="relative overflow-hidden rounded-[34px] border border-sky-500/20 bg-[#020714] p-10 text-center shadow-[0_0_35px_rgba(0,120,255,.12)]">
+          <section className="relative overflow-hidden rounded-[28px] border border-sky-500/20 bg-[#020714] p-6 sm:p-10 text-center shadow-[0_0_35px_rgba(0,120,255,.12)]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(56,189,248,.14),transparent_45%)]" />
 
             <div className="relative z-10 max-w-2xl mx-auto">
@@ -526,7 +526,7 @@ export default function MercadoPage() {
                 🔁
               </div>
 
-              <h2 className="mt-6 text-4xl font-black uppercase">
+              <h2 className="mt-6 text-3xl sm:text-4xl font-black uppercase">
                 Mercado cerrado
               </h2>
 
@@ -555,11 +555,11 @@ export default function MercadoPage() {
             </div>
           </section>
         ) : (
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5">
             {movimientosFiltrados.map((m) => (
               <div
                 key={m.id}
-                className="group relative overflow-hidden rounded-[34px] border border-sky-500/20 bg-[#020714] p-6 transition hover:border-sky-400/45 hover:shadow-[0_0_30px_rgba(56,189,248,.14)]"
+                className="group relative overflow-hidden rounded-[28px] border border-sky-500/20 bg-[#020714] p-4 sm:rounded-[34px] sm:p-6 transition hover:border-sky-400/45 hover:shadow-[0_0_30px_rgba(56,189,248,.14)]"
               >
                 <div className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.12),transparent_40%)]" />
 
@@ -581,7 +581,7 @@ export default function MercadoPage() {
                   <div className="mt-6 flex items-center gap-4">
                     <AvatarJugador nombre={m.jugador} />
 
-                    <h2 className="min-w-0 break-words text-3xl font-black uppercase">
+                    <h2 className="min-w-0 break-words text-2xl sm:text-3xl font-black uppercase">
                       <NombreJugadorLink nombre={m.jugador} />
                     </h2>
                   </div>
