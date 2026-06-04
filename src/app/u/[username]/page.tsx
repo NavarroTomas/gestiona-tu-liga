@@ -399,19 +399,127 @@ export default function PerfilPublicoPage() {
   }, [dreamVotes]);
 
   const logros = useMemo(() => {
-    const lista: { icono: string; titulo: string; activo: boolean }[] = [
-      { icono: "⚽", titulo: "Primer gol", activo: resumen.goles >= 1 },
-      { icono: "🔥", titulo: "10 goles", activo: resumen.goles >= 10 },
-      { icono: "🎯", titulo: "10 asistencias", activo: resumen.asistencias >= 10 },
-      { icono: "⭐", titulo: "Primer MVP", activo: resumen.mvps >= 1 },
-      { icono: "🧱", titulo: "Arquero registrado", activo: resumen.esArquero },
-      { icono: "📊", titulo: "10 partidos", activo: resumen.partidosJugados >= 10 },
-      { icono: "🔮", titulo: "Pronosticador", activo: prediccionStats.total >= 1 },
-      { icono: "💫", titulo: "Votante Dream Team", activo: dreamStats.votos >= 1 },
+    const crearProgreso = (actual: number, objetivo: number) => {
+      if (objetivo <= 0) return 0;
+      return Math.min(100, Math.round((actual / objetivo) * 100));
+    };
+
+    const lista: {
+      icono: string;
+      titulo: string;
+      descripcion: string;
+      rareza: "Común" | "Rara" | "Épica" | "Legendaria";
+      actual: number;
+      objetivo: number;
+      activo: boolean;
+      textoProgreso: string;
+    }[] = [
+      {
+        icono: "🥅",
+        titulo: "Primer Gol",
+        descripcion: "Convertir el primer gol oficial en APA.",
+        rareza: "Común",
+        actual: resumen.goles,
+        objetivo: 1,
+        activo: resumen.goles >= 1,
+        textoProgreso: `${Math.min(resumen.goles, 1)} / 1`,
+      },
+      {
+        icono: "💯",
+        titulo: "100 Goles",
+        descripcion: "Llegar a los 100 goles oficiales.",
+        rareza: "Épica",
+        actual: resumen.goles,
+        objetivo: 100,
+        activo: resumen.goles >= 100,
+        textoProgreso: `${Math.min(resumen.goles, 100)} / 100`,
+      },
+      {
+        icono: "🎯",
+        titulo: "100 Asistencias",
+        descripcion: "Llegar a las 100 asistencias oficiales.",
+        rareza: "Épica",
+        actual: resumen.asistencias,
+        objetivo: 100,
+        activo: resumen.asistencias >= 100,
+        textoProgreso: `${Math.min(resumen.asistencias, 100)} / 100`,
+      },
+      {
+        icono: "⭐",
+        titulo: "Primer MVP",
+        descripcion: "Conseguir el primer MVP oficial.",
+        rareza: "Común",
+        actual: resumen.mvps,
+        objetivo: 1,
+        activo: resumen.mvps >= 1,
+        textoProgreso: `${Math.min(resumen.mvps, 1)} / 1`,
+      },
+      {
+        icono: "🌟",
+        titulo: "10 MVP",
+        descripcion: "Alcanzar 10 MVP oficiales.",
+        rareza: "Rara",
+        actual: resumen.mvps,
+        objetivo: 10,
+        activo: resumen.mvps >= 10,
+        textoProgreso: `${Math.min(resumen.mvps, 10)} / 10`,
+      },
+      {
+        icono: "🏆",
+        titulo: "Balón de Oro",
+        descripcion: "Ganar un Balón de Oro APA.",
+        rareza: "Legendaria",
+        actual: 0,
+        objetivo: 1,
+        activo: false,
+        textoProgreso: "Pendiente",
+      },
+      {
+        icono: "🎮",
+        titulo: "100 Partidos",
+        descripcion: "Disputar 100 partidos oficiales.",
+        rareza: "Rara",
+        actual: resumen.partidosJugados,
+        objetivo: 100,
+        activo: resumen.partidosJugados >= 100,
+        textoProgreso: `${Math.min(resumen.partidosJugados, 100)} / 100`,
+      },
+      {
+        icono: "🔮",
+        titulo: "Pronosticador",
+        descripcion: "Realizar al menos una predicción.",
+        rareza: "Común",
+        actual: prediccionStats.total,
+        objetivo: 1,
+        activo: prediccionStats.total >= 1,
+        textoProgreso: `${Math.min(prediccionStats.total, 1)} / 1`,
+      },
+      {
+        icono: "💫",
+        titulo: "Votante Dream Team",
+        descripcion: "Votar al menos una vez el Dream Team.",
+        rareza: "Común",
+        actual: dreamStats.votos,
+        objetivo: 1,
+        activo: dreamStats.votos >= 1,
+        textoProgreso: `${Math.min(dreamStats.votos, 1)} / 1`,
+      },
     ];
 
-    return lista;
+    return lista.map((logro) => ({
+      ...logro,
+      progreso: crearProgreso(logro.actual, logro.objetivo),
+    }));
   }, [resumen, prediccionStats, dreamStats]);
+
+  const logrosDesbloqueados = useMemo(() => {
+    return logros.filter((logro) => logro.activo).length;
+  }, [logros]);
+
+  const porcentajeLogros = useMemo(() => {
+    if (logros.length === 0) return 0;
+    return Math.round((logrosDesbloqueados / logros.length) * 100);
+  }, [logros, logrosDesbloqueados]);
 
   if (loading) {
     return (
@@ -797,31 +905,120 @@ export default function PerfilPublicoPage() {
           </section>
 
           <aside className="space-y-8">
-            <section className="rounded-[34px] border border-purple-500/20 bg-[#020714] p-6">
-              <p className="text-xs font-black uppercase tracking-[0.35em] text-purple-300">
-                Logros APA
-              </p>
+            <section className="relative overflow-hidden rounded-[34px] border border-purple-500/20 bg-[#020714] p-6">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,.18),transparent_42%)]" />
 
-              <h2 className="mt-2 text-3xl font-black uppercase">
-                Insignias
-              </h2>
+              <div className="relative z-10">
+                <p className="text-xs font-black uppercase tracking-[0.35em] text-purple-300">
+                  Logros APA
+                </p>
 
-              <div className="mt-5 grid grid-cols-1 gap-3">
-                {logros.map((logro) => (
-                  <div
-                    key={logro.titulo}
-                    className={`rounded-2xl border p-4 ${
-                      logro.activo
-                        ? "border-yellow-400/25 bg-yellow-400/10 text-yellow-300"
-                        : "border-white/10 bg-black/25 text-zinc-600"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{logro.icono}</span>
-                      <span className="font-black uppercase">{logro.titulo}</span>
-                    </div>
+                <div className="mt-2 flex items-end justify-between gap-4">
+                  <div>
+                    <h2 className="text-3xl font-black uppercase">
+                      Insignias
+                    </h2>
+                    <p className="mt-2 text-sm font-bold text-zinc-500">
+                      {logrosDesbloqueados} / {logros.length} desbloqueadas
+                    </p>
                   </div>
-                ))}
+
+                  <div className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-4 py-3 text-right">
+                    <p className="text-3xl font-black text-yellow-300">
+                      {porcentajeLogros}%
+                    </p>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-yellow-300/70">
+                      Progreso
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 h-4 overflow-hidden rounded-full border border-white/10 bg-black/45">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-purple-500 via-sky-400 to-yellow-300 shadow-[0_0_18px_rgba(250,204,21,.45)] transition-all duration-500"
+                    style={{ width: `${porcentajeLogros}%` }}
+                  />
+                </div>
+
+                <div className="mt-5 grid grid-cols-1 gap-3">
+                  {logros.map((logro) => (
+                    <div
+                      key={logro.titulo}
+                      className={`group rounded-2xl border p-4 transition ${
+                        logro.activo
+                          ? "border-yellow-400/30 bg-yellow-400/10 text-yellow-300 shadow-[0_0_22px_rgba(250,204,21,.10)]"
+                          : "border-white/10 bg-black/25 text-zinc-500 hover:border-white/20"
+                      }`}
+                      title={logro.descripcion}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div
+                          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border text-2xl ${
+                            logro.activo
+                              ? "border-yellow-400/25 bg-yellow-400/10"
+                              : "border-white/10 bg-white/[0.03] grayscale"
+                          }`}
+                        >
+                          {logro.icono}
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="truncate font-black uppercase text-white">
+                                {logro.titulo}
+                              </p>
+                              <p className="mt-1 text-xs font-bold text-zinc-500">
+                                {logro.descripcion}
+                              </p>
+                            </div>
+
+                            <span
+                              className={`shrink-0 rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] ${
+                                logro.activo
+                                  ? "border-green-400/25 bg-green-400/10 text-green-300"
+                                  : "border-white/10 bg-white/[0.03] text-zinc-500"
+                              }`}
+                            >
+                              {logro.activo ? "OK" : "LOCK"}
+                            </span>
+                          </div>
+
+                          <div className="mt-3 flex items-center justify-between gap-3">
+                            <span
+                              className={`rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] ${
+                                logro.rareza === "Legendaria"
+                                  ? "border-yellow-400/25 bg-yellow-400/10 text-yellow-300"
+                                  : logro.rareza === "Épica"
+                                    ? "border-purple-400/25 bg-purple-400/10 text-purple-300"
+                                    : logro.rareza === "Rara"
+                                      ? "border-sky-400/25 bg-sky-400/10 text-sky-300"
+                                      : "border-green-400/25 bg-green-400/10 text-green-300"
+                              }`}
+                            >
+                              {logro.rareza}
+                            </span>
+
+                            <span className="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
+                              {logro.activo ? "Desbloqueada" : logro.textoProgreso}
+                            </span>
+                          </div>
+
+                          <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/50">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${
+                                logro.activo
+                                  ? "bg-gradient-to-r from-green-400 to-yellow-300"
+                                  : "bg-gradient-to-r from-zinc-700 to-zinc-500"
+                              }`}
+                              style={{ width: `${logro.activo ? 100 : logro.progreso}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
 

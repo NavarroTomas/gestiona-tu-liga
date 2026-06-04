@@ -282,6 +282,24 @@ export default function AdminPage() {
           </Link>
           )}
 
+          {canTitles && (
+          <Link
+            href="/admin/premios"
+            className="group rounded-3xl border border-amber-500/20 bg-[#11151c] p-6 transition hover:border-amber-400 hover:shadow-[0_0_25px_rgba(251,191,36,.15)]"
+          >
+            <p className="text-amber-300 text-xs uppercase tracking-[0.25em] font-black">
+              Premios
+            </p>
+
+            <h3 className="text-3xl font-black mt-3">🏆 Premios APA</h3>
+
+            <p className="text-zinc-400 mt-3">
+              Asigná Balón de Oro, Raiko Trophy, Bota de Oro y Golden Boy con candidatos automáticos.
+            </p>
+          </Link>
+          )}
+
+
           {canCompetitions && (
           <Link
             href="/admin/fixture"
@@ -418,6 +436,24 @@ export default function AdminPage() {
             </p>
           </Link>
           )}
+
+          {canClubs && (
+          <Link
+            href="/admin/clubes"
+            className="group rounded-3xl border border-cyan-500/20 bg-[#11151c] p-6 transition hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(34,211,238,.15)]"
+          >
+            <p className="text-cyan-300 text-xs uppercase tracking-[0.25em] font-black">
+              Clubes
+            </p>
+
+            <h3 className="text-3xl font-black mt-3">🏟️ Clubes</h3>
+
+            <p className="text-zinc-400 mt-3">
+              Administrá logos, banners, colores, descripciones y datos visuales de los clubes.
+            </p>
+          </Link>
+          )}
+
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
