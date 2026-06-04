@@ -108,7 +108,7 @@ export default function PartidoEstadisticasPage() {
 
   function EscudoReal({ nombre, grande = false }: { nombre?: string; grande?: boolean }) {
     const logo = logoEquipo(nombre);
-    const size = grande ? "h-28 w-28 text-3xl" : "h-16 w-16 text-lg";
+    const size = grande ? "h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 text-2xl sm:text-3xl" : "h-12 w-12 sm:h-16 sm:w-16 text-base sm:text-lg";
 
     return (
       <div
@@ -141,13 +141,13 @@ export default function PartidoEstadisticasPage() {
     empty: string;
   }) {
     return (
-      <div className="rounded-[30px] border border-sky-500/20 bg-[#020714] p-6 shadow-[0_0_24px_rgba(0,120,255,.08)]">
+      <div className="rounded-[24px] border border-sky-500/20 bg-[#020714] p-5 sm:rounded-[30px] sm:p-6 shadow-[0_0_24px_rgba(0,120,255,.08)]">
         <div className="mb-5 flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-2xl">
             {icon}
           </div>
 
-          <h3 className="text-2xl font-black uppercase">{title}</h3>
+          <h3 className="text-xl font-black uppercase sm:text-2xl">{title}</h3>
         </div>
 
         {lista.length === 0 ? (
@@ -162,7 +162,7 @@ export default function PartidoEstadisticasPage() {
                 className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/35 p-4"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-lg font-black uppercase">
+                  <p className="break-words text-base font-black uppercase sm:truncate sm:text-lg">
                     {j.nombre}
                   </p>
 
@@ -171,7 +171,7 @@ export default function PartidoEstadisticasPage() {
                   </p>
                 </div>
 
-                <p className="text-4xl font-black text-yellow-300">
+                <p className="text-3xl font-black text-yellow-300 sm:text-4xl">
                   {Number(j[stat] || 0)}
                 </p>
               </div>
@@ -214,7 +214,7 @@ export default function PartidoEstadisticasPage() {
           {label}
         </p>
 
-        <p className="text-3xl font-black mt-3 text-white">{value ?? 0}</p>
+        <p className="mt-3 text-2xl font-black text-white sm:text-3xl">{value ?? 0}</p>
       </div>
     );
   }
@@ -241,7 +241,7 @@ export default function PartidoEstadisticasPage() {
                 {j.posicion || "-"}
               </span>
 
-              <h3 className="text-3xl font-black uppercase">
+              <h3 className="text-2xl font-black uppercase md:text-3xl">
                 {j.mvp ? "⭐ " : ""}
                 {j.nombre}
               </h3>
@@ -253,17 +253,17 @@ export default function PartidoEstadisticasPage() {
           </div>
 
           <div className="flex gap-3">
-            <div className="rounded-2xl bg-yellow-300 text-black px-5 py-3 font-black shadow-[0_0_20px_rgba(250,204,21,.25)]">
+            <div className="rounded-2xl bg-yellow-300 px-4 py-3 font-black text-black sm:px-5 shadow-[0_0_20px_rgba(250,204,21,.25)]">
               Score {j.score}
             </div>
 
-            <div className="rounded-2xl border border-sky-500/20 bg-black/40 px-5 py-3 font-black">
+            <div className="rounded-2xl border border-sky-500/20 bg-black/40 px-4 py-3 font-black sm:px-5">
               Rating {j.overallRating}
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3 mt-6">
+        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-6">
           <PlayerStatCard label="Goles" value={j.goals} />
           <PlayerStatCard label="Asist." value={j.assists} />
           <PlayerStatCard label="Tiros" value={j.shots} />
@@ -282,30 +282,30 @@ export default function PartidoEstadisticasPage() {
   }
 
   return (
-    <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
-      <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-10 space-y-8">
+    <main className="min-h-screen overflow-x-hidden text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
+      <div className="mx-auto max-w-[1500px] space-y-6 px-3 py-5 sm:px-4 md:space-y-8 md:px-8 md:py-10">
         <Link
           href="/estadisticas"
-          className="inline-flex items-center gap-2 rounded-2xl border border-sky-500/20 bg-sky-500/10 px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-sky-300 transition hover:bg-sky-500/20"
+          className="inline-flex items-center gap-2 rounded-2xl border border-sky-500/20 bg-sky-500/10 px-4 py-3 text-xs sm:px-5 sm:text-sm font-black uppercase tracking-[0.18em] text-sky-300 transition hover:bg-sky-500/20"
         >
           ← Volver al Match Center
         </Link>
 
-        <section className="relative overflow-hidden rounded-[36px] border border-sky-500/30 bg-[#020714] p-6 md:p-10 shadow-[0_0_55px_rgba(0,120,255,.2)]">
+        <section className="relative overflow-hidden rounded-[28px] border border-sky-500/30 bg-[#020714] p-5 sm:rounded-[36px] md:p-10 shadow-[0_0_55px_rgba(0,120,255,.2)]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.12),transparent_40%)]" />
 
           <div className="relative z-10">
-            <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black">
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-400 sm:text-xs sm:tracking-[0.45em]">
               APA PSO ARGENTINA
             </p>
 
-            <div className="mt-8 grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-8">
+            <div className="mt-7 grid grid-cols-1 items-center gap-6 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-8">
               <div className="text-center lg:text-left">
                 <div className="flex lg:block justify-center">
                   <EscudoReal nombre={local?.equipo} grande />
                 </div>
 
-                <h1 className="mt-5 text-3xl md:text-5xl font-black uppercase leading-tight">
+                <h1 className="mt-4 break-words text-xl font-black uppercase sm:text-2xl leading-tight sm:text-3xl md:text-5xl">
                   {local?.equipo}
                 </h1>
               </div>
@@ -315,8 +315,8 @@ export default function PartidoEstadisticasPage() {
                   Resultado final
                 </p>
 
-                <div className="mt-4 inline-flex items-center justify-center rounded-[30px] border border-yellow-400/30 bg-yellow-400/10 px-8 py-6 shadow-[0_0_30px_rgba(250,204,21,.12)]">
-                  <span className="text-5xl md:text-7xl font-black text-yellow-400 whitespace-nowrap drop-shadow-[0_0_10px_rgba(250,204,21,.45)]">
+                <div className="mt-4 inline-flex items-center justify-center rounded-[24px] border border-yellow-400/30 bg-yellow-400/10 px-5 py-4 sm:rounded-[30px] sm:px-8 sm:py-6 shadow-[0_0_30px_rgba(250,204,21,.12)]">
+                  <span className="text-4xl font-black text-yellow-400 sm:text-5xl md:text-7xl whitespace-nowrap drop-shadow-[0_0_10px_rgba(250,204,21,.45)]">
                     {local?.goals}-{visitante?.goals}
                   </span>
                 </div>
@@ -331,21 +331,21 @@ export default function PartidoEstadisticasPage() {
                   <EscudoReal nombre={visitante?.equipo} grande />
                 </div>
 
-                <h1 className="mt-5 text-3xl md:text-5xl font-black uppercase leading-tight">
+                <h1 className="mt-4 break-words text-xl font-black uppercase sm:text-2xl leading-tight sm:text-3xl md:text-5xl">
                   {visitante?.equipo}
                 </h1>
               </div>
             </div>
 
             {mvp && (
-              <div className="mt-10 rounded-[28px] border border-yellow-400/30 bg-gradient-to-r from-yellow-300 to-amber-500 text-black p-6 shadow-[0_0_30px_rgba(250,204,21,.22)]">
+              <div className="mt-8 rounded-[24px] border border-yellow-400/30 bg-gradient-to-r from-yellow-300 to-amber-500 p-5 text-black sm:rounded-[28px] sm:p-6 shadow-[0_0_30px_rgba(250,204,21,.22)]">
                 <p className="text-sm uppercase tracking-[0.25em] font-black">
                   MVP del partido
                 </p>
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-4xl font-black uppercase">
+                    <h2 className="text-xl font-black uppercase sm:text-2xl sm:text-3xl md:text-4xl">
                       ⭐ {mvp.nombre}
                     </h2>
 
@@ -388,8 +388,8 @@ export default function PartidoEstadisticasPage() {
         </section>
 
         {local && visitante && (
-          <section className="rounded-[34px] border border-sky-500/20 bg-[#020714] p-6 md:p-8 space-y-6">
-            <h2 className="text-4xl font-black uppercase">
+          <section className="rounded-[28px] border border-sky-500/20 bg-[#020714] p-5 sm:rounded-[34px] md:p-8 space-y-6">
+            <h2 className="text-xl font-black uppercase sm:text-2xl sm:text-3xl md:text-4xl">
               Estadísticas principales
             </h2>
 
@@ -425,8 +425,8 @@ export default function PartidoEstadisticasPage() {
           </section>
         )}
 
-        <section className="rounded-[34px] border border-sky-500/20 bg-[#020714] p-6 md:p-8">
-          <h2 className="text-4xl font-black uppercase mb-8">
+        <section className="rounded-[28px] border border-sky-500/20 bg-[#020714] p-5 sm:rounded-[34px] md:p-8">
+          <h2 className="text-xl font-black uppercase sm:text-2xl sm:text-3xl md:text-4xl mb-8">
             Mejores jugadores
           </h2>
 
@@ -434,7 +434,7 @@ export default function PartidoEstadisticasPage() {
             {topJugadores.map((j, index) => (
               <div
                 key={j.id}
-                className="rounded-[28px] border border-sky-500/15 bg-black/35 p-5 transition hover:border-sky-400/35 hover:shadow-[0_0_20px_rgba(56,189,248,.12)]"
+                className="rounded-[24px] border border-sky-500/15 bg-black/35 p-4 sm:rounded-[28px] sm:p-5 transition hover:border-sky-400/35 hover:shadow-[0_0_20px_rgba(56,189,248,.12)]"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -442,7 +442,7 @@ export default function PartidoEstadisticasPage() {
                       #{index + 1}
                     </p>
 
-                    <h3 className="mt-2 text-3xl font-black uppercase">
+                    <h3 className="mt-2 break-words text-2xl font-black uppercase md:text-3xl">
                       {j.mvp ? "⭐ " : ""}
                       {j.nombre}
                     </h3>
@@ -472,13 +472,13 @@ export default function PartidoEstadisticasPage() {
             {[local, visitante].map((equipo) => (
               <div
                 key={equipo.id}
-                className="rounded-[34px] border border-sky-500/20 bg-[#020714] p-6 md:p-8"
+                className="rounded-[28px] border border-sky-500/20 bg-[#020714] p-5 sm:rounded-[34px] md:p-8"
               >
                 <div className="flex items-center gap-4 mb-8">
                   <EscudoReal nombre={equipo.equipo} />
 
                   <div>
-                    <h2 className="text-3xl font-black uppercase">
+                    <h2 className="text-2xl font-black uppercase md:text-3xl">
                       {equipo.equipo}
                     </h2>
 
@@ -511,18 +511,18 @@ export default function PartidoEstadisticasPage() {
         )}
 
         {arqueros.length > 0 && (
-          <section className="rounded-[34px] border border-sky-500/20 bg-[#020714] p-6 md:p-8">
-            <h2 className="text-4xl font-black uppercase mb-8">Arqueros</h2>
+          <section className="rounded-[28px] border border-sky-500/20 bg-[#020714] p-5 sm:rounded-[34px] md:p-8">
+            <h2 className="text-xl font-black uppercase sm:text-2xl sm:text-3xl md:text-4xl mb-8">Arqueros</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {arqueros.map((j) => (
                 <div
                   key={j.id}
-                  className="rounded-[28px] border border-sky-500/15 bg-black/35 p-5"
+                  className="rounded-[24px] border border-sky-500/15 bg-black/35 p-4 sm:rounded-[28px] sm:p-5"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <h3 className="text-3xl font-black uppercase">
+                      <h3 className="text-2xl font-black uppercase md:text-3xl">
                         {j.nombre}
                       </h3>
 
@@ -548,10 +548,10 @@ export default function PartidoEstadisticasPage() {
           </section>
         )}
 
-        <section className="rounded-[34px] border border-sky-500/20 bg-[#020714] p-6 md:p-8">
+        <section className="rounded-[28px] border border-sky-500/20 bg-[#020714] p-5 sm:rounded-[34px] md:p-8">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div>
-              <h2 className="text-4xl font-black uppercase">
+              <h2 className="text-xl font-black uppercase sm:text-2xl sm:text-3xl md:text-4xl">
                 Detalle completo
               </h2>
 
@@ -572,8 +572,8 @@ export default function PartidoEstadisticasPage() {
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
               {[local.equipo, visitante.equipo].map((equipoNombre) => (
                 <div key={equipoNombre} className="space-y-5">
-                  <div className="rounded-[28px] border border-sky-500/15 bg-black/35 p-5">
-                    <h3 className="text-3xl font-black uppercase">
+                  <div className="rounded-[24px] border border-sky-500/15 bg-black/35 p-4 sm:rounded-[28px] sm:p-5">
+                    <h3 className="text-2xl font-black uppercase md:text-3xl">
                       {equipoNombre}
                     </h3>
                   </div>

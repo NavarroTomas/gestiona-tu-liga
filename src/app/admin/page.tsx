@@ -366,6 +366,42 @@ export default function AdminPage() {
           </Link>
           )}
 
+
+
+          {canNews && (
+          <Link
+            href="/admin/noticias"
+            className="group rounded-3xl border border-sky-500/20 bg-[#11151c] p-6 transition hover:border-sky-400 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]"
+          >
+            <p className="text-sky-400 text-xs uppercase tracking-[0.25em] font-black">
+              Prensa
+            </p>
+
+            <h3 className="text-3xl font-black mt-3">📰 Noticias</h3>
+
+            <p className="text-zinc-400 mt-3">
+              Administrá publicaciones, comunicados y noticias oficiales.
+            </p>
+          </Link>
+          )}
+
+          {canUsers && (
+          <Link
+            href="/admin/verificaciones"
+            className="group rounded-3xl border border-green-500/20 bg-[#11151c] p-6 transition hover:border-green-400 hover:shadow-[0_0_25px_rgba(74,222,128,.15)]"
+          >
+            <p className="text-green-300 text-xs uppercase tracking-[0.25em] font-black">
+              Verificación
+            </p>
+
+            <h3 className="text-3xl font-black mt-3">✅ Player IDs</h3>
+
+            <p className="text-zinc-400 mt-3">
+              Revisá solicitudes de PlayerId, aprobaciones, rechazos y disputas.
+            </p>
+          </Link>
+          )}
+
           {canUsers && (
           <Link
             href="/admin/usuarios"

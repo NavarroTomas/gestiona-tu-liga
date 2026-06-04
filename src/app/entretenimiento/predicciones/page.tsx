@@ -506,19 +506,19 @@ export default function PrediccionesPage() {
   }
 
   return (
-    <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
-      <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-8 space-y-8">
-        <section className="relative overflow-hidden rounded-[38px] border border-yellow-500/30 bg-[#020714] p-7 md:p-10 shadow-[0_0_55px_rgba(250,204,21,.12)]">
+    <main className="min-h-screen overflow-x-hidden text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
+      <div className="mx-auto max-w-[1500px] px-3 py-5 sm:px-4 md:px-8 md:py-8 space-y-6 md:space-y-8">
+        <section className="relative overflow-hidden rounded-[28px] border border-yellow-500/30 bg-[#020714] p-5 sm:rounded-[38px] md:p-10 shadow-[0_0_55px_rgba(250,204,21,.12)]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,.16),transparent_42%)]" />
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/20" />
 
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
             <div>
-              <p className="text-yellow-300 text-xs uppercase tracking-[0.45em] font-black">
+              <p className="text-yellow-300 text-[10px] sm:text-xs uppercase tracking-[0.28em] sm:tracking-[0.45em] font-black">
                 APA PSO ARGENTINA
               </p>
 
-              <h1 className="mt-4 text-5xl md:text-7xl font-black uppercase italic leading-none">
+              <h1 className="mt-4 text-[clamp(2.5rem,9vw,5rem)] font-black uppercase italic leading-none">
                 <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
                   Predicciones
                 </span>
@@ -541,7 +541,7 @@ export default function PrediccionesPage() {
                 </Link>
               </div>
 
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 <div className="rounded-2xl border border-yellow-500/20 bg-black/35 px-5 py-4">
                   <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
                     Cuenta
@@ -582,13 +582,13 @@ export default function PrediccionesPage() {
               </div>
             </div>
 
-            <div className="hidden lg:flex h-40 w-40 items-center justify-center rounded-full border border-yellow-400/40 bg-black/40 shadow-[0_0_35px_rgba(250,204,21,.25)]">
+            <div className="hidden lg:flex h-32 w-32 xl:h-40 xl:w-40 items-center justify-center rounded-full border border-yellow-400/40 bg-black/40 shadow-[0_0_35px_rgba(250,204,21,.25)]">
               <span className="text-6xl">🎯</span>
             </div>
           </div>
         </section>
 
-        <section className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6 md:p-8 shadow-[0_0_35px_rgba(0,120,255,.12)]">
+        <section className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] md:p-8 shadow-[0_0_35px_rgba(0,120,255,.12)]">
           <div className="grid gap-7">
             <div>
               <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
@@ -599,7 +599,7 @@ export default function PrediccionesPage() {
                   <button
                     key={temp}
                     onClick={() => setTemporada(temp)}
-                    className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
+                    className={`rounded-2xl border px-3 py-3 text-xs sm:text-sm font-black uppercase transition-all ${
                       temporada === temp
                         ? "border-sky-300 bg-gradient-to-b from-sky-400 to-blue-700 text-white shadow-[0_0_20px_rgba(56,189,248,.45)]"
                         : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
@@ -620,7 +620,7 @@ export default function PrediccionesPage() {
                   <button
                     key={div}
                     onClick={() => setDivision(div)}
-                    className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
+                    className={`rounded-2xl border px-3 py-3 text-xs sm:text-sm font-black uppercase transition-all ${
                       division === div
                         ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
                         : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
@@ -641,7 +641,7 @@ export default function PrediccionesPage() {
                   <button
                     key={f}
                     onClick={() => setFechaActiva(f)}
-                    className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
+                    className={`rounded-2xl border px-3 py-3 text-xs sm:text-sm font-black uppercase transition-all ${
                       fechaActiva === f
                         ? "border-green-300 bg-gradient-to-r from-green-400 to-emerald-600 text-black shadow-[0_0_20px_rgba(74,222,128,.35)]"
                         : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
@@ -661,13 +661,13 @@ export default function PrediccionesPage() {
           </section>
         )}
 
-        <section className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-8">
+        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_380px] xl:gap-8">
           <div className="space-y-6">
             <section>
               <p className="text-yellow-300 uppercase tracking-[0.35em] text-xs font-black">
                 Partidos disponibles
               </p>
-              <h2 className="mt-3 text-3xl md:text-5xl font-black uppercase">
+              <h2 className="mt-3 text-[clamp(1.8rem,7vw,3rem)] font-black uppercase">
                 {temporada}
                 <span className="text-sky-400"> / </span>
                 {division}
@@ -678,11 +678,11 @@ export default function PrediccionesPage() {
             </section>
 
             {cargando ? (
-              <section className="rounded-[34px] border border-sky-500/20 bg-[#020714] p-10 text-center text-sky-300 font-black uppercase tracking-[0.25em]">
+              <section className="rounded-[28px] border border-sky-500/20 bg-[#020714] p-6 sm:p-10 text-center text-sky-300 font-black uppercase tracking-[0.25em]">
                 Cargando predicciones...
               </section>
             ) : partidosFiltrados.length === 0 ? (
-              <section className="relative overflow-hidden rounded-[34px] border border-yellow-500/20 bg-[#020714] p-10 text-center shadow-[0_0_35px_rgba(250,204,21,.10)]">
+              <section className="relative overflow-hidden rounded-[28px] border border-yellow-500/20 bg-[#020714] p-6 sm:p-10 text-center shadow-[0_0_35px_rgba(250,204,21,.10)]">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(250,204,21,.12),transparent_45%)]" />
                 <div className="relative z-10 max-w-2xl mx-auto">
                   <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border border-yellow-400/30 bg-yellow-400/10 text-5xl">
@@ -712,7 +712,7 @@ export default function PrediccionesPage() {
                   return (
                     <article
                       key={key}
-                      className="relative overflow-hidden rounded-[34px] border border-sky-500/20 bg-[#020714] p-6 shadow-[0_0_30px_rgba(0,120,255,.10)]"
+                      className="relative overflow-hidden rounded-[28px] border border-sky-500/20 bg-[#020714] p-4 sm:rounded-[34px] sm:p-6 shadow-[0_0_30px_rgba(0,120,255,.10)]"
                     >
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.11),transparent_40%)]" />
 
@@ -722,7 +722,7 @@ export default function PrediccionesPage() {
                             <p className="text-yellow-300 text-xs uppercase tracking-[0.3em] font-black">
                               Fecha {partido.fecha || "-"}
                             </p>
-                            <h3 className="mt-3 text-3xl font-black uppercase">
+                            <h3 className="mt-3 text-2xl sm:text-3xl font-black uppercase">
                               {partido.local}
                               <span className="text-sky-400"> vs </span>
                               {partido.visitante}
@@ -751,8 +751,8 @@ export default function PrediccionesPage() {
                             Marcador exacto
                           </p>
 
-                          <div className="grid grid-cols-[1fr_90px_40px_90px_1fr] items-center gap-3">
-                            <p className="truncate text-right font-black uppercase">
+                          <div className="grid grid-cols-1 md:grid-cols-[1fr_90px_40px_90px_1fr] items-center gap-3">
+                            <p className="truncate text-center md:text-right font-black uppercase">
                               {partido.local}
                             </p>
 
@@ -788,7 +788,7 @@ export default function PrediccionesPage() {
                               className="rounded-2xl border border-yellow-400/25 bg-black/50 px-3 py-3 text-center text-2xl font-black text-white outline-none"
                             />
 
-                            <p className="truncate font-black uppercase">
+                            <p className="truncate text-center md:text-left font-black uppercase">
                               {partido.visitante}
                             </p>
                           </div>
@@ -874,7 +874,7 @@ export default function PrediccionesPage() {
               <p className="text-yellow-300 uppercase tracking-[0.3em] text-xs font-black">
                 Ranking
               </p>
-              <h2 className="mt-3 text-3xl font-black uppercase">
+              <h2 className="mt-3 text-2xl sm:text-3xl font-black uppercase">
                 Pronosticadores
               </h2>
               <p className="mt-2 text-zinc-500">
@@ -901,7 +901,7 @@ export default function PrediccionesPage() {
                           exactos
                         </p>
                       </div>
-                      <p className="text-3xl font-black text-yellow-300">
+                      <p className="text-2xl sm:text-3xl font-black text-yellow-300">
                         {r.puntos}
                       </p>
                     </div>
@@ -914,7 +914,7 @@ export default function PrediccionesPage() {
               <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black">
                 Mis predicciones
               </p>
-              <h2 className="mt-3 text-3xl font-black uppercase">
+              <h2 className="mt-3 text-2xl sm:text-3xl font-black uppercase">
                 {usuarioId
                   ? miPerfil?.display_name || miPerfil?.username || "Usuario"
                   : "Sin sesión"}
@@ -944,7 +944,7 @@ export default function PrediccionesPage() {
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
-                              <p className="truncate font-black uppercase">
+                              <p className="truncate text-center md:text-left font-black uppercase">
                                 {p.local} vs {p.visitante}
                               </p>
 

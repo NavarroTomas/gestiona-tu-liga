@@ -21,6 +21,29 @@ const divisiones = [
   { nombre: "cuarta", label: "Cuarta", icon: "⭐" },
 ];
 
+type NoticiaHome = {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  temporada: string | null;
+  categoria: string | null;
+  imagen_url: string | null;
+  autor: string | null;
+  publicada: boolean;
+  destacada: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
+function fechaNoticia(value?: string | null) {
+  if (!value) return "Sin fecha";
+  return new Date(value).toLocaleDateString("es-AR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 function SeparadorHome({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-4 py-3">
@@ -69,6 +92,7 @@ export default function Home() {
   const [partidos, setPartidos] = useState<any[]>([]);
   const [jugadores, setJugadores] = useState<any[]>([]);
   const [clubesInfo, setClubesInfo] = useState<any[]>([]);
+  const [noticias, setNoticias] = useState<NoticiaHome[]>([]);
   const [division, setDivision] = useState("primera");
   const [temporada, setTemporada] = useState("Temporada 5");
 
@@ -86,6 +110,27 @@ export default function Home() {
   useEffect(() => {
     cargarDatos();
   }, [division, temporada]);
+
+  useEffect(() => {
+    cargarNoticias();
+  }, []);
+
+  async function cargarNoticias() {
+    const { data, error } = await supabase
+      .from("noticias")
+      .select("*")
+      .eq("publicada", true)
+      .order("destacada", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(4);
+
+    if (error) {
+      console.log(error);
+      return;
+    }
+
+    setNoticias((data || []) as NoticiaHome[]);
+  }
 
   async function cargarDatos() {
     const { data: partidosData } = await supabase
@@ -240,6 +285,9 @@ export default function Home() {
       color: "text-emerald-300",
     },
   ];
+
+  const noticiaDestacada = noticias.find((n) => n.destacada) || noticias[0];
+  const noticiasSecundarias = noticias.filter((n) => n.id !== noticiaDestacada?.id).slice(0, 3);
 
   const accesos = [
     {
@@ -767,6 +815,125 @@ export default function Home() {
             </div>
           </section>
         </section>
+
+        {noticias.length > 0 && (
+          <>
+            <SeparadorHome label="Noticias APA" />
+
+            <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+              {noticiaDestacada && (
+                <Link
+                  href={`/noticias/${noticiaDestacada.id}`}
+                  className="group relative overflow-hidden rounded-[34px] border border-yellow-400/25 bg-gradient-to-br from-yellow-400/10 via-[#020714] to-black p-5 shadow-[0_0_40px_rgba(250,204,21,.10)] transition hover:border-yellow-300/50 md:p-7"
+                >
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,.14),transparent_42%)]" />
+
+                  <div className="relative z-10 grid gap-5 lg:grid-cols-[1fr_260px] lg:items-center">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap gap-2">
+                        <span className="rounded-xl border border-yellow-400/25 bg-yellow-400/10 px-3 py-1 text-[10px] font-black uppercase text-yellow-300">
+                          Última noticia
+                        </span>
+
+                        <span className="rounded-xl border border-sky-400/25 bg-sky-400/10 px-3 py-1 text-[10px] font-black uppercase text-sky-300">
+                          {noticiaDestacada.categoria || "General"}
+                        </span>
+                      </div>
+
+                      <h2 className="mt-5 break-words text-[clamp(2rem,7vw,3.6rem)] font-black uppercase leading-none group-hover:text-yellow-300">
+                        {noticiaDestacada.titulo}
+                      </h2>
+
+                      <p className="mt-4 line-clamp-3 text-sm leading-7 text-zinc-400 sm:text-base">
+                        {noticiaDestacada.descripcion}
+                      </p>
+
+                      <p className="mt-5 text-xs font-black uppercase tracking-[0.18em] text-zinc-500">
+                        {noticiaDestacada.temporada || "APA"} · {noticiaDestacada.autor || "Prensa APA"} · {fechaNoticia(noticiaDestacada.created_at || noticiaDestacada.updated_at)}
+                      </p>
+                    </div>
+
+                    <div className="h-56 overflow-hidden rounded-[28px] border border-white/10 bg-black/35">
+                      {noticiaDestacada.imagen_url ? (
+                        <img
+                          src={noticiaDestacada.imagen_url}
+                          alt={noticiaDestacada.titulo}
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center bg-gradient-to-br from-yellow-400/15 to-sky-500/10 text-6xl">
+                          📰
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              )}
+
+              <section className="rounded-[34px] border border-sky-500/20 bg-[#020714]/90 p-5 shadow-[0_0_35px_rgba(0,120,255,.10)] md:p-6">
+                <div className="mb-5 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
+                      Prensa
+                    </p>
+                    <h2 className="mt-2 text-3xl font-black uppercase">
+                      Más noticias
+                    </h2>
+                  </div>
+
+                  <Link
+                    href="/noticias"
+                    className="shrink-0 text-sm font-black uppercase text-sky-300 hover:text-white"
+                  >
+                    Ver todas →
+                  </Link>
+                </div>
+
+                <div className="space-y-3">
+                  {noticiasSecundarias.length === 0 ? (
+                    <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
+                      No hay más noticias publicadas.
+                    </p>
+                  ) : (
+                    noticiasSecundarias.map((noticia) => (
+                      <Link
+                        key={noticia.id}
+                        href={`/noticias/${noticia.id}`}
+                        className="group flex gap-4 rounded-2xl border border-white/10 bg-black/35 p-4 transition hover:border-sky-400/40 hover:bg-sky-400/10"
+                      >
+                        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/10 text-2xl">
+                          {noticia.imagen_url ? (
+                            <img
+                              src={noticia.imagen_url}
+                              alt={noticia.titulo}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            "📰"
+                          )}
+                        </div>
+
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-300">
+                            {noticia.categoria || "General"}
+                          </p>
+
+                          <h3 className="mt-1 line-clamp-2 text-base font-black uppercase text-white group-hover:text-sky-300">
+                            {noticia.titulo}
+                          </h3>
+
+                          <p className="mt-1 text-xs text-zinc-600">
+                            {fechaNoticia(noticia.created_at || noticia.updated_at)}
+                          </p>
+                        </div>
+                      </Link>
+                    ))
+                  )}
+                </div>
+              </section>
+            </section>
+          </>
+        )}
 
         <SeparadorHome label="Explorar APA" />
 

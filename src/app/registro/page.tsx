@@ -89,7 +89,7 @@ export default function RegistroPage() {
         data: {
           display_name: nombreLimpio,
           username: usernameLimpio,
-          playerid: playerIdLimpio,
+          requested_playerid: playerIdLimpio,
           steam_id: steamIdLimpio,
         },
       },
@@ -117,7 +117,7 @@ export default function RegistroPage() {
         .update({
           display_name: nombreLimpio,
           username: usernameLimpio,
-          playerid: playerIdLimpio,
+          requested_playerid: playerIdLimpio,
           steam_id: steamIdLimpio,
           avatar_url: null,
           updated_at: new Date().toISOString(),
@@ -127,7 +127,7 @@ export default function RegistroPage() {
 
     setTipoMensaje("ok");
     setMensaje(
-      "Cuenta creada. Ahora queda pendiente de aprobación por un administrador APA.",
+      "Cuenta creada. Tu perfil y PlayerId quedan pendientes de verificación por un administrador APA.",
     );
 
     setDisplayName("");
@@ -169,6 +169,7 @@ export default function RegistroPage() {
             <p className="mt-6 max-w-2xl text-zinc-400">
               Registrate para participar en funciones de comunidad como Dream
               Team, predicciones, perfiles públicos y futuras votaciones APA.
+              Tu PlayerId queda como solicitud hasta que un administrador verifique que realmente te pertenece.
             </p>
 
             <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -184,7 +185,7 @@ export default function RegistroPage() {
                 <p className="text-3xl">🕒</p>
                 <h3 className="mt-3 font-black uppercase">Pendiente</h3>
                 <p className="mt-2 text-sm text-zinc-500">
-                  Un admin debe aprobar tu cuenta.
+                  Un admin debe aprobar tu perfil y verificar tu PlayerId.
                 </p>
               </div>
 
@@ -208,7 +209,7 @@ export default function RegistroPage() {
               Crear cuenta APA
             </h2>
             <p className="mt-3 text-sm text-zinc-500">
-              Creá tu cuenta APA con usuario, PSO ID, Steam ID y contraseña.
+              Creá tu cuenta APA con usuario, PlayerId solicitado, Steam ID y contraseña. El PlayerId no queda verificado automáticamente.
             </p>
           </div>
 
@@ -239,7 +240,7 @@ export default function RegistroPage() {
 
             <div>
               <label className="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
-                PSO ID / Player ID
+                PSO ID / Player ID solicitado
               </label>
               <input
                 value={playerId}

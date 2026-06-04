@@ -467,7 +467,7 @@ export default function DreamTeamPage() {
   }) {
     const perfil = perfilPorPlayerId(playerId || "");
     const inicial = String(nombre || "J").slice(0, 1).toUpperCase();
-    const sizeClass = size === "sm" ? "h-10 w-10 text-sm" : "h-14 w-14 text-lg";
+    const sizeClass = size === "sm" ? "h-9 w-9 sm:h-10 sm:w-10 text-sm" : "h-11 w-11 sm:h-14 sm:w-14 text-base sm:text-lg";
 
     const avatar = (
       <div
@@ -523,7 +523,7 @@ export default function DreamTeamPage() {
     const logo = equipo ? logos[equipo] : "";
 
     return (
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-sky-400/30 bg-black">
+      <div className="flex h-8 w-8 shrink-0 sm:h-10 sm:w-10 items-center justify-center overflow-hidden rounded-full border border-sky-400/30 bg-black">
         {logo ? (
           <img src={logo} alt={equipo} className="h-full w-full object-contain p-1" />
         ) : (
@@ -542,7 +542,7 @@ export default function DreamTeamPage() {
       <button
         type="button"
         onClick={() => setPosicionActiva(id)}
-        className="group relative min-h-[106px] rounded-3xl border border-sky-400/30 bg-black/55 p-3 text-center shadow-[0_0_24px_rgba(56,189,248,.10)] transition hover:scale-[1.04] hover:border-yellow-300/70 hover:shadow-[0_0_30px_rgba(250,204,21,.20)]"
+        className="group relative min-h-[92px] rounded-2xl border border-sky-400/30 bg-black/55 p-2 text-center sm:min-h-[106px] sm:rounded-3xl sm:p-3 shadow-[0_0_24px_rgba(56,189,248,.10)] transition hover:scale-[1.04] hover:border-yellow-300/70 hover:shadow-[0_0_30px_rgba(250,204,21,.20)]"
       >
         <div className="mx-auto mb-2 flex justify-center">
           {elegido ? (
@@ -556,7 +556,7 @@ export default function DreamTeamPage() {
           {id}
         </p>
 
-        <h3 className="mt-1 truncate text-base font-black uppercase text-white">
+        <h3 className="mt-1 truncate text-xs font-black uppercase text-white sm:text-base">
           {elegido ? (
             <NombreJugadorLink playerId={elegido.playerId} nombre={elegido.nombre} />
           ) : (
@@ -564,7 +564,7 @@ export default function DreamTeamPage() {
           )}
         </h3>
 
-        <p className="mt-1 truncate text-xs text-zinc-500">
+        <p className="mt-1 truncate text-[10px] text-zinc-500 sm:text-xs">
           {elegido?.equipo || "Sin jugador"}
         </p>
 
@@ -576,18 +576,18 @@ export default function DreamTeamPage() {
   }
 
   return (
-    <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
-      <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-8 space-y-8">
-        <section className="relative overflow-hidden rounded-[38px] border border-sky-500/30 bg-[#020714] p-7 md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
+    <main className="min-h-screen overflow-x-hidden text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
+      <div className="mx-auto max-w-[1500px] space-y-6 px-3 py-5 sm:px-4 md:space-y-8 md:px-8 md:py-8">
+        <section className="relative overflow-hidden rounded-[28px] border border-sky-500/30 bg-[#020714] p-5 sm:rounded-[38px] md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_42%)]" />
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/20" />
 
           <div className="relative z-10">
-            <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black">
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-400 sm:text-xs sm:tracking-[0.45em]">
               APA PSO ARGENTINA
             </p>
 
-            <h1 className="mt-4 text-5xl md:text-7xl font-black uppercase italic leading-none">
+            <h1 className="mt-4 text-[clamp(2.5rem,9vw,5rem)] font-black uppercase italic leading-none">
               <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
                 Dream Team
               </span>
@@ -601,7 +601,7 @@ export default function DreamTeamPage() {
               GK, LB, CB, RB, LCM, RCM, LST y RST.
             </p>
 
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 md:gap-4">
               <div className="rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4">
                 <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">Cuenta</p>
                 <p className="mt-1 truncate font-black text-sky-300">
@@ -629,7 +629,7 @@ export default function DreamTeamPage() {
           </div>
         </section>
 
-        <section className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6 md:p-8 shadow-[0_0_35px_rgba(0,120,255,.12)]">
+        <section className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] md:p-8 shadow-[0_0_35px_rgba(0,120,255,.12)]">
           <div className="grid gap-7">
             <div>
               <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">Temporada</p>
@@ -638,7 +638,7 @@ export default function DreamTeamPage() {
                   <button
                     key={temp}
                     onClick={() => setTemporada(temp)}
-                    className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
+                    className={`rounded-2xl border px-3 py-3 text-xs font-black uppercase sm:px-4 sm:py-4 sm:text-sm transition-all ${
                       temporada === temp
                         ? "border-sky-300 bg-gradient-to-b from-sky-400 to-blue-700 text-white shadow-[0_0_20px_rgba(56,189,248,.45)]"
                         : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
@@ -657,7 +657,7 @@ export default function DreamTeamPage() {
                   <button
                     key={div}
                     onClick={() => setDivision(div)}
-                    className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
+                    className={`rounded-2xl border px-3 py-3 text-xs font-black uppercase sm:px-4 sm:py-4 sm:text-sm transition-all ${
                       division === div
                         ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
                         : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
@@ -676,7 +676,7 @@ export default function DreamTeamPage() {
                   <button
                     key={f}
                     onClick={() => setFecha(f)}
-                    className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
+                    className={`rounded-2xl border px-3 py-3 text-xs font-black uppercase sm:px-4 sm:py-4 sm:text-sm transition-all ${
                       fecha === f
                         ? "border-green-300 bg-gradient-to-r from-green-400 to-emerald-600 text-black shadow-[0_0_20px_rgba(74,222,128,.35)]"
                         : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
@@ -696,36 +696,36 @@ export default function DreamTeamPage() {
           </section>
         )}
 
-        <section className="grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-8">
-          <div className="relative overflow-hidden rounded-[42px] border border-white/10 bg-[#071b22] p-6 md:p-10 shadow-[0_0_55px_rgba(34,197,94,.12)]">
+        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_390px] xl:gap-8">
+          <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#071b22] p-3 sm:rounded-[42px] sm:p-5 md:p-8 xl:p-10 shadow-[0_0_55px_rgba(34,197,94,.12)]">
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px)] bg-[size:44px_44px] opacity-20" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,197,94,.18),transparent_60%)]" />
 
-            <div className="relative z-10 min-h-[820px] rounded-[34px] border border-green-300/20 bg-gradient-to-b from-green-700/20 via-green-950/30 to-green-900/20 p-6 md:p-10">
+            <div className="relative z-10 min-h-[560px] rounded-[24px] border border-green-300/20 bg-gradient-to-b from-green-700/20 via-green-950/30 to-green-900/20 p-3 sm:min-h-[680px] sm:rounded-[34px] sm:p-5 md:min-h-[760px] md:p-8 xl:min-h-[820px] xl:p-10">
               <div className="absolute left-[12%] right-[12%] top-6 h-24 rounded-b-full border-x border-b border-white/15" />
               <div className="absolute left-[12%] right-[12%] bottom-6 h-24 rounded-t-full border-x border-t border-white/15" />
               <div className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/15" />
               <div className="absolute left-0 right-0 top-1/2 h-px bg-white/10" />
 
-              <div className="relative z-10 flex h-full min-h-[740px] flex-col justify-between">
-                <div className="grid grid-cols-2 gap-8 max-w-[520px] mx-auto w-full">
+              <div className="relative z-10 flex h-full min-h-[500px] flex-col justify-between sm:min-h-[620px] md:min-h-[700px] xl:min-h-[740px]">
+                <div className="mx-auto grid w-full max-w-[520px] grid-cols-2 gap-3 sm:gap-6 md:gap-8">
                   <Slot id="LST" />
                   <Slot id="RST" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-8 max-w-[430px] mx-auto w-full">
+                <div className="mx-auto grid w-full max-w-[430px] grid-cols-2 gap-3 sm:gap-6 md:gap-8">
                   <Slot id="LCM" />
                   <Slot id="RCM" />
                 </div>
 
-                <div className="grid grid-cols-3 gap-6 max-w-[620px] mx-auto w-full">
+                <div className="mx-auto grid w-full max-w-[620px] grid-cols-3 gap-2 sm:gap-4 md:gap-6">
                   <Slot id="LB" />
                   <Slot id="CB" />
                   <Slot id="RB" />
                 </div>
 
                 <div className="flex w-full justify-center">
-                  <div className="w-[180px]">
+                  <div className="w-[130px] sm:w-[160px] md:w-[180px]">
                     <Slot id="GK" />
                   </div>
                 </div>
@@ -734,7 +734,7 @@ export default function DreamTeamPage() {
           </div>
 
           <aside className="space-y-6">
-            <section className="rounded-[34px] border border-yellow-500/25 bg-[#020714] p-6">
+            <section className="rounded-[28px] border border-yellow-500/25 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6">
               <p className="text-yellow-300 uppercase tracking-[0.3em] text-xs font-black">MVP de la fecha</p>
               <div className="mt-4 flex items-center gap-4">
                 <AvatarJugador
@@ -742,7 +742,7 @@ export default function DreamTeamPage() {
                   nombre={jugadorMasVotado?.nombre || "-"}
                 />
                 <div className="min-w-0">
-                  <h2 className="truncate text-3xl font-black uppercase">
+                  <h2 className="break-words text-2xl font-black uppercase sm:truncate sm:text-3xl">
                     <NombreJugadorLink
                       playerId={jugadorMasVotado?.playerId}
                       nombre={jugadorMasVotado?.nombre || "-"}
@@ -751,15 +751,15 @@ export default function DreamTeamPage() {
                   <p className="mt-2 truncate text-zinc-500">{jugadorMasVotado?.equipo || "Sin votos todavía"}</p>
                 </div>
               </div>
-              <p className="mt-5 text-5xl font-black text-yellow-300">{jugadorMasVotado?.votos || 0}</p>
+              <p className="mt-5 text-4xl font-black text-yellow-300 sm:text-5xl">{jugadorMasVotado?.votos || 0}</p>
               <p className="text-[10px] uppercase tracking-[0.25em] text-zinc-500 font-black">votos totales</p>
             </section>
 
-            <section className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6">
+            <section className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black">Mi equipo</p>
-                  <h2 className="mt-3 text-3xl font-black uppercase">Mi Dream Team</h2>
+                  <h2 className="mt-3 text-2xl font-black uppercase sm:text-3xl">Mi Dream Team</h2>
                 </div>
 
                 <button
@@ -799,9 +799,9 @@ export default function DreamTeamPage() {
               </div>
             </section>
 
-            <section className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6">
+            <section className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6">
               <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black">Votación</p>
-              <h2 className="mt-3 text-3xl font-black uppercase">
+              <h2 className="mt-3 text-2xl font-black uppercase sm:text-3xl">
                 {posicionActiva ? `Elegir ${posicionActiva}` : "Seleccioná una posición"}
               </h2>
               <p className="mt-3 text-zinc-500">
@@ -833,7 +833,7 @@ export default function DreamTeamPage() {
               )}
             </section>
 
-            <section className="max-h-[760px] overflow-y-auto rounded-[34px] border border-sky-500/25 bg-[#020714] p-4">
+            <section className="max-h-[560px] overflow-y-auto rounded-[28px] sm:max-h-[760px] sm:rounded-[34px] border border-sky-500/25 bg-[#020714] p-4">
               {!posicionActiva ? (
                 <div className="p-8 text-center text-zinc-500">No hay posición seleccionada.</div>
               ) : candidatos(posicionActiva).length === 0 ? (
@@ -844,13 +844,13 @@ export default function DreamTeamPage() {
                     <button
                       key={j.playerId || j.nombre}
                       onClick={() => votar(j)}
-                      className="w-full rounded-2xl border border-sky-500/15 bg-black/35 p-4 text-left transition hover:border-yellow-300/60 hover:bg-yellow-400/10"
+                      className="w-full rounded-2xl border border-sky-500/15 bg-black/35 p-3 text-left sm:p-4 transition hover:border-yellow-300/60 hover:bg-yellow-400/10"
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex min-w-0 items-center gap-3">
                           <AvatarJugador playerId={j.playerId} nombre={j.nombre} />
                           <div className="min-w-0">
-                            <p className="truncate text-lg font-black uppercase">
+                            <p className="break-words text-base font-black uppercase sm:truncate sm:text-lg">
                               <NombreJugadorLink playerId={j.playerId} nombre={j.nombre} />
                             </p>
                             <p className="truncate text-sm text-zinc-500">{j.equipo} · {j.posicion || "Sin posición"}</p>
@@ -858,12 +858,12 @@ export default function DreamTeamPage() {
                         </div>
 
                         <div className="text-right">
-                          <p className="text-2xl font-black text-yellow-300">{j.rating}</p>
+                          <p className="text-xl font-black text-yellow-300 sm:text-2xl">{j.rating}</p>
                           <p className="text-[10px] uppercase tracking-[0.18em] text-zinc-500">rating</p>
                         </div>
                       </div>
 
-                      <div className="mt-4 grid grid-cols-4 gap-2 text-center text-xs">
+                      <div className="mt-4 grid grid-cols-2 gap-2 text-center text-xs sm:grid-cols-4">
                         <div className="rounded-xl bg-white/[0.04] p-2"><b>{j.partidos}</b><p className="text-zinc-500">PJ</p></div>
                         <div className="rounded-xl bg-white/[0.04] p-2"><b>{j.goles}</b><p className="text-zinc-500">G</p></div>
                         <div className="rounded-xl bg-white/[0.04] p-2"><b>{j.asistencias}</b><p className="text-zinc-500">A</p></div>

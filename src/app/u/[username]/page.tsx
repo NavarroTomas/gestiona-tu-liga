@@ -10,6 +10,9 @@ type PerfilPublico = {
   display_name: string | null;
   username: string | null;
   playerid: string | null;
+  requested_playerid: string | null;
+  playerid_verified: boolean | null;
+  verification_status: string | null;
   steam_id: string | null;
   bio: string | null;
   avatar_url: string | null;
@@ -127,7 +130,7 @@ export default function PerfilPublicoPage() {
 
     const { data: perfilData, error: perfilError } = await supabase
       .from("profiles")
-      .select("id,display_name,username,playerid,steam_id,bio,avatar_url,status,visible_role")
+      .select("id,display_name,username,playerid,requested_playerid,playerid_verified,verification_status,steam_id,bio,avatar_url,status,visible_role")
       .eq("username", usernameParam)
       .maybeSingle();
 
@@ -488,6 +491,18 @@ export default function PerfilPublicoPage() {
                 <p className="mt-3 inline-flex rounded-full border border-yellow-400/25 bg-yellow-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-yellow-300">
                   {perfil.visible_role || "usuario"}
                 </p>
+
+                <div className="mt-4">
+                  {perfil.playerid_verified ? (
+                    <span className="inline-flex rounded-full border border-green-400/25 bg-green-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-green-300">
+                      ✅ Identidad verificada
+                    </span>
+                  ) : (
+                    <span className="inline-flex rounded-full border border-yellow-400/25 bg-yellow-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-yellow-300">
+                      ⏳ Verificación pendiente
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="mt-7 grid grid-cols-1 gap-3">
@@ -503,12 +518,29 @@ export default function PerfilPublicoPage() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-sky-400/20 bg-sky-400/10 p-4">
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-sky-300">
-                    PSO ID
+                <div className={`rounded-2xl border p-4 ${
+                  perfil.playerid_verified
+                    ? "border-green-400/20 bg-green-400/10"
+                    : "border-yellow-400/20 bg-yellow-400/10"
+                }`}>
+                  <p className={`text-[10px] font-black uppercase tracking-[0.25em] ${
+                    perfil.playerid_verified ? "text-green-300" : "text-yellow-300"
+                  }`}>
+                    Identidad APA
                   </p>
+
                   <p className="mt-2 break-all text-lg font-black text-white">
-                    {perfil.playerid || "No vinculado"}
+                    {perfil.playerid_verified
+                      ? (perfil.playerid || "Verificado")
+                      : "Pendiente de verificación"}
+                  </p>
+
+                  <p className={`mt-2 text-xs font-black uppercase tracking-[0.18em] ${
+                    perfil.playerid_verified ? "text-green-300" : "text-yellow-300"
+                  }`}>
+                    {perfil.playerid_verified
+                      ? "✅ Verificado por APA"
+                      : "⏳ PlayerId pendiente"}
                   </p>
                 </div>
 

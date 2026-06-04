@@ -4,9 +4,11 @@ import Link from "next/link";
 
 const secciones = [
   { id: "inicio", nombre: "Inicio", icono: "🏠" },
+  { id: "perfil", nombre: "Perfil", icono: "👤" },
   { id: "divisiones", nombre: "Divisiones", icono: "📊" },
   { id: "fixture", nombre: "Fixture", icono: "📅" },
   { id: "clubes", nombre: "Clubes", icono: "👥" },
+  { id: "mercado", nombre: "Mercado", icono: "🔁" },
   { id: "jugadores", nombre: "Jugadores", icono: "🧍" },
   { id: "historia", nombre: "Historia", icono: "📜" },
   { id: "predicciones", nombre: "Predicciones", icono: "🎯" },
@@ -36,7 +38,7 @@ function GuiaCard({
   return (
     <section
       id={id}
-      className="scroll-mt-28 rounded-[34px] border border-sky-500/25 bg-[#020714] p-6 md:p-8 shadow-[0_0_35px_rgba(0,120,255,.12)]"
+      className="scroll-mt-28 rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] md:p-8 shadow-[0_0_35px_rgba(0,120,255,.12)]"
     >
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
@@ -50,7 +52,7 @@ function GuiaCard({
                 Guía APA
               </p>
 
-              <h2 className="mt-2 break-words text-3xl md:text-5xl font-black uppercase leading-tight">
+              <h2 className="mt-2 break-words text-[clamp(1.8rem,7vw,3rem)] font-black uppercase leading-tight">
                 {titulo}
               </h2>
             </div>
@@ -115,22 +117,22 @@ function FAQItem({ pregunta, respuesta }: { pregunta: string; respuesta: string 
 
 export default function GuiaPage() {
   return (
-    <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
-      <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-8 space-y-8">
+    <main className="min-h-screen overflow-x-hidden text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
+      <div className="mx-auto max-w-[1500px] space-y-6 px-3 py-5 sm:px-4 md:space-y-8 md:px-8 md:py-8">
         <section
           id="top"
-          className="relative overflow-hidden rounded-[38px] border border-sky-500/30 bg-[#020714] p-7 md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]"
+          className="relative overflow-hidden rounded-[28px] border border-sky-500/30 bg-[#020714] p-5 sm:rounded-[38px] md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]"
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_42%)]" />
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/20" />
 
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
             <div className="min-w-0">
-              <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black break-words">
+              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-400 break-words sm:text-xs sm:tracking-[0.45em]">
                 APA PSO ARGENTINA
               </p>
 
-              <h1 className="mt-4 text-5xl md:text-7xl font-black uppercase italic leading-none break-words">
+              <h1 className="mt-4 text-[clamp(2.4rem,9vw,5rem)] font-black uppercase italic leading-none break-words">
                 <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
                   Guía Oficial
                 </span>
@@ -142,11 +144,12 @@ export default function GuiaPage() {
 
               <p className="mt-5 max-w-3xl text-zinc-400 text-base md:text-lg leading-relaxed break-words">
                 Todo lo que necesitás saber para usar la web de APA PSO Argentina:
-                tablas, fixture, clubes, jugadores, historia y funciones de comunidad.
+                crear tu perfil, vincular tu PlayerId, revisar tablas, fixture, clubes, jugadores,
+                mercado, historia y participar en funciones de comunidad.
               </p>
             </div>
 
-            <div className="hidden lg:flex h-40 w-40 items-center justify-center rounded-full border border-sky-400/40 bg-black/40 shadow-[0_0_35px_rgba(0,120,255,.45)]">
+            <div className="hidden lg:flex h-32 w-32 xl:h-40 xl:w-40 items-center justify-center rounded-full border border-sky-400/40 bg-black/40 shadow-[0_0_35px_rgba(0,120,255,.45)]">
               <span className="text-6xl">📖</span>
             </div>
           </div>
@@ -185,54 +188,54 @@ export default function GuiaPage() {
                 Navegación rápida
               </p>
 
-              <div className="flex gap-2 overflow-x-auto pb-1">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 {secciones.map((s) => (
                   <a
                     key={s.id}
                     href={`#${s.id}`}
-                    className="whitespace-nowrap rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-zinc-300 transition hover:border-sky-400/60 hover:bg-sky-400/10 hover:text-white"
+                    className="flex min-w-0 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-black/35 px-3 py-3 text-center text-[11px] font-black uppercase text-zinc-300 transition hover:border-sky-400/60 hover:bg-sky-400/10 hover:text-white sm:text-xs"
                   >
-                    <span className="mr-2">{s.icono}</span>
-                    {s.nombre}
+                    <span className="shrink-0">{s.icono}</span>
+                    <span className="min-w-0 truncate">{s.nombre}</span>
                   </a>
                 ))}
               </div>
             </section>
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="rounded-[30px] border border-sky-500/25 bg-[#020714] p-6">
+          <div className="rounded-[26px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[30px] sm:p-6">
             <p className="text-sky-300 text-xs uppercase tracking-[0.25em] font-black">
               Para nuevos usuarios
             </p>
-            <h3 className="mt-3 text-3xl font-black uppercase break-words">
+            <h3 className="mt-3 text-2xl font-black uppercase break-words sm:text-3xl">
               Empezá rápido
             </h3>
             <p className="mt-3 text-zinc-400 leading-relaxed">
-              Mirá el Inicio, buscá tu club y entrá a tu perfil de jugador.
+              Creá tu perfil, completá tus datos públicos y vinculá tu PlayerId para que la web te identifique bien.
             </p>
           </div>
 
-          <div className="rounded-[30px] border border-yellow-500/25 bg-[#020714] p-6">
+          <div className="rounded-[26px] border border-yellow-500/25 bg-[#020714] p-5 sm:rounded-[30px] sm:p-6">
             <p className="text-yellow-300 text-xs uppercase tracking-[0.25em] font-black">
               Comunidad
             </p>
-            <h3 className="mt-3 text-3xl font-black uppercase break-words">
+            <h3 className="mt-3 text-2xl font-black uppercase break-words sm:text-3xl">
               Participá
             </h3>
             <p className="mt-3 text-zinc-400 leading-relaxed">
-              Votá en Predicciones, armá tu Dream Team y revisá los premios.
+              Votá en Predicciones, armá tu Dream Team, seguí el Mercado y revisá Premios APA.
             </p>
           </div>
 
-          <div className="rounded-[30px] border border-green-500/25 bg-[#020714] p-6">
+          <div className="rounded-[26px] border border-green-500/25 bg-[#020714] p-5 sm:rounded-[30px] sm:p-6">
             <p className="text-green-300 text-xs uppercase tracking-[0.25em] font-black">
               Datos oficiales
             </p>
-            <h3 className="mt-3 text-3xl font-black uppercase break-words">
+            <h3 className="mt-3 text-2xl font-black uppercase break-words sm:text-3xl">
               Estadísticas
             </h3>
             <p className="mt-3 text-zinc-400 leading-relaxed">
-              Los rankings y perfiles se actualizan con los partidos cargados.
+              Los rankings, perfiles, clubes y premios se alimentan de los TXT y datos oficiales cargados.
             </p>
           </div>
         </section>
@@ -252,6 +255,25 @@ export default function GuiaPage() {
             "Si sos nuevo, lo mejor es empezar por Inicio, luego Divisiones y después buscar tu club.",
           ]}
           consejo="Recorrido recomendado: Inicio → Divisiones → Clubes → Tu perfil de jugador → Predicciones → Dream Team."
+        />
+
+        <GuiaCard
+          id="perfil"
+          icono="👤"
+          titulo="Perfil de usuario"
+          href="/perfil"
+          descripcion="El perfil es una de las partes más importantes de la plataforma. Sirve para identificarte dentro de APA, conectar tu cuenta con tu PlayerId y participar correctamente en funciones como Predicciones, Dream Team y perfil público."
+          items={[
+            "Para participar en la comunidad tenés que iniciar sesión y completar tu perfil.",
+            "Tu nombre visible aparece en la web, rankings, predicciones y zona de usuario.",
+            "El PlayerId es clave para vincular tu usuario con tus estadísticas reales de jugador.",
+            "El Steam ID ayuda a validar identidad y evitar perfiles duplicados o falsos.",
+            "Tu perfil público puede mostrar nombre, usuario, descripción, rol visible y avatar si corresponde.",
+            "Si tu PlayerId está mal cargado, tus estadísticas pueden no vincularse correctamente con tu cuenta.",
+            "Los administradores pueden revisar o aprobar perfiles según el estado del usuario.",
+            "Si recién te registraste y algo no aparece, puede faltar completar datos o que tu perfil esté pendiente.",
+          ]}
+          consejo="Antes de votar o reclamar estadísticas, completá bien tu perfil: nombre visible, usuario, PlayerId y Steam ID. Es la base para que toda la web te reconozca correctamente."
         />
 
         <GuiaCard
@@ -293,16 +315,33 @@ export default function GuiaPage() {
           icono="👥"
           titulo="Clubes"
           href="/clubes"
-          descripcion="La sección de Clubes reúne la identidad y el rendimiento de cada equipo dentro de la liga."
+          descripcion="La sección de Clubes reúne la identidad, plantel, rendimiento, historial y perfil visual de cada equipo dentro de la liga."
           items={[
             "Cada club puede tener escudo, banner, descripción y color principal.",
             "Desde un club podés acceder a su perfil completo.",
             "El perfil de club puede mostrar estadísticas, plantel, historial y partidos.",
             "Los jugadores del plantel pueden llevarte directamente a su perfil.",
             "Si un club no tiene logo, puede ser porque todavía no fue configurado.",
-            "Si hay clubes con nombres repetidos, se recomienda diferenciarlos con slug o temporada.",
+            "Si hay clubes con nombres repetidos, se recomienda diferenciarlos con slug, temporada o datos visuales en clubes_info.",
           ]}
           consejo="Buscá tu club para revisar su plantel, sus estadísticas y acceder rápido a los jugadores."
+        />
+
+        <GuiaCard
+          id="mercado"
+          icono="🔁"
+          titulo="Mercado de pases"
+          href="/mercado"
+          descripcion="Mercado muestra fichajes, salidas, préstamos y jugadores libres de cada temporada y división."
+          items={[
+            "Podés filtrar movimientos por temporada, división y tipo.",
+            "Los movimientos pueden mostrar desde qué club llega o hacia qué club va un jugador.",
+            "Si el jugador tiene perfil público vinculado, podés entrar desde su nombre o avatar.",
+            "Los clubes del movimiento pueden enlazar a su perfil de equipo cuando son clubes válidos.",
+            "Los tipos principales son Fichaje, Salida, Préstamo y Libre.",
+            "Sirve para seguir altas, bajas y cambios importantes antes o durante una temporada.",
+          ]}
+          consejo="Para que Mercado se vea completo, conviene tener clubes con logos configurados y usuarios con perfiles actualizados."
         />
 
         <GuiaCard
@@ -310,16 +349,16 @@ export default function GuiaPage() {
           icono="🧍"
           titulo="Jugadores"
           href="/jugadores"
-          descripcion="Cada jugador tiene un perfil individual basado en su PlayerId. Esto evita confusiones entre jugadores con nombres parecidos."
+          descripcion="Cada jugador tiene un perfil deportivo individual basado en su PlayerId. Esto evita confusiones entre jugadores con nombres parecidos y permite conectar estadísticas reales con perfiles de usuario."
           items={[
             "Podés consultar goles, asistencias, MVP, rating, score y más estadísticas.",
             "Los arqueros se diferencian por atajadas y atrapadas.",
             "El historial puede mostrar rendimiento por temporada, división y equipo.",
             "Los rankings de jugadores usan playerId para agrupar correctamente.",
             "Si un jugador no aparece, puede ser porque todavía no se cargaron sus estadísticas.",
-            "Desde clubes, plantillas, historia y premios podés entrar a perfiles de jugadores.",
+            "Desde clubes, plantillas, mercado, historia, premios y rankings podés entrar a perfiles de jugadores.",
           ]}
-          consejo="El PlayerId es la clave más importante: la web identifica jugadores por PlayerId, no solo por nombre."
+          consejo="El PlayerId es la clave más importante: la web identifica jugadores por PlayerId, no por nombre. Además, si el usuario completa su perfil con el mismo PlayerId, queda mejor conectado con su identidad pública."
         />
 
         <GuiaCard
@@ -346,14 +385,14 @@ export default function GuiaPage() {
           href="/entretenimiento/predicciones"
           descripcion="Predicciones permite pronosticar partidos antes de que se jueguen y competir en un ranking de usuarios."
           items={[
-            "Escribí tu nombre o usuario antes de votar.",
+            "Para votar necesitás iniciar sesión con tu usuario.",
             "Podés elegir ganador: local, empate o visitante.",
             "También podés cargar marcador exacto.",
             "Ganador correcto suma 1 punto.",
             "Marcador exacto suma 3 puntos.",
             "Cuando se carga el resultado real, la página calcula si acertaste o fallaste.",
           ]}
-          consejo="Si querés competir en el ranking, usá siempre el mismo nombre de usuario."
+          consejo="Si querés competir correctamente en el ranking, usá tu cuenta real y mantené tu perfil completo."
         />
 
         <GuiaCard
@@ -368,9 +407,9 @@ export default function GuiaPage() {
             "No se puede repetir el mismo jugador en varias posiciones.",
             "El equipo final se arma con los jugadores más votados por la comunidad.",
             "Los candidatos salen de las estadísticas cargadas para esa fecha.",
-            "Podés cambiar tu voto en una posición si te arrepentís.",
+            "Cada usuario puede armar su Dream Team por fecha respetando las reglas de no repetir jugadores.",
           ]}
-          consejo="Si no aparecen candidatos, probablemente no haya estadísticas cargadas para esa temporada, división y fecha."
+          consejo="Si no aparecen candidatos, probablemente no haya estadísticas cargadas para esa temporada, división y fecha. Si no te deja votar, revisá que hayas iniciado sesión y que tu perfil esté correcto."
         />
 
         <GuiaCard
@@ -404,17 +443,18 @@ export default function GuiaPage() {
                 Ayuda rápida
               </p>
 
-              <h2 className="mt-2 text-3xl md:text-5xl font-black uppercase leading-tight">
+              <h2 className="mt-2 text-[clamp(1.8rem,7vw,3rem)] font-black uppercase leading-tight">
                 Preguntas Frecuentes
               </h2>
             </div>
           </div>
 
           <div className="mt-7 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FAQItem pregunta="¿Por qué no aparezco en la web?" respuesta="Puede ser porque todavía no jugaste partidos cargados o porque tus estadísticas no tienen playerId correcto." />
+            <FAQItem pregunta="¿Por qué no aparezco en la web?" respuesta="Puede ser porque todavía no jugaste partidos cargados, porque tus estadísticas no tienen PlayerId correcto o porque tu perfil de usuario todavía no está completo." />
+            <FAQItem pregunta="¿Por qué es tan importante completar mi perfil?" respuesta="Porque el perfil conecta tu usuario con tu identidad pública, tu PlayerId, tu Steam ID y tu participación en Predicciones, Dream Team y rankings de comunidad." />
             <FAQItem pregunta="¿Por qué mi club no tiene logo?" respuesta="Porque todavía no fue configurado en la base de datos o el link del logo está mal cargado." />
-            <FAQItem pregunta="¿Por qué no puedo votar el mismo jugador dos veces en Dream Team?" respuesta="Porque cada jugador solo puede ocupar una posición en tu equipo ideal." />
-            <FAQItem pregunta="¿Cómo sumo puntos en Predicciones?" respuesta="Sumás 1 punto por acertar el ganador y 3 puntos por acertar el marcador exacto." />
+            <FAQItem pregunta="¿Por qué no puedo votar el mismo jugador dos veces en Dream Team?" respuesta="Porque cada jugador solo puede ocupar una posición en tu equipo ideal por fecha." />
+            <FAQItem pregunta="¿Cómo sumo puntos en Predicciones?" respuesta="Sumás 1 punto por acertar el ganador y 3 puntos por acertar el marcador exacto. Necesitás iniciar sesión para votar." />
             <FAQItem pregunta="¿Por qué no aparecen premios en una fecha?" respuesta="Porque todavía no hay estadísticas de jugadores cargadas para esa fecha." />
             <FAQItem pregunta="¿Por qué una tabla aparece vacía?" respuesta="Puede ser porque no hay equipos o partidos cargados para la temporada y división seleccionadas." />
           </div>
@@ -434,7 +474,7 @@ export default function GuiaPage() {
                 Organización
               </p>
 
-              <h2 className="mt-2 text-3xl md:text-5xl font-black uppercase leading-tight">
+              <h2 className="mt-2 text-[clamp(1.8rem,7vw,3rem)] font-black uppercase leading-tight">
                 Mapa de la Web
               </h2>
             </div>
@@ -442,6 +482,12 @@ export default function GuiaPage() {
 
           <div className="mt-7 rounded-3xl border border-white/10 bg-black/35 p-5 overflow-x-auto">
             <pre className="text-sm md:text-base leading-relaxed text-zinc-300 whitespace-pre-wrap break-words">{`Inicio
+│
+├─ Perfil
+│  ├─ Datos públicos
+│  ├─ PlayerId
+│  ├─ Steam ID
+│  └─ Perfil público
 │
 ├─ Divisiones
 │  └─ Tabla de posiciones
@@ -451,7 +497,10 @@ export default function GuiaPage() {
 │
 ├─ Clubes
 │  └─ Perfil de club
-│     └─ Jugadores del club
+│     └─ Plantel y jugadores
+│
+├─ Mercado
+│  └─ Fichajes, salidas, préstamos y libres
 │
 ├─ Jugadores
 │  └─ Perfil individual por PlayerId

@@ -11,6 +11,10 @@ type Perfil = {
   display_name: string | null;
   username: string | null;
   playerid: string | null;
+  requested_playerid: string | null;
+  playerid_verified: boolean | null;
+  verification_status: string | null;
+  verification_note: string | null;
   steam_id: string | null;
   bio: string | null;
   avatar_url: string | null;
@@ -24,7 +28,7 @@ export default function PerfilPage() {
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
-  const [playerid, setPlayerid] = useState("");
+  const [requestedPlayerid, setRequestedPlayerid] = useState("");
   const [steamId, setSteamId] = useState("");
   const [bio, setBio] = useState("");
   const [mensaje, setMensaje] = useState("");
@@ -59,7 +63,7 @@ export default function PerfilPage() {
 
     const { data, error } = await supabase
       .from("profiles")
-      .select("id,email,display_name,username,playerid,steam_id,bio,avatar_url,status,visible_role")
+      .select("id,email,display_name,username,playerid,requested_playerid,playerid_verified,verification_status,verification_note,steam_id,bio,avatar_url,status,visible_role")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -73,7 +77,7 @@ export default function PerfilPage() {
     setPerfil(data as Perfil);
     setDisplayName(data.display_name || "");
     setUsername(data.username || "");
-    setPlayerid(data.playerid || "");
+    setRequestedPlayerid(data.requested_playerid || data.playerid || "");
     setSteamId(data.steam_id || "");
     setBio(data.bio || "");
     setLoading(false);
@@ -142,7 +146,7 @@ export default function PerfilPage() {
 
     const nombreLimpio = displayName.trim();
     const usernameLimpio = limpiarUsername(username);
-    const playeridLimpio = playerid.trim();
+    const requestedPlayeridLimpio = requestedPlayerid.trim();
     const steamIdLimpio = steamId.trim();
 
     if (!perfil) return;
@@ -157,8 +161,8 @@ export default function PerfilPage() {
       return;
     }
 
-    if (!playeridLimpio) {
-      setMensaje("El PSO ID / Player ID es obligatorio.");
+    if (!requestedPlayeridLimpio) {
+      setMensaje("El PSO ID / Player ID solicitado es obligatorio.");
       return;
     }
 
@@ -174,7 +178,13 @@ export default function PerfilPage() {
       .update({
         display_name: nombreLimpio,
         username: usernameLimpio,
-        playerid: playeridLimpio,
+        requested_playerid: requestedPlayeridLimpio,
+        playerid_verified: false,
+        verification_status: "pending",
+        verification_note:
+          requestedPlayeridLimpio !== (perfil.requested_playerid || perfil.playerid || "")
+            ? "El usuario modificó su PlayerId solicitado. Requiere nueva verificación."
+            : perfil.verification_note,
         steam_id: steamIdLimpio,
         bio: bio.trim() || null,
         updated_at: new Date().toISOString(),
@@ -189,7 +199,7 @@ export default function PerfilPage() {
       return;
     }
 
-    setMensaje("Perfil actualizado correctamente.");
+    setMensaje("Perfil actualizado. Tu PlayerId solicitado queda pendiente de verificación por un administrador APA.");
     await cargarPerfil();
   }
 
@@ -226,7 +236,7 @@ export default function PerfilPage() {
               </h1>
 
               <p className="mt-4 max-w-2xl text-zinc-400">
-                Administrá tus datos de jugador para votar, predecir y participar en la comunidad.
+                Administrá tus datos públicos. Tu PlayerId queda como solicitud y debe ser verificado por un administrador APA antes de vincularse oficialmente a tus estadísticas.
               </p>
             </div>
 
@@ -287,13 +297,61 @@ export default function PerfilPage() {
 
               <div>
                 <label className="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
-                  PSO ID / Player ID
+                  PSO ID / Player ID solicitado
                 </label>
                 <input
-                  value={playerid}
-                  onChange={(e) => setPlayerid(e.target.value)}
+                  value={requestedPlayerid}
+                  onChange={(e) => setRequestedPlayerid(e.target.value)}
+                  placeholder="Este dato será revisado por un admin"
                   className="w-full rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4 text-white outline-none focus:border-sky-400/60"
                 />
+
+                <div className="mt-3 rounded-2xl border border-yellow-400/20 bg-yellow-400/10 p-4">
+                  <p className="text-xs font-black uppercase tracking-[0.22em] text-yellow-300">
+                    Verificación de PlayerId
+                  </p>
+
+                  <div className="mt-3 grid gap-2 text-sm text-zinc-300">
+                    <p>
+                      Solicitado:{" "}
+                      <span className="font-black text-white">
+                        {perfil?.requested_playerid || "Sin solicitud"}
+                      </span>
+                    </p>
+
+                    <p>
+                      Verificado:{" "}
+                      <span className={perfil?.playerid_verified ? "font-black text-green-300" : "font-black text-zinc-500"}>
+                        {perfil?.playerid_verified ? perfil?.playerid || "Verificado" : "Pendiente"}
+                      </span>
+                    </p>
+
+                    <p>
+                      Estado:{" "}
+                      <span className={`font-black ${
+                        perfil?.verification_status === "approved"
+                          ? "text-green-300"
+                          : perfil?.verification_status === "rejected"
+                            ? "text-red-300"
+                            : perfil?.verification_status === "disputed"
+                              ? "text-orange-300"
+                              : "text-yellow-300"
+                      }`}>
+                        {perfil?.verification_status || "pending"}
+                      </span>
+                    </p>
+
+                    {perfil?.verification_note && (
+                      <p className="text-xs leading-5 text-zinc-500">
+                        Nota: {perfil.verification_note}
+                      </p>
+                    )}
+                  </div>
+
+                  <p className="mt-3 text-xs leading-5 text-zinc-500">
+                    Tu PlayerId no se vincula automáticamente. Un administrador debe verificar que realmente te pertenece.
+                  </p>
+                </div>
               </div>
 
               <div>
@@ -391,6 +449,13 @@ export default function PerfilPage() {
 
               <p className="mt-3 text-sm text-zinc-400">
                 Estado: <span className="font-black text-yellow-300">{perfil?.status}</span>
+              </p>
+
+              <p className="mt-3 text-sm text-zinc-400">
+                PlayerId:{" "}
+                <span className={perfil?.playerid_verified ? "font-black text-green-300" : "font-black text-yellow-300"}>
+                  {perfil?.playerid_verified ? "Verificado" : "Pendiente"}
+                </span>
               </p>
 
               <p className="mt-3 text-sm text-zinc-400">

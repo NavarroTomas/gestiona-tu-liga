@@ -141,7 +141,7 @@ export default function HistoriaPage() {
     const sizes = {
       sm: "h-10 w-10 rounded-xl text-[10px]",
       md: "h-12 w-12 rounded-2xl text-xs",
-      lg: "h-16 w-16 rounded-3xl text-base",
+      lg: "h-12 w-12 sm:h-16 sm:w-16 rounded-2xl sm:rounded-3xl text-sm sm:text-base",
     };
 
     return (
@@ -209,7 +209,7 @@ export default function HistoriaPage() {
     const lista = top(campo);
 
     return (
-      <section className="relative overflow-hidden rounded-[34px] border border-sky-500/20 bg-[#020714] p-6 shadow-[0_0_30px_rgba(0,120,255,.10)]">
+      <section className="relative overflow-hidden rounded-[28px] border border-sky-500/20 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6 shadow-[0_0_30px_rgba(0,120,255,.10)]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.10),transparent_38%)]" />
 
         <div className="relative z-10">
@@ -218,7 +218,7 @@ export default function HistoriaPage() {
               {icono}
             </div>
 
-            <h2 className="text-2xl font-black uppercase">{titulo}</h2>
+            <h2 className="text-xl font-black uppercase sm:text-2xl">{titulo}</h2>
           </div>
 
           <div className="space-y-3">
@@ -258,12 +258,12 @@ export default function HistoriaPage() {
                       </div>
                     </div>
 
-                    <p className={`shrink-0 text-3xl font-black ${color}`}>
+                    <p className={`shrink-0 text-2xl font-black sm:text-3xl ${color}`}>
                       {j[campo]}
                       {sufijo}
                     </p>
                   </>,
-                  "flex items-center justify-between rounded-2xl border border-sky-500/10 bg-black/35 p-4 transition hover:border-sky-400/45 hover:bg-sky-400/10",
+                  "flex items-center justify-between gap-3 rounded-2xl border border-sky-500/10 bg-black/35 p-3 sm:p-4 transition hover:border-sky-400/45 hover:bg-sky-400/10",
                   `${String(campo)}-${j.playerId || j.nombre}-${index}`,
                 ),
               )
@@ -311,7 +311,7 @@ export default function HistoriaPage() {
               {titulo}
             </p>
 
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-black/35 text-3xl">
+            <div className="flex h-12 w-12 items-center justify-center sm:h-14 sm:w-14 rounded-2xl border border-white/10 bg-black/35 text-3xl">
               {icono}
             </div>
           </div>
@@ -320,7 +320,7 @@ export default function HistoriaPage() {
             <EscudoEquipo nombre={jugador?.equipo} size="lg" />
 
             <div className="min-w-0">
-              <h3 className="truncate text-3xl font-black uppercase">
+              <h3 className="break-words text-2xl font-black uppercase sm:truncate sm:text-3xl">
                 {jugador?.nombre || "-"}
               </h3>
 
@@ -331,7 +331,7 @@ export default function HistoriaPage() {
           </div>
 
           <div className="mt-7 flex items-end justify-between gap-4">
-            <p className={`text-6xl font-black ${color}`}>{valor || 0}</p>
+            <p className={`text-4xl font-black sm:text-5xl md:text-6xl ${color}`}>{valor || 0}</p>
 
             <p className="text-right text-xs uppercase tracking-[0.2em] text-zinc-500">
               {subtitulo}
@@ -343,7 +343,7 @@ export default function HistoriaPage() {
 
     if (!jugador?.playerId) {
       return (
-        <div className="relative overflow-hidden rounded-[34px] border border-white/10 bg-[#020714] p-6 shadow-[0_0_35px_rgba(0,120,255,.10)]">
+        <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6 shadow-[0_0_35px_rgba(0,120,255,.10)]">
           {contenido}
         </div>
       );
@@ -352,7 +352,7 @@ export default function HistoriaPage() {
     return (
       <Link
         href={`/jugadores/${encodeURIComponent(jugador.playerId)}`}
-        className="relative block overflow-hidden rounded-[34px] border border-white/10 bg-[#020714] p-6 shadow-[0_0_35px_rgba(0,120,255,.10)] transition hover:border-sky-400/45 hover:scale-[1.01]"
+        className="relative block overflow-hidden rounded-[28px] border border-white/10 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6 shadow-[0_0_35px_rgba(0,120,255,.10)] transition hover:border-sky-400/45 hover:scale-[1.01]"
       >
         {contenido}
       </Link>
@@ -370,18 +370,18 @@ export default function HistoriaPage() {
   }
 
   return (
-    <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
-      <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-8 space-y-8">
-        <section className="relative overflow-hidden rounded-[38px] border border-sky-500/30 bg-[#020714] p-7 md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
+    <main className="min-h-screen overflow-x-hidden text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
+      <div className="mx-auto max-w-[1500px] space-y-6 px-3 py-5 sm:px-4 md:space-y-8 md:px-8 md:py-8">
+        <section className="relative overflow-hidden rounded-[28px] border border-sky-500/30 bg-[#020714] p-5 sm:rounded-[38px] md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_42%)]" />
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/20" />
 
           <div className="relative z-10">
-            <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black">
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-400 sm:text-xs sm:tracking-[0.45em]">
               APA PSO ARGENTINA
             </p>
 
-            <h1 className="mt-4 text-5xl md:text-7xl font-black uppercase italic leading-none">
+            <h1 className="mt-4 text-[clamp(2.5rem,9vw,5rem)] font-black uppercase italic leading-none">
               <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
                 Salón de
               </span>
@@ -395,7 +395,7 @@ export default function HistoriaPage() {
               acumulados desde todos los TXT cargados.
             </p>
 
-            <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="mt-7 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
               <div className="rounded-2xl border border-sky-500/20 bg-black/35 p-4">
                 <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
                   Jugadores
@@ -435,7 +435,7 @@ export default function HistoriaPage() {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 xl:gap-5">
           <LeyendaCard
             titulo="Leyenda goleadora"
             subtitulo="goles"
@@ -487,7 +487,7 @@ export default function HistoriaPage() {
             Rankings históricos
           </p>
 
-          <h2 className="mt-3 text-3xl md:text-5xl font-black uppercase">
+          <h2 className="mt-3 text-[clamp(1.8rem,7vw,3rem)] font-black uppercase">
             Récords de la competición
           </h2>
 
@@ -496,7 +496,7 @@ export default function HistoriaPage() {
           </p>
         </section>
 
-        <section className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <section className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-8">
           <RankingBox
             titulo="Máximos goleadores históricos"
             campo="goles"
