@@ -19,9 +19,23 @@ interface RankingJugador {
   intercepciones: number;
 }
 
+interface PremioAPA {
+  id: number;
+  temporada: string;
+  division: string | null;
+  premio: string;
+  playerid: string;
+  nombre: string;
+  equipo: string | null;
+  puntos: number | null;
+  posicion: number | null;
+  created_at: string | null;
+}
+
 export default function HistoriaPage() {
   const [jugadores, setJugadores] = useState<RankingJugador[]>([]);
   const [clubesInfo, setClubesInfo] = useState<any[]>([]);
+  const [premiosApa, setPremiosApa] = useState<PremioAPA[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -113,8 +127,70 @@ export default function HistoriaPage() {
       setClubesInfo([]);
     }
 
+    const { data: premiosData, error: premiosError } = await supabase
+      .from("premios_apa")
+      .select("*")
+      .order("temporada", { ascending: false })
+      .order("created_at", { ascending: false });
+
+    if (premiosError) {
+      console.log(premiosError);
+      setPremiosApa([]);
+    } else {
+      setPremiosApa((premiosData || []) as PremioAPA[]);
+    }
+
     setJugadores(lista);
     setLoading(false);
+  }
+
+  function premioNombre(premio: string) {
+    const mapa: Record<string, string> = {
+      balon_oro: "Balón de Oro",
+      raiko_trophy: "Raiko Trophy",
+      bota_oro: "Bota de Oro",
+      golden_boy: "Golden Boy",
+    };
+
+    return mapa[premio] || premio;
+  }
+
+  function premioIcono(premio: string) {
+    const mapa: Record<string, string> = {
+      balon_oro: "🏆",
+      raiko_trophy: "🧤",
+      bota_oro: "⚽",
+      golden_boy: "⭐",
+    };
+
+    return mapa[premio] || "🏆";
+  }
+
+  function premioColor(premio: string) {
+    const mapa: Record<string, string> = {
+      balon_oro: "text-yellow-300",
+      raiko_trophy: "text-cyan-300",
+      bota_oro: "text-emerald-400",
+      golden_boy: "text-purple-300",
+    };
+
+    return mapa[premio] || "text-yellow-300";
+  }
+
+  function ultimoPremio(tipo: string) {
+    return premiosApa.find((p) => p.premio === tipo);
+  }
+
+  function vecesGanadas(playerid?: string | null, tipo?: string) {
+    if (!playerid || !tipo) return 0;
+
+    return premiosApa.filter(
+      (p) => p.premio === tipo && p.playerid === playerid,
+    ).length;
+  }
+
+  function premiosPorTipo(tipo: string) {
+    return premiosApa.filter((p) => p.premio === tipo);
   }
 
   function logoEquipo(nombre?: string) {
@@ -359,6 +435,193 @@ export default function HistoriaPage() {
     );
   }
 
+  function PremioCard({ tipo }: { tipo: string }) {
+    const premio = ultimoPremio(tipo);
+    const historial = premiosPorTipo(tipo);
+    const veces = vecesGanadas(premio?.playerid, tipo);
+    const color = premioColor(tipo);
+
+    const contenido = (
+      <>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,.12),transparent_42%)]" />
+
+        <div className="relative z-10">
+          <div className="mb-7 flex items-center justify-between gap-4">
+            <div>
+              <p className={`text-xs font-black uppercase tracking-[0.28em] ${color}`}>
+                Premio APA
+              </p>
+              <h3 className="mt-2 text-2xl font-black uppercase sm:text-3xl">
+                {premioNombre(tipo)}
+              </h3>
+            </div>
+
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-black/35 text-3xl shadow-[0_0_20px_rgba(250,204,21,.14)]">
+              {premioIcono(tipo)}
+            </div>
+          </div>
+
+          {premio ? (
+            <>
+              <div className="flex items-center gap-4">
+                <EscudoEquipo nombre={premio.equipo || undefined} size="lg" />
+
+                <div className="min-w-0">
+                  <p className="truncate text-2xl font-black uppercase text-white sm:text-3xl">
+                    {premio.nombre}
+                  </p>
+                  <p className="mt-1 truncate text-sm font-black uppercase tracking-[0.14em] text-zinc-500">
+                    {premio.equipo || "Sin club"} · {premio.temporada}
+                    {premio.division ? ` · ${premio.division}` : ""}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-7 grid grid-cols-3 gap-3">
+                <div className="rounded-2xl border border-white/10 bg-black/35 p-3 text-center">
+                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                    Puntos
+                  </p>
+                  <p className={`mt-2 text-xl font-black ${color}`}>
+                    {Number(premio.puntos || 0).toFixed(1)}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-black/35 p-3 text-center">
+                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                    Pos.
+                  </p>
+                  <p className={`mt-2 text-xl font-black ${color}`}>
+                    #{premio.posicion || 1}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-black/35 p-3 text-center">
+                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                    Veces
+                  </p>
+                  <p className={`mt-2 text-xl font-black ${color}`}>
+                    {veces}
+                  </p>
+                </div>
+              </div>
+
+              {historial.length > 1 && (
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {historial.slice(0, 5).map((h) => (
+                    <span
+                      key={`${h.id}-${h.temporada}`}
+                      className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-400"
+                    >
+                      {h.temporada}: {h.nombre}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-black/35 p-5">
+              <p className="text-lg font-black uppercase text-zinc-400">
+                Sin ganador cargado
+              </p>
+              <p className="mt-2 text-sm leading-6 text-zinc-500">
+                Cuando se asigne desde el panel de premios, aparecerá acá automáticamente.
+              </p>
+            </div>
+          )}
+        </div>
+      </>
+    );
+
+    if (!premio?.playerid) {
+      return (
+        <article className="relative overflow-hidden rounded-[28px] border border-yellow-500/20 bg-[#020714] p-5 shadow-[0_0_35px_rgba(250,204,21,.10)] sm:rounded-[34px] sm:p-6">
+          {contenido}
+        </article>
+      );
+    }
+
+    return (
+      <Link
+        href={`/jugadores/${encodeURIComponent(premio.playerid)}`}
+        className="relative block overflow-hidden rounded-[28px] border border-yellow-500/20 bg-[#020714] p-5 shadow-[0_0_35px_rgba(250,204,21,.10)] transition hover:border-yellow-400/45 hover:scale-[1.01] sm:rounded-[34px] sm:p-6"
+      >
+        {contenido}
+      </Link>
+    );
+  }
+
+
+  function rankingTrofeos(tipo?: string) {
+    const mapa: Record<string, any> = {};
+
+    premiosApa
+      .filter((p) => !tipo || p.premio === tipo)
+      .forEach((p) => {
+        const key = p.playerid;
+
+        if (!mapa[key]) {
+          mapa[key] = {
+            playerid: p.playerid,
+            nombre: p.nombre,
+            equipo: p.equipo || "Sin club",
+            cantidad: 0,
+          };
+        }
+
+        mapa[key].cantidad += 1;
+      });
+
+    return Object.values(mapa)
+      .sort((a: any, b: any) => b.cantidad - a.cantidad)
+      .slice(0, 10);
+  }
+
+  function RankingTrofeos({
+    titulo,
+    tipo,
+    icono,
+    color,
+  }: {
+    titulo: string;
+    tipo?: string;
+    icono: string;
+    color: string;
+  }) {
+    const lista = rankingTrofeos(tipo);
+
+    return (
+      <section className="relative overflow-hidden rounded-[28px] border border-yellow-500/20 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6 shadow-[0_0_30px_rgba(250,204,21,.10)]">
+        <div className="mb-5 flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-yellow-400/25 bg-yellow-400/10 text-2xl">
+            {icono}
+          </div>
+          <h2 className="text-xl font-black uppercase sm:text-2xl">{titulo}</h2>
+        </div>
+
+        <div className="space-y-3">
+          {lista.map((j: any, index: number) => (
+            <Link
+              key={`${j.playerid}-${index}`}
+              href={`/jugadores/${encodeURIComponent(j.playerid)}`}
+              className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/35 p-4 hover:border-yellow-400/30"
+            >
+              <div>
+                <p className="font-black uppercase text-white">{j.nombre}</p>
+                <p className="text-sm text-zinc-500">{j.equipo}</p>
+              </div>
+
+              <p className={`text-3xl font-black ${color}`}>
+                {j.cantidad}
+              </p>
+            </Link>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+
   if (loading) {
     return (
       <main className="min-h-screen bg-[#020714] text-white flex items-center justify-center">
@@ -435,6 +698,27 @@ export default function HistoriaPage() {
           </div>
         </section>
 
+        <section>
+          <p className="text-yellow-300 uppercase tracking-[0.35em] text-xs font-black">
+            Premios oficiales
+          </p>
+
+          <h2 className="mt-3 text-[clamp(1.8rem,7vw,3rem)] font-black uppercase">
+            Trofeos APA
+          </h2>
+
+          <p className="mt-3 max-w-3xl text-zinc-500">
+            Balón de Oro, Raiko Trophy, Bota de Oro y Golden Boy. Ganadores oficiales cargados desde el panel administrativo.
+          </p>
+        </section>
+
+        <section className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-4 xl:gap-5">
+          <PremioCard tipo="balon_oro" />
+          <PremioCard tipo="raiko_trophy" />
+          <PremioCard tipo="bota_oro" />
+          <PremioCard tipo="golden_boy" />
+        </section>
+
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 xl:gap-5">
           <LeyendaCard
             titulo="Leyenda goleadora"
@@ -481,6 +765,53 @@ export default function HistoriaPage() {
             icono="🧤"
           />
         </section>
+
+        <section>
+          <p className="text-yellow-300 uppercase tracking-[0.35em] text-xs font-black">
+            Salón de trofeos
+          </p>
+
+          <h2 className="mt-3 text-[clamp(1.8rem,7vw,3rem)] font-black uppercase">
+            Ranking histórico de premios
+          </h2>
+        </section>
+
+        <section className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-8">
+          <RankingTrofeos
+            titulo="Más Balones de Oro"
+            tipo="balon_oro"
+            icono="🏆"
+            color="text-yellow-300"
+          />
+
+          <RankingTrofeos
+            titulo="Más Raiko Trophy"
+            tipo="raiko_trophy"
+            icono="🧤"
+            color="text-cyan-300"
+          />
+
+          <RankingTrofeos
+            titulo="Más Botas de Oro"
+            tipo="bota_oro"
+            icono="⚽"
+            color="text-emerald-400"
+          />
+
+          <RankingTrofeos
+            titulo="Más Golden Boy"
+            tipo="golden_boy"
+            icono="⭐"
+            color="text-purple-300"
+          />
+
+          <RankingTrofeos
+            titulo="Más Trofeos APA"
+            icono="👑"
+            color="text-yellow-300"
+          />
+        </section>
+
 
         <section>
           <p className="text-sky-300 uppercase tracking-[0.35em] text-xs font-black">

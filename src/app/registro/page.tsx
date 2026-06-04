@@ -221,11 +221,11 @@ export default function RegistroPage() {
               <input
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Ej: Monzon"
+                placeholder="Ej: Monchon"
                 className="w-full rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-sky-400/60"
               />
             </div>
-
+-
             <div>
               <label className="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
                 Usuario
@@ -233,7 +233,7 @@ export default function RegistroPage() {
               <input
                 value={username}
                 onChange={(e) => setUsername(limpiarUsername(e.target.value))}
-                placeholder="Ej: monzon07"
+                placeholder="Ej: 07"
                 className="w-full rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-sky-400/60"
               />
             </div>

@@ -74,6 +74,63 @@ type Plantilla = {
   estado: string | null;
 };
 
+type PremioAPA = {
+  id: number;
+  temporada: string;
+  division: string | null;
+  premio: string;
+  playerid: string;
+  nombre: string;
+  equipo: string | null;
+  puntos: number | null;
+  posicion: number | null;
+  created_at: string | null;
+};
+
+function premioNombre(premio: string) {
+  const mapa: Record<string, string> = {
+    balon_oro: "Balón de Oro",
+    raiko_trophy: "Raiko Trophy",
+    bota_oro: "Bota de Oro",
+    golden_boy: "Golden Boy",
+  };
+
+  return mapa[premio] || premio;
+}
+
+function premioIcono(premio: string) {
+  const mapa: Record<string, string> = {
+    balon_oro: "🏆",
+    raiko_trophy: "🧤",
+    bota_oro: "⚽",
+    golden_boy: "⭐",
+  };
+
+  return mapa[premio] || "🏆";
+}
+
+function premioColor(premio: string) {
+  const mapa: Record<string, string> = {
+    balon_oro: "text-yellow-300",
+    raiko_trophy: "text-cyan-300",
+    bota_oro: "text-emerald-400",
+    golden_boy: "text-purple-300",
+  };
+
+  return mapa[premio] || "text-yellow-300";
+}
+
+function premioBg(premio: string) {
+  const mapa: Record<string, string> = {
+    balon_oro: "border-yellow-400/25 bg-yellow-400/10",
+    raiko_trophy: "border-cyan-400/25 bg-cyan-400/10",
+    bota_oro: "border-emerald-400/25 bg-emerald-400/10",
+    golden_boy: "border-purple-400/25 bg-purple-400/10",
+  };
+
+  return mapa[premio] || "border-yellow-400/25 bg-yellow-400/10";
+}
+
 function ocultarSteamId(steamId?: string | null) {
   if (!steamId) return "No vinculado";
   const limpio = steamId.trim();
@@ -117,6 +174,7 @@ export default function PerfilPublicoPage() {
   const [partidos, setPartidos] = useState<Partido[]>([]);
   const [dreamVotes, setDreamVotes] = useState<DreamVote[]>([]);
   const [plantillas, setPlantillas] = useState<Plantilla[]>([]);
+  const [premiosApa, setPremiosApa] = useState<PremioAPA[]>([]);
   const [loading, setLoading] = useState(true);
   const [mensaje, setMensaje] = useState("");
 
@@ -194,6 +252,23 @@ export default function PerfilPublicoPage() {
       }
     }
 
+    let premiosData: PremioAPA[] = [];
+
+    if (perfilFinal.playerid) {
+      const { data: premiosRaw, error: premiosError } = await supabase
+        .from("premios_apa")
+        .select("*")
+        .eq("playerid", perfilFinal.playerid)
+        .order("temporada", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      if (premiosError) {
+        console.log(premiosError);
+      } else {
+        premiosData = (premiosRaw || []) as PremioAPA[];
+      }
+    }
+
     const predData = (predDataRaw || []) as Prediccion[];
     const dreamData = (dreamDataRaw || []) as DreamVote[];
 
@@ -201,6 +276,7 @@ export default function PerfilPublicoPage() {
     setPredicciones(predData);
     setDreamVotes(dreamData);
     setPlantillas(plantillasData);
+    setPremiosApa(premiosData);
 
     if (predData.length > 0) {
       const ids = Array.from(new Set(predData.map((p) => p.partido_id).filter(Boolean)));
@@ -398,6 +474,34 @@ export default function PerfilPublicoPage() {
     };
   }, [dreamVotes]);
 
+  const trofeosAgrupados = useMemo(() => {
+    const mapa: Record<
+      string,
+      {
+        premio: string;
+        cantidad: number;
+        items: PremioAPA[];
+      }
+    > = {};
+
+    premiosApa.forEach((premio) => {
+      if (!mapa[premio.premio]) {
+        mapa[premio.premio] = {
+          premio: premio.premio,
+          cantidad: 0,
+          items: [],
+        };
+      }
+
+      mapa[premio.premio].cantidad += 1;
+      mapa[premio.premio].items.push(premio);
+    });
+
+    return Object.values(mapa).sort((a, b) => b.cantidad - a.cantidad);
+  }, [premiosApa]);
+
+  const totalTrofeos = premiosApa.length;
+
   const logros = useMemo(() => {
     const crearProgreso = (actual: number, objetivo: number) => {
       if (objetivo <= 0) return 0;
@@ -469,10 +573,40 @@ export default function PerfilPublicoPage() {
         titulo: "Balón de Oro",
         descripcion: "Ganar un Balón de Oro APA.",
         rareza: "Legendaria",
-        actual: 0,
+        actual: premiosApa.filter((p) => p.premio === "balon_oro").length,
         objetivo: 1,
-        activo: false,
-        textoProgreso: "Pendiente",
+        activo: premiosApa.some((p) => p.premio === "balon_oro"),
+        textoProgreso: premiosApa.some((p) => p.premio === "balon_oro") ? "1 / 1" : "Pendiente",
+      },
+      {
+        icono: "🧤",
+        titulo: "Raiko Trophy",
+        descripcion: "Ganar el premio al mejor arquero de APA.",
+        rareza: "Legendaria",
+        actual: premiosApa.filter((p) => p.premio === "raiko_trophy").length,
+        objetivo: 1,
+        activo: premiosApa.some((p) => p.premio === "raiko_trophy"),
+        textoProgreso: premiosApa.some((p) => p.premio === "raiko_trophy") ? "1 / 1" : "Pendiente",
+      },
+      {
+        icono: "⚽",
+        titulo: "Bota de Oro",
+        descripcion: "Ganar la Bota de Oro APA como máximo goleador.",
+        rareza: "Legendaria",
+        actual: premiosApa.filter((p) => p.premio === "bota_oro").length,
+        objetivo: 1,
+        activo: premiosApa.some((p) => p.premio === "bota_oro"),
+        textoProgreso: premiosApa.some((p) => p.premio === "bota_oro") ? "1 / 1" : "Pendiente",
+      },
+      {
+        icono: "⭐",
+        titulo: "Golden Boy",
+        descripcion: "Ganar el premio Golden Boy APA como joven promesa.",
+        rareza: "Legendaria",
+        actual: premiosApa.filter((p) => p.premio === "golden_boy").length,
+        objetivo: 1,
+        activo: premiosApa.some((p) => p.premio === "golden_boy"),
+        textoProgreso: premiosApa.some((p) => p.premio === "golden_boy") ? "1 / 1" : "Pendiente",
       },
       {
         icono: "🎮",
@@ -510,7 +644,7 @@ export default function PerfilPublicoPage() {
       ...logro,
       progreso: crearProgreso(logro.actual, logro.objetivo),
     }));
-  }, [resumen, prediccionStats, dreamStats]);
+  }, [resumen, prediccionStats, dreamStats, premiosApa]);
 
   const logrosDesbloqueados = useMemo(() => {
     return logros.filter((logro) => logro.activo).length;
@@ -742,6 +876,117 @@ export default function PerfilPublicoPage() {
 
         <section className="grid grid-cols-1 gap-8 xl:grid-cols-[1fr_420px]">
           <section className="space-y-8">
+            <section className="relative overflow-hidden rounded-[34px] border border-yellow-500/25 bg-[#020714] p-6 shadow-[0_0_35px_rgba(250,204,21,.10)] md:p-8">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,.14),transparent_42%)]" />
+
+              <div className="relative z-10">
+                <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-300">
+                      Vitrina oficial
+                    </p>
+
+                    <h2 className="mt-2 text-4xl font-black uppercase">
+                      Trofeos APA
+                    </h2>
+
+                    <p className="mt-3 text-sm leading-6 text-zinc-500">
+                      Premios individuales oficiales ganados por este jugador en la comunidad.
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-5 py-4 text-center">
+                    <p className="text-4xl font-black text-yellow-300">
+                      {totalTrofeos}
+                    </p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-300/70">
+                      Trofeos
+                    </p>
+                  </div>
+                </div>
+
+                {totalTrofeos === 0 ? (
+                  <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
+                    Este jugador todavía no ganó trofeos individuales APA.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {trofeosAgrupados.map((grupo) => (
+                      <article
+                        key={grupo.premio}
+                        className={`relative overflow-hidden rounded-3xl border p-5 ${premioBg(grupo.premio)}`}
+                      >
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,.12),transparent_42%)]" />
+
+                        <div className="relative z-10">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <p className={`text-xs font-black uppercase tracking-[0.25em] ${premioColor(grupo.premio)}`}>
+                                Premio APA
+                              </p>
+
+                              <h3 className="mt-2 text-2xl font-black uppercase text-white">
+                                {premioIcono(grupo.premio)} {premioNombre(grupo.premio)}
+                              </h3>
+
+                              <p className="mt-1 text-sm font-bold text-zinc-500">
+                                {grupo.cantidad} {grupo.cantidad === 1 ? "vez" : "veces"}
+                              </p>
+                            </div>
+
+                            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-black/35 text-4xl">
+                              {premioIcono(grupo.premio)}
+                            </div>
+                          </div>
+
+                          <div className="mt-5 flex flex-wrap gap-2">
+                            {grupo.items.map((trofeo) => (
+                              <span
+                                key={trofeo.id}
+                                className="rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-zinc-300"
+                              >
+                                {trofeo.temporada}
+                                {trofeo.division ? ` · ${trofeo.division}` : ""}
+                              </span>
+                            ))}
+                          </div>
+
+                          <div className="mt-5 grid grid-cols-3 gap-2">
+                            <div className="rounded-xl border border-white/10 bg-black/35 p-3 text-center">
+                              <p className="text-[9px] font-black uppercase text-zinc-500">
+                                Últ. Pts
+                              </p>
+                              <p className={`mt-1 text-lg font-black ${premioColor(grupo.premio)}`}>
+                                {Number(grupo.items[0]?.puntos || 0).toFixed(1)}
+                              </p>
+                            </div>
+
+                            <div className="rounded-xl border border-white/10 bg-black/35 p-3 text-center">
+                              <p className="text-[9px] font-black uppercase text-zinc-500">
+                                Pos.
+                              </p>
+                              <p className={`mt-1 text-lg font-black ${premioColor(grupo.premio)}`}>
+                                #{grupo.items[0]?.posicion || 1}
+                              </p>
+                            </div>
+
+                            <div className="rounded-xl border border-white/10 bg-black/35 p-3 text-center">
+                              <p className="text-[9px] font-black uppercase text-zinc-500">
+                                Total
+                              </p>
+                              <p className={`mt-1 text-lg font-black ${premioColor(grupo.premio)}`}>
+                                x{grupo.cantidad}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+
             <section className="rounded-[34px] border border-green-500/20 bg-[#020714] p-6 md:p-8">
               <div className="mb-6">
                 <p className="text-xs font-black uppercase tracking-[0.35em] text-green-300">
