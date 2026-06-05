@@ -6,13 +6,7 @@ import { supabase } from "../lib/supabase";
 import HeroImagenesHome from "../components/HeroImagenesHome";
 import HeroCarruselHome from "../components/HeroCarruselHome";
 
-const temporadas = [
-  "Temporada 1",
-  "Temporada 2",
-  "Temporada 3",
-  "Temporada 4",
-  "Temporada 5",
-];
+const temporadas = ["Temporada 4"];
 
 const divisiones = [
   { nombre: "primera", label: "Primera", icon: "🏆" },
@@ -94,18 +88,18 @@ export default function Home() {
   const [clubesInfo, setClubesInfo] = useState<any[]>([]);
   const [noticias, setNoticias] = useState<NoticiaHome[]>([]);
   const [division, setDivision] = useState("primera");
-  const [temporada, setTemporada] = useState("Temporada 5");
+  const [temporada, setTemporada] = useState("Temporada 4");
 
   const divisionDb =
     division === "primera"
       ? "Primera"
       : division === "segunda"
-      ? "Segunda"
-      : division === "tercera"
-      ? "Tercera"
-      : division === "cuarta"
-      ? "Cuarta"
-      : division;
+        ? "Segunda"
+        : division === "tercera"
+          ? "Tercera"
+          : division === "cuarta"
+            ? "Cuarta"
+            : division;
 
   useEffect(() => {
     cargarDatos();
@@ -182,8 +176,12 @@ export default function Home() {
 
     const club = clubesInfo.find(
       (c) =>
-        String(c.nombre || "").toLowerCase().trim() ===
-        String(nombre || "").toLowerCase().trim(),
+        String(c.nombre || "")
+          .toLowerCase()
+          .trim() ===
+        String(nombre || "")
+          .toLowerCase()
+          .trim(),
     );
 
     return club?.logo_url || null;
@@ -193,8 +191,9 @@ export default function Home() {
     partidos.flatMap((p) => [p.local, p.visitante]).filter(Boolean),
   ).size;
 
-  const jugadoresCantidad = new Set(jugadores.map((j) => j.nombre).filter(Boolean))
-    .size;
+  const jugadoresCantidad = new Set(
+    jugadores.map((j) => j.nombre).filter(Boolean),
+  ).size;
 
   const golesTotales = jugadores.reduce(
     (acc, j) => acc + Number(j.goles || j.goals || 0),
@@ -212,11 +211,11 @@ export default function Home() {
   );
 
   const partidoDestacado =
-    partidos.find((p) => !p.resultado) || partidos.find((p) => p.resultado) || partidos[0];
+    partidos.find((p) => !p.resultado) ||
+    partidos.find((p) => p.resultado) ||
+    partidos[0];
 
-  const proximosPartidos = partidos
-    .filter((p) => !p.resultado)
-    .slice(0, 4);
+  const proximosPartidos = partidos.filter((p) => !p.resultado).slice(0, 4);
 
   const ultimosResultados = partidos
     .filter((p) => p.resultado)
@@ -287,7 +286,9 @@ export default function Home() {
   ];
 
   const noticiaDestacada = noticias.find((n) => n.destacada) || noticias[0];
-  const noticiasSecundarias = noticias.filter((n) => n.id !== noticiaDestacada?.id).slice(0, 3);
+  const noticiasSecundarias = noticias
+    .filter((n) => n.id !== noticiaDestacada?.id)
+    .slice(0, 3);
 
   const accesos = [
     {
@@ -341,10 +342,9 @@ export default function Home() {
     },
     {
       href: "/historia",
-      title: "Archivo APA",
-      desc: "Rankings y registros históricos cargados.",
+      title: "Historia APA",
+      desc: "Premios, récords y estadísticas desde la Temporada 4.",
       icon: "🏛️",
-      color: "from-orange-500/20 to-blue-950/20 border-orange-400/25",
     },
   ];
 
@@ -448,7 +448,8 @@ export default function Home() {
             </div>
 
             <p className="max-w-xl text-base leading-7 text-zinc-400">
-              La portada se actualiza según la temporada y división seleccionada.
+              La portada se actualiza según la temporada y división
+              seleccionada.
             </p>
           </div>
 
@@ -511,7 +512,9 @@ export default function Home() {
                     {stat.label}
                   </p>
 
-                  <h2 className={`mt-2 text-4xl font-black leading-none md:text-5xl ${stat.color}`}>
+                  <h2
+                    className={`mt-2 text-4xl font-black leading-none md:text-5xl ${stat.color}`}
+                  >
                     {stat.value}
                   </h2>
 
@@ -630,13 +633,21 @@ export default function Home() {
 
             <div className="mt-6 space-y-3">
               {[
-                ["⚽ Goleador", rankings.goleador?.nombre || "-", rankings.goleador?.goles || 0],
+                [
+                  "⚽ Goleador",
+                  rankings.goleador?.nombre || "-",
+                  rankings.goleador?.goles || 0,
+                ],
                 [
                   "🎯 Asistidor",
                   rankings.asistidor?.nombre || "-",
                   rankings.asistidor?.asistencias || 0,
                 ],
-                ["👑 MVP", rankings.mvp?.nombre || "-", rankings.mvp?.mvps || 0],
+                [
+                  "👑 MVP",
+                  rankings.mvp?.nombre || "-",
+                  rankings.mvp?.mvps || 0,
+                ],
               ].map(([label, name, value]) => (
                 <div
                   key={label}
@@ -649,15 +660,15 @@ export default function Home() {
                           label === "⚽ Goleador"
                             ? rankings.goleador?.equipo
                             : label === "🎯 Asistidor"
-                            ? rankings.asistidor?.equipo
-                            : rankings.mvp?.equipo
+                              ? rankings.asistidor?.equipo
+                              : rankings.mvp?.equipo
                         }
                         logo={logoEquipo(
                           label === "⚽ Goleador"
                             ? rankings.goleador?.equipo
                             : label === "🎯 Asistidor"
-                            ? rankings.asistidor?.equipo
-                            : rankings.mvp?.equipo,
+                              ? rankings.asistidor?.equipo
+                              : rankings.mvp?.equipo,
                         )}
                         size="sm"
                       />
@@ -763,7 +774,10 @@ export default function Home() {
                 </h2>
               </div>
 
-              <Link href="/estadisticas" className="text-sm font-black uppercase text-emerald-300">
+              <Link
+                href="/estadisticas"
+                className="text-sm font-black uppercase text-emerald-300"
+              >
                 Stats →
               </Link>
             </div>
@@ -849,7 +863,12 @@ export default function Home() {
                       </p>
 
                       <p className="mt-5 text-xs font-black uppercase tracking-[0.18em] text-zinc-500">
-                        {noticiaDestacada.temporada || "APA"} · {noticiaDestacada.autor || "Prensa APA"} · {fechaNoticia(noticiaDestacada.created_at || noticiaDestacada.updated_at)}
+                        {noticiaDestacada.temporada || "APA"} ·{" "}
+                        {noticiaDestacada.autor || "Prensa APA"} ·{" "}
+                        {fechaNoticia(
+                          noticiaDestacada.created_at ||
+                            noticiaDestacada.updated_at,
+                        )}
                       </p>
                     </div>
 
@@ -923,7 +942,9 @@ export default function Home() {
                           </h3>
 
                           <p className="mt-1 text-xs text-zinc-600">
-                            {fechaNoticia(noticia.created_at || noticia.updated_at)}
+                            {fechaNoticia(
+                              noticia.created_at || noticia.updated_at,
+                            )}
                           </p>
                         </div>
                       </Link>
@@ -968,8 +989,8 @@ export default function Home() {
               </h2>
 
               <p className="mt-3 max-w-2xl text-sm text-zinc-400 md:text-base">
-                Entrá a Competición para torneos y calendario, visitá Clubes para
-                perfiles institucionales, Jugadores para rankings y
+                Entrá a Competición para torneos y calendario, visitá Clubes
+                para perfiles institucionales, Jugadores para rankings y
                 Entretenimiento para participar con la comunidad.
               </p>
             </div>

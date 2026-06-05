@@ -5,17 +5,11 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 export default function EstadisticasPage() {
-  const temporadas = [
-    "Temporada 1",
-    "Temporada 2",
-    "Temporada 3",
-    "Temporada 4",
-    "Temporada 5",
-  ];
+  const temporadas = ["Temporada 4"];
 
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 
-  const [temporada, setTemporada] = useState("Temporada 1");
+  const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
   const [fecha, setFecha] = useState("Todas");
 
@@ -185,7 +179,7 @@ export default function EstadisticasPage() {
                 Temporada
               </p>
 
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-3">
                 {temporadas.map((temp) => (
                   <button
                     key={temp}

@@ -72,7 +72,7 @@ export default function FixtureDivisionPage() {
       : division;
 
   const searchParams = useSearchParams();
-  const temporada = searchParams.get("temporada") || "Temporada 1";
+  const temporada = searchParams.get("temporada") || "Temporada 4";
 
   const [partidos, setPartidos] = useState<any[]>([]);
   const [clubesInfo, setClubesInfo] = useState<any[]>([]);

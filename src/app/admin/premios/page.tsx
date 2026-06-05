@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PermissionGuard from "@/components/PermissionGuard";
 
-type PremioKey = "balon_oro" | "raiko_trophy" | "bota_oro" | "golden_boy";
+type PremioKey = "balon_oro" | "the_best" | "raiko_trophy" | "bota_oro" | "golden_boy";
 
 type PremioConfig = {
   key: PremioKey;
@@ -42,6 +42,7 @@ type Candidato = {
   playerid: string;
   nombre: string;
   equipo: string;
+  divisionPrincipal: string;
   partidos: number;
   temporadasJugadas: number;
   goles: number;
@@ -90,7 +91,13 @@ const premios: PremioConfig[] = [
     key: "balon_oro",
     nombre: "Balón de Oro",
     icono: "🏆",
-    descripcion: "Mejor jugador general de la temporada.",
+    descripcion: "Premio máximo APA. Primera División pesa completo; divisiones inferiores tienen menor peso.",
+  },
+  {
+    key: "the_best",
+    nombre: "The Best",
+    icono: "🏅",
+    descripcion: "Mejor jugador de divisiones inferiores. Excluye jugadores de Primera División.",
   },
   {
     key: "raiko_trophy",
@@ -132,15 +139,38 @@ function iconoPremio(key: string) {
   return premios.find((p) => p.key === key)?.icono || "🏆";
 }
 
+function pesoDivision(division?: string | null) {
+  const d = String(division || "").toLowerCase();
+
+  if (d.includes("primera")) return 1;
+  if (d.includes("segunda")) return 0.75;
+  if (d.includes("tercera")) return 0.55;
+  if (d.includes("cuarta")) return 0.4;
+
+  return 1;
+}
+
+function esPrimeraDivision(division?: string | null) {
+  return String(division || "").toLowerCase().includes("primera");
+}
+
+function calcularBaseRendimiento(c: Omit<Candidato, "puntos" | "posicion">) {
+  return (
+    c.goles * 3 +
+    c.asistencias * 2 +
+    c.mvps * 10 +
+    c.ratingPromedio * 15 +
+    c.score / 5
+  );
+}
+
 function calcularPuntos(premio: PremioKey, c: Omit<Candidato, "puntos" | "posicion">) {
   if (premio === "balon_oro") {
-    return (
-      c.goles * 3 +
-      c.asistencias * 2 +
-      c.mvps * 10 +
-      c.ratingPromedio * 15 +
-      c.score / 5
-    );
+    return calcularBaseRendimiento(c) * pesoDivision(c.divisionPrincipal);
+  }
+
+  if (premio === "the_best") {
+    return calcularBaseRendimiento(c);
   }
 
   if (premio === "raiko_trophy") {
@@ -149,7 +179,7 @@ function calcularPuntos(premio: PremioKey, c: Omit<Candidato, "puntos" | "posici
       c.atrapadas * 2 +
       c.mvps * 10 +
       c.ratingPromedio * 15
-    );
+    ) * pesoDivision(c.divisionPrincipal);
   }
 
   if (premio === "bota_oro") {
@@ -258,6 +288,7 @@ export default function AdminPremiosPage() {
           equipo: s.equipo || "Sin club",
           partidos: 0,
           temporadasSet: new Set<string>(),
+          divisionesConteo: {} as Record<string, number>,
           goles: 0,
           asistencias: 0,
           mvps: 0,
@@ -271,6 +302,10 @@ export default function AdminPremiosPage() {
 
       mapa[key].partidos += 1;
       if (s.temporada) mapa[key].temporadasSet.add(s.temporada);
+      if (s.division) {
+        mapa[key].divisionesConteo[s.division] =
+          (mapa[key].divisionesConteo[s.division] || 0) + 1;
+      }
       mapa[key].goles += Number(s.goals || 0);
       mapa[key].asistencias += Number(s.assists || 0);
       mapa[key].mvps += Number(s.mvp || 0);
@@ -290,10 +325,15 @@ export default function AdminPremiosPage() {
     });
 
     return Object.values(mapa).map((j: any) => {
+      const divisionPrincipal =
+        Object.entries(j.divisionesConteo || {})
+          .sort((a: any, b: any) => Number(b[1]) - Number(a[1]))[0]?.[0] || "Sin división";
+
       const base = {
         playerid: j.playerid || "",
         nombre: j.nombre,
         equipo: j.equipo,
+        divisionPrincipal,
         partidos: j.partidos,
         temporadasJugadas: j.temporadasSet.size,
         goles: j.goles,
@@ -362,6 +402,10 @@ export default function AdminPremiosPage() {
 
     if (premio === "raiko_trophy") {
       lista = lista.filter((c) => c.atajadas > 0 || c.atrapadas > 0);
+    }
+
+    if (premio === "the_best") {
+      lista = lista.filter((c) => !esPrimeraDivision(c.divisionPrincipal));
     }
 
     if (premio === "golden_boy") {
@@ -477,7 +521,7 @@ export default function AdminPremiosPage() {
 
     const { error } = await supabase.from("premios_apa").insert({
       temporada,
-      division: division === "Todas" ? null : division,
+      division: division === "Todas" ? candidato.divisionPrincipal : division,
       premio,
       playerid: candidato.playerid,
       nombre: candidato.nombre,
@@ -606,6 +650,18 @@ export default function AdminPremiosPage() {
                     <p className="mt-2 text-sm leading-6 text-zinc-400">
                       {premioActual.descripcion}
                     </p>
+
+                    {premio === "balon_oro" && (
+                      <p className="mt-3 rounded-xl border border-yellow-400/20 bg-yellow-400/10 p-3 text-xs font-bold leading-5 text-yellow-200">
+                        Pesos: Primera x1.00 · Segunda x0.75 · Tercera x0.55 · Cuarta x0.40
+                      </p>
+                    )}
+
+                    {premio === "the_best" && (
+                      <p className="mt-3 rounded-xl border border-purple-400/20 bg-purple-400/10 p-3 text-xs font-bold leading-5 text-purple-200">
+                        Solo compiten jugadores de Segunda, Tercera y Cuarta.
+                      </p>
+                    )}
                   </div>
 
                   {premio === "golden_boy" && (
@@ -776,8 +832,20 @@ export default function AdminPremiosPage() {
                               {c.nombre}
                             </p>
                             <p className="mt-1 truncate text-xs font-black uppercase tracking-[0.14em] text-zinc-500">
-                              {c.equipo} · {c.partidos} PJ · RT {c.ratingPromedio}
+                              {c.equipo} · {c.divisionPrincipal} · {c.partidos} PJ · RT {c.ratingPromedio}
                             </p>
+
+                            {(premio === "balon_oro" || premio === "raiko_trophy") && (
+                              <p className="mt-1 text-xs font-black uppercase tracking-[0.14em] text-yellow-300">
+                                Peso división x{pesoDivision(c.divisionPrincipal).toFixed(2)}
+                              </p>
+                            )}
+
+                            {premio === "the_best" && (
+                              <p className="mt-1 text-xs font-black uppercase tracking-[0.14em] text-purple-300">
+                                Ascenso · Primera excluida
+                              </p>
+                            )}
 
                             {premio === "golden_boy" && (
                               <p className="mt-1 text-xs font-black uppercase tracking-[0.14em] text-sky-300">

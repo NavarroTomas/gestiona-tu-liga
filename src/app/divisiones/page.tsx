@@ -5,18 +5,12 @@ import TablaDivision from "@/components/TablaDivision";
 import { supabase } from "@/lib/supabase";
 
 export default function DivisionesPage() {
-  const [temporada, setTemporada] = useState("Temporada 1");
+  const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
   const [ultimosResultados, setUltimosResultados] = useState<any[]>([]);
   const [clubesInfo, setClubesInfo] = useState<any[]>([]);
 
-  const temporadas = [
-    "Temporada 1",
-    "Temporada 2",
-    "Temporada 3",
-    "Temporada 4",
-    "Temporada 5",
-  ];
+  const temporadas = ["Temporada 4"];
 
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 

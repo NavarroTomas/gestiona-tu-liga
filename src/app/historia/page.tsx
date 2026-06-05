@@ -147,6 +147,7 @@ export default function HistoriaPage() {
   function premioNombre(premio: string) {
     const mapa: Record<string, string> = {
       balon_oro: "Balón de Oro",
+      the_best: "The Best",
       raiko_trophy: "Raiko Trophy",
       bota_oro: "Bota de Oro",
       golden_boy: "Golden Boy",
@@ -158,6 +159,7 @@ export default function HistoriaPage() {
   function premioIcono(premio: string) {
     const mapa: Record<string, string> = {
       balon_oro: "🏆",
+      the_best: "🏅",
       raiko_trophy: "🧤",
       bota_oro: "⚽",
       golden_boy: "⭐",
@@ -169,6 +171,7 @@ export default function HistoriaPage() {
   function premioColor(premio: string) {
     const mapa: Record<string, string> = {
       balon_oro: "text-yellow-300",
+      the_best: "text-orange-300",
       raiko_trophy: "text-cyan-300",
       bota_oro: "text-emerald-400",
       golden_boy: "text-purple-300",
@@ -654,8 +657,7 @@ export default function HistoriaPage() {
             </h1>
 
             <p className="mt-5 max-w-2xl text-zinc-400">
-              Las mayores leyendas de APA PSO Argentina UE5. Rankings históricos
-              acumulados desde todos los TXT cargados.
+              Historial oficial de APA PSO Argentina UE5. Estadísticas, premios y récords acumulados desde la Temporada 4.
             </p>
 
             <div className="mt-7 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
@@ -708,12 +710,13 @@ export default function HistoriaPage() {
           </h2>
 
           <p className="mt-3 max-w-3xl text-zinc-500">
-            Balón de Oro, Raiko Trophy, Bota de Oro y Golden Boy. Ganadores oficiales cargados desde el panel administrativo.
+            Balón de Oro, The Best, Raiko Trophy, Bota de Oro y Golden Boy. Ganadores oficiales cargados desde el panel administrativo.
           </p>
         </section>
 
-        <section className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-4 xl:gap-5">
+        <section className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-5 xl:gap-5">
           <PremioCard tipo="balon_oro" />
+          <PremioCard tipo="the_best" />
           <PremioCard tipo="raiko_trophy" />
           <PremioCard tipo="bota_oro" />
           <PremioCard tipo="golden_boy" />
@@ -757,7 +760,7 @@ export default function HistoriaPage() {
           />
 
           <LeyendaCard
-            titulo="Muro histórico"
+            titulo="Muro APA"
             subtitulo="atajadas"
             jugador={mejorArquero}
             valor={mejorArquero?.atajadas}
@@ -782,6 +785,13 @@ export default function HistoriaPage() {
             tipo="balon_oro"
             icono="🏆"
             color="text-yellow-300"
+          />
+
+          <RankingTrofeos
+            titulo="Más The Best"
+            tipo="the_best"
+            icono="🏅"
+            color="text-orange-300"
           />
 
           <RankingTrofeos
@@ -829,21 +839,21 @@ export default function HistoriaPage() {
 
         <section className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-8">
           <RankingBox
-            titulo="Máximos goleadores históricos"
+            titulo="Máximos goleadores APA"
             campo="goles"
             color="text-emerald-400"
             icono="⚽"
           />
 
           <RankingBox
-            titulo="Máximos asistidores históricos"
+            titulo="Máximos asistidores APA"
             campo="asistencias"
             color="text-sky-400"
             icono="🎯"
           />
 
           <RankingBox
-            titulo="Más MVPs históricos"
+            titulo="Más MVPs APA"
             campo="mvps"
             color="text-yellow-300"
             icono="👑"

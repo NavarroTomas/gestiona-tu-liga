@@ -32,17 +32,11 @@ type RankingTipo =
   | "atrapadas";
 
 export default function JugadoresPage() {
-  const [temporada, setTemporada] = useState("Temporada 1");
+  const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
   const [modo, setModo] = useState<"temporada" | "historico">("temporada");
 
-  const temporadas = [
-    "Temporada 1",
-    "Temporada 2",
-    "Temporada 3",
-    "Temporada 4",
-    "Temporada 5",
-  ];
+  const temporadas = ["Temporada 4"];
   const divisiones = [
     { nombre: "Primera", icon: "🏆" },
     { nombre: "Segunda", icon: "🥈" },

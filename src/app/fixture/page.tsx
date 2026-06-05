@@ -2,13 +2,7 @@
 
 import { useState } from "react";
 
-const temporadas = [
-  "Temporada 1",
-  "Temporada 2",
-  "Temporada 3",
-  "Temporada 4",
-  "Temporada 5",
-];
+const temporadas = ["Temporada 4"];
 
 const divisiones = [
   {
@@ -64,7 +58,7 @@ const infoCards = [
 ];
 
 export default function FixtureHome() {
-  const [temporada, setTemporada] = useState("Temporada 5");
+  const [temporada, setTemporada] = useState("Temporada 4");
 
   function fixtureHref(slug: string) {
     return `/fixture/${slug}?temporada=${encodeURIComponent(temporada)}`;

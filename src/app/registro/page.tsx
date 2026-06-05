@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import HelperTooltip from "@/components/HelperTooltip";
 
 export default function RegistroPage() {
   const router = useRouter();
@@ -27,6 +28,14 @@ export default function RegistroPage() {
       .replace(/[^a-z0-9_.-]/g, "");
   }
 
+  function limpiarSteamId(value: string) {
+    return value.trim();
+  }
+
+  function esSteamId64Valido(value: string) {
+    return /^\d{15,20}$/.test(value.trim());
+  }
+
   async function registrarse(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setMensaje("");
@@ -35,7 +44,7 @@ export default function RegistroPage() {
     const nombreLimpio = displayName.trim();
     const usernameLimpio = limpiarUsername(username);
     const playerIdLimpio = playerId.trim();
-    const steamIdLimpio = steamId.trim();
+    const steamIdLimpio = limpiarSteamId(steamId);
     const emailLimpio = email.trim().toLowerCase();
 
     if (!nombreLimpio) {
@@ -58,7 +67,13 @@ export default function RegistroPage() {
 
     if (!steamIdLimpio) {
       setTipoMensaje("error");
-      setMensaje("Escribí tu Steam ID.");
+      setMensaje("Escribí tu SteamID64.");
+      return;
+    }
+
+    if (!esSteamId64Valido(steamIdLimpio)) {
+      setTipoMensaje("error");
+      setMensaje("Steam ID inválido. Ingresá solo tu SteamID64 numérico. Ejemplo: 76561199109076112. No uses links de Steam.");
       return;
     }
 
@@ -168,8 +183,8 @@ export default function RegistroPage() {
 
             <p className="mt-6 max-w-2xl text-zinc-400">
               Registrate para participar en funciones de comunidad como Dream
-              Team, predicciones, perfiles públicos y futuras votaciones APA.
-              Tu PlayerId queda como solicitud hasta que un administrador verifique que realmente te pertenece.
+              Team, predicciones, perfiles públicos, premios APA y verificaciones.
+              Tu PlayerId y SteamID64 quedan sujetos a revisión para evitar errores o suplantaciones.
             </p>
 
             <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -182,18 +197,18 @@ export default function RegistroPage() {
               </div>
 
               <div className="rounded-3xl border border-yellow-400/20 bg-black/35 p-5">
-                <p className="text-3xl">🕒</p>
-                <h3 className="mt-3 font-black uppercase">Pendiente</h3>
+                <p className="text-3xl">🎮</p>
+                <h3 className="mt-3 font-black uppercase">SteamID64</h3>
                 <p className="mt-2 text-sm text-zinc-500">
-                  Un admin debe aprobar tu perfil y verificar tu PlayerId.
+                  Usá solo el número de Steam. No pegues links ni nombres.
                 </p>
               </div>
 
               <div className="rounded-3xl border border-green-400/20 bg-black/35 p-5">
                 <p className="text-3xl">✅</p>
-                <h3 className="mt-3 font-black uppercase">Comunidad</h3>
+                <h3 className="mt-3 font-black uppercase">Verificación</h3>
                 <p className="mt-2 text-sm text-zinc-500">
-                  Después vas a poder participar con tu cuenta.
+                  Si los datos son correctos, un admin puede aprobar tu identidad.
                 </p>
               </div>
             </div>
@@ -209,62 +224,110 @@ export default function RegistroPage() {
               Crear cuenta APA
             </h2>
             <p className="mt-3 text-sm text-zinc-500">
-              Creá tu cuenta APA con usuario, PlayerId solicitado, Steam ID y contraseña. El PlayerId no queda verificado automáticamente.
+              Creá tu cuenta APA con usuario, PlayerId solicitado, SteamID64 y contraseña. El PlayerId no queda verificado automáticamente.
             </p>
+
+            <div className="mt-5 rounded-3xl border border-red-400/30 bg-red-400/10 p-5">
+              <p className="text-xs font-black uppercase tracking-[0.25em] text-red-300">
+                🚨 Importante
+              </p>
+              <p className="mt-3 text-sm leading-6 text-zinc-200">
+                Antes de registrarte necesitás tu <span className="font-black text-yellow-300">SteamID64</span> y tu <span className="font-black text-sky-300">PlayerId</span>. Si cargás mal estos datos, tu perfil puede quedar en <span className="font-black text-red-300">Disputa</span>.
+              </p>
+              <Link
+                href="/guia#registro"
+                className="mt-4 inline-flex rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-4 py-3 text-xs font-black uppercase tracking-[0.18em] text-yellow-300 transition hover:bg-yellow-400 hover:text-black"
+              >
+                📖 Ver guía para obtener SteamID64
+              </Link>
+            </div>
           </div>
 
           <form onSubmit={registrarse} className="mt-7 space-y-4">
             <div>
-              <label className="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
+              <label className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
                 Nombre visible
+                <HelperTooltip
+                  title="Nombre visible"
+                  description="Es el nombre que verá la comunidad en tu perfil, predicciones y participación pública."
+                  example="Ej: Jugador APA"
+                />
               </label>
               <input
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Ej: Monchon"
+                placeholder="Ej: Jugador APA"
                 className="w-full rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-sky-400/60"
               />
             </div>
--
+
             <div>
-              <label className="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
+              <label className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
                 Usuario
+                <HelperTooltip
+                  title="Usuario"
+                  description="Debe ser único. Se usa para tu perfil público y enlaces dentro de APA."
+                  example="Ej: jugador_apa"
+                />
               </label>
               <input
                 value={username}
                 onChange={(e) => setUsername(limpiarUsername(e.target.value))}
-                placeholder="Ej: 07"
+                placeholder="Ej: jugador_apa"
                 className="w-full rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-sky-400/60"
               />
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
+              <label className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
                 PSO ID / Player ID solicitado
+                <HelperTooltip
+                  title="PlayerId"
+                  description="Es el identificador oficial que APA usa para vincular tus estadísticas, historial, rankings y premios."
+                  example="Copialo exactamente como aparece en PSO"
+                  guideHref="/guia#registro"
+                />
               </label>
               <input
                 value={playerId}
                 onChange={(e) => setPlayerId(e.target.value)}
-                placeholder="Obligatorio"
+                placeholder="Ej: tu PlayerId oficial"
                 className="w-full rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-sky-400/60"
               />
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
-                Steam ID
+              <label className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
+                SteamID64
+                <HelperTooltip
+                  title="SteamID64"
+                  description="Ingresá solo el número de Steam que aparece en Detalles de la cuenta. APA lo usa para verificar identidad y consultar horas de Pro Soccer Online."
+                  example="76561199109076112"
+                  wrongExamples={[
+                    "https://steamcommunity.com/id/usuario/",
+                    "https://steamcommunity.com/profiles/7656119.../",
+                    "Nombre de usuario de Steam"
+                  ]}
+                  guideHref="/guia#registro"
+                  guideLabel="Cómo obtenerlo"
+                />
               </label>
               <input
                 value={steamId}
-                onChange={(e) => setSteamId(e.target.value)}
-                placeholder="Obligatorio"
+                onChange={(e) => setSteamId(limpiarSteamId(e.target.value))}
+                placeholder="Ej: 76561199109076112"
                 className="w-full rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-sky-400/60"
               />
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
+              <label className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
                 Email
+                <HelperTooltip
+                  title="Email"
+                  description="Usá un correo real. Te va a servir para iniciar sesión y recuperar tu cuenta."
+                  example="tu@email.com"
+                />
               </label>
               <input
                 type="email"
@@ -276,8 +339,12 @@ export default function RegistroPage() {
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
+              <label className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
                 Contraseña
+                <HelperTooltip
+                  title="Contraseña"
+                  description="Debe tener al menos 6 caracteres. No uses una contraseña que compartas con otras cuentas importantes."
+                />
               </label>
               <input
                 type="password"

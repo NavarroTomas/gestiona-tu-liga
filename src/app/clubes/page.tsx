@@ -15,13 +15,7 @@ interface Club {
   color_principal?: string | null;
 }
 
-const temporadas = [
-  "Temporada 1",
-  "Temporada 2",
-  "Temporada 3",
-  "Temporada 4",
-  "Temporada 5",
-];
+const temporadas = ["Temporada 4"];
 
 const divisiones = [
   { nombre: "Primera", icon: "🏆", color: "text-yellow-300" },
@@ -31,7 +25,7 @@ const divisiones = [
 ];
 
 export default function ClubesPage() {
-  const [temporada, setTemporada] = useState("Temporada 1");
+  const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
   const [clubes, setClubes] = useState<Club[]>([]);
 
@@ -174,7 +168,7 @@ export default function ClubesPage() {
                   Temporadas
                 </p>
 
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+                <div className="grid grid-cols-1 gap-3">
                   {temporadas.map((temp) => (
                     <button
                       key={temp}

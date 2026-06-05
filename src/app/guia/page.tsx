@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 const secciones = [
+  { id: "registro", nombre: "Registro", icono: "🚨" },
   { id: "inicio", nombre: "Inicio", icono: "🏠" },
   { id: "perfil", nombre: "Perfil", icono: "👤" },
   { id: "divisiones", nombre: "Divisiones", icono: "📊" },
@@ -237,6 +238,110 @@ export default function GuiaPage() {
             <p className="mt-3 text-zinc-400 leading-relaxed">
               Los rankings, perfiles, clubes y premios se alimentan de los TXT y datos oficiales cargados.
             </p>
+          </div>
+        </section>
+
+        
+        <section
+          id="registro"
+          className="scroll-mt-28 relative overflow-hidden rounded-[34px] border border-red-400/35 bg-[#020714] p-5 shadow-[0_0_55px_rgba(248,113,113,.18)] sm:p-7 md:p-8"
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(248,113,113,.18),transparent_42%)]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-red-950/35 via-black/55 to-black/20" />
+
+          <div className="relative z-10">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-red-300 text-xs uppercase tracking-[0.35em] font-black">
+                  Leé esto antes de registrarte
+                </p>
+
+                <h2 className="mt-3 text-[clamp(2rem,7vw,4rem)] font-black uppercase italic leading-none text-white">
+                  🚨 Datos obligatorios
+                </h2>
+
+                <p className="mt-5 max-w-4xl text-zinc-300 text-base md:text-lg leading-relaxed">
+                  Antes de crear tu cuenta en APA, asegurate de tener correctamente tu
+                  <span className="font-black text-yellow-300"> SteamID64 </span>
+                  y tu
+                  <span className="font-black text-sky-300"> PlayerId oficial</span>.
+                  Son los datos que conectan tu usuario con tus estadísticas, premios, historial e identidad verificada.
+                </p>
+              </div>
+
+              <Link
+                href="/registro"
+                className="rounded-2xl border border-red-300/40 bg-red-400 px-6 py-4 text-center text-sm font-black uppercase tracking-[0.18em] text-black transition hover:bg-white"
+              >
+                Crear cuenta
+              </Link>
+            </div>
+
+            <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-3xl border border-yellow-400/35 bg-yellow-400/10 p-5">
+                <p className="text-4xl">🎮</p>
+                <h3 className="mt-3 text-2xl font-black uppercase text-yellow-300">
+                  SteamID64
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-zinc-300">
+                  Debés copiar el número que aparece en Steam → Detalles de la cuenta → ID de Steam.
+                </p>
+                <p className="mt-4 rounded-2xl border border-green-400/25 bg-green-400/10 p-3 text-sm font-black text-green-300">
+                  ✅ 76561199109076112
+                </p>
+              </div>
+
+              <div className="rounded-3xl border border-red-400/35 bg-red-400/10 p-5">
+                <p className="text-4xl">⛔</p>
+                <h3 className="mt-3 text-2xl font-black uppercase text-red-300">
+                  No uses links
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-zinc-300">
+                  No pongas links de Steam Community, URLs personalizadas ni nombres de usuario.
+                </p>
+                <p className="mt-4 break-all rounded-2xl border border-red-400/25 bg-black/35 p-3 text-xs font-black text-red-200">
+                  ❌ steamcommunity.com/id/usuario
+                </p>
+              </div>
+
+              <div className="rounded-3xl border border-sky-400/35 bg-sky-400/10 p-5">
+                <p className="text-4xl">🆔</p>
+                <h3 className="mt-3 text-2xl font-black uppercase text-sky-300">
+                  PlayerId
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-zinc-300">
+                  El PlayerId vincula tu perfil con estadísticas, rankings, clubes, premios y trayectoria.
+                </p>
+                <p className="mt-4 rounded-2xl border border-sky-400/25 bg-black/35 p-3 text-sm font-black text-sky-200">
+                  La web identifica por PlayerId, no por nombre.
+                </p>
+              </div>
+
+              <div className="rounded-3xl border border-purple-400/35 bg-purple-400/10 p-5">
+                <p className="text-4xl">⭐</p>
+                <h3 className="mt-3 text-2xl font-black uppercase text-purple-300">
+                  Golden Boy
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-zinc-300">
+                  APA consulta automáticamente tus horas en Pro Soccer Online para calcular si podés competir por Golden Boy.
+                </p>
+                <p className="mt-4 rounded-2xl border border-purple-400/25 bg-black/35 p-3 text-sm font-black text-purple-200">
+                  Menos de 500 hs + menos de 25 PJ.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-7 rounded-[28px] border border-orange-400/30 bg-orange-400/10 p-5">
+              <p className="text-orange-300 text-xs uppercase tracking-[0.3em] font-black">
+                Estado Disputa
+              </p>
+
+              <p className="mt-3 text-zinc-200 leading-relaxed">
+                Si cargás mal tu Steam ID o tu PlayerId, un administrador puede marcar tu perfil como
+                <span className="font-black text-orange-300"> DISPUTA</span>.
+                Eso significa que tenés que corregir la información antes de poder ser aprobado.
+              </p>
+            </div>
           </div>
         </section>
 

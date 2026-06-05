@@ -90,6 +90,7 @@ type PremioAPA = {
 function premioNombre(premio: string) {
   const mapa: Record<string, string> = {
     balon_oro: "Balón de Oro",
+    the_best: "The Best",
     raiko_trophy: "Raiko Trophy",
     bota_oro: "Bota de Oro",
     golden_boy: "Golden Boy",
@@ -101,6 +102,7 @@ function premioNombre(premio: string) {
 function premioIcono(premio: string) {
   const mapa: Record<string, string> = {
     balon_oro: "🏆",
+    the_best: "🏅",
     raiko_trophy: "🧤",
     bota_oro: "⚽",
     golden_boy: "⭐",
@@ -112,6 +114,7 @@ function premioIcono(premio: string) {
 function premioColor(premio: string) {
   const mapa: Record<string, string> = {
     balon_oro: "text-yellow-300",
+    the_best: "text-orange-300",
     raiko_trophy: "text-cyan-300",
     bota_oro: "text-emerald-400",
     golden_boy: "text-purple-300",
@@ -123,6 +126,7 @@ function premioColor(premio: string) {
 function premioBg(premio: string) {
   const mapa: Record<string, string> = {
     balon_oro: "border-yellow-400/25 bg-yellow-400/10",
+    the_best: "border-orange-400/25 bg-orange-400/10",
     raiko_trophy: "border-cyan-400/25 bg-cyan-400/10",
     bota_oro: "border-emerald-400/25 bg-emerald-400/10",
     golden_boy: "border-purple-400/25 bg-purple-400/10",
@@ -577,6 +581,16 @@ export default function PerfilPublicoPage() {
         objetivo: 1,
         activo: premiosApa.some((p) => p.premio === "balon_oro"),
         textoProgreso: premiosApa.some((p) => p.premio === "balon_oro") ? "1 / 1" : "Pendiente",
+      },
+      {
+        icono: "🏅",
+        titulo: "The Best",
+        descripcion: "Ganar The Best como mejor jugador de divisiones inferiores.",
+        rareza: "Épica",
+        actual: premiosApa.filter((p) => p.premio === "the_best").length,
+        objetivo: 1,
+        activo: premiosApa.some((p) => p.premio === "the_best"),
+        textoProgreso: premiosApa.some((p) => p.premio === "the_best") ? "1 / 1" : "Pendiente",
       },
       {
         icono: "🧤",
