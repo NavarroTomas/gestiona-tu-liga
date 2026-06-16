@@ -16,7 +16,7 @@ export default function EntretenimientoPage() {
                 APA PSO ARGENTINA
               </p>
 
-              <h1 className="mt-4 text-5xl md:text-7xl font-black uppercase italic leading-none">
+              <h1 className="mt-4 max-w-[900px] text-[clamp(2.15rem,6vw,4.4rem)] font-black uppercase italic leading-[0.92]">
                 <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
                   Entretenimiento
                 </span>
@@ -26,7 +26,7 @@ export default function EntretenimientoPage() {
                 </span>
               </h1>
 
-              <p className="mt-5 max-w-2xl text-zinc-400">
+              <p className="mt-5 max-w-3xl text-sm leading-7 text-zinc-400 md:text-base">
                 Zona interactiva de APA PSO Argentina UE5. Pronosticá partidos,
                 armá tu Dream Team 8v8, descubrí los premios de la fecha y
                 participá con la comunidad.
@@ -177,12 +177,11 @@ export default function EntretenimientoPage() {
                 </p>
 
                 <h2 className="mt-5 text-4xl md:text-5xl font-black uppercase italic leading-none">
-                  Premios APA
+                  Premios de la Fecha
                 </h2>
 
                 <p className="mt-5 text-zinc-400 max-w-xl">
-                  Descubrí quién fue el MVP, goleador, asistidor, arquero y
-                  defensor de cada fecha según las estadísticas oficiales.
+                  Reconocimientos automáticos otorgados a los mejores jugadores de cada fecha según las estadísticas oficiales.
                 </p>
               </div>
 

@@ -83,7 +83,7 @@ function Input({
 }
 
 export default function CargarPartidoManualPage() {
-  const [temporada, setTemporada] = useState("Temporada 1");
+  const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
   const [fecha, setFecha] = useState("1");
   const [dia, setDia] = useState("");

@@ -5,7 +5,7 @@ import { supabase } from "../lib/supabase";
 
 export default function SubirPartido() {
   const [file, setFile] = useState<File | null>(null);
-  const [temporada, setTemporada] = useState("Temporada 1");
+  const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("primera");
   const [fecha, setFecha] = useState("1");
 

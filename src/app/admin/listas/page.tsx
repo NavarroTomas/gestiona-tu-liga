@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import PermissionGuard from "@/components/PermissionGuard";
 
 export default function AdminListasPage() {
-  const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4"];
+  const temporadas = ["Temporada 4"];
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 
   const [equipos, setEquipos] = useState<any[]>([]);
@@ -370,7 +370,7 @@ export default function AdminListasPage() {
 
               <select
                 className="input"
-                value={editandoEquipo.temporada || "Temporada 1"}
+                value={editandoEquipo.temporada || "Temporada 4"}
                 onChange={(e) =>
                   setEditandoEquipo({ ...editandoEquipo, temporada: e.target.value })
                 }

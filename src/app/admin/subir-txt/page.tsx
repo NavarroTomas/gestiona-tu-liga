@@ -26,19 +26,12 @@ type Equipo = {
 
 export default function SubirTxtPage() {
 
-  const temporadas = [
-    "Temporada 1",
-    "Temporada 2",
-    "Temporada 3",
-    "Temporada 4",
-    "Temporada 5",
-    "Temporada 6",
-  ];
+  const temporadas = ["Temporada 4"];
 
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 
   const [archivo, setArchivo] = useState<File | null>(null);
-  const [temporada, setTemporada] = useState("Temporada 5");
+  const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
   const [fecha, setFecha] = useState("1");
 

@@ -21,13 +21,7 @@ type JugadorPremio = {
   passes: number;
 };
 
-const temporadas = [
-  "Temporada 1",
-  "Temporada 2",
-  "Temporada 3",
-  "Temporada 4",
-  "Temporada 5",
-];
+const temporadas = ["Temporada 4"];
 
 const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 const fechas = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
@@ -74,7 +68,7 @@ function esDefensor(j: JugadorPremio) {
 }
 
 export default function PremiosPage() {
-  const [temporada, setTemporada] = useState("Temporada 1");
+  const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
   const [fecha, setFecha] = useState("1");
   const [jugadores, setJugadores] = useState<JugadorPremio[]>([]);
@@ -252,19 +246,22 @@ export default function PremiosPage() {
                 APA PSO ARGENTINA
               </p>
 
-              <h1 className="mt-4 text-5xl md:text-7xl font-black uppercase italic leading-none">
+              <h1 className="mt-4 max-w-[850px] text-[clamp(2rem,5.3vw,4.1rem)] font-black uppercase italic leading-[0.92]">
                 <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
-                  Premios APA
+                  Premios
                 </span>
 
-                <span className="block text-yellow-300 drop-shadow-[0_0_18px_rgba(250,204,21,.55)]">
+                <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
+                  de la Fecha
+                </span>
+
+                <span className="mt-2 block text-[clamp(1.45rem,4vw,2.8rem)] text-yellow-300 drop-shadow-[0_0_18px_rgba(250,204,21,.55)]">
                   Fecha {fecha}
                 </span>
               </h1>
 
-              <p className="mt-5 max-w-2xl text-zinc-400">
-                Los mejores jugadores de la fecha calculados automáticamente por estadísticas:
-                MVP, goles, asistencias, arquero, defensa y rating.
+              <p className="mt-5 max-w-3xl text-sm leading-7 text-zinc-400 md:text-base">
+                Reconocimientos automáticos otorgados a los mejores jugadores de cada fecha según sus estadísticas oficiales.
               </p>
 
               <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -313,7 +310,7 @@ export default function PremiosPage() {
                 Temporada
               </p>
 
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 {temporadas.map((temp) => (
                   <button
                     key={temp}

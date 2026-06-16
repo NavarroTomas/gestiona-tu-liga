@@ -18,30 +18,90 @@ const menus = [
     nombre: "Competición",
     icon: "🏆",
     items: [
-      { nombre: "Torneos", href: "/competicion", icon: "🏆", descripcion: "Liga, copas y eventos" },
-      { nombre: "Fixture", href: "/fixture", icon: "📅", descripcion: "Calendario oficial" },
-      { nombre: "Stats", href: "/estadisticas", icon: "📈", descripcion: "Estadísticas oficiales" },
-      { nombre: "Historia", href: "/historia", icon: "🏛️", descripcion: "Leyendas y récords" },
+      {
+        nombre: "Torneos",
+        href: "/competicion",
+        icon: "🏆",
+        descripcion: "Liga, copas y eventos",
+      },
+      {
+        nombre: "Fixture",
+        href: "/fixture",
+        icon: "📅",
+        descripcion: "Calendario oficial",
+      },
+      {
+        nombre: "Stats",
+        href: "/estadisticas",
+        icon: "📈",
+        descripcion: "Estadísticas oficiales",
+      },
+      {
+        nombre: "Historia",
+        href: "/historia",
+        icon: "🏛️",
+        descripcion: "Leyendas y récords",
+      },
     ],
   },
   {
     nombre: "Clubes",
     icon: "🛡️",
     items: [
-      { nombre: "Clubes", href: "/clubes", icon: "🏟️", descripcion: "Identidad de equipos" },
-      { nombre: "Plantillas", href: "/plantillas", icon: "👥", descripcion: "Jugadores por club" },
-      { nombre: "Mercado", href: "/mercado", icon: "🔁", descripcion: "Fichajes y movimientos" },
-      { nombre: "Jugadores", href: "/jugadores", icon: "⭐", descripcion: "Rankings y perfiles" },
+      {
+        nombre: "Clubes",
+        href: "/clubes",
+        icon: "🏟️",
+        descripcion: "Identidad de equipos",
+      },
+      {
+        nombre: "Plantillas",
+        href: "/plantillas",
+        icon: "👥",
+        descripcion: "Jugadores por club",
+      },
+      {
+        nombre: "Mercado",
+        href: "/mercado",
+        icon: "🔁",
+        descripcion: "Fichajes y movimientos",
+      },
+      {
+        nombre: "Jugadores",
+        href: "/jugadores",
+        icon: "⭐",
+        descripcion: "Rankings y perfiles",
+      },
     ],
   },
   {
     nombre: "Entretenimiento",
     icon: "🎮",
     items: [
-      { nombre: "Inicio", href: "/entretenimiento", icon: "✨", descripcion: "Zona interactiva" },
-      { nombre: "Predicciones", href: "/entretenimiento/predicciones", icon: "🔮", descripcion: "Adiviná resultados" },
-      { nombre: "Dream Team", href: "/entretenimiento/dream-team", icon: "💫", descripcion: "Equipo ideal" },
-      { nombre: "Premios APA", href: "/entretenimiento/premios", icon: "🏅", descripcion: "Reconocimientos" },
+      {
+        nombre: "Inicio",
+        href: "/entretenimiento",
+        icon: "✨",
+        descripcion: "Zona interactiva",
+      },
+      {
+        nombre: "Predicciones",
+        href: "/entretenimiento/predicciones",
+        icon: "🔮",
+        descripcion: "Adiviná resultados",
+      },
+      {
+        nombre: "Dream Team",
+        href: "/entretenimiento/dream-team",
+        icon: "💫",
+        descripcion: "Equipo ideal",
+      },
+      {
+        nombre: "Premios de la Fecha",
+        href: "/entretenimiento/premios",
+        icon: "🏅",
+        descripcion: "Mejores jugadores de cada jornada",
+      },
     ],
   },
 ];
@@ -64,7 +124,9 @@ function linkActivo(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
 
   if (href === "/competicion") {
-    return pathname.startsWith("/competicion") || pathname.startsWith("/divisiones");
+    return (
+      pathname.startsWith("/competicion") || pathname.startsWith("/divisiones")
+    );
   }
 
   return pathname.startsWith(href);
@@ -225,7 +287,9 @@ export default function Navbar() {
 
     if (!perfil) {
       return (
-        <div className={`${compact ? "grid grid-cols-2 gap-2" : "hidden items-center gap-2 md:flex"}`}>
+        <div
+          className={`${compact ? "grid grid-cols-2 gap-2" : "hidden items-center gap-2 md:flex"}`}
+        >
           <Link
             href="/login"
             className="rounded-2xl border border-sky-400/25 bg-sky-400/10 px-4 py-2 text-center text-sm font-black uppercase text-sky-300 transition hover:bg-sky-400 hover:text-black"
@@ -263,7 +327,9 @@ export default function Navbar() {
             </p>
           </div>
 
-          <span className={`text-[10px] text-sky-300 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}>
+          <span
+            className={`text-[10px] text-sky-300 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}
+          >
             ▾
           </span>
         </button>
@@ -286,7 +352,8 @@ export default function Navbar() {
                     @{perfil.username || "usuario"}
                   </p>
                   <p className="mt-1 text-[10px] font-black uppercase tracking-[0.18em] text-yellow-300">
-                    {perfil.visible_role || "usuario"} · {perfil.status || "pending"}
+                    {perfil.visible_role || "usuario"} ·{" "}
+                    {perfil.status || "pending"}
                   </p>
                 </div>
               </div>
@@ -362,13 +429,21 @@ export default function Navbar() {
         })}
 
         {menus.map((menu) => {
-          const activo = menu.items.some((item) => linkActivo(pathname, item.href));
+          const activo = menu.items.some((item) =>
+            linkActivo(pathname, item.href),
+          );
 
           return (
-            <div key={menu.nombre} className="relative" onClick={(e) => e.stopPropagation()}>
+            <div
+              key={menu.nombre}
+              className="relative"
+              onClick={(e) => e.stopPropagation()}
+            >
               <button
                 type="button"
-                onClick={() => setOpen(open === menu.nombre ? null : menu.nombre)}
+                onClick={() =>
+                  setOpen(open === menu.nombre ? null : menu.nombre)
+                }
                 className={`group relative flex items-center gap-2 rounded-2xl border px-5 py-2.5 text-[15px] font-black transition-all ${
                   activo
                     ? "border-sky-400/50 bg-sky-500/15 text-white shadow-[0_0_22px_rgba(56,189,248,.18)]"
@@ -378,7 +453,9 @@ export default function Navbar() {
                 <span>{menu.icon}</span>
                 <span>{menu.nombre}</span>
 
-                <span className={`text-[11px] text-sky-300 transition-transform duration-300 ${open === menu.nombre ? "rotate-180" : ""}`}>
+                <span
+                  className={`text-[11px] text-sky-300 transition-transform duration-300 ${open === menu.nombre ? "rotate-180" : ""}`}
+                >
                   ▾
                 </span>
 

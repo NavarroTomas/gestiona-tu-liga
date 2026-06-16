@@ -5,16 +5,11 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 export default function AdminPage() {
-  const temporadas = [
-    "Temporada 1",
-    "Temporada 2",
-    "Temporada 3",
-    "Temporada 4",
-  ];
+  const temporadas = ["Temporada 4"];
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 
   const [clubNombre, setClubNombre] = useState("");
-  const [clubTemporada, setClubTemporada] = useState("Temporada 1");
+  const [clubTemporada, setClubTemporada] = useState("Temporada 4");
   const [clubDivision, setClubDivision] = useState("Primera");
 
   const [temporadaNombre, setTemporadaNombre] = useState("");
@@ -24,7 +19,7 @@ export default function AdminPage() {
   const [visitante, setVisitante] = useState("");
   const [resultado, setResultado] = useState("");
   const [fecha, setFecha] = useState("");
-  const [partidoTemporada, setPartidoTemporada] = useState("Temporada 1");
+  const [partidoTemporada, setPartidoTemporada] = useState("Temporada 4");
   const [partidoDivision, setPartidoDivision] = useState("Primera");
 
   const [jugadorNombre, setJugadorNombre] = useState("");
@@ -32,12 +27,12 @@ export default function AdminPage() {
   const [goles, setGoles] = useState("0");
   const [asistencias, setAsistencias] = useState("0");
   const [mvps, setMvps] = useState("0");
-  const [jugadorTemporada, setJugadorTemporada] = useState("Temporada 1");
+  const [jugadorTemporada, setJugadorTemporada] = useState("Temporada 4");
   const [jugadorDivision, setJugadorDivision] = useState("Primera");
 
   const [noticiaTitulo, setNoticiaTitulo] = useState("");
   const [noticiaDescripcion, setNoticiaDescripcion] = useState("");
-  const [noticiaTemporada, setNoticiaTemporada] = useState("Temporada 1");
+  const [noticiaTemporada, setNoticiaTemporada] = useState("Temporada 4");
 
   const [cargandoPermisos, setCargandoPermisos] = useState(true);
   const [canUploadTxt, setCanUploadTxt] = useState(false);
@@ -211,7 +206,7 @@ export default function AdminPage() {
     setGoles("0");
     setAsistencias("0");
     setMvps("0");
-    setJugadorTemporada("Temporada 1");
+    setJugadorTemporada("Temporada 4");
     setJugadorDivision("Primera");
   }
 
@@ -260,8 +255,7 @@ export default function AdminPage() {
           <h1 className="mt-3 text-4xl md:text-5xl font-black">Admin Panel</h1>
 
           <p className="mt-4 text-zinc-400 max-w-2xl">
-            Gestioná clubes, temporadas, partidos, jugadores, noticias,
-            plantillas y mercado sin tocar código.
+            Gestioná clubes, partidos, jugadores, noticias, plantillas y mercado sin tocar código. La plataforma inicia oficialmente en Temporada 4.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-5 mt-8">

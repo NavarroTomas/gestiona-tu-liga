@@ -37,22 +37,18 @@ type PerfilPrediccion = {
 };
 
 export default function PrediccionesPage() {
-  const temporadas = [
-    "Temporada 1",
-    "Temporada 2",
-    "Temporada 3",
-    "Temporada 4",
-    "Temporada 5",
-  ];
+  const temporadas = ["Temporada 4"];
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
   const fechas = ["Todas", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
-  const [temporada, setTemporada] = useState("Temporada 1");
+  const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
   const [fechaActiva, setFechaActiva] = useState("Todas");
   const [usuarioId, setUsuarioId] = useState("");
   const [miPerfil, setMiPerfil] = useState<PerfilPrediccion | null>(null);
-  const [perfiles, setPerfiles] = useState<Record<string, PerfilPrediccion>>({});
+  const [perfiles, setPerfiles] = useState<Record<string, PerfilPrediccion>>(
+    {},
+  );
   const [partidos, setPartidos] = useState<Partido[]>([]);
   const [predicciones, setPredicciones] = useState<Prediccion[]>([]);
   const [marcadores, setMarcadores] = useState<
@@ -548,7 +544,9 @@ export default function PrediccionesPage() {
                   </p>
                   <p className="mt-1 truncate text-lg font-black text-yellow-300">
                     {usuarioId
-                      ? miPerfil?.display_name || miPerfil?.username || "Usuario APA"
+                      ? miPerfil?.display_name ||
+                        miPerfil?.username ||
+                        "Usuario APA"
                       : "Iniciá sesión"}
                   </p>
                 </div>

@@ -48,14 +48,7 @@ type RankingItem = {
   pendientes: number;
 };
 
-const temporadas = [
-  "Todas",
-  "Temporada 1",
-  "Temporada 2",
-  "Temporada 3",
-  "Temporada 4",
-  "Temporada 5",
-];
+const temporadas = ["Temporada 4"];
 
 const divisiones = ["Todas", "Primera", "Segunda", "Tercera", "Cuarta"];
 

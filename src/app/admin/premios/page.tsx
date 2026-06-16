@@ -75,14 +75,7 @@ type PremioGuardado = {
   created_at: string | null;
 };
 
-const temporadas = [
-  "Temporada 1",
-  "Temporada 2",
-  "Temporada 3",
-  "Temporada 4",
-  "Temporada 5",
-  "Temporada 6",
-];
+const temporadas = ["Temporada 4"];
 
 const divisiones = ["Todas", "Primera", "Segunda", "Tercera", "Cuarta"];
 
@@ -205,7 +198,7 @@ function calcularPuntos(premio: PremioKey, c: Omit<Candidato, "puntos" | "posici
 }
 
 export default function AdminPremiosPage() {
-  const [temporada, setTemporada] = useState("Temporada 5");
+  const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Todas");
   const [premio, setPremio] = useState<PremioKey>("balon_oro");
 

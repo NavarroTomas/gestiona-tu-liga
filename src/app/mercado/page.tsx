@@ -12,13 +12,7 @@ type PerfilMercado = {
 };
 
 export default function MercadoPage() {
-  const temporadas = [
-    "Temporada 1",
-    "Temporada 2",
-    "Temporada 3",
-    "Temporada 4",
-    "Temporada 5",
-  ];
+  const temporadas = ["Temporada 4"];
 
   const divisiones = [
     { nombre: "Primera", icon: "🏆" },
@@ -28,7 +22,7 @@ export default function MercadoPage() {
   ];
   const tipos = ["Todos", "Fichaje", "Salida", "Préstamo", "Libre"];
 
-  const [temporada, setTemporada] = useState("Temporada 1");
+  const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
   const [tipoActivo, setTipoActivo] = useState("Todos");
   const [movimientos, setMovimientos] = useState<any[]>([]);
@@ -69,7 +63,10 @@ export default function MercadoPage() {
         .select("id, display_name, username, avatar_url")
         .or(
           nombresJugadores
-            .map((nombre) => `display_name.ilike.${nombre},username.ilike.${nombre}`)
+            .map(
+              (nombre) =>
+                `display_name.ilike.${nombre},username.ilike.${nombre}`,
+            )
             .join(","),
         );
 
@@ -147,8 +144,12 @@ export default function MercadoPage() {
 
     const club = clubesInfo.find(
       (c) =>
-        String(c.nombre || "").toLowerCase().trim() ===
-        String(nombre || "").toLowerCase().trim(),
+        String(c.nombre || "")
+          .toLowerCase()
+          .trim() ===
+        String(nombre || "")
+          .toLowerCase()
+          .trim(),
     );
 
     return club?.logo_url || null;
@@ -222,7 +223,9 @@ export default function MercadoPage() {
   }
 
   function normalizarTexto(valor?: string | null) {
-    return String(valor || "").trim().toLowerCase();
+    return String(valor || "")
+      .trim()
+      .toLowerCase();
   }
 
   function perfilJugador(nombre?: string | null) {
@@ -241,7 +244,9 @@ export default function MercadoPage() {
 
   function AvatarJugador({ nombre }: { nombre?: string | null }) {
     const perfil = perfilJugador(nombre);
-    const inicial = String(nombre || "J").slice(0, 1).toUpperCase();
+    const inicial = String(nombre || "J")
+      .slice(0, 1)
+      .toUpperCase();
 
     const avatar = (
       <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-yellow-400/25 bg-yellow-400/10 text-xl font-black text-yellow-300 shadow-[0_0_18px_rgba(250,204,21,.12)]">
@@ -259,7 +264,10 @@ export default function MercadoPage() {
 
     if (perfil?.username) {
       return (
-        <Link href={`/u/${perfil.username}`} className="transition hover:scale-105">
+        <Link
+          href={`/u/${perfil.username}`}
+          className="transition hover:scale-105"
+        >
           {avatar}
         </Link>
       );
@@ -596,7 +604,9 @@ export default function MercadoPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-center text-2xl text-sky-300 font-black">→</div>
+                    <div className="flex items-center justify-center text-2xl text-sky-300 font-black">
+                      →
+                    </div>
 
                     <div className="min-w-0 rounded-2xl border border-sky-400/20 bg-sky-400/10 p-4">
                       <p className="text-sky-300 text-[10px] uppercase tracking-[0.2em] font-black">

@@ -14,14 +14,7 @@ type Titulo = {
 };
 
 export default function AdminTitulosPage() {
-  const temporadas = [
-    "Temporada 1",
-    "Temporada 2",
-    "Temporada 3",
-    "Temporada 4",
-    "Temporada 5",
-    "Temporada 6",
-  ];
+  const temporadas = ["Temporada 4"];
 
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 
@@ -37,7 +30,7 @@ export default function AdminTitulosPage() {
 
   const [equipo, setEquipo] = useState("");
   const [competicion, setCompeticion] = useState("Primera División");
-  const [temporada, setTemporada] = useState("Temporada 5");
+  const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
   const [descripcion, setDescripcion] = useState("");
   const [titulos, setTitulos] = useState<Titulo[]>([]);

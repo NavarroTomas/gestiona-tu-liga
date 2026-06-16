@@ -5,16 +5,11 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 export default function PlantillasPage() {
-  const temporadas = [
-    "Temporada 1",
-    "Temporada 2",
-    "Temporada 3",
-    "Temporada 4",
-    "Temporada 5",
-  ];
+  const temporadas = ["Temporada 4"];
+
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
 
-  const [temporada, setTemporada] = useState("Temporada 1");
+  const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
   const [equipoSeleccionado, setEquipoSeleccionado] = useState("Todos");
 
@@ -117,8 +112,12 @@ export default function PlantillasPage() {
 
     const club = clubesInfo.find(
       (c) =>
-        String(c.nombre || "").toLowerCase().trim() ===
-        String(nombre || "").toLowerCase().trim(),
+        String(c.nombre || "")
+          .toLowerCase()
+          .trim() ===
+        String(nombre || "")
+          .toLowerCase()
+          .trim(),
     );
 
     return club?.logo_url || null;
@@ -185,7 +184,8 @@ export default function PlantillasPage() {
 
             <p className="mt-5 max-w-2xl text-zinc-400">
               Consultá los jugadores registrados por club, temporada y división.
-              Cada jugador con Player ID enlaza directamente a su perfil histórico.
+              Cada jugador con Player ID enlaza directamente a su perfil
+              histórico.
             </p>
 
             <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -235,7 +235,7 @@ export default function PlantillasPage() {
                 Temporada
               </p>
 
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 {temporadas.map((temp) => (
                   <button
                     key={temp}
@@ -372,10 +372,7 @@ export default function PlantillasPage() {
                 >
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                     <div className="flex items-center gap-4">
-                      <EscudoEquipo
-                        nombre={equipo}
-                        logo={logoEquipo(equipo)}
-                      />
+                      <EscudoEquipo nombre={equipo} logo={logoEquipo(equipo)} />
 
                       <div>
                         <h2 className="text-3xl font-black uppercase">

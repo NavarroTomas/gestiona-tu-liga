@@ -36,20 +36,13 @@ type StatJugador = {
 };
 
 export default function AdminPlantillasPage() {
-  const temporadas = [
-    "Temporada 1",
-    "Temporada 2",
-    "Temporada 3",
-    "Temporada 4",
-    "Temporada 5",
-    "Temporada 6",
-  ];
+  const temporadas = ["Temporada 4"];
 
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
   const posiciones = ["GK", "LB", "CB", "RB", "CDM", "CM", "CAM", "LW", "RW", "ST", "N/D"];
   const estados = ["activo", "suplente", "libre", "baja"];
 
-  const [temporada, setTemporada] = useState("Temporada 5");
+  const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
   const [equipo, setEquipo] = useState("");
   const [equipos, setEquipos] = useState<Equipo[]>([]);
@@ -74,7 +67,7 @@ export default function AdminPlantillasPage() {
   const [hacia, setHacia] = useState("");
   const [tipo, setTipo] = useState("Fichaje");
   const [fecha, setFecha] = useState("");
-  const [transferTemporada, setTransferTemporada] = useState("Temporada 5");
+  const [transferTemporada, setTransferTemporada] = useState("Temporada 4");
   const [transferDivision, setTransferDivision] = useState("Primera");
 
   useEffect(() => {

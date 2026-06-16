@@ -22,14 +22,7 @@ type Equipo = {
   nombre: string;
 };
 
-const temporadas = [
-  "Temporada 1",
-  "Temporada 2",
-  "Temporada 3",
-  "Temporada 4",
-  "Temporada 5",
-  "Temporada 6",
-];
+const temporadas = ["Temporada 4"];
 
 const divisiones = [
   { nombre: "Primera", icon: "🏆" },
@@ -73,7 +66,7 @@ function generarRoundRobin(equiposOriginales: string[]) {
 
 export default function AdminFixturePage() {
 
-  const [temporada, setTemporada] = useState("Temporada 5");
+  const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
   const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [seleccionados, setSeleccionados] = useState<string[]>([]);

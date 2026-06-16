@@ -17,13 +17,7 @@ type Noticia = {
   updated_at?: string | null;
 };
 
-const temporadas = [
-  "Temporada 1",
-  "Temporada 2",
-  "Temporada 3",
-  "Temporada 4",
-  "Temporada 5",
-];
+const temporadas = ["Temporada 4"];
 
 const categorias = [
   "General",
@@ -44,7 +38,7 @@ export default function AdminNoticiasPage() {
 
   const [titulo, setTitulo] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [temporada, setTemporada] = useState("Temporada 5");
+  const [temporada, setTemporada] = useState("Temporada 4");
   const [categoria, setCategoria] = useState("General");
   const [imagenUrl, setImagenUrl] = useState("");
   const [autor, setAutor] = useState("");

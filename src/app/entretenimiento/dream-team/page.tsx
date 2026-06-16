@@ -43,7 +43,8 @@ function valorGKSave(r: any) {
 function tipoJugador(j: Jugador) {
   const pos = (j.posicion || "").toUpperCase();
 
-  if (j.atajadas > 0 || pos.includes("GK") || pos.includes("POR")) return "arquero";
+  if (j.atajadas > 0 || pos.includes("GK") || pos.includes("POR"))
+    return "arquero";
 
   if (
     pos.includes("CB") ||
@@ -90,13 +91,12 @@ function fechaActualISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-
 export default function DreamTeamPage() {
-  const temporadas = ["Temporada 1", "Temporada 2", "Temporada 3", "Temporada 4", "Temporada 5"];
+  const temporadas = ["Temporada 4"];
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
   const fechas = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
-  const [temporada, setTemporada] = useState("Temporada 1");
+  const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
   const [fecha, setFecha] = useState("1");
   const [usuarioId, setUsuarioId] = useState("");
@@ -104,7 +104,9 @@ export default function DreamTeamPage() {
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
   const [votos, setVotos] = useState<any[]>([]);
   const [logos, setLogos] = useState<Record<string, string>>({});
-  const [perfilesJugadores, setPerfilesJugadores] = useState<Record<string, PerfilDreamTeam>>({});
+  const [perfilesJugadores, setPerfilesJugadores] = useState<
+    Record<string, PerfilDreamTeam>
+  >({});
   const [posicionActiva, setPosicionActiva] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState("");
 
@@ -189,7 +191,9 @@ export default function DreamTeamPage() {
       mapa[clave].goles += Number(r.goals || 0);
       mapa[clave].asistencias += Number(r.assists || 0);
       mapa[clave].ratingTotal += Number(r.overallRating || 0);
-      mapa[clave].ratingApaTotal += Number(r.rating_apa || r.overallRating || 0);
+      mapa[clave].ratingApaTotal += Number(
+        r.rating_apa || r.overallRating || 0,
+      );
       mapa[clave].atajadas += valorGKSave(r);
 
       if (r.equipo) mapa[clave].equipo = r.equipo;
@@ -201,8 +205,14 @@ export default function DreamTeamPage() {
     setJugadores(
       Object.values(mapa).map((j: any) => ({
         ...j,
-        rating_apa: j.partidos > 0 ? Math.round((j.ratingApaTotal / j.partidos) * 10) / 10 : 0,
-        rating: j.partidos > 0 ? Math.round((j.ratingApaTotal / j.partidos) * 10) / 10 : 0,
+        rating_apa:
+          j.partidos > 0
+            ? Math.round((j.ratingApaTotal / j.partidos) * 10) / 10
+            : 0,
+        rating:
+          j.partidos > 0
+            ? Math.round((j.ratingApaTotal / j.partidos) * 10) / 10
+            : 0,
       })),
     );
 
@@ -222,7 +232,9 @@ export default function DreamTeamPage() {
 
     const playerIdsPerfil = Array.from(
       new Set([
-        ...Object.values(mapa).map((j: any) => j.playerId).filter(Boolean),
+        ...Object.values(mapa)
+          .map((j: any) => j.playerId)
+          .filter(Boolean),
         ...(votosData || []).map((v: any) => v.playerId).filter(Boolean),
       ]),
     );
@@ -283,7 +295,9 @@ export default function DreamTeamPage() {
         conteo[clave].votos += 1;
       });
 
-      const ganador = Object.values(conteo).sort((a: any, b: any) => b.votos - a.votos)[0];
+      const ganador = Object.values(conteo).sort(
+        (a: any, b: any) => b.votos - a.votos,
+      )[0];
       if (ganador) resultado[p.id] = ganador;
     });
 
@@ -320,7 +334,9 @@ export default function DreamTeamPage() {
       conteo[clave].votos += 1;
     });
 
-    return Object.values(conteo).sort((a: any, b: any) => b.votos - a.votos)[0] as any;
+    return Object.values(conteo).sort(
+      (a: any, b: any) => b.votos - a.votos,
+    )[0] as any;
   }, [votos]);
 
   function topPorPosicion(posicion: string) {
@@ -341,7 +357,9 @@ export default function DreamTeamPage() {
         conteo[clave].votos += 1;
       });
 
-    return Object.values(conteo).sort((a: any, b: any) => b.votos - a.votos).slice(0, 3);
+    return Object.values(conteo)
+      .sort((a: any, b: any) => b.votos - a.votos)
+      .slice(0, 3);
   }
 
   function candidatos(posicion: string) {
@@ -351,8 +369,10 @@ export default function DreamTeamPage() {
       .filter((j) => tipoJugador(j) === tipo)
       .sort((a, b) => {
         if (tipo === "arquero") return b.atajadas - a.atajadas;
-        if (tipo === "delantero") return b.goles - a.goles || b.asistencias - a.asistencias;
-        if (tipo === "medio") return b.asistencias - a.asistencias || b.rating - a.rating;
+        if (tipo === "delantero")
+          return b.goles - a.goles || b.asistencias - a.asistencias;
+        if (tipo === "medio")
+          return b.asistencias - a.asistencias || b.rating - a.rating;
         return b.rating - a.rating || b.partidos - a.partidos;
       })
       .slice(0, 40);
@@ -382,7 +402,9 @@ export default function DreamTeamPage() {
         v.usuario === user.id,
     );
 
-    const yaVotoEstaPosicion = votosMismaFecha.some((v) => v.posicion === posicionActiva);
+    const yaVotoEstaPosicion = votosMismaFecha.some(
+      (v) => v.posicion === posicionActiva,
+    );
 
     if (yaVotoEstaPosicion) {
       setMensaje(
@@ -466,8 +488,13 @@ export default function DreamTeamPage() {
     size?: "sm" | "md";
   }) {
     const perfil = perfilPorPlayerId(playerId || "");
-    const inicial = String(nombre || "J").slice(0, 1).toUpperCase();
-    const sizeClass = size === "sm" ? "h-9 w-9 sm:h-10 sm:w-10 text-sm" : "h-11 w-11 sm:h-14 sm:w-14 text-base sm:text-lg";
+    const inicial = String(nombre || "J")
+      .slice(0, 1)
+      .toUpperCase();
+    const sizeClass =
+      size === "sm"
+        ? "h-9 w-9 sm:h-10 sm:w-10 text-sm"
+        : "h-11 w-11 sm:h-14 sm:w-14 text-base sm:text-lg";
 
     const avatar = (
       <div
@@ -487,7 +514,10 @@ export default function DreamTeamPage() {
 
     if (perfil?.username) {
       return (
-        <Link href={`/u/${perfil.username}`} className="transition hover:scale-105">
+        <Link
+          href={`/u/${perfil.username}`}
+          className="transition hover:scale-105"
+        >
           {avatar}
         </Link>
       );
@@ -510,7 +540,10 @@ export default function DreamTeamPage() {
 
     if (perfil?.username) {
       return (
-        <Link href={`/u/${perfil.username}`} className={`transition hover:text-yellow-300 ${className}`}>
+        <Link
+          href={`/u/${perfil.username}`}
+          className={`transition hover:text-yellow-300 ${className}`}
+        >
           {texto}
         </Link>
       );
@@ -525,7 +558,11 @@ export default function DreamTeamPage() {
     return (
       <div className="flex h-8 w-8 shrink-0 sm:h-10 sm:w-10 items-center justify-center overflow-hidden rounded-full border border-sky-400/30 bg-black">
         {logo ? (
-          <img src={logo} alt={equipo} className="h-full w-full object-contain p-1" />
+          <img
+            src={logo}
+            alt={equipo}
+            className="h-full w-full object-contain p-1"
+          />
         ) : (
           <span className="text-[10px] font-black text-white">
             {(equipo || "?").slice(0, 2).toUpperCase()}
@@ -546,7 +583,10 @@ export default function DreamTeamPage() {
       >
         <div className="mx-auto mb-2 flex justify-center">
           {elegido ? (
-            <AvatarJugador playerId={elegido.playerId} nombre={elegido.nombre} />
+            <AvatarJugador
+              playerId={elegido.playerId}
+              nombre={elegido.nombre}
+            />
           ) : (
             <LogoEquipo equipo={elegido?.equipo} />
           )}
@@ -558,7 +598,10 @@ export default function DreamTeamPage() {
 
         <h3 className="mt-1 truncate text-xs font-black uppercase text-white sm:text-base">
           {elegido ? (
-            <NombreJugadorLink playerId={elegido.playerId} nombre={elegido.nombre} />
+            <NombreJugadorLink
+              playerId={elegido.playerId}
+              nombre={elegido.nombre}
+            />
           ) : (
             "Elegir"
           )}
@@ -597,32 +640,42 @@ export default function DreamTeamPage() {
             </h1>
 
             <p className="mt-5 max-w-2xl text-zinc-400">
-              Votá el Dream Team de la fecha con formación oficial:
-              GK, LB, CB, RB, LCM, RCM, LST y RST.
+              Votá el Dream Team de la fecha con formación oficial: GK, LB, CB,
+              RB, LCM, RCM, LST y RST.
             </p>
 
             <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 md:gap-4">
               <div className="rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4">
-                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">Cuenta</p>
+                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
+                  Cuenta
+                </p>
                 <p className="mt-1 truncate font-black text-sky-300">
                   {usuarioId
-                    ? miPerfil?.display_name || miPerfil?.username || "Usuario APA"
+                    ? miPerfil?.display_name ||
+                      miPerfil?.username ||
+                      "Usuario APA"
                     : "Iniciá sesión"}
                 </p>
               </div>
 
               <div className="rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4">
-                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">Temporada</p>
+                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
+                  Temporada
+                </p>
                 <p className="mt-1 font-black text-sky-300">{temporada}</p>
               </div>
 
               <div className="rounded-2xl border border-yellow-500/20 bg-black/35 px-5 py-4">
-                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">División</p>
+                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
+                  División
+                </p>
                 <p className="mt-1 font-black text-yellow-300">{division}</p>
               </div>
 
               <div className="rounded-2xl border border-green-500/20 bg-black/35 px-5 py-4">
-                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">Fecha</p>
+                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
+                  Fecha
+                </p>
                 <p className="mt-1 font-black text-green-400">Fecha {fecha}</p>
               </div>
             </div>
@@ -632,7 +685,9 @@ export default function DreamTeamPage() {
         <section className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] md:p-8 shadow-[0_0_35px_rgba(0,120,255,.12)]">
           <div className="grid gap-7">
             <div>
-              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">Temporada</p>
+              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+                Temporada
+              </p>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 {temporadas.map((temp) => (
                   <button
@@ -651,7 +706,9 @@ export default function DreamTeamPage() {
             </div>
 
             <div>
-              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">División</p>
+              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+                División
+              </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {divisiones.map((div) => (
                   <button
@@ -670,7 +727,9 @@ export default function DreamTeamPage() {
             </div>
 
             <div>
-              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">Fecha</p>
+              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+                Fecha
+              </p>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 {fechas.map((f) => (
                   <button
@@ -735,7 +794,9 @@ export default function DreamTeamPage() {
 
           <aside className="space-y-6">
             <section className="rounded-[28px] border border-yellow-500/25 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6">
-              <p className="text-yellow-300 uppercase tracking-[0.3em] text-xs font-black">MVP de la fecha</p>
+              <p className="text-yellow-300 uppercase tracking-[0.3em] text-xs font-black">
+                MVP de la fecha
+              </p>
               <div className="mt-4 flex items-center gap-4">
                 <AvatarJugador
                   playerId={jugadorMasVotado?.playerId}
@@ -748,18 +809,28 @@ export default function DreamTeamPage() {
                       nombre={jugadorMasVotado?.nombre || "-"}
                     />
                   </h2>
-                  <p className="mt-2 truncate text-zinc-500">{jugadorMasVotado?.equipo || "Sin votos todavía"}</p>
+                  <p className="mt-2 truncate text-zinc-500">
+                    {jugadorMasVotado?.equipo || "Sin votos todavía"}
+                  </p>
                 </div>
               </div>
-              <p className="mt-5 text-4xl font-black text-yellow-300 sm:text-5xl">{jugadorMasVotado?.votos || 0}</p>
-              <p className="text-[10px] uppercase tracking-[0.25em] text-zinc-500 font-black">votos totales</p>
+              <p className="mt-5 text-4xl font-black text-yellow-300 sm:text-5xl">
+                {jugadorMasVotado?.votos || 0}
+              </p>
+              <p className="text-[10px] uppercase tracking-[0.25em] text-zinc-500 font-black">
+                votos totales
+              </p>
             </section>
 
             <section className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black">Mi equipo</p>
-                  <h2 className="mt-3 text-2xl font-black uppercase sm:text-3xl">Mi Dream Team</h2>
+                  <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black">
+                    Mi equipo
+                  </p>
+                  <h2 className="mt-3 text-2xl font-black uppercase sm:text-3xl">
+                    Mi Dream Team
+                  </h2>
                 </div>
 
                 <button
@@ -773,7 +844,10 @@ export default function DreamTeamPage() {
 
               <div className="mt-5 grid grid-cols-1 gap-2">
                 {posiciones.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/35 px-4 py-3">
+                  <div
+                    key={p.id}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/35 px-4 py-3"
+                  >
                     <span className="font-black text-yellow-300">{p.id}</span>
                     <div className="flex min-w-0 items-center gap-2">
                       {miDreamTeam[p.id] && (
@@ -800,9 +874,13 @@ export default function DreamTeamPage() {
             </section>
 
             <section className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6">
-              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black">Votación</p>
+              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black">
+                Votación
+              </p>
               <h2 className="mt-3 text-2xl font-black uppercase sm:text-3xl">
-                {posicionActiva ? `Elegir ${posicionActiva}` : "Seleccioná una posición"}
+                {posicionActiva
+                  ? `Elegir ${posicionActiva}`
+                  : "Seleccioná una posición"}
               </h2>
               <p className="mt-3 text-zinc-500">
                 Tocá una posición en la cancha y elegí un jugador candidato.
@@ -810,21 +888,39 @@ export default function DreamTeamPage() {
 
               {posicionActiva && (
                 <div className="mt-5 rounded-2xl border border-yellow-400/20 bg-yellow-400/10 p-4">
-                  <p className="text-yellow-300 text-xs font-black uppercase tracking-[0.25em] mb-3">Top 3 actual</p>
+                  <p className="text-yellow-300 text-xs font-black uppercase tracking-[0.25em] mb-3">
+                    Top 3 actual
+                  </p>
                   <div className="space-y-2">
                     {topPorPosicion(posicionActiva).length === 0 ? (
-                      <p className="text-zinc-500 text-sm">Sin votos todavía.</p>
+                      <p className="text-zinc-500 text-sm">
+                        Sin votos todavía.
+                      </p>
                     ) : (
                       topPorPosicion(posicionActiva).map((j: any, index) => (
-                        <div key={j.playerId || j.nombre} className="flex items-center justify-between gap-3 text-sm">
+                        <div
+                          key={j.playerId || j.nombre}
+                          className="flex items-center justify-between gap-3 text-sm"
+                        >
                           <div className="flex min-w-0 items-center gap-2">
-                            <span className="font-black text-zinc-500">{index + 1}.</span>
-                            <AvatarJugador playerId={j.playerId} nombre={j.nombre} size="sm" />
+                            <span className="font-black text-zinc-500">
+                              {index + 1}.
+                            </span>
+                            <AvatarJugador
+                              playerId={j.playerId}
+                              nombre={j.nombre}
+                              size="sm"
+                            />
                             <span className="truncate text-white">
-                              <NombreJugadorLink playerId={j.playerId} nombre={j.nombre} />
+                              <NombreJugadorLink
+                                playerId={j.playerId}
+                                nombre={j.nombre}
+                              />
                             </span>
                           </div>
-                          <span className="font-black text-yellow-300">{j.votos}</span>
+                          <span className="font-black text-yellow-300">
+                            {j.votos}
+                          </span>
                         </div>
                       ))
                     )}
@@ -835,9 +931,13 @@ export default function DreamTeamPage() {
 
             <section className="max-h-[560px] overflow-y-auto rounded-[28px] sm:max-h-[760px] sm:rounded-[34px] border border-sky-500/25 bg-[#020714] p-4">
               {!posicionActiva ? (
-                <div className="p-8 text-center text-zinc-500">No hay posición seleccionada.</div>
+                <div className="p-8 text-center text-zinc-500">
+                  No hay posición seleccionada.
+                </div>
               ) : candidatos(posicionActiva).length === 0 ? (
-                <div className="p-8 text-center text-zinc-500">No hay candidatos para esta posición.</div>
+                <div className="p-8 text-center text-zinc-500">
+                  No hay candidatos para esta posición.
+                </div>
               ) : (
                 <div className="space-y-3">
                   {candidatos(posicionActiva).map((j) => (
@@ -848,26 +948,50 @@ export default function DreamTeamPage() {
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex min-w-0 items-center gap-3">
-                          <AvatarJugador playerId={j.playerId} nombre={j.nombre} />
+                          <AvatarJugador
+                            playerId={j.playerId}
+                            nombre={j.nombre}
+                          />
                           <div className="min-w-0">
                             <p className="break-words text-base font-black uppercase sm:truncate sm:text-lg">
-                              <NombreJugadorLink playerId={j.playerId} nombre={j.nombre} />
+                              <NombreJugadorLink
+                                playerId={j.playerId}
+                                nombre={j.nombre}
+                              />
                             </p>
-                            <p className="truncate text-sm text-zinc-500">{j.equipo} · {j.posicion || "Sin posición"}</p>
+                            <p className="truncate text-sm text-zinc-500">
+                              {j.equipo} · {j.posicion || "Sin posición"}
+                            </p>
                           </div>
                         </div>
 
                         <div className="text-right">
-                          <p className="text-xl font-black text-yellow-300 sm:text-2xl">{j.rating}</p>
-                          <p className="text-[10px] uppercase tracking-[0.18em] text-zinc-500">rating</p>
+                          <p className="text-xl font-black text-yellow-300 sm:text-2xl">
+                            {j.rating}
+                          </p>
+                          <p className="text-[10px] uppercase tracking-[0.18em] text-zinc-500">
+                            rating
+                          </p>
                         </div>
                       </div>
 
                       <div className="mt-4 grid grid-cols-2 gap-2 text-center text-xs sm:grid-cols-4">
-                        <div className="rounded-xl bg-white/[0.04] p-2"><b>{j.partidos}</b><p className="text-zinc-500">PJ</p></div>
-                        <div className="rounded-xl bg-white/[0.04] p-2"><b>{j.goles}</b><p className="text-zinc-500">G</p></div>
-                        <div className="rounded-xl bg-white/[0.04] p-2"><b>{j.asistencias}</b><p className="text-zinc-500">A</p></div>
-                        <div className="rounded-xl bg-white/[0.04] p-2"><b>{j.atajadas}</b><p className="text-zinc-500">ATAJ</p></div>
+                        <div className="rounded-xl bg-white/[0.04] p-2">
+                          <b>{j.partidos}</b>
+                          <p className="text-zinc-500">PJ</p>
+                        </div>
+                        <div className="rounded-xl bg-white/[0.04] p-2">
+                          <b>{j.goles}</b>
+                          <p className="text-zinc-500">G</p>
+                        </div>
+                        <div className="rounded-xl bg-white/[0.04] p-2">
+                          <b>{j.asistencias}</b>
+                          <p className="text-zinc-500">A</p>
+                        </div>
+                        <div className="rounded-xl bg-white/[0.04] p-2">
+                          <b>{j.atajadas}</b>
+                          <p className="text-zinc-500">ATAJ</p>
+                        </div>
                       </div>
                     </button>
                   ))}
