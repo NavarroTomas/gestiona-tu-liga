@@ -4,6 +4,7 @@ import Link from "next/link";
 
 const secciones = [
   { id: "registro", nombre: "Registro", icono: "🚨" },
+  { id: "discord", nombre: "Discord ID", icono: "💬" },
   { id: "inicio", nombre: "Inicio", icono: "🏠" },
   { id: "perfil", nombre: "Perfil", icono: "👤" },
   { id: "divisiones", nombre: "Divisiones", icono: "📊" },
@@ -344,6 +345,24 @@ export default function GuiaPage() {
             </div>
           </div>
         </section>
+
+        
+        <GuiaCard
+          id="discord"
+          icono="💬"
+          titulo="Discord User ID"
+          descripcion="APA utiliza tu Discord User ID para verificaciones y seguridad."
+          items={[
+            "Abrí Discord.",
+            "Configuración > Avanzado > activar Modo Desarrollador.",
+            "Hacé clic derecho sobre tu usuario.",
+            "Seleccioná Copiar ID.",
+            "Pegá ese número en tu perfil APA.",
+            "No uses tu nombre de Discord, solo el ID numérico."
+          ]}
+          consejo="Ejemplo: 123456789012345678. Si está mal, el staff puede marcar tu perfil en disputa."
+        />
+
 
         <GuiaCard
           id="inicio"

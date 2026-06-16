@@ -200,6 +200,36 @@ export default function AdminVerificacionesPage() {
     return notas[perfil.id] ?? perfil.verification_note ?? fallback;
   }
 
+
+  async function crearNotificacion({
+    userId,
+    tipo,
+    titulo,
+    mensaje,
+    href = "/perfil",
+  }: {
+    userId: string;
+    tipo: string;
+    titulo: string;
+    mensaje: string;
+    href?: string;
+  }) {
+    const { error } = await supabase.from("notificaciones").insert({
+      user_id: userId,
+      tipo,
+      titulo,
+      mensaje,
+      href,
+      leida: false,
+    });
+
+    if (error) {
+      console.log("No pude crear la notificación:", error);
+    }
+  }
+
+
+
   async function aprobar(perfil: PerfilVerificacion) {
     setMensaje("");
 
@@ -261,6 +291,14 @@ export default function AdminVerificacionesPage() {
       return;
     }
 
+    await crearNotificacion({
+      userId: perfil.id,
+      tipo: "approved",
+      titulo: "Verificación aprobada",
+      mensaje: `Tu PlayerId ${solicitado} fue aprobado por el staff APA.`,
+      href: "/perfil",
+    });
+
     setMensaje("PlayerId aprobado correctamente.");
     await cargarSolicitudes();
   }
@@ -299,6 +337,14 @@ export default function AdminVerificacionesPage() {
       return;
     }
 
+    await crearNotificacion({
+      userId: perfil.id,
+      tipo: "rejected",
+      titulo: "Verificación rechazada",
+      mensaje: notaPerfil(perfil, "Tu solicitud fue rechazada. Revisá tus datos en Mi Perfil."),
+      href: "/perfil",
+    });
+
     setMensaje("Solicitud rechazada.");
     await cargarSolicitudes();
   }
@@ -331,6 +377,14 @@ export default function AdminVerificacionesPage() {
       return;
     }
 
+    await crearNotificacion({
+      userId: perfil.id,
+      tipo: "disputed",
+      titulo: "Tu cuenta está en disputa",
+      mensaje: notaPerfil(perfil, "El staff detectó un problema con tus datos. Corregilos desde Mi Perfil."),
+      href: "/perfil",
+    });
+
     setMensaje("Solicitud marcada como disputa.");
     await cargarSolicitudes();
   }
@@ -359,6 +413,14 @@ export default function AdminVerificacionesPage() {
       setMensaje("Error devolviendo a pendiente: " + error.message);
       return;
     }
+
+    await crearNotificacion({
+      userId: perfil.id,
+      tipo: "pending",
+      titulo: "Verificación pendiente",
+      mensaje: notaPerfil(perfil, "Tu solicitud volvió a revisión pendiente."),
+      href: "/perfil",
+    });
 
     setMensaje("Solicitud devuelta a pendiente.");
     await cargarSolicitudes();
@@ -395,6 +457,14 @@ export default function AdminVerificacionesPage() {
       setMensaje("Error desvinculando PlayerId: " + error.message);
       return;
     }
+
+    await crearNotificacion({
+      userId: perfil.id,
+      tipo: "pending",
+      titulo: "PlayerId desvinculado",
+      mensaje: notaPerfil(perfil, "Tu PlayerId fue desvinculado y vuelve a revisión pendiente."),
+      href: "/perfil",
+    });
 
     setMensaje("PlayerId desvinculado. El perfil vuelve a pendiente.");
     await cargarSolicitudes();
@@ -633,7 +703,25 @@ export default function AdminVerificacionesPage() {
                       <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
                         Nota de verificación
                       </label>
-                      <div className="mb-3 flex flex-wrap gap-2">
+                      
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard.writeText(perfil.steam_id || "")}
+                          className="rounded-xl border border-cyan-400/25 bg-cyan-400/10 px-3 py-2 text-[10px] font-black uppercase text-cyan-300"
+                        >
+                          Copiar SteamID
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard.writeText(perfil.discord_id || "")}
+                          className="rounded-xl border border-indigo-400/25 bg-indigo-400/10 px-3 py-2 text-[10px] font-black uppercase text-indigo-300"
+                        >
+                          Copiar Discord ID
+                        </button>
+                      </div>
+<div className="mb-3 flex flex-wrap gap-2">
                         {notasRapidas.map((nota) => (
                           <button
                             key={nota}

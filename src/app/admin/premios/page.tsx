@@ -497,6 +497,52 @@ export default function AdminPremiosPage() {
     setCalculandoSteam(false);
   }
 
+
+  async function notificarPremioGanado(candidato: Candidato) {
+    const perfil = perfilesPorPlayerId[candidato.playerid];
+
+    if (!perfil?.id) {
+      console.log("No hay perfil vinculado para notificar premio:", candidato.playerid);
+      return;
+    }
+
+    const premioTexto = nombrePremio(premio);
+    const mensajePremio = `Ganaste ${premioTexto} - ${temporada}${division !== "Todas" ? ` · ${division}` : ""}.`;
+
+    const haceCincoMinutos = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+
+    const { data: existente, error: existenteError } = await supabase
+      .from("notificaciones")
+      .select("id")
+      .eq("user_id", perfil.id)
+      .eq("tipo", "award")
+      .eq("titulo", "Premio recibido")
+      .eq("mensaje", mensajePremio)
+      .gte("created_at", haceCincoMinutos)
+      .limit(1);
+
+    if (existenteError) {
+      console.log(existenteError);
+    }
+
+    if (existente && existente.length > 0) {
+      return;
+    }
+
+    const { error } = await supabase.from("notificaciones").insert({
+      user_id: perfil.id,
+      tipo: "award",
+      titulo: "Premio recibido",
+      mensaje: mensajePremio,
+      href: "/perfil",
+      leida: false,
+    });
+
+    if (error) {
+      console.log("No pude crear notificación de premio:", error);
+    }
+  }
+
   async function asignarGanador(candidato: Candidato) {
     if (!candidato.playerid) {
       setMensaje("Este candidato no tiene PlayerId.");
@@ -531,7 +577,9 @@ export default function AdminPremiosPage() {
       return;
     }
 
-    setMensaje("Premio asignado correctamente.");
+    await notificarPremioGanado(candidato);
+
+    setMensaje("Premio asignado correctamente y notificación enviada si el jugador tiene perfil vinculado.");
     await cargarDatos();
   }
 

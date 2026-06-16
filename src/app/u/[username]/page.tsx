@@ -304,6 +304,69 @@ export default function PerfilPublicoPage() {
     setLoading(false);
   }
 
+
+  async function notificarLogrosDesbloqueados(logrosActivos: {
+    key: string;
+    titulo: string;
+    descripcion: string;
+    activo: boolean;
+  }[]) {
+    if (!perfil) return;
+
+    const activos = logrosActivos.filter((logro) => logro.activo);
+
+    if (activos.length === 0) return;
+
+    const { data: yaNotificados, error: yaNotificadosError } = await supabase
+      .from("logros_notificados")
+      .select("logro_key")
+      .eq("user_id", perfil.id);
+
+    if (yaNotificadosError) {
+      console.log(yaNotificadosError);
+      return;
+    }
+
+    const keysYaNotificadas = new Set(
+      (yaNotificados || []).map((item: any) => item.logro_key),
+    );
+
+    const nuevos = activos.filter((logro) => !keysYaNotificadas.has(logro.key));
+
+    if (nuevos.length === 0) return;
+
+    const registrosLogros = nuevos.map((logro) => ({
+      user_id: perfil.id,
+      logro_key: logro.key,
+    }));
+
+    const { error: logrosError } = await supabase
+      .from("logros_notificados")
+      .insert(registrosLogros);
+
+    if (logrosError) {
+      console.log(logrosError);
+      return;
+    }
+
+    const notificaciones = nuevos.map((logro) => ({
+      user_id: perfil.id,
+      tipo: "achievement",
+      titulo: "Logro desbloqueado",
+      mensaje: `${logro.titulo}: ${logro.descripcion}`,
+      href: `/u/${perfil.username}`,
+      leida: false,
+    }));
+
+    const { error: notificacionesError } = await supabase
+      .from("notificaciones")
+      .insert(notificaciones);
+
+    if (notificacionesError) {
+      console.log(notificacionesError);
+    }
+  }
+
   const partidosMap = useMemo(() => {
     const map: Record<string, Partido> = {};
     partidos.forEach((partido) => {
@@ -513,6 +576,7 @@ export default function PerfilPublicoPage() {
     };
 
     const lista: {
+      key: string;
       icono: string;
       titulo: string;
       descripcion: string;
@@ -523,6 +587,7 @@ export default function PerfilPublicoPage() {
       textoProgreso: string;
     }[] = [
       {
+        key: "primer_gol",
         icono: "🥅",
         titulo: "Primer Gol",
         descripcion: "Convertir el primer gol oficial en APA.",
@@ -533,6 +598,7 @@ export default function PerfilPublicoPage() {
         textoProgreso: `${Math.min(resumen.goles, 1)} / 1`,
       },
       {
+        key: "100_goles",
         icono: "💯",
         titulo: "100 Goles",
         descripcion: "Llegar a los 100 goles oficiales.",
@@ -543,6 +609,7 @@ export default function PerfilPublicoPage() {
         textoProgreso: `${Math.min(resumen.goles, 100)} / 100`,
       },
       {
+        key: "100_asistencias",
         icono: "🎯",
         titulo: "100 Asistencias",
         descripcion: "Llegar a las 100 asistencias oficiales.",
@@ -553,6 +620,7 @@ export default function PerfilPublicoPage() {
         textoProgreso: `${Math.min(resumen.asistencias, 100)} / 100`,
       },
       {
+        key: "primer_mvp",
         icono: "⭐",
         titulo: "Primer MVP",
         descripcion: "Conseguir el primer MVP oficial.",
@@ -563,6 +631,7 @@ export default function PerfilPublicoPage() {
         textoProgreso: `${Math.min(resumen.mvps, 1)} / 1`,
       },
       {
+        key: "10_mvp",
         icono: "🌟",
         titulo: "10 MVP",
         descripcion: "Alcanzar 10 MVP oficiales.",
@@ -573,6 +642,7 @@ export default function PerfilPublicoPage() {
         textoProgreso: `${Math.min(resumen.mvps, 10)} / 10`,
       },
       {
+        key: "balon_oro",
         icono: "🏆",
         titulo: "Balón de Oro",
         descripcion: "Ganar un Balón de Oro APA.",
@@ -583,6 +653,7 @@ export default function PerfilPublicoPage() {
         textoProgreso: premiosApa.some((p) => p.premio === "balon_oro") ? "1 / 1" : "Pendiente",
       },
       {
+        key: "the_best",
         icono: "🏅",
         titulo: "The Best",
         descripcion: "Ganar The Best como mejor jugador de divisiones inferiores.",
@@ -593,6 +664,7 @@ export default function PerfilPublicoPage() {
         textoProgreso: premiosApa.some((p) => p.premio === "the_best") ? "1 / 1" : "Pendiente",
       },
       {
+        key: "raiko_trophy",
         icono: "🧤",
         titulo: "Raiko Trophy",
         descripcion: "Ganar el premio al mejor arquero de APA.",
@@ -603,6 +675,7 @@ export default function PerfilPublicoPage() {
         textoProgreso: premiosApa.some((p) => p.premio === "raiko_trophy") ? "1 / 1" : "Pendiente",
       },
       {
+        key: "bota_oro",
         icono: "⚽",
         titulo: "Bota de Oro",
         descripcion: "Ganar la Bota de Oro APA como máximo goleador.",
@@ -613,6 +686,7 @@ export default function PerfilPublicoPage() {
         textoProgreso: premiosApa.some((p) => p.premio === "bota_oro") ? "1 / 1" : "Pendiente",
       },
       {
+        key: "golden_boy",
         icono: "⭐",
         titulo: "Golden Boy",
         descripcion: "Ganar el premio Golden Boy APA como joven promesa.",
@@ -623,6 +697,7 @@ export default function PerfilPublicoPage() {
         textoProgreso: premiosApa.some((p) => p.premio === "golden_boy") ? "1 / 1" : "Pendiente",
       },
       {
+        key: "100_partidos",
         icono: "🎮",
         titulo: "100 Partidos",
         descripcion: "Disputar 100 partidos oficiales.",
@@ -633,6 +708,7 @@ export default function PerfilPublicoPage() {
         textoProgreso: `${Math.min(resumen.partidosJugados, 100)} / 100`,
       },
       {
+        key: "pronosticador",
         icono: "🔮",
         titulo: "Pronosticador",
         descripcion: "Realizar al menos una predicción.",
@@ -643,6 +719,7 @@ export default function PerfilPublicoPage() {
         textoProgreso: `${Math.min(prediccionStats.total, 1)} / 1`,
       },
       {
+        key: "votante_dream_team",
         icono: "💫",
         titulo: "Votante Dream Team",
         descripcion: "Votar al menos una vez el Dream Team.",
@@ -668,6 +745,13 @@ export default function PerfilPublicoPage() {
     if (logros.length === 0) return 0;
     return Math.round((logrosDesbloqueados / logros.length) * 100);
   }, [logros, logrosDesbloqueados]);
+
+
+  useEffect(() => {
+    if (!perfil || loading || logros.length === 0) return;
+
+    notificarLogrosDesbloqueados(logros);
+  }, [perfil?.id, loading, logrosDesbloqueados]);
 
   if (loading) {
     return (
@@ -825,7 +909,52 @@ export default function PerfilPublicoPage() {
                 {resumen.nombreJugador}
               </h2>
 
-              {perfil.bio ? (
+              
+              <div className="mt-6 flex flex-wrap gap-3">
+                <span className={`rounded-full px-4 py-2 text-xs font-black uppercase ${
+                  perfil.playerid_verified ? "border border-green-400/25 bg-green-400/10 text-green-300" : "border border-yellow-400/25 bg-yellow-400/10 text-yellow-300"
+                }`}>
+                  {perfil.playerid_verified ? "✅ PlayerID verificado" : "⏳ PlayerID pendiente"}
+                </span>
+
+                <span className={`rounded-full px-4 py-2 text-xs font-black uppercase ${
+                  perfil.steam_id ? "border border-cyan-400/25 bg-cyan-400/10 text-cyan-300" : "border border-zinc-500/25 bg-zinc-500/10 text-zinc-400"
+                }`}>
+                  {perfil.steam_id ? "🎮 Steam vinculado" : "Steam no vinculado"}
+                </span>
+              </div>
+
+              
+              <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="rounded-3xl border border-yellow-400/25 bg-yellow-400/10 p-5 text-center">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-yellow-300">
+                    Trofeos APA
+                  </p>
+                  <p className="mt-3 text-5xl font-black text-yellow-300">
+                    {totalTrofeos}
+                  </p>
+                </div>
+
+                <div className="rounded-3xl border border-purple-400/25 bg-purple-400/10 p-5 text-center">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-purple-300">
+                    Logros
+                  </p>
+                  <p className="mt-3 text-5xl font-black text-purple-300">
+                    {logrosDesbloqueados}/{logros.length}
+                  </p>
+                </div>
+
+                <div className="rounded-3xl border border-green-400/25 bg-green-400/10 p-5 text-center">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-green-300">
+                    Progreso
+                  </p>
+                  <p className="mt-3 text-5xl font-black text-green-300">
+                    {porcentajeLogros}%
+                  </p>
+                </div>
+              </div>
+
+{perfil.bio ? (
                 <p className="mt-6 max-w-4xl whitespace-pre-line text-lg leading-8 text-zinc-300">
                   {perfil.bio}
                 </p>

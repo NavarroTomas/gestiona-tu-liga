@@ -44,6 +44,7 @@ export default function AdminNoticiasPage() {
   const [autor, setAutor] = useState("");
   const [publicada, setPublicada] = useState(true);
   const [destacada, setDestacada] = useState(false);
+  const [notificarComunidad, setNotificarComunidad] = useState(true);
 
   useEffect(() => {
     cargarNoticias();
@@ -73,19 +74,20 @@ export default function AdminNoticiasPage() {
     setEditandoId(null);
     setTitulo("");
     setDescripcion("");
-    setTemporada("Temporada 5");
+    setTemporada("Temporada 4");
     setCategoria("General");
     setImagenUrl("");
     setAutor("");
     setPublicada(true);
     setDestacada(false);
+    setNotificarComunidad(true);
   }
 
   function editar(noticia: Noticia) {
     setEditandoId(noticia.id);
     setTitulo(noticia.titulo || "");
     setDescripcion(noticia.descripcion || "");
-    setTemporada(noticia.temporada || "Temporada 5");
+    setTemporada(noticia.temporada || "Temporada 4");
     setCategoria(noticia.categoria || "General");
     setImagenUrl(noticia.imagen_url || "");
     setAutor(noticia.autor || "");
@@ -93,6 +95,60 @@ export default function AdminNoticiasPage() {
     setDestacada(!!noticia.destacada);
 
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+
+  async function notificarNuevaNoticia(tituloNoticia: string) {
+    const haceCincoMinutos = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+
+    const { data: notificacionExistente, error: existenteError } = await supabase
+      .from("notificaciones")
+      .select("id")
+      .eq("tipo", "news")
+      .eq("titulo", "Nueva noticia APA")
+      .eq("mensaje", tituloNoticia)
+      .eq("href", "/")
+      .gte("created_at", haceCincoMinutos)
+      .limit(1);
+
+    if (existenteError) {
+      console.log(existenteError);
+    }
+
+    if (notificacionExistente && notificacionExistente.length > 0) {
+      setMensaje("Noticia publicada. No se enviaron notificaciones duplicadas.");
+      return;
+    }
+
+    const { data: usuarios, error: usuariosError } = await supabase
+      .from("profiles")
+      .select("id");
+
+    if (usuariosError) {
+      console.log(usuariosError);
+      setMensaje("Noticia publicada, pero no pude notificar a la comunidad.");
+      return;
+    }
+
+    const notificaciones = (usuarios || []).map((usuario: any) => ({
+      user_id: usuario.id,
+      tipo: "news",
+      titulo: "Nueva noticia APA",
+      mensaje: tituloNoticia,
+      href: "/",
+      leida: false,
+    }));
+
+    if (notificaciones.length === 0) return;
+
+    const { error: notificacionError } = await supabase
+      .from("notificaciones")
+      .insert(notificaciones);
+
+    if (notificacionError) {
+      console.log(notificacionError);
+      setMensaje("Noticia publicada, pero no pude crear las notificaciones.");
+    }
   }
 
   async function guardarNoticia(e: React.FormEvent<HTMLFormElement>) {
@@ -126,9 +182,11 @@ export default function AdminNoticiasPage() {
       updated_at: new Date().toISOString(),
     };
 
-    const { error } = editandoId
+    const resultadoGuardado = editandoId
       ? await supabase.from("noticias").update(payload).eq("id", editandoId)
-      : await supabase.from("noticias").insert([payload]);
+      : await supabase.from("noticias").insert([payload]).select("id").single();
+
+    const { error } = resultadoGuardado;
 
     setGuardando(false);
 
@@ -136,6 +194,10 @@ export default function AdminNoticiasPage() {
       console.log(error);
       setMensaje("Error guardando noticia: " + error.message);
       return;
+    }
+
+    if (!editandoId && publicada && notificarComunidad) {
+      await notificarNuevaNoticia(tituloLimpio);
     }
 
     setMensaje(editandoId ? "Noticia actualizada." : "Noticia publicada.");
@@ -336,6 +398,20 @@ export default function AdminNoticiasPage() {
                   />
                 </label>
               </div>
+
+              {!editandoId && (
+                <label className="flex cursor-pointer items-center justify-between rounded-2xl border border-yellow-400/25 bg-yellow-400/10 p-4">
+                  <span className="text-sm font-black uppercase text-yellow-300">
+                    🔔 Notificar a la comunidad
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={notificarComunidad}
+                    onChange={(e) => setNotificarComunidad(e.target.checked)}
+                    className="h-5 w-5"
+                  />
+                </label>
+              )}
 
               {mensaje && (
                 <p className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 p-4 text-sm font-black text-yellow-300">

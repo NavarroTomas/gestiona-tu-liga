@@ -5,6 +5,8 @@ import Link from "next/link";
 import { supabase } from "../lib/supabase";
 import HeroImagenesHome from "../components/HeroImagenesHome";
 import HeroCarruselHome from "../components/HeroCarruselHome";
+import { getSeasonTheme } from "@/lib/seasonTheme";
+import SeasonDecorations from "@/components/SeasonDecorations";
 
 const temporadas = ["Temporada 4"];
 
@@ -41,11 +43,11 @@ function fechaNoticia(value?: string | null) {
 function SeparadorHome({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-4 py-3">
-      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-sky-400/30 to-white/5" />
-      <span className="rounded-full border border-sky-400/25 bg-sky-400/10 px-5 py-2 text-[10px] font-black uppercase tracking-[0.34em] text-sky-300 shadow-[0_0_18px_rgba(56,189,248,.12)]">
+      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-yellow-400/30 to-white/5" />
+      <span className="rounded-full border border-yellow-400/25 bg-yellow-400/10 px-5 py-2 text-[10px] font-black uppercase tracking-[0.34em] text-yellow-300 shadow-[0_0_18px_rgba(56,189,248,.12)]">
         {label}
       </span>
-      <div className="h-px flex-1 bg-gradient-to-r from-white/5 via-sky-400/30 to-transparent" />
+      <div className="h-px flex-1 bg-gradient-to-r from-white/5 via-yellow-400/30 to-transparent" />
     </div>
   );
 }
@@ -83,6 +85,8 @@ function EscudoEquipo({
 }
 
 export default function Home() {
+  const theme = getSeasonTheme();
+
   const [partidos, setPartidos] = useState<any[]>([]);
   const [jugadores, setJugadores] = useState<any[]>([]);
   const [clubesInfo, setClubesInfo] = useState<any[]>([]);
@@ -256,14 +260,14 @@ export default function Home() {
 
   const statsHome = [
     {
-      label: "Equipos",
+      label: "Selecciones",
       value: equiposCantidad,
       icon: "🏟️",
-      detail: "clubes activos",
+      detail: "en competencia",
       color: "text-sky-300",
     },
     {
-      label: "Partidos",
+      label: "Jornadas",
       value: partidos.length,
       icon: "📅",
       detail: "en fixture",
@@ -345,37 +349,53 @@ export default function Home() {
       title: "Historia APA",
       desc: "Premios, récords y estadísticas desde la Temporada 4.",
       icon: "🏛️",
+      color: "from-yellow-500/20 to-blue-950/20 border-yellow-400/25",
     },
   ];
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] p-4 text-white md:p-6">
-      <section className="mx-auto max-w-[1500px] space-y-10">
+    <main className={`relative min-h-screen overflow-hidden ${theme.background} p-4 text-white md:p-6`}>
+      <SeasonDecorations />
+      <section className="relative z-10 mx-auto max-w-[1500px] space-y-10">
         <HeroImagenesHome />
 
-        <section className="relative overflow-hidden rounded-[42px] border border-sky-500/30 bg-[#020714] p-7 shadow-[0_0_60px_rgba(0,120,255,.22)] md:p-10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.22),transparent_42%)]" />
-          <div className="absolute -right-24 top-0 h-96 w-96 rounded-full bg-sky-500/10 blur-3xl" />
+        <section className="relative overflow-hidden rounded-[42px] border border-yellow-400/30 bg-[#020714] p-7 shadow-[0_0_70px_rgba(250,204,21,.18)] md:p-10">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,.22),transparent_42%)]" />
+          <div className="absolute -right-24 top-0 h-96 w-96 rounded-full bg-yellow-400/10 blur-3xl" />
+          <div className="absolute -left-24 bottom-0 h-80 w-80 rounded-full bg-sky-500/10 blur-3xl" />
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/86 to-black/35" />
+          <div className="absolute right-8 top-8 hidden text-8xl opacity-10 lg:block">🏆</div>
+          <div className="absolute bottom-8 left-8 hidden text-7xl opacity-10 lg:block">🌎</div>
 
           <div className="relative z-10 grid gap-8 lg:grid-cols-[1fr_360px] lg:items-center">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.5em] text-sky-400">
-                APA PSO Argentina UE5
+              <p className="text-xs font-black uppercase tracking-[0.5em] text-yellow-300">
+                {theme.badge}
               </p>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {theme.flags.map((flag) => (
+                  <span
+                    key={flag}
+                    className="rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-xl shadow-[0_0_18px_rgba(250,204,21,.08)]"
+                  >
+                    {flag}
+                  </span>
+                ))}
+              </div>
 
               <h1 className="mt-5 text-5xl font-black uppercase italic leading-none md:text-7xl">
                 <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
                   Portal
                 </span>
-                <span className="block text-sky-400 drop-shadow-[0_0_22px_rgba(56,189,248,.60)]">
+                <span className="block text-yellow-300 drop-shadow-[0_0_22px_rgba(250,204,21,.60)]">
                   Oficial APA
                 </span>
               </h1>
 
               <p className="mt-6 max-w-3xl text-lg leading-8 text-zinc-300">
-                Toda la información de la liga en un solo lugar: competición,
-                fixture, clubes, jugadores, mercado, rankings y comunidad.
+                Toda la información de la liga en un solo lugar. Temporada 4
+                llega con estética mundialista: banderas, copa, gloria y camino al campeón.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
@@ -395,7 +415,7 @@ export default function Home() {
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/competicion"
-                  className="rounded-2xl border border-sky-400/35 bg-sky-400 px-6 py-3 text-sm font-black uppercase text-black transition hover:bg-white"
+                  className="rounded-2xl border border-yellow-400/35 bg-yellow-400 px-6 py-3 text-sm font-black uppercase text-black transition hover:bg-white"
                 >
                   Ver competición
                 </Link>
@@ -410,8 +430,8 @@ export default function Home() {
             </div>
 
             <div className="hidden lg:block">
-              <div className="relative rounded-[36px] border border-sky-400/25 bg-black/35 p-6 shadow-[0_0_42px_rgba(56,189,248,.18)]">
-                <div className="absolute -inset-5 rounded-full bg-sky-400/10 blur-3xl" />
+              <div className="relative rounded-[36px] border border-yellow-400/25 bg-black/35 p-6 shadow-[0_0_48px_rgba(250,204,21,.18)]">
+                <div className="absolute -inset-5 rounded-full bg-yellow-400/10 blur-3xl" />
 
                 <div className="relative z-10 text-center">
                   <div className="mx-auto h-32 w-32 overflow-hidden rounded-[34px] border border-sky-400/30 bg-black/40">
@@ -422,20 +442,54 @@ export default function Home() {
                     />
                   </div>
 
-                  <p className="mt-5 text-xs font-bold uppercase tracking-[0.16em] text-sky-300">
-                    Centro de información
+                  <p className="mt-5 text-xs font-bold uppercase tracking-[0.16em] text-yellow-300">
+                    {theme.shortLabel}
                   </p>
 
                   <h2 className="mt-2 text-3xl font-black uppercase">
-                    League Hub
+                    World Cup Hub
                   </h2>
+
+                  <div className="mt-4 flex justify-center gap-2 text-3xl">
+                    <span>🏆</span>
+                    <span>⚽</span>
+                    <span>🌎</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="rounded-[34px] border border-sky-500/25 bg-[#020714]/90 p-6 shadow-[0_0_35px_rgba(0,120,255,.12)] md:p-8">
+        <section className="relative overflow-hidden rounded-[34px] border border-yellow-400/25 bg-gradient-to-r from-yellow-400/10 via-[#020714] to-sky-500/10 p-5 shadow-[0_0_38px_rgba(250,204,21,.12)] md:p-6">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,.16),transparent_42%)]" />
+          <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.35em] text-yellow-300">
+                🌎 World Cup Experience
+              </p>
+              <h2 className="mt-2 text-3xl font-black uppercase text-white">
+                Temporada 4 con identidad mundialista
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+                Banderas, copa, brillos dorados y una estética especial para que esta temporada se sienta distinta sin cambiar la estructura de la web.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2 text-3xl">
+              {theme.floatingIcons.map((icon, index) => (
+                <span
+                  key={`${icon}-${index}`}
+                  className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3"
+                >
+                  {icon}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-[34px] border border-yellow-500/25 bg-[#020714]/90 p-6 shadow-[0_0_35px_rgba(250,204,21,.12)] md:p-8">
           <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
@@ -628,7 +682,7 @@ export default function Home() {
             </p>
 
             <h2 className="mt-2 text-3xl font-black uppercase">
-              Rankings de la selección
+              Rankings mundialistas
             </h2>
 
             <div className="mt-6 space-y-3">
