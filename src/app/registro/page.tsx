@@ -13,6 +13,7 @@ export default function RegistroPage() {
   const [username, setUsername] = useState("");
   const [playerId, setPlayerId] = useState("");
   const [steamId, setSteamId] = useState("");
+  const [discordId, setDiscordId] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmarPassword, setConfirmarPassword] = useState("");
@@ -36,6 +37,67 @@ export default function RegistroPage() {
     return /^\d{15,20}$/.test(value.trim());
   }
 
+  function esDiscordIdValido(value: string) {
+    return /^\d{15,25}$/.test(value.trim());
+  }
+
+
+  async function verificarDuplicadosAntesDeRegistrar({
+    usernameLimpio,
+    playerIdLimpio,
+    steamIdLimpio,
+    discordIdLimpio,
+  }: {
+    usernameLimpio: string;
+    playerIdLimpio: string;
+    steamIdLimpio: string;
+    discordIdLimpio: string;
+  }) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, username, requested_playerid, playerid, steam_id, discord_id")
+      .or(
+        [
+          `username.eq.${usernameLimpio}`,
+          `requested_playerid.eq.${playerIdLimpio}`,
+          `playerid.eq.${playerIdLimpio}`,
+          `steam_id.eq.${steamIdLimpio}`,
+          `discord_id.eq.${discordIdLimpio}`,
+        ].join(","),
+      )
+      .limit(1);
+
+    if (error) {
+      console.log(error);
+      return "No pude verificar si los datos ya están usados. Intentá nuevamente.";
+    }
+
+    const duplicado = data?.[0];
+
+    if (!duplicado) return "";
+
+    if (duplicado.username === usernameLimpio) {
+      return "Ese usuario ya está usado por otra cuenta.";
+    }
+
+    if (
+      duplicado.requested_playerid === playerIdLimpio ||
+      duplicado.playerid === playerIdLimpio
+    ) {
+      return "Ese PlayerId ya está usado o solicitado por otra cuenta.";
+    }
+
+    if (duplicado.steam_id === steamIdLimpio) {
+      return "Ese SteamID64 ya está usado por otra cuenta.";
+    }
+
+    if (duplicado.discord_id === discordIdLimpio) {
+      return "Ese Discord ID ya está usado por otra cuenta.";
+    }
+
+    return "Uno de los datos ya está usado por otra cuenta.";
+  }
+
   async function registrarse(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setMensaje("");
@@ -45,6 +107,7 @@ export default function RegistroPage() {
     const usernameLimpio = limpiarUsername(username);
     const playerIdLimpio = playerId.trim();
     const steamIdLimpio = limpiarSteamId(steamId);
+    const discordIdLimpio = discordId.trim();
     const emailLimpio = email.trim().toLowerCase();
 
     if (!nombreLimpio) {
@@ -77,6 +140,18 @@ export default function RegistroPage() {
       return;
     }
 
+    if (!discordIdLimpio) {
+      setTipoMensaje("error");
+      setMensaje("Escribí tu Discord ID.");
+      return;
+    }
+
+    if (!esDiscordIdValido(discordIdLimpio)) {
+      setTipoMensaje("error");
+      setMensaje("Discord ID inválido. Debe ser un número como 123456789012345678.");
+      return;
+    }
+
     if (!emailLimpio) {
       setTipoMensaje("error");
       setMensaje("Escribí tu email.");
@@ -95,6 +170,20 @@ export default function RegistroPage() {
       return;
     }
 
+
+    const duplicado = await verificarDuplicadosAntesDeRegistrar({
+      usernameLimpio,
+      playerIdLimpio,
+      steamIdLimpio,
+      discordIdLimpio,
+    });
+
+    if (duplicado) {
+      setTipoMensaje("error");
+      setMensaje(duplicado);
+      return;
+    }
+
     setCargando(true);
 
     const { data, error } = await supabase.auth.signUp({
@@ -106,6 +195,7 @@ export default function RegistroPage() {
           username: usernameLimpio,
           requested_playerid: playerIdLimpio,
           steam_id: steamIdLimpio,
+          discord_id: discordIdLimpio,
         },
       },
     });
@@ -114,8 +204,12 @@ export default function RegistroPage() {
       console.log(error);
       setTipoMensaje("error");
 
-      if (error.message.toLowerCase().includes("already registered")) {
+      const errorText = error.message.toLowerCase();
+
+      if (errorText.includes("already registered")) {
         setMensaje("Ese email ya está registrado. Probá iniciar sesión.");
+      } else if (errorText.includes("duplicate") || errorText.includes("unique")) {
+        setMensaje("Uno de los datos ya está usado por otra cuenta.");
       } else {
         setMensaje("Error creando cuenta: " + error.message);
       }
@@ -134,6 +228,7 @@ export default function RegistroPage() {
           username: usernameLimpio,
           requested_playerid: playerIdLimpio,
           steam_id: steamIdLimpio,
+          discord_id: discordIdLimpio,
           avatar_url: null,
           updated_at: new Date().toISOString(),
         })
@@ -149,6 +244,7 @@ export default function RegistroPage() {
     setUsername("");
     setPlayerId("");
     setSteamId("");
+    setDiscordId("");
     setEmail("");
     setPassword("");
     setConfirmarPassword("");
@@ -292,6 +388,24 @@ export default function RegistroPage() {
                 value={playerId}
                 onChange={(e) => setPlayerId(e.target.value)}
                 placeholder="Ej: tu PlayerId oficial"
+                className="w-full rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-sky-400/60"
+              />
+            </div>
+
+
+            <div>
+              <label className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
+                Discord User ID
+                <HelperTooltip
+                  title="Discord User ID"
+                  description="Activá el modo desarrollador en Discord, hacé clic derecho sobre tu usuario y seleccioná Copiar ID."
+                  example="123456789012345678"
+                />
+              </label>
+              <input
+                value={discordId}
+                onChange={(e) => setDiscordId(e.target.value)}
+                placeholder="Ej: 123456789012345678"
                 className="w-full rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-sky-400/60"
               />
             </div>

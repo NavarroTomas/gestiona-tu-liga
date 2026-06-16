@@ -16,6 +16,7 @@ type Perfil = {
   verification_status: string | null;
   verification_note: string | null;
   steam_id: string | null;
+  discord_id: string | null;
   bio: string | null;
   avatar_url: string | null;
   status: string | null;
@@ -30,6 +31,7 @@ export default function PerfilPage() {
   const [username, setUsername] = useState("");
   const [requestedPlayerid, setRequestedPlayerid] = useState("");
   const [steamId, setSteamId] = useState("");
+  const [discordId, setDiscordId] = useState("");
   const [bio, setBio] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(true);
@@ -48,6 +50,74 @@ export default function PerfilPage() {
       .replace(/[^a-z0-9_.-]/g, "");
   }
 
+
+  function esSteamId64Valido(value: string) {
+    return /^\d{15,20}$/.test(value.trim());
+  }
+
+  function esDiscordIdValido(value: string) {
+    return /^\d{15,25}$/.test(value.trim());
+  }
+
+  async function verificarDuplicadosAntesDeGuardar({
+    userId,
+    usernameLimpio,
+    requestedPlayeridLimpio,
+    steamIdLimpio,
+    discordIdLimpio,
+  }: {
+    userId: string;
+    usernameLimpio: string;
+    requestedPlayeridLimpio: string;
+    steamIdLimpio: string;
+    discordIdLimpio: string;
+  }) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, username, requested_playerid, playerid, steam_id, discord_id")
+      .or(
+        [
+          `username.eq.${usernameLimpio}`,
+          `requested_playerid.eq.${requestedPlayeridLimpio}`,
+          `playerid.eq.${requestedPlayeridLimpio}`,
+          `steam_id.eq.${steamIdLimpio}`,
+          `discord_id.eq.${discordIdLimpio}`,
+        ].join(","),
+      )
+      .neq("id", userId)
+      .limit(1);
+
+    if (error) {
+      console.log(error);
+      return "No pude verificar si los datos ya están usados. Intentá nuevamente.";
+    }
+
+    const duplicado = data?.[0];
+
+    if (!duplicado) return "";
+
+    if (duplicado.username === usernameLimpio) {
+      return "Ese usuario ya está usado por otra cuenta.";
+    }
+
+    if (
+      duplicado.requested_playerid === requestedPlayeridLimpio ||
+      duplicado.playerid === requestedPlayeridLimpio
+    ) {
+      return "Ese PlayerId ya está usado o solicitado por otra cuenta.";
+    }
+
+    if (duplicado.steam_id === steamIdLimpio) {
+      return "Ese SteamID64 ya está usado por otra cuenta.";
+    }
+
+    if (duplicado.discord_id === discordIdLimpio) {
+      return "Ese Discord ID ya está usado por otra cuenta.";
+    }
+
+    return "Uno de los datos ya está usado por otra cuenta.";
+  }
+
   async function cargarPerfil() {
     setLoading(true);
     setMensaje("");
@@ -63,7 +133,7 @@ export default function PerfilPage() {
 
     const { data, error } = await supabase
       .from("profiles")
-      .select("id,email,display_name,username,playerid,requested_playerid,playerid_verified,verification_status,verification_note,steam_id,bio,avatar_url,status,visible_role")
+      .select("id,email,display_name,username,playerid,requested_playerid,playerid_verified,verification_status,verification_note,steam_id,discord_id,bio,avatar_url,status,visible_role")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -79,6 +149,7 @@ export default function PerfilPage() {
     setUsername(data.username || "");
     setRequestedPlayerid(data.requested_playerid || data.playerid || "");
     setSteamId(data.steam_id || "");
+    setDiscordId((data as any).discord_id || "");
     setBio(data.bio || "");
     setLoading(false);
   }
@@ -148,6 +219,7 @@ export default function PerfilPage() {
     const usernameLimpio = limpiarUsername(username);
     const requestedPlayeridLimpio = requestedPlayerid.trim();
     const steamIdLimpio = steamId.trim();
+    const discordIdLimpio = discordId.trim();
 
     if (!perfil) return;
 
@@ -171,6 +243,34 @@ export default function PerfilPage() {
       return;
     }
 
+    if (!discordIdLimpio) {
+      setMensaje("El Discord ID es obligatorio.");
+      return;
+    }
+
+    if (!esSteamId64Valido(steamIdLimpio)) {
+      setMensaje("Steam ID inválido. Ingresá solo tu SteamID64 numérico.");
+      return;
+    }
+
+    if (!esDiscordIdValido(discordIdLimpio)) {
+      setMensaje("Discord ID inválido. Debe ser un número como 123456789012345678.");
+      return;
+    }
+
+    const duplicado = await verificarDuplicadosAntesDeGuardar({
+      userId: perfil.id,
+      usernameLimpio,
+      requestedPlayeridLimpio,
+      steamIdLimpio,
+      discordIdLimpio,
+    });
+
+    if (duplicado) {
+      setMensaje(duplicado);
+      return;
+    }
+
     setGuardando(true);
 
     const { error } = await supabase
@@ -186,6 +286,7 @@ export default function PerfilPage() {
             ? "El usuario modificó su PlayerId solicitado. Requiere nueva verificación."
             : perfil.verification_note,
         steam_id: steamIdLimpio,
+        discord_id: discordIdLimpio,
         bio: bio.trim() || null,
         updated_at: new Date().toISOString(),
       })
@@ -195,7 +296,25 @@ export default function PerfilPage() {
 
     if (error) {
       console.log(error);
-      setMensaje("Error guardando perfil: " + error.message);
+
+      const errorText = `${error.message || ""} ${error.details || ""}`.toLowerCase();
+
+      if (error.code === "23505" || errorText.includes("duplicate") || errorText.includes("unique")) {
+        if (errorText.includes("steam")) {
+          setMensaje("Ese SteamID64 ya está usado por otra cuenta.");
+        } else if (errorText.includes("discord")) {
+          setMensaje("Ese Discord ID ya está usado por otra cuenta.");
+        } else if (errorText.includes("playerid") || errorText.includes("player")) {
+          setMensaje("Ese PlayerId ya está usado por otra cuenta.");
+        } else if (errorText.includes("username")) {
+          setMensaje("Ese usuario ya está usado por otra cuenta.");
+        } else {
+          setMensaje("Uno de los datos ya está usado por otra cuenta.");
+        }
+      } else {
+        setMensaje("Error guardando perfil: " + error.message);
+      }
+
       return;
     }
 
@@ -268,11 +387,52 @@ export default function PerfilPage() {
           </div>
         </section>
 
+        {perfil?.verification_status === "disputed" && (
+          <section className="relative overflow-hidden rounded-[34px] border border-orange-400/35 bg-orange-400/10 p-6 shadow-[0_0_45px_rgba(251,146,60,.16)] md:p-8">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,146,60,.18),transparent_42%)]" />
+
+            <div className="relative z-10">
+              <p className="text-xs font-black uppercase tracking-[0.3em] text-orange-300">
+                ⚠ Verificación en disputa
+              </p>
+
+              <h2 className="mt-3 text-3xl font-black uppercase text-white md:text-4xl">
+                Tu cuenta requiere acción
+              </h2>
+
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-zinc-300 md:text-base">
+                Un administrador marcó tu verificación como disputa. Revisá la nota, corregí tu PlayerId, SteamID64 o Discord ID y guardá el perfil para que vuelva a revisión.
+              </p>
+
+              {perfil?.verification_note && (
+                <div className="mt-5 rounded-2xl border border-orange-400/25 bg-black/35 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-orange-300">
+                    Motivo / nota del staff
+                  </p>
+                  <p className="mt-2 text-sm font-bold leading-6 text-zinc-200">
+                    {perfil.verification_note}
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
         <section className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
           <section className="rounded-[34px] border border-sky-500/20 bg-[#020714] p-6 md:p-8">
             <h2 className="text-3xl font-black uppercase">Datos públicos</h2>
 
             <div className="mt-6 space-y-4">
+
+            {!discordId && (
+              <div className="rounded-2xl border border-yellow-400/20 bg-yellow-400/10 p-4">
+                <p className="font-black text-yellow-300">
+                  ⚠ Falta vincular tu Discord ID.
+                </p>
+              </div>
+            )}
+
+
               <div>
                 <label className="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
                   Nombre visible
@@ -365,7 +525,20 @@ export default function PerfilPage() {
                 />
               </div>
 
+              
               <div>
+                <label className="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
+                  Discord User ID
+                </label>
+                <input
+                  value={discordId}
+                  onChange={(e) => setDiscordId(e.target.value)}
+                  placeholder="123456789012345678"
+                  className="w-full rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4 text-white outline-none focus:border-sky-400/60"
+                />
+              </div>
+
+<div>
                 <label className="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
                   Bio
                 </label>

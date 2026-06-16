@@ -11,6 +11,8 @@ type PerfilNavbar = {
   username: string | null;
   visible_role: string | null;
   status: string | null;
+  verification_status: string | null;
+  verification_note: string | null;
 };
 
 const menus = [
@@ -18,90 +20,30 @@ const menus = [
     nombre: "Competición",
     icon: "🏆",
     items: [
-      {
-        nombre: "Torneos",
-        href: "/competicion",
-        icon: "🏆",
-        descripcion: "Liga, copas y eventos",
-      },
-      {
-        nombre: "Fixture",
-        href: "/fixture",
-        icon: "📅",
-        descripcion: "Calendario oficial",
-      },
-      {
-        nombre: "Stats",
-        href: "/estadisticas",
-        icon: "📈",
-        descripcion: "Estadísticas oficiales",
-      },
-      {
-        nombre: "Historia",
-        href: "/historia",
-        icon: "🏛️",
-        descripcion: "Leyendas y récords",
-      },
+      { nombre: "Torneos", href: "/competicion", icon: "🏆", descripcion: "Liga, copas y eventos" },
+      { nombre: "Fixture", href: "/fixture", icon: "📅", descripcion: "Calendario oficial" },
+      { nombre: "Stats", href: "/estadisticas", icon: "📈", descripcion: "Estadísticas oficiales" },
+      { nombre: "Historia", href: "/historia", icon: "🏛️", descripcion: "Leyendas y récords" },
     ],
   },
   {
     nombre: "Clubes",
     icon: "🛡️",
     items: [
-      {
-        nombre: "Clubes",
-        href: "/clubes",
-        icon: "🏟️",
-        descripcion: "Identidad de equipos",
-      },
-      {
-        nombre: "Plantillas",
-        href: "/plantillas",
-        icon: "👥",
-        descripcion: "Jugadores por club",
-      },
-      {
-        nombre: "Mercado",
-        href: "/mercado",
-        icon: "🔁",
-        descripcion: "Fichajes y movimientos",
-      },
-      {
-        nombre: "Jugadores",
-        href: "/jugadores",
-        icon: "⭐",
-        descripcion: "Rankings y perfiles",
-      },
+      { nombre: "Clubes", href: "/clubes", icon: "🏟️", descripcion: "Identidad de equipos" },
+      { nombre: "Plantillas", href: "/plantillas", icon: "👥", descripcion: "Jugadores por club" },
+      { nombre: "Mercado", href: "/mercado", icon: "🔁", descripcion: "Fichajes y movimientos" },
+      { nombre: "Jugadores", href: "/jugadores", icon: "⭐", descripcion: "Rankings y perfiles" },
     ],
   },
   {
     nombre: "Entretenimiento",
     icon: "🎮",
     items: [
-      {
-        nombre: "Inicio",
-        href: "/entretenimiento",
-        icon: "✨",
-        descripcion: "Zona interactiva",
-      },
-      {
-        nombre: "Predicciones",
-        href: "/entretenimiento/predicciones",
-        icon: "🔮",
-        descripcion: "Adiviná resultados",
-      },
-      {
-        nombre: "Dream Team",
-        href: "/entretenimiento/dream-team",
-        icon: "💫",
-        descripcion: "Equipo ideal",
-      },
-      {
-        nombre: "Premios de la Fecha",
-        href: "/entretenimiento/premios",
-        icon: "🏅",
-        descripcion: "Mejores jugadores de cada jornada",
-      },
+      { nombre: "Inicio", href: "/entretenimiento", icon: "✨", descripcion: "Zona interactiva" },
+      { nombre: "Predicciones", href: "/entretenimiento/predicciones", icon: "🔮", descripcion: "Adiviná resultados" },
+      { nombre: "Dream Team", href: "/entretenimiento/dream-team", icon: "💫", descripcion: "Equipo ideal" },
+      { nombre: "Premios APA", href: "/entretenimiento/premios", icon: "🏅", descripcion: "Reconocimientos" },
     ],
   },
 ];
@@ -124,9 +66,7 @@ function linkActivo(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
 
   if (href === "/competicion") {
-    return (
-      pathname.startsWith("/competicion") || pathname.startsWith("/divisiones")
-    );
+    return pathname.startsWith("/competicion") || pathname.startsWith("/divisiones");
   }
 
   return pathname.startsWith(href);
@@ -142,6 +82,7 @@ export default function Navbar() {
   const [puedeVerPanel, setPuedeVerPanel] = useState(false);
   const [perfil, setPerfil] = useState<PerfilNavbar | null>(null);
   const [cargandoUsuario, setCargandoUsuario] = useState(true);
+  const [mostrarAlertaDisputa, setMostrarAlertaDisputa] = useState(true);
 
   useEffect(() => {
     function cerrar() {
@@ -203,7 +144,7 @@ export default function Navbar() {
 
     const { data: perfilData, error: perfilError } = await supabase
       .from("profiles")
-      .select("id, display_name, username, visible_role, status")
+      .select("id, display_name, username, visible_role, status, verification_status, verification_note")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -287,9 +228,7 @@ export default function Navbar() {
 
     if (!perfil) {
       return (
-        <div
-          className={`${compact ? "grid grid-cols-2 gap-2" : "hidden items-center gap-2 md:flex"}`}
-        >
+        <div className={`${compact ? "grid grid-cols-2 gap-2" : "hidden items-center gap-2 md:flex"}`}>
           <Link
             href="/login"
             className="rounded-2xl border border-sky-400/25 bg-sky-400/10 px-4 py-2 text-center text-sm font-black uppercase text-sky-300 transition hover:bg-sky-400 hover:text-black"
@@ -327,9 +266,7 @@ export default function Navbar() {
             </p>
           </div>
 
-          <span
-            className={`text-[10px] text-sky-300 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}
-          >
+          <span className={`text-[10px] text-sky-300 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}>
             ▾
           </span>
         </button>
@@ -352,8 +289,7 @@ export default function Navbar() {
                     @{perfil.username || "usuario"}
                   </p>
                   <p className="mt-1 text-[10px] font-black uppercase tracking-[0.18em] text-yellow-300">
-                    {perfil.visible_role || "usuario"} ·{" "}
-                    {perfil.status || "pending"}
+                    {perfil.visible_role || "usuario"} · {perfil.status || "pending"}
                   </p>
                 </div>
               </div>
@@ -429,21 +365,13 @@ export default function Navbar() {
         })}
 
         {menus.map((menu) => {
-          const activo = menu.items.some((item) =>
-            linkActivo(pathname, item.href),
-          );
+          const activo = menu.items.some((item) => linkActivo(pathname, item.href));
 
           return (
-            <div
-              key={menu.nombre}
-              className="relative"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div key={menu.nombre} className="relative" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
-                onClick={() =>
-                  setOpen(open === menu.nombre ? null : menu.nombre)
-                }
+                onClick={() => setOpen(open === menu.nombre ? null : menu.nombre)}
                 className={`group relative flex items-center gap-2 rounded-2xl border px-5 py-2.5 text-[15px] font-black transition-all ${
                   activo
                     ? "border-sky-400/50 bg-sky-500/15 text-white shadow-[0_0_22px_rgba(56,189,248,.18)]"
@@ -453,9 +381,7 @@ export default function Navbar() {
                 <span>{menu.icon}</span>
                 <span>{menu.nombre}</span>
 
-                <span
-                  className={`text-[11px] text-sky-300 transition-transform duration-300 ${open === menu.nombre ? "rotate-180" : ""}`}
-                >
+                <span className={`text-[11px] text-sky-300 transition-transform duration-300 ${open === menu.nombre ? "rotate-180" : ""}`}>
                   ▾
                 </span>
 
@@ -685,6 +611,16 @@ export default function Navbar() {
           <DesktopMenu />
 
           <div className="flex min-w-fit items-center gap-2">
+            {perfil?.verification_status === "disputed" && (
+              <Link
+                href="/perfil"
+                className="hidden rounded-2xl border border-orange-400/35 bg-orange-400/10 px-4 py-2.5 text-sm font-black uppercase text-orange-300 transition hover:bg-orange-400 hover:text-black md:inline-flex"
+                title="Tenés una disputa pendiente"
+              >
+                🔔 Disputa
+              </Link>
+            )}
+
             {puedeVerPanel && (
               <Link
                 href="/admin"
@@ -717,6 +653,57 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
+
+      {perfil?.verification_status === "disputed" && mostrarAlertaDisputa && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-xl overflow-hidden rounded-[34px] border border-orange-400/35 bg-[#050914] p-6 shadow-[0_0_70px_rgba(251,146,60,.22)] md:p-8">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,146,60,.18),transparent_42%)]" />
+
+            <div className="relative z-10">
+              <p className="text-xs font-black uppercase tracking-[0.32em] text-orange-300">
+                ⚠ Atención
+              </p>
+
+              <h2 className="mt-3 text-3xl font-black uppercase text-white md:text-4xl">
+                Tu cuenta está en disputa
+              </h2>
+
+              <p className="mt-4 text-sm leading-7 text-zinc-300">
+                Un administrador detectó un problema con tus datos de verificación. Revisá la nota, corregí tu información y guardá el perfil para volver a revisión.
+              </p>
+
+              {perfil?.verification_note && (
+                <div className="mt-5 rounded-2xl border border-orange-400/25 bg-orange-400/10 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-orange-300">
+                    Motivo
+                  </p>
+                  <p className="mt-2 text-sm font-bold leading-6 text-zinc-200">
+                    {perfil.verification_note}
+                  </p>
+                </div>
+              )}
+
+              <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <Link
+                  href="/perfil"
+                  onClick={() => setMostrarAlertaDisputa(false)}
+                  className="rounded-2xl border border-orange-400/35 bg-orange-400 px-5 py-4 text-center text-sm font-black uppercase text-black transition hover:bg-white"
+                >
+                  Ir a mi perfil
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setMostrarAlertaDisputa(false)}
+                  className="rounded-2xl border border-white/10 bg-black/35 px-5 py-4 text-sm font-black uppercase text-zinc-300 transition hover:border-orange-400/35 hover:text-white"
+                >
+                  Ver después
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <MobileMenu />
     </>

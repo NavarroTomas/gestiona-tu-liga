@@ -19,11 +19,21 @@ type PerfilVerificacion = {
   verified_at: string | null;
   verified_by: string | null;
   steam_id: string | null;
+  discord_id: string | null;
   status: string | null;
   visible_role: string | null;
   created_at: string | null;
   updated_at: string | null;
 };
+
+
+const notasRapidas = [
+  "SteamID incorrecto. Corregí tu SteamID64 desde Mi Perfil y guardá los cambios.",
+  "Discord ID incorrecto. Corregí tu Discord User ID desde Mi Perfil y guardá los cambios.",
+  "PlayerID incorrecto. Corregí tu PlayerId solicitado desde Mi Perfil.",
+  "Los datos no coinciden con Discord. Revisá PlayerId, SteamID64 y Discord ID.",
+  "Falta evidencia para confirmar que el PlayerId pertenece al usuario.",
+];
 
 const filtros: { id: VerificationStatus; label: string; icono: string }[] = [
   { id: "pending", label: "Pendientes", icono: "⏳" },
@@ -80,7 +90,7 @@ export default function AdminVerificacionesPage() {
     const { data, error } = await supabase
       .from("profiles")
       .select(
-        "id,email,display_name,username,avatar_url,playerid,requested_playerid,playerid_verified,verification_status,verification_note,verified_at,verified_by,steam_id,status,visible_role,created_at,updated_at",
+        "id,email,display_name,username,avatar_url,playerid,requested_playerid,playerid_verified,verification_status,verification_note,verified_at,verified_by,steam_id,discord_id,status,visible_role,created_at,updated_at",
       )
       .order("updated_at", { ascending: false });
 
@@ -107,6 +117,7 @@ export default function AdminVerificacionesPage() {
         p.username,
         p.email,
         p.steam_id,
+        p.discord_id,
         p.requested_playerid,
         p.playerid,
         p.status,
@@ -132,6 +143,59 @@ export default function AdminVerificacionesPage() {
     };
   }, [perfiles]);
 
+
+  const duplicadosPorPerfil = useMemo(() => {
+    const mapa: Record<string, string[]> = {};
+
+    perfiles.forEach((perfil) => {
+      const alertas: string[] = [];
+
+      if (
+        perfil.steam_id &&
+        perfiles.some((otro) => otro.id !== perfil.id && otro.steam_id === perfil.steam_id)
+      ) {
+        alertas.push("SteamID usado por otra cuenta");
+      }
+
+      if (
+        perfil.discord_id &&
+        perfiles.some((otro) => otro.id !== perfil.id && otro.discord_id === perfil.discord_id)
+      ) {
+        alertas.push("Discord ID usado por otra cuenta");
+      }
+
+      const playerSolicitado = String(perfil.requested_playerid || "").trim();
+
+      if (
+        playerSolicitado &&
+        perfiles.some(
+          (otro) =>
+            otro.id !== perfil.id &&
+            (otro.requested_playerid === playerSolicitado || otro.playerid === playerSolicitado),
+        )
+      ) {
+        alertas.push("PlayerId solicitado usado por otra cuenta");
+      }
+
+      const playerVerificado = String(perfil.playerid || "").trim();
+
+      if (
+        playerVerificado &&
+        perfiles.some(
+          (otro) =>
+            otro.id !== perfil.id &&
+            (otro.playerid === playerVerificado || otro.requested_playerid === playerVerificado),
+        )
+      ) {
+        alertas.push("PlayerId verificado usado por otra cuenta");
+      }
+
+      mapa[perfil.id] = alertas;
+    });
+
+    return mapa;
+  }, [perfiles]);
+
   function notaPerfil(perfil: PerfilVerificacion, fallback: string) {
     return notas[perfil.id] ?? perfil.verification_note ?? fallback;
   }
@@ -143,6 +207,15 @@ export default function AdminVerificacionesPage() {
 
     if (!solicitado) {
       setMensaje("No se puede aprobar: el usuario no tiene PlayerId solicitado.");
+      return;
+    }
+
+    const alertasDuplicado = duplicadosPorPerfil[perfil.id] || [];
+
+    if (alertasDuplicado.length > 0) {
+      setMensaje(
+        `No se recomienda aprobar: ${alertasDuplicado.join(", ")}. Revisá el caso o marcá disputa.`,
+      );
       return;
     }
 
@@ -179,7 +252,7 @@ export default function AdminVerificacionesPage() {
 
       if (error.message.toLowerCase().includes("duplicate") || error.code === "23505") {
         setMensaje(
-          "No se pudo aprobar: ese PlayerId ya está verificado en otro perfil. Marcá este caso como disputa.",
+          "No se pudo aprobar: ese PlayerId ya está usado por otro perfil. Marcá este caso como disputa.",
         );
       } else {
         setMensaje("Error aprobando PlayerId: " + error.message);
@@ -361,6 +434,28 @@ export default function AdminVerificacionesPage() {
         </section>
 
         <section className="grid grid-cols-2 gap-3 md:grid-cols-5">
+          {[
+            ["⏳ Pendientes", resumen.pending, "text-yellow-300", "border-yellow-400/25 bg-yellow-400/10"],
+            ["⚠ Disputas", resumen.disputed, "text-orange-300", "border-orange-400/25 bg-orange-400/10"],
+            ["✅ Aprobados", resumen.approved, "text-green-300", "border-green-400/25 bg-green-400/10"],
+            ["❌ Rechazados", resumen.rejected, "text-red-300", "border-red-400/25 bg-red-400/10"],
+            ["📋 Total", resumen.all, "text-sky-300", "border-sky-400/25 bg-sky-400/10"],
+          ].map(([label, value, color, clase]) => (
+            <div
+              key={String(label)}
+              className={`rounded-2xl border p-4 ${clase}`}
+            >
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+                {label}
+              </p>
+              <p className={`mt-2 text-3xl font-black ${color}`}>
+                {value}
+              </p>
+            </div>
+          ))}
+        </section>
+
+        <section className="grid grid-cols-2 gap-3 md:grid-cols-5">
           {filtros.map((f) => (
             <button
               key={f.id}
@@ -394,7 +489,7 @@ export default function AdminVerificacionesPage() {
             <input
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar usuario, Steam ID o PlayerId..."
+              placeholder="Buscar usuario, Discord ID, Steam ID o PlayerId..."
               className="w-full rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4 text-sm text-white outline-none placeholder:text-zinc-700 focus:border-sky-400/60 md:max-w-md"
             />
           </div>
@@ -465,6 +560,25 @@ export default function AdminVerificacionesPage() {
                       </span>
                     </div>
 
+                    {(duplicadosPorPerfil[perfil.id] || []).length > 0 && (
+                      <div className="mt-5 rounded-2xl border border-red-400/25 bg-red-400/10 p-4">
+                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-red-300">
+                          ⚠ Posibles duplicados
+                        </p>
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {duplicadosPorPerfil[perfil.id].map((alerta) => (
+                            <span
+                              key={alerta}
+                              className="rounded-xl border border-red-400/25 bg-black/35 px-3 py-2 text-[10px] font-black uppercase text-red-200"
+                            >
+                              {alerta}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2">
                       <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
                         <p className="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
@@ -495,6 +609,15 @@ export default function AdminVerificacionesPage() {
 
                       <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
                         <p className="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
+                          Discord ID
+                        </p>
+                        <p className="mt-2 break-words text-sm font-black text-indigo-300">
+                          {perfil.discord_id || "Sin Discord ID"}
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
+                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
                           Cuenta
                         </p>
                         <p className="mt-2 text-sm font-black text-zinc-300">
@@ -510,6 +633,24 @@ export default function AdminVerificacionesPage() {
                       <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
                         Nota de verificación
                       </label>
+                      <div className="mb-3 flex flex-wrap gap-2">
+                        {notasRapidas.map((nota) => (
+                          <button
+                            key={nota}
+                            type="button"
+                            onClick={() =>
+                              setNotas((prev) => ({
+                                ...prev,
+                                [perfil.id]: nota,
+                              }))
+                            }
+                            className="rounded-xl border border-orange-400/20 bg-orange-400/10 px-3 py-2 text-[10px] font-black uppercase text-orange-300 transition hover:bg-orange-400 hover:text-black"
+                          >
+                            {nota.split(".")[0]}
+                          </button>
+                        ))}
+                      </div>
+
                       <textarea
                         value={notas[perfil.id] ?? perfil.verification_note ?? ""}
                         onChange={(e) =>
