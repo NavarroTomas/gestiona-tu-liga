@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
@@ -31,6 +32,14 @@ interface PremioAPA {
   posicion: number | null;
   created_at: string | null;
 }
+
+const premiosOrden = [
+  "balon_oro",
+  "the_best",
+  "raiko_trophy",
+  "bota_oro",
+  "golden_boy",
+];
 
 export default function HistoriaPage() {
   const [jugadores, setJugadores] = useState<RankingJugador[]>([]);
@@ -103,9 +112,7 @@ export default function HistoriaPage() {
     const lista = Object.values(mapa).map((j: any) => ({
       ...j,
       ratingPromedio:
-        j.partidos > 0
-          ? Math.round((j.ratingTotal / j.partidos) * 10) / 10
-          : 0,
+        j.partidos > 0 ? Math.round((j.ratingTotal / j.partidos) * 10) / 10 : 0,
     }));
 
     const nombresEquipos = Array.from(
@@ -118,10 +125,7 @@ export default function HistoriaPage() {
         .select("nombre, logo_url")
         .in("nombre", nombresEquipos);
 
-      if (clubesError) {
-        console.log(clubesError);
-      }
-
+      if (clubesError) console.log(clubesError);
       setClubesInfo(clubesData || []);
     } else {
       setClubesInfo([]);
@@ -156,6 +160,31 @@ export default function HistoriaPage() {
     return mapa[premio] || premio;
   }
 
+  function premioDescripcion(premio: string) {
+    const mapa: Record<string, string> = {
+      balon_oro: "El jugador más determinante de la temporada.",
+      the_best:
+        "Reconocimiento especial al mejor rendimiento fuera de Primera.",
+      raiko_trophy: "El arquero más importante de la temporada.",
+      bota_oro: "El máximo goleador de la competencia.",
+      golden_boy: "La gran promesa joven de APA.",
+    };
+
+    return mapa[premio] || "Premio oficial APA.";
+  }
+
+  function premioImagen(premio: string) {
+    const mapa: Record<string, string> = {
+      balon_oro: "/themes/worldcup/trophy-balon.png",
+      the_best: "/themes/worldcup/trophy-thebest.png",
+      raiko_trophy: "/themes/worldcup/trophy-raiko.png",
+      bota_oro: "/themes/worldcup/trophy-boot.png",
+      golden_boy: "/themes/worldcup/trophy-goldenboy.png",
+    };
+
+    return mapa[premio] || "/themes/worldcup/trophy-worldcup.png";
+  }
+
   function premioIcono(premio: string) {
     const mapa: Record<string, string> = {
       balon_oro: "🏆",
@@ -180,13 +209,28 @@ export default function HistoriaPage() {
     return mapa[premio] || "text-yellow-300";
   }
 
+  function premioGlow(premio: string) {
+    const mapa: Record<string, string> = {
+      balon_oro: "shadow-[0_0_55px_rgba(250,204,21,.22)] border-yellow-400/30",
+      the_best: "shadow-[0_0_55px_rgba(251,146,60,.18)] border-orange-400/30",
+      raiko_trophy: "shadow-[0_0_55px_rgba(34,211,238,.18)] border-cyan-400/30",
+      bota_oro: "shadow-[0_0_55px_rgba(52,211,153,.18)] border-emerald-400/30",
+      golden_boy:
+        "shadow-[0_0_55px_rgba(216,180,254,.18)] border-purple-400/30",
+    };
+
+    return (
+      mapa[premio] ||
+      "shadow-[0_0_55px_rgba(250,204,21,.18)] border-yellow-400/25"
+    );
+  }
+
   function ultimoPremio(tipo: string) {
     return premiosApa.find((p) => p.premio === tipo);
   }
 
   function vecesGanadas(playerid?: string | null, tipo?: string) {
     if (!playerid || !tipo) return 0;
-
     return premiosApa.filter(
       (p) => p.premio === tipo && p.playerid === playerid,
     ).length;
@@ -201,8 +245,12 @@ export default function HistoriaPage() {
 
     const club = clubesInfo.find(
       (c) =>
-        String(c.nombre || "").toLowerCase().trim() ===
-        String(nombre || "").toLowerCase().trim(),
+        String(c.nombre || "")
+          .toLowerCase()
+          .trim() ===
+        String(nombre || "")
+          .toLowerCase()
+          .trim(),
     );
 
     return club?.logo_url || null;
@@ -220,7 +268,7 @@ export default function HistoriaPage() {
     const sizes = {
       sm: "h-10 w-10 rounded-xl text-[10px]",
       md: "h-12 w-12 rounded-2xl text-xs",
-      lg: "h-12 w-12 sm:h-16 sm:w-16 rounded-2xl sm:rounded-3xl text-sm sm:text-base",
+      lg: "h-14 w-14 rounded-2xl text-sm sm:h-16 sm:w-16 sm:rounded-3xl sm:text-base",
     };
 
     return (
@@ -240,16 +288,16 @@ export default function HistoriaPage() {
     );
   }
 
-  function top(campo: keyof RankingJugador) {
+  function top(campo: keyof RankingJugador, cantidad = 10) {
     return [...jugadores]
       .filter((j) => Number(j[campo]) > 0)
       .sort((a, b) => Number(b[campo]) - Number(a[campo]))
-      .slice(0, 10);
+      .slice(0, cantidad);
   }
 
   function linkJugador(
     j: RankingJugador,
-    children: React.ReactNode,
+    children: ReactNode,
     className: string,
     key: string,
   ) {
@@ -272,6 +320,417 @@ export default function HistoriaPage() {
     );
   }
 
+  function rankingTrofeos(tipo?: string) {
+    const mapa: Record<string, any> = {};
+
+    premiosApa
+      .filter((p) => !tipo || p.premio === tipo)
+      .forEach((p) => {
+        const key = p.playerid || `${p.nombre}-${p.equipo}`;
+
+        if (!mapa[key]) {
+          mapa[key] = {
+            playerid: p.playerid,
+            nombre: p.nombre,
+            equipo: p.equipo || "Sin club",
+            cantidad: 0,
+          };
+        }
+
+        mapa[key].cantidad += 1;
+      });
+
+    return Object.values(mapa)
+      .sort((a: any, b: any) => b.cantidad - a.cantidad)
+      .slice(0, 10);
+  }
+
+  const totalPartidos = jugadores.reduce((acc, j) => acc + j.partidos, 0);
+  const totalGoles = jugadores.reduce((acc, j) => acc + j.goles, 0);
+  const totalAsistencias = jugadores.reduce((acc, j) => acc + j.asistencias, 0);
+  const totalMvps = jugadores.reduce((acc, j) => acc + j.mvps, 0);
+
+  const maxGoleador = top("goles", 1)[0];
+  const maxAsistidor = top("asistencias", 1)[0];
+  const maxMvp = top("mvps", 1)[0];
+  const mejorRating = top("ratingPromedio", 1)[0];
+  const mejorArquero = top("atajadas", 1)[0];
+
+  const totalPremios = premiosApa.length;
+  const ultimoGanador = premiosApa[0];
+
+  const leyendas = useMemo(
+    () => [
+      {
+        titulo: "Leyenda goleadora",
+        subtitulo: "goles",
+        jugador: maxGoleador,
+        valor: maxGoleador?.goles,
+        color: "text-emerald-400",
+        icono: "⚽",
+        fondo: "/themes/worldcup/card-jugadores.png",
+      },
+      {
+        titulo: "Mago asistidor",
+        subtitulo: "asistencias",
+        jugador: maxAsistidor,
+        valor: maxAsistidor?.asistencias,
+        color: "text-sky-300",
+        icono: "🎯",
+        fondo: "/themes/worldcup/card-partidos.png",
+      },
+      {
+        titulo: "Rey MVP",
+        subtitulo: "MVP",
+        jugador: maxMvp,
+        valor: maxMvp?.mvps,
+        color: "text-yellow-300",
+        icono: "👑",
+        fondo: "/themes/worldcup/trophy-worldcup.png",
+      },
+      {
+        titulo: "Mejor rating",
+        subtitulo: "promedio",
+        jugador: mejorRating,
+        valor: mejorRating?.ratingPromedio,
+        color: "text-purple-300",
+        icono: "⭐",
+        fondo: "/themes/worldcup/trophy-goldenboy.png",
+      },
+      {
+        titulo: "Muro APA",
+        subtitulo: "atajadas",
+        jugador: mejorArquero,
+        valor: mejorArquero?.atajadas,
+        color: "text-cyan-300",
+        icono: "🧤",
+        fondo: "/themes/worldcup/trophy-raiko.png",
+      },
+    ],
+    [maxGoleador, maxAsistidor, maxMvp, mejorRating, mejorArquero],
+  );
+
+  function SectionTitle({
+    eyebrow,
+    title,
+    desc,
+    accent = "text-yellow-300",
+  }: {
+    eyebrow: string;
+    title: string;
+    desc?: string;
+    accent?: string;
+  }) {
+    return (
+      <section className="relative">
+        <div className="flex items-center gap-4">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-yellow-400/35 to-white/5" />
+          <p
+            className={`text-center text-[10px] font-black uppercase tracking-[0.36em] ${accent}`}
+          >
+            {eyebrow}
+          </p>
+          <div className="h-px flex-1 bg-gradient-to-r from-white/5 via-yellow-400/35 to-transparent" />
+        </div>
+
+        <h2 className="mt-4 text-center text-[clamp(2rem,7vw,4rem)] font-black uppercase italic leading-none text-white">
+          {title}
+        </h2>
+
+        {desc && (
+          <p className="mx-auto mt-4 max-w-3xl text-center text-sm leading-7 text-zinc-400 sm:text-base">
+            {desc}
+          </p>
+        )}
+      </section>
+    );
+  }
+
+  function StatPill({
+    label,
+    value,
+    color,
+  }: {
+    label: string;
+    value: any;
+    color: string;
+  }) {
+    return (
+      <div className="rounded-3xl border border-white/10 bg-black/40 p-4 backdrop-blur-sm">
+        <p className="text-[10px] font-black uppercase tracking-[0.26em] text-zinc-500">
+          {label}
+        </p>
+        <p className={`mt-2 text-3xl font-black ${color}`}>{value}</p>
+      </div>
+    );
+  }
+
+  function PremioCard({ tipo, index }: { tipo: string; index: number }) {
+    const premio = ultimoPremio(tipo);
+    const historial = premiosPorTipo(tipo);
+    const veces = vecesGanadas(premio?.playerid, tipo);
+    const color = premioColor(tipo);
+
+    const body = (
+      <>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(250,204,21,.16),transparent_45%)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] via-transparent to-black/70" />
+        <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-yellow-400/10 blur-3xl" />
+
+        <div className="relative z-10 flex h-full flex-col">
+          <div className="relative mb-6 h-64 overflow-hidden rounded-[34px] border border-white/10 bg-black/45 shadow-[0_0_40px_rgba(0,0,0,.28)] sm:h-72 xl:h-64">
+            <img
+              src={premioImagen(tipo)}
+              alt={premioNombre(tipo)}
+              className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/10" />
+            <div className="absolute left-4 top-4 rounded-2xl border border-yellow-400/25 bg-black/55 px-3 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-yellow-300 backdrop-blur">
+              #{index + 1} Premio
+            </div>
+          </div>
+
+          <p
+            className={`text-[10px] font-black uppercase tracking-[0.32em] ${color}`}
+          >
+            Premio APA
+          </p>
+
+          <h3 className="mt-2 text-3xl font-black uppercase italic leading-none text-white xl:text-4xl">
+            {premioNombre(tipo)}
+          </h3>
+
+          <p className="mt-3 min-h-[48px] text-sm leading-6 text-zinc-400">
+            {premioDescripcion(tipo)}
+          </p>
+
+          {premio ? (
+            <>
+              <div className="mt-6 flex items-center gap-4 rounded-3xl border border-white/10 bg-black/40 p-4">
+                <EscudoEquipo nombre={premio.equipo || undefined} size="lg" />
+                <div className="min-w-0">
+                  <p className="truncate text-2xl font-black uppercase text-white">
+                    {premio.nombre}
+                  </p>
+                  <p className="mt-1 truncate text-xs font-black uppercase tracking-[0.14em] text-zinc-500">
+                    {premio.equipo || "Sin club"} · {premio.temporada}
+                    {premio.division ? ` · ${premio.division}` : ""}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 grid grid-cols-3 gap-3">
+                <div className="rounded-2xl border border-white/10 bg-black/40 p-3 text-center">
+                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                    Puntos
+                  </p>
+                  <p className={`mt-2 text-xl font-black ${color}`}>
+                    {Number(premio.puntos || 0).toFixed(1)}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-black/40 p-3 text-center">
+                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                    Pos.
+                  </p>
+                  <p className={`mt-2 text-xl font-black ${color}`}>
+                    #{premio.posicion || 1}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-black/40 p-3 text-center">
+                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                    Veces
+                  </p>
+                  <p className={`mt-2 text-xl font-black ${color}`}>{veces}</p>
+                </div>
+              </div>
+
+              {historial.length > 1 && (
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {historial.slice(0, 3).map((h) => (
+                    <span
+                      key={`${h.id}-${h.temporada}`}
+                      className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-400"
+                    >
+                      {h.temporada}: {h.nombre}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="mt-6 rounded-3xl border border-white/10 bg-black/40 p-5">
+              <p className="text-lg font-black uppercase text-zinc-300">
+                Sin ganador cargado
+              </p>
+              <p className="mt-2 text-sm leading-6 text-zinc-500">
+                Cuando se asigne desde el panel de premios, aparecerá acá
+                automáticamente.
+              </p>
+            </div>
+          )}
+        </div>
+      </>
+    );
+
+    const className = `group relative block h-full overflow-hidden rounded-[38px] border bg-[#020714] p-5 transition duration-300 hover:-translate-y-2 hover:scale-[1.01] ${premioGlow(tipo)}`;
+
+    if (!premio?.playerid) {
+      return <article className={className}>{body}</article>;
+    }
+
+    return (
+      <Link
+        href={`/jugadores/${encodeURIComponent(premio.playerid)}`}
+        className={className}
+      >
+        {body}
+      </Link>
+    );
+  }
+
+  function LeyendaCard({
+    titulo,
+    subtitulo,
+    jugador,
+    valor,
+    color,
+    icono,
+    fondo,
+  }: {
+    titulo: string;
+    subtitulo: string;
+    jugador?: RankingJugador;
+    valor: any;
+    color: string;
+    icono: string;
+    fondo: string;
+  }) {
+    const contenido = (
+      <>
+        <img
+          src={fondo}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover opacity-35 transition duration-500 group-hover:scale-110 group-hover:opacity-50"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/75 to-black/35" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,.10),transparent_40%)]" />
+
+        <div className="relative z-10 flex h-full flex-col justify-between">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p
+                className={`text-[10px] font-black uppercase tracking-[0.28em] ${color}`}
+              >
+                {titulo}
+              </p>
+              <h3 className="mt-3 text-2xl font-black uppercase text-white">
+                {jugador?.nombre || "-"}
+              </h3>
+              <p className="mt-2 truncate text-xs uppercase tracking-[0.12em] text-zinc-400">
+                {jugador?.equipo || "Sin datos"}
+              </p>
+            </div>
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-black/45 text-3xl">
+              {icono}
+            </div>
+          </div>
+
+          <div className="mt-8 flex items-end justify-between gap-4">
+            <EscudoEquipo nombre={jugador?.equipo} size="lg" />
+            <div className="text-right">
+              <p className={`text-5xl font-black ${color}`}>{valor || 0}</p>
+              <p className="mt-1 text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
+                {subtitulo}
+              </p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+
+    const className =
+      "group relative min-h-[260px] overflow-hidden rounded-[34px] border border-white/10 bg-[#020714] p-5 shadow-[0_0_35px_rgba(0,120,255,.10)] transition hover:-translate-y-1 hover:border-sky-400/45";
+
+    if (!jugador?.playerId)
+      return <article className={className}>{contenido}</article>;
+
+    return (
+      <Link
+        href={`/jugadores/${encodeURIComponent(jugador.playerId)}`}
+        className={className}
+      >
+        {contenido}
+      </Link>
+    );
+  }
+
+  function RankingTrofeos({
+    titulo,
+    tipo,
+    icono,
+    color,
+  }: {
+    titulo: string;
+    tipo?: string;
+    icono: string;
+    color: string;
+  }) {
+    const lista = rankingTrofeos(tipo);
+
+    return (
+      <section className="relative overflow-hidden rounded-[34px] border border-yellow-500/20 bg-[#020714] p-5 shadow-[0_0_30px_rgba(250,204,21,.10)] sm:p-6">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,.10),transparent_40%)]" />
+        <div className="relative z-10">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-yellow-400/25 bg-yellow-400/10 text-2xl">
+              {icono}
+            </div>
+            <h2 className="text-xl font-black uppercase sm:text-2xl">
+              {titulo}
+            </h2>
+          </div>
+
+          <div className="space-y-3">
+            {lista.length === 0 ? (
+              <p className="rounded-2xl border border-white/10 bg-black/35 p-4 text-zinc-500">
+                Todavía no hay datos.
+              </p>
+            ) : (
+              lista.map((j: any, index: number) => (
+                <Link
+                  key={`${j.playerid || j.nombre}-${index}`}
+                  href={
+                    j.playerid
+                      ? `/jugadores/${encodeURIComponent(j.playerid)}`
+                      : "/historia"
+                  }
+                  className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/35 p-4 transition hover:border-yellow-400/35 hover:bg-yellow-400/10"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-black ${index === 0 ? "bg-yellow-400 text-black" : "bg-white/[0.06] text-zinc-400"}`}
+                    >
+                      {index + 1}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-black uppercase text-white">
+                        {j.nombre}
+                      </p>
+                      <p className="truncate text-sm text-zinc-500">
+                        {j.equipo}
+                      </p>
+                    </div>
+                  </div>
+                  <p className={`text-3xl font-black ${color}`}>{j.cantidad}</p>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   function RankingBox({
     titulo,
     campo,
@@ -288,7 +747,7 @@ export default function HistoriaPage() {
     const lista = top(campo);
 
     return (
-      <section className="relative overflow-hidden rounded-[28px] border border-sky-500/20 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6 shadow-[0_0_30px_rgba(0,120,255,.10)]">
+      <section className="relative overflow-hidden rounded-[34px] border border-sky-500/20 bg-[#020714] p-5 shadow-[0_0_30px_rgba(0,120,255,.10)] sm:p-6">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.10),transparent_38%)]" />
 
         <div className="relative z-10">
@@ -296,8 +755,9 @@ export default function HistoriaPage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-400/25 bg-sky-400/10 text-2xl">
               {icono}
             </div>
-
-            <h2 className="text-xl font-black uppercase sm:text-2xl">{titulo}</h2>
+            <h2 className="text-xl font-black uppercase sm:text-2xl">
+              {titulo}
+            </h2>
           </div>
 
           <div className="space-y-3">
@@ -310,7 +770,7 @@ export default function HistoriaPage() {
                 linkJugador(
                   j,
                   <>
-                    <div className="flex items-center gap-4 min-w-0">
+                    <div className="flex min-w-0 items-center gap-4">
                       <div
                         className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl font-black ${
                           index === 0
@@ -337,12 +797,14 @@ export default function HistoriaPage() {
                       </div>
                     </div>
 
-                    <p className={`shrink-0 text-2xl font-black sm:text-3xl ${color}`}>
+                    <p
+                      className={`shrink-0 text-2xl font-black sm:text-3xl ${color}`}
+                    >
                       {j[campo]}
                       {sufijo}
                     </p>
                   </>,
-                  "flex items-center justify-between gap-3 rounded-2xl border border-sky-500/10 bg-black/35 p-3 sm:p-4 transition hover:border-sky-400/45 hover:bg-sky-400/10",
+                  "flex items-center justify-between gap-3 rounded-2xl border border-sky-500/10 bg-black/35 p-3 transition hover:border-sky-400/45 hover:bg-sky-400/10 sm:p-4",
                   `${String(campo)}-${j.playerId || j.nombre}-${index}`,
                 ),
               )
@@ -353,431 +815,145 @@ export default function HistoriaPage() {
     );
   }
 
-  const totalPartidos = jugadores.reduce((acc, j) => acc + j.partidos, 0);
-  const totalGoles = jugadores.reduce((acc, j) => acc + j.goles, 0);
-  const totalMvps = jugadores.reduce((acc, j) => acc + j.mvps, 0);
-
-  const maxGoleador = top("goles")[0];
-  const maxAsistidor = top("asistencias")[0];
-  const maxMvp = top("mvps")[0];
-  const mejorRating = top("ratingPromedio")[0];
-  const mejorArquero = top("atajadas")[0];
-
-  function LeyendaCard({
-    titulo,
-    subtitulo,
-    jugador,
-    valor,
-    color,
-    icono,
-  }: {
-    titulo: string;
-    subtitulo: string;
-    jugador?: RankingJugador;
-    valor: any;
-    color: string;
-    icono: string;
-  }) {
-    const contenido = (
-      <>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,.10),transparent_40%)]" />
-
-        <div className="relative z-10">
-          <div className="mb-8 flex items-center justify-between gap-4">
-            <p
-              className={`text-xs font-black uppercase tracking-[0.28em] ${color}`}
-            >
-              {titulo}
-            </p>
-
-            <div className="flex h-12 w-12 items-center justify-center sm:h-14 sm:w-14 rounded-2xl border border-white/10 bg-black/35 text-3xl">
-              {icono}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <EscudoEquipo nombre={jugador?.equipo} size="lg" />
-
-            <div className="min-w-0">
-              <h3 className="break-words text-2xl font-black uppercase sm:truncate sm:text-3xl">
-                {jugador?.nombre || "-"}
-              </h3>
-
-              <p className="mt-2 truncate text-sm uppercase tracking-[0.12em] text-zinc-500">
-                {jugador?.equipo || "Sin datos"}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-7 flex items-end justify-between gap-4">
-            <p className={`text-4xl font-black sm:text-5xl md:text-6xl ${color}`}>{valor || 0}</p>
-
-            <p className="text-right text-xs uppercase tracking-[0.2em] text-zinc-500">
-              {subtitulo}
-            </p>
-          </div>
-        </div>
-      </>
-    );
-
-    if (!jugador?.playerId) {
-      return (
-        <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6 shadow-[0_0_35px_rgba(0,120,255,.10)]">
-          {contenido}
-        </div>
-      );
-    }
-
-    return (
-      <Link
-        href={`/jugadores/${encodeURIComponent(jugador.playerId)}`}
-        className="relative block overflow-hidden rounded-[28px] border border-white/10 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6 shadow-[0_0_35px_rgba(0,120,255,.10)] transition hover:border-sky-400/45 hover:scale-[1.01]"
-      >
-        {contenido}
-      </Link>
-    );
-  }
-
-  function PremioCard({ tipo }: { tipo: string }) {
-    const premio = ultimoPremio(tipo);
-    const historial = premiosPorTipo(tipo);
-    const veces = vecesGanadas(premio?.playerid, tipo);
-    const color = premioColor(tipo);
-
-    const contenido = (
-      <>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,.12),transparent_42%)]" />
-
-        <div className="relative z-10">
-          <div className="mb-7 flex items-center justify-between gap-4">
-            <div>
-              <p className={`text-xs font-black uppercase tracking-[0.28em] ${color}`}>
-                Premio APA
-              </p>
-              <h3 className="mt-2 text-2xl font-black uppercase sm:text-3xl">
-                {premioNombre(tipo)}
-              </h3>
-            </div>
-
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-black/35 text-3xl shadow-[0_0_20px_rgba(250,204,21,.14)]">
-              {premioIcono(tipo)}
-            </div>
-          </div>
-
-          {premio ? (
-            <>
-              <div className="flex items-center gap-4">
-                <EscudoEquipo nombre={premio.equipo || undefined} size="lg" />
-
-                <div className="min-w-0">
-                  <p className="truncate text-2xl font-black uppercase text-white sm:text-3xl">
-                    {premio.nombre}
-                  </p>
-                  <p className="mt-1 truncate text-sm font-black uppercase tracking-[0.14em] text-zinc-500">
-                    {premio.equipo || "Sin club"} · {premio.temporada}
-                    {premio.division ? ` · ${premio.division}` : ""}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-7 grid grid-cols-3 gap-3">
-                <div className="rounded-2xl border border-white/10 bg-black/35 p-3 text-center">
-                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-zinc-500">
-                    Puntos
-                  </p>
-                  <p className={`mt-2 text-xl font-black ${color}`}>
-                    {Number(premio.puntos || 0).toFixed(1)}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-black/35 p-3 text-center">
-                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-zinc-500">
-                    Pos.
-                  </p>
-                  <p className={`mt-2 text-xl font-black ${color}`}>
-                    #{premio.posicion || 1}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-black/35 p-3 text-center">
-                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-zinc-500">
-                    Veces
-                  </p>
-                  <p className={`mt-2 text-xl font-black ${color}`}>
-                    {veces}
-                  </p>
-                </div>
-              </div>
-
-              {historial.length > 1 && (
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {historial.slice(0, 5).map((h) => (
-                    <span
-                      key={`${h.id}-${h.temporada}`}
-                      className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-zinc-400"
-                    >
-                      {h.temporada}: {h.nombre}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="rounded-2xl border border-white/10 bg-black/35 p-5">
-              <p className="text-lg font-black uppercase text-zinc-400">
-                Sin ganador cargado
-              </p>
-              <p className="mt-2 text-sm leading-6 text-zinc-500">
-                Cuando se asigne desde el panel de premios, aparecerá acá automáticamente.
-              </p>
-            </div>
-          )}
-        </div>
-      </>
-    );
-
-    if (!premio?.playerid) {
-      return (
-        <article className="relative overflow-hidden rounded-[28px] border border-yellow-500/20 bg-[#020714] p-5 shadow-[0_0_35px_rgba(250,204,21,.10)] sm:rounded-[34px] sm:p-6">
-          {contenido}
-        </article>
-      );
-    }
-
-    return (
-      <Link
-        href={`/jugadores/${encodeURIComponent(premio.playerid)}`}
-        className="relative block overflow-hidden rounded-[28px] border border-yellow-500/20 bg-[#020714] p-5 shadow-[0_0_35px_rgba(250,204,21,.10)] transition hover:border-yellow-400/45 hover:scale-[1.01] sm:rounded-[34px] sm:p-6"
-      >
-        {contenido}
-      </Link>
-    );
-  }
-
-
-  function rankingTrofeos(tipo?: string) {
-    const mapa: Record<string, any> = {};
-
-    premiosApa
-      .filter((p) => !tipo || p.premio === tipo)
-      .forEach((p) => {
-        const key = p.playerid;
-
-        if (!mapa[key]) {
-          mapa[key] = {
-            playerid: p.playerid,
-            nombre: p.nombre,
-            equipo: p.equipo || "Sin club",
-            cantidad: 0,
-          };
-        }
-
-        mapa[key].cantidad += 1;
-      });
-
-    return Object.values(mapa)
-      .sort((a: any, b: any) => b.cantidad - a.cantidad)
-      .slice(0, 10);
-  }
-
-  function RankingTrofeos({
-    titulo,
-    tipo,
-    icono,
-    color,
-  }: {
-    titulo: string;
-    tipo?: string;
-    icono: string;
-    color: string;
-  }) {
-    const lista = rankingTrofeos(tipo);
-
-    return (
-      <section className="relative overflow-hidden rounded-[28px] border border-yellow-500/20 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6 shadow-[0_0_30px_rgba(250,204,21,.10)]">
-        <div className="mb-5 flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-yellow-400/25 bg-yellow-400/10 text-2xl">
-            {icono}
-          </div>
-          <h2 className="text-xl font-black uppercase sm:text-2xl">{titulo}</h2>
-        </div>
-
-        <div className="space-y-3">
-          {lista.map((j: any, index: number) => (
-            <Link
-              key={`${j.playerid}-${index}`}
-              href={`/jugadores/${encodeURIComponent(j.playerid)}`}
-              className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/35 p-4 hover:border-yellow-400/30"
-            >
-              <div>
-                <p className="font-black uppercase text-white">{j.nombre}</p>
-                <p className="text-sm text-zinc-500">{j.equipo}</p>
-              </div>
-
-              <p className={`text-3xl font-black ${color}`}>
-                {j.cantidad}
-              </p>
-            </Link>
-          ))}
-        </div>
-      </section>
-    );
-  }
-
-
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#020714] text-white flex items-center justify-center">
-        <p className="animate-pulse text-sky-400 font-black uppercase tracking-[0.3em]">
-          Cargando historia...
-        </p>
+      <main className="flex min-h-screen items-center justify-center bg-[#020714] text-white">
+        <div className="text-center">
+          <p className="animate-pulse text-sky-400 font-black uppercase tracking-[0.3em]">
+            Cargando historia...
+          </p>
+          <div className="mx-auto mt-5 h-1 w-48 overflow-hidden rounded-full bg-white/10">
+            <div className="h-full w-1/2 animate-pulse rounded-full bg-yellow-400" />
+          </div>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen overflow-x-hidden text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
-      <div className="mx-auto max-w-[1500px] space-y-6 px-3 py-5 sm:px-4 md:space-y-8 md:px-8 md:py-8">
-        <section className="relative overflow-hidden rounded-[28px] border border-sky-500/30 bg-[#020714] p-5 sm:rounded-[38px] md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_42%)]" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/20" />
+    <main className="relative min-h-screen overflow-x-hidden bg-black text-white">
+      <div className="fixed inset-0 pointer-events-none">
+        <img
+          src="/themes/worldcup/world-map.png"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover opacity-[0.05]"
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]" />
+        <div className="absolute left-[-12%] top-24 h-[420px] w-[420px] rounded-full bg-sky-500/10 blur-3xl" />
+        <div className="absolute right-[-12%] top-64 h-[460px] w-[460px] rounded-full bg-yellow-400/10 blur-3xl" />
+      </div>
 
-          <div className="relative z-10">
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-400 sm:text-xs sm:tracking-[0.45em]">
-              APA PSO ARGENTINA
-            </p>
+      <div className="relative z-10 mx-auto max-w-[1600px] space-y-12 px-3 py-5 sm:px-4 md:px-8 md:py-8">
+        <section className="relative overflow-hidden rounded-[34px] border border-yellow-400/25 bg-[#020714] shadow-[0_0_75px_rgba(250,204,21,.20)] sm:rounded-[48px]">
+          <img
+            src="/themes/worldcup/hero-bg.png"
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover opacity-45"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/82 to-black/35" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
+          <div className="absolute -right-24 top-16 hidden h-[520px] w-[520px] rounded-full bg-yellow-400/10 blur-3xl lg:block" />
 
-            <h1 className="mt-4 text-[clamp(2.5rem,9vw,5rem)] font-black uppercase italic leading-none">
-              <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
-                Salón de
-              </span>
-              <span className="block text-yellow-300 drop-shadow-[0_0_20px_rgba(250,204,21,.45)]">
-                la Fama
-              </span>
-            </h1>
+          <div className="relative z-10 grid gap-8 p-5 sm:p-8 lg:grid-cols-[1fr_430px] lg:items-center lg:p-10 xl:p-12">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.45em] text-yellow-300 sm:text-xs">
+                APA PSO Argentina · World Cup Edition
+              </p>
 
-            <p className="mt-5 max-w-2xl text-zinc-400">
-              Historial oficial de APA PSO Argentina UE5. Estadísticas, premios y récords acumulados desde la Temporada 4.
-            </p>
+              <h1 className="mt-5 text-[clamp(3.2rem,10vw,7rem)] font-black uppercase italic leading-none">
+                <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-700 bg-clip-text text-transparent">
+                  Historia
+                </span>
+                <span className="block text-yellow-300 drop-shadow-[0_0_26px_rgba(250,204,21,.65)]">
+                  APA
+                </span>
+              </h1>
 
-            <div className="mt-7 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-              <div className="rounded-2xl border border-sky-500/20 bg-black/35 p-4">
-                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
-                  Jugadores
-                </p>
-                <p className="mt-2 text-3xl font-black text-sky-300">
-                  {jugadores.length}
-                </p>
+              <p className="mt-6 max-w-3xl text-base leading-8 text-zinc-300 sm:text-lg">
+                El legado oficial de la comunidad: premios, récords, goleadores,
+                arqueros, MVPs y ganadores históricos desde la Temporada 4.
+              </p>
+
+              <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
+                <StatPill
+                  label="Jugadores"
+                  value={jugadores.length}
+                  color="text-sky-300"
+                />
+                <StatPill
+                  label="Registros"
+                  value={totalPartidos}
+                  color="text-white"
+                />
+                <StatPill
+                  label="Goles"
+                  value={totalGoles}
+                  color="text-emerald-400"
+                />
+                <StatPill
+                  label="Premios"
+                  value={totalPremios}
+                  color="text-yellow-300"
+                />
               </div>
+            </div>
 
-              <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
-                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
-                  Registros
-                </p>
-                <p className="mt-2 text-3xl font-black text-white">
-                  {totalPartidos}
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-emerald-500/20 bg-black/35 p-4">
-                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
-                  Goles
-                </p>
-                <p className="mt-2 text-3xl font-black text-emerald-400">
-                  {totalGoles}
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-yellow-500/20 bg-black/35 p-4">
-                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
-                  MVPs
-                </p>
-                <p className="mt-2 text-3xl font-black text-yellow-300">
-                  {totalMvps}
-                </p>
+            <div className="relative hidden lg:block">
+              <div className="relative overflow-hidden rounded-[42px] border border-yellow-400/25 bg-black/45 p-5 shadow-[0_0_55px_rgba(250,204,21,.22)]">
+                <img
+                  src="/themes/worldcup/trophy-worldcup.png"
+                  alt="Copa"
+                  className="h-[360px] w-full rounded-[32px] object-cover"
+                />
+                <div className="absolute inset-5 rounded-[32px] bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                <div className="absolute bottom-9 left-9 right-9">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-yellow-300">
+                    Último ganador
+                  </p>
+                  <h2 className="mt-2 truncate text-3xl font-black uppercase">
+                    {ultimoGanador?.nombre || "Sin datos"}
+                  </h2>
+                  <p className="mt-1 truncate text-xs font-black uppercase tracking-[0.16em] text-zinc-400">
+                    {ultimoGanador
+                      ? `${premioNombre(ultimoGanador.premio)} · ${ultimoGanador.temporada}`
+                      : "Cargá premios desde el panel"}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section>
-          <p className="text-yellow-300 uppercase tracking-[0.35em] text-xs font-black">
-            Premios oficiales
-          </p>
+        <SectionTitle
+          eyebrow="Premios oficiales"
+          title="Trofeos APA"
+          desc="Cinco reconocimientos principales con ganadores automáticos desde Supabase. Los trofeos son el foco visual de la página."
+        />
 
-          <h2 className="mt-3 text-[clamp(1.8rem,7vw,3rem)] font-black uppercase">
-            Trofeos APA
-          </h2>
-
-          <p className="mt-3 max-w-3xl text-zinc-500">
-            Balón de Oro, The Best, Raiko Trophy, Bota de Oro y Golden Boy. Ganadores oficiales cargados desde el panel administrativo.
-          </p>
+        <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-5">
+          {premiosOrden.map((tipo, index) => (
+            <PremioCard key={tipo} tipo={tipo} index={index} />
+          ))}
         </section>
 
-        <section className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-5 xl:gap-5">
-          <PremioCard tipo="balon_oro" />
-          <PremioCard tipo="the_best" />
-          <PremioCard tipo="raiko_trophy" />
-          <PremioCard tipo="bota_oro" />
-          <PremioCard tipo="golden_boy" />
+        <SectionTitle
+          eyebrow="Leyendas actuales"
+          title="Los dueños de la temporada"
+          desc="Una vista rápida de los jugadores que dominan los principales récords acumulados."
+          accent="text-sky-300"
+        />
+
+        <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-5">
+          {leyendas.map((item) => (
+            <LeyendaCard key={item.titulo} {...item} />
+          ))}
         </section>
 
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 xl:gap-5">
-          <LeyendaCard
-            titulo="Leyenda goleadora"
-            subtitulo="goles"
-            jugador={maxGoleador}
-            valor={maxGoleador?.goles}
-            color="text-emerald-400"
-            icono="⚽"
-          />
-
-          <LeyendaCard
-            titulo="Mago asistidor"
-            subtitulo="asistencias"
-            jugador={maxAsistidor}
-            valor={maxAsistidor?.asistencias}
-            color="text-sky-300"
-            icono="🎯"
-          />
-
-          <LeyendaCard
-            titulo="Rey MVP"
-            subtitulo="MVP"
-            jugador={maxMvp}
-            valor={maxMvp?.mvps}
-            color="text-yellow-300"
-            icono="👑"
-          />
-
-          <LeyendaCard
-            titulo="Mejor rating"
-            subtitulo="promedio"
-            jugador={mejorRating}
-            valor={mejorRating?.ratingPromedio}
-            color="text-purple-300"
-            icono="⭐"
-          />
-
-          <LeyendaCard
-            titulo="Muro APA"
-            subtitulo="atajadas"
-            jugador={mejorArquero}
-            valor={mejorArquero?.atajadas}
-            color="text-cyan-300"
-            icono="🧤"
-          />
-        </section>
-
-        <section>
-          <p className="text-yellow-300 uppercase tracking-[0.35em] text-xs font-black">
-            Salón de trofeos
-          </p>
-
-          <h2 className="mt-3 text-[clamp(1.8rem,7vw,3rem)] font-black uppercase">
-            Ranking histórico de premios
-          </h2>
-        </section>
+        <SectionTitle
+          eyebrow="Salón de trofeos"
+          title="Ranking histórico de premios"
+          desc="Quiénes acumularon más galardones oficiales dentro de APA."
+        />
 
         <section className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-8">
           <RankingTrofeos
@@ -786,35 +962,30 @@ export default function HistoriaPage() {
             icono="🏆"
             color="text-yellow-300"
           />
-
           <RankingTrofeos
             titulo="Más The Best"
             tipo="the_best"
             icono="🏅"
             color="text-orange-300"
           />
-
           <RankingTrofeos
             titulo="Más Raiko Trophy"
             tipo="raiko_trophy"
             icono="🧤"
             color="text-cyan-300"
           />
-
           <RankingTrofeos
             titulo="Más Botas de Oro"
             tipo="bota_oro"
             icono="⚽"
             color="text-emerald-400"
           />
-
           <RankingTrofeos
             titulo="Más Golden Boy"
             tipo="golden_boy"
             icono="⭐"
             color="text-purple-300"
           />
-
           <RankingTrofeos
             titulo="Más Trofeos APA"
             icono="👑"
@@ -822,20 +993,12 @@ export default function HistoriaPage() {
           />
         </section>
 
-
-        <section>
-          <p className="text-sky-300 uppercase tracking-[0.35em] text-xs font-black">
-            Rankings históricos
-          </p>
-
-          <h2 className="mt-3 text-[clamp(1.8rem,7vw,3rem)] font-black uppercase">
-            Récords de la competición
-          </h2>
-
-          <p className="mt-3 text-zinc-500">
-            Cada ranking agrupa jugadores por Player ID.
-          </p>
-        </section>
+        <SectionTitle
+          eyebrow="Rankings históricos"
+          title="Récords de la competición"
+          desc="Cada ranking agrupa jugadores por Player ID para mantener la historia limpia y sin duplicados."
+          accent="text-sky-300"
+        />
 
         <section className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-8">
           <RankingBox
@@ -844,49 +1007,42 @@ export default function HistoriaPage() {
             color="text-emerald-400"
             icono="⚽"
           />
-
           <RankingBox
             titulo="Máximos asistidores APA"
             campo="asistencias"
             color="text-sky-400"
             icono="🎯"
           />
-
           <RankingBox
             titulo="Más MVPs APA"
             campo="mvps"
             color="text-yellow-300"
             icono="👑"
           />
-
           <RankingBox
             titulo="Mayor score total"
             campo="score"
             color="text-yellow-300"
             icono="📊"
           />
-
           <RankingBox
             titulo="Mejor rating promedio"
             campo="ratingPromedio"
             color="text-purple-300"
             icono="⭐"
           />
-
           <RankingBox
             titulo="Más atajadas"
             campo="atajadas"
             color="text-cyan-300"
             icono="🧤"
           />
-
           <RankingBox
             titulo="Más tackles"
             campo="tackles"
             color="text-rose-300"
             icono="🛡️"
           />
-
           <RankingBox
             titulo="Más intercepciones"
             campo="intercepciones"

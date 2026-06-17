@@ -1,0 +1,120 @@
+
+/* APA World Cup Mural Theme */
+:root{
+  --apa-blue:#0085c8;
+  --apa-sky:#4cc3ff;
+  --apa-gold:#ffd22d;
+  --apa-green:#00aa5f;
+  --apa-orange:#ff6b23;
+  --apa-dark:#021230;
+}
+
+.apa-mural-bg{
+  background:
+    radial-gradient(circle at 15% 10%, rgba(0,133,200,.35), transparent 30%),
+    radial-gradient(circle at 85% 18%, rgba(255,210,45,.30), transparent 30%),
+    radial-gradient(circle at 35% 90%, rgba(0,170,95,.26), transparent 34%),
+    linear-gradient(135deg, #051b44, #031024 50%, #020714);
+}
+
+.apa-mural-card{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,210,45,.26);
+  background:
+    linear-gradient(135deg, rgba(0,133,200,.30), rgba(2,18,48,.58)),
+    url('/themes/worldcup/card-bg-mixed.png');
+  background-size:cover;
+  box-shadow:0 18px 55px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.12);
+  backdrop-filter: blur(18px);
+}
+
+.apa-mural-card::before{
+  content:"";
+  position:absolute;
+  inset:-30%;
+  background:
+    url('/themes/worldcup/brush-mixed.png') center/cover no-repeat,
+    radial-gradient(circle at 20% 0%, rgba(255,210,45,.28), transparent 28%),
+    radial-gradient(circle at 90% 85%, rgba(0,170,95,.22), transparent 30%);
+  opacity:.34;
+  pointer-events:none;
+}
+
+.apa-mural-card::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:url('/themes/worldcup/grain.png');
+  opacity:.16;
+  mix-blend-mode:screen;
+  pointer-events:none;
+}
+
+.apa-mural-title{
+  display:inline-block;
+  padding:.15em .35em;
+  color:white;
+  text-shadow:0 3px 0 rgba(0,0,0,.22), 0 0 22px rgba(255,210,45,.25);
+  background:
+    linear-gradient(90deg, rgba(255,210,45,.22), rgba(0,133,200,.16), rgba(0,170,95,.18));
+  border-radius:18px;
+}
+
+.apa-mural-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:.5rem;
+  border:1px solid rgba(255,210,45,.35);
+  background:
+    linear-gradient(135deg, rgba(255,210,45,.88), rgba(255,107,35,.78)),
+    url('/themes/worldcup/badge-bg.png');
+  background-size:cover;
+  color:#07111d;
+  box-shadow:0 0 30px rgba(255,210,45,.22);
+}
+
+.apa-mural-button{
+  border:1px solid rgba(255,255,255,.25);
+  background:linear-gradient(135deg, var(--apa-gold), var(--apa-orange));
+  color:#06111f;
+  box-shadow:0 14px 35px rgba(255,210,45,.22);
+  transition:.25s ease;
+}
+
+.apa-mural-button:hover{
+  transform:translateY(-2px) scale(1.02);
+  filter:saturate(1.15) contrast(1.05);
+}
+
+.apa-section-divider{
+  height:34px;
+  background:url('/themes/worldcup/section-divider.png') center/contain no-repeat;
+  opacity:.85;
+}
+
+.apa-paint-corner::before{
+  content:"";
+  position:absolute;
+  right:-80px;
+  top:-70px;
+  width:360px;
+  height:220px;
+  background:url('/themes/worldcup/brush-yellow.png') center/contain no-repeat;
+  opacity:.45;
+  pointer-events:none;
+  transform:rotate(8deg);
+}
+
+.apa-paint-corner::after{
+  content:"";
+  position:absolute;
+  left:-90px;
+  bottom:-80px;
+  width:400px;
+  height:260px;
+  background:url('/themes/worldcup/brush-blue.png') center/contain no-repeat;
+  opacity:.38;
+  pointer-events:none;
+  transform:rotate(-10deg);
+}

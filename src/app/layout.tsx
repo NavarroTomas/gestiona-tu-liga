@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./theme-worldcup-mural.css";
 import Navbar from "../components/Navbar";
 import BienvenidaAPA from "../components/BienvenidaAPA";
 import IntroAPA from "../components/IntroAPA";
 import { Orbitron } from "next/font/google";
+
 
 const orbitron = Orbitron({
   subsets: ["latin"],
@@ -22,7 +24,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className={`${orbitron.className} bg-black text-white`}>
+      <body className={`${orbitron.className} text-white overflow-x-hidden`}>
         <IntroAPA />
         <BienvenidaAPA />
         <Navbar />
