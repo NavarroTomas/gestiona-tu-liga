@@ -1,25 +1,77 @@
-type Props = { stats: any[] };
+type StatItem = {
+  label: string;
+  value: number;
+  img: string;
+  detail: string;
+  color: string;
+};
+
+type Props = { stats: StatItem[] };
+
+function normalizeLabel(label: string) {
+  if (label.toLowerCase() === "selecciones") return "Clubes";
+  if (label.toLowerCase() === "jornadas") return "Partidos";
+  return label;
+}
 
 export default function StatsGrid({ stats }: Props) {
   return (
-    <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
-      {stats.map((stat) => (
-        <div key={stat.label} className="group relative overflow-hidden rounded-[28px] border border-white/15 bg-[#07365c]/65 p-5 shadow-[0_16px_45px_rgba(0,0,0,.24)] transition hover:-translate-y-1">
-          <img src={stat.img} alt="" className="absolute inset-0 h-full w-full object-cover opacity-20 transition group-hover:scale-110 group-hover:opacity-30" />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#061b35]/85 to-[#061b35]/60" />
-          <div className="relative z-10 flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-300">{stat.label}</p>
-              <h2 className={`mt-2 text-4xl font-black leading-none md:text-5xl ${stat.color}`}>{stat.value}</h2>
-              <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-yellow-200/90">{stat.detail}</p>
-            </div>
-            <div className="relative h-14 w-14 overflow-hidden rounded-2xl border border-yellow-300/30 bg-black/25 transition group-hover:scale-110">
-              <img src={stat.img} alt={stat.label} className="h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
-            </div>
+    <section className="relative overflow-hidden rounded-[32px] border border-sky-300/20 bg-[#020814] px-5 py-8 shadow-[0_24px_80px_rgba(0,0,0,.42)] md:px-8">
+      <img
+        src="/themes/worldcup/backgrounds/stats-keyart-01.png"
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover object-center"
+      />
+
+      <div className="absolute inset-0 bg-[#020814]/35" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#020814]/85 via-transparent to-[#020814]/75" />
+      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#020814]/90 to-transparent" />
+
+      <div className="relative z-10">
+        <div className="mb-8 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-amber-200">
+              Centro oficial de temporada
+            </p>
+            <h2 className="mt-2 text-3xl font-black uppercase italic tracking-[-0.05em] text-white md:text-5xl">
+              Estadísticas oficiales
+            </h2>
           </div>
+
+          <p className="max-w-md text-sm leading-6 text-slate-200/80">
+            Datos actualizados según la temporada y división seleccionada.
+          </p>
         </div>
-      ))}
+
+        <div className="grid gap-4 md:grid-cols-4">
+          {stats.map((stat) => {
+            const label = normalizeLabel(stat.label);
+
+            return (
+              <div
+                key={stat.label}
+                className="relative border-l border-white/15 pl-5"
+              >
+                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-200">
+                  {label}
+                </p>
+
+                <div className="mt-2 flex items-end gap-3">
+                  <span className="text-[clamp(3rem,7vw,5.8rem)] font-black italic leading-none tracking-[-0.09em] text-white drop-shadow-[0_12px_30px_rgba(0,0,0,.7)]">
+                    {stat.value}
+                  </span>
+                </div>
+
+                <p className="mt-2 text-[10px] font-black uppercase tracking-[0.16em] text-sky-100/80">
+                  {stat.detail}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="pointer-events-none absolute inset-0 rounded-[32px] ring-1 ring-inset ring-white/10" />
     </section>
   );
 }

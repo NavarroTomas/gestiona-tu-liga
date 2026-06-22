@@ -9,12 +9,19 @@ type Props = {
   EscudoEquipo: any;
 };
 
-export default function FixturesResultsGrid({ proximosPartidos, ultimosResultados, division, temporada, logoEquipo, EscudoEquipo }: Props) {
+export default function FixturesResultsGrid({
+  proximosPartidos,
+  ultimosResultados,
+  division,
+  temporada,
+  logoEquipo,
+  EscudoEquipo,
+}: Props) {
   return (
     <section className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-      <Panel title="Calendario inmediato" kicker="Próximos partidos" href={`/fixture/${division}?temporada=${encodeURIComponent(temporada)}`} linkLabel="Ver todos →">
+      <Panel title="Calendario inmediato" kicker="Proximos partidos" href={`/fixture/${division}?temporada=${encodeURIComponent(temporada)}`} linkLabel="Ver todos ->">
         {proximosPartidos.length === 0 ? (
-          <Empty text="No hay próximos partidos cargados." />
+          <Empty text="No hay proximos partidos cargados." />
         ) : (
           proximosPartidos.map((p) => (
             <MatchRow key={p.id} p={p} logoEquipo={logoEquipo} EscudoEquipo={EscudoEquipo} />
@@ -22,7 +29,7 @@ export default function FixturesResultsGrid({ proximosPartidos, ultimosResultado
         )}
       </Panel>
 
-      <Panel title="Últimos marcadores" kicker="Resultados" href="/estadisticas" linkLabel="Stats →" green>
+      <Panel title="Ultimos marcadores" kicker="Resultados" href="/estadisticas" linkLabel="Stats ->" green>
         {ultimosResultados.length === 0 ? (
           <Empty text="No hay resultados cargados." />
         ) : (
@@ -37,8 +44,13 @@ export default function FixturesResultsGrid({ proximosPartidos, ultimosResultado
 
 function Panel({ title, kicker, href, linkLabel, children, green }: any) {
   return (
-    <section className="relative overflow-hidden rounded-[34px] border border-white/15 bg-[#061b35]/72 p-6 shadow-[0_22px_60px_rgba(0,0,0,.25)]">
-      <img src={green ? "/themes/worldcup/card-rankings.png" : "/themes/worldcup/card-partidos.png"} alt="" className="absolute inset-0 h-full w-full object-cover opacity-14" />
+    <section className="relative overflow-hidden rounded-[18px] border border-white/15 bg-[#06111f]/72 p-6 shadow-[0_22px_60px_rgba(0,0,0,.25)]">
+      <img
+        src={green ? "/themes/worldcup-real/photos/stadium-night.jpg" : "/themes/worldcup-real/photos/pitch-lights.jpg"}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover opacity-16"
+      />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#020814]/80 via-[#06111f]/72 to-[#102016]/68" />
       <div className="relative z-10">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>

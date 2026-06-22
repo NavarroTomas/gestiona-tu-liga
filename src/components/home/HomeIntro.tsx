@@ -1,71 +1,149 @@
+"use client";
+
+import Image from "next/image";
 import Link from "next/link";
+import { useMemo, useState } from "react";
 
 type Props = {
-  theme: any;
+  theme: {
+    badge: string;
+    shortLabel: string;
+  };
   temporada: string;
-  divisionActual: any;
+  divisionActual: {
+    icon: string;
+    label: string;
+  };
 };
 
+const introStats = [
+  { value: "T4", label: "Temporada activa", icon: "🏆" },
+  { value: "APA", label: "Competición oficial", icon: "⚽" },
+  { value: "PSO", label: "Comunidad argentina", icon: "AR" },
+  { value: "24/7", label: "Centro de información", icon: "📡" },
+];
+
 export default function HomeIntro({ theme, temporada, divisionActual }: Props) {
+  const [mouse, setMouse] = useState({ x: 0, y: 0 });
+
+  const transformStyle = useMemo(
+    () => ({
+      "--mx": `${mouse.x}px`,
+      "--my": `${mouse.y}px`,
+    }) as React.CSSProperties,
+    [mouse],
+  );
+
   return (
-    <section className="relative overflow-hidden rounded-[42px] border border-yellow-400/25 bg-[#061b35]/80 p-7 shadow-[0_25px_70px_rgba(0,0,0,.35)] md:p-10">
-      <img
-        src="/themes/worldcup/background-worldcup.png"
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover opacity-30"
+    <section
+      style={transformStyle}
+      onMouseMove={(event) => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        const x = event.clientX - rect.left - rect.width / 2;
+        const y = event.clientY - rect.top - rect.height / 2;
+        setMouse({ x: x / 42, y: y / 42 });
+      }}
+      onMouseLeave={() => setMouse({ x: 0, y: 0 })}
+      className="group relative overflow-hidden rounded-[28px] border border-sky-300/20 bg-[#020814] shadow-[0_30px_90px_rgba(0,0,0,.45)] md:rounded-[40px]"
+    >
+      <div className="absolute inset-0">
+        <Image
+          src="/themes/worldcup/backgrounds/homeintro-keyart-01.png"
+          alt=""
+          fill
+          priority
+          sizes="(max-width: 768px) 100vw, 1240px"
+          className="pointer-events-none select-none object-cover object-center transition duration-700 ease-out group-hover:scale-[1.025]"
+        />
+      </div>
+
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_42%,rgba(56,189,248,.14),transparent_32%),radial-gradient(circle_at_84%_70%,rgba(245,181,49,.16),transparent_34%)]" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#020814]/95 via-[#041528]/82 to-[#041528]/12" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#020814]/92 via-transparent to-[#020814]/22" />
+
+      <div
+        className="pointer-events-none absolute -right-16 top-8 hidden h-56 w-56 rounded-full bg-sky-300/20 blur-3xl transition duration-700 lg:block"
+        style={{ transform: "translate(calc(var(--mx) * 1.8), calc(var(--my) * 1.8))" }}
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#04152b]/95 via-[#07365c]/78 to-[#04152b]/86" />
-      <div className="absolute -right-24 top-0 h-96 w-96 rounded-full bg-yellow-400/10 blur-3xl" />
-      <div className="absolute -left-24 bottom-0 h-80 w-80 rounded-full bg-emerald-400/10 blur-3xl" />
+      <div
+        className="pointer-events-none absolute bottom-10 right-32 hidden h-40 w-64 rounded-full bg-amber-300/15 blur-3xl transition duration-700 lg:block"
+        style={{ transform: "translate(calc(var(--mx) * -1.2), calc(var(--my) * -1.2))" }}
+      />
 
-      <div className="relative z-10 grid gap-8 lg:grid-cols-[1fr_330px] lg:items-center">
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.5em] text-yellow-300">
-            {theme.badge}
-          </p>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            {theme.flags.map((flag: string) => (
-              <span key={flag} className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xl backdrop-blur">
-                {flag}
-              </span>
-            ))}
+      <div className="relative z-10 flex min-h-[560px] flex-col justify-between p-6 md:min-h-[610px] md:p-10 lg:min-h-[640px] lg:p-12">
+        <div className="max-w-[650px]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-200/30 bg-black/22 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-amber-100 shadow-[0_12px_35px_rgba(0,0,0,.25)] backdrop-blur-md">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-300 shadow-[0_0_16px_rgba(252,211,77,.9)]" />
+            <span>{theme.badge}</span>
           </div>
 
-          <h1 className="mt-5 text-5xl font-black uppercase italic leading-none md:text-7xl">
-            <span className="block text-white">Portal</span>
-            <span className="mt-2 block text-yellow-300">Oficial APA</span>
-          </h1>
+          <h2 className="mt-6 max-w-[720px] text-[clamp(2.45rem,7vw,5.6rem)] font-black uppercase italic leading-[0.86] tracking-[-0.07em] text-white drop-shadow-[0_10px_30px_rgba(0,0,0,.55)]">
+            APA
+            <span className="block bg-gradient-to-r from-sky-200 via-white to-amber-100 bg-clip-text text-transparent">
+              World Cup
+            </span>
+          </h2>
 
-          <p className="mt-6 max-w-3xl text-lg leading-8 text-zinc-200">
-            Toda la información de la liga en un solo lugar. Temporada 4 llega con identidad mundialista: color, fútbol y camino al campeón.
+          <p className="mt-6 max-w-2xl text-sm leading-7 text-slate-200/92 md:text-base md:leading-8">
+            La casa del fútbol competitivo argentino en Pro Soccer Online. Una experiencia oficial para seguir la temporada, los clubes, los partidos y el camino al campeón.
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            <span className="rounded-2xl border border-sky-300/30 bg-sky-300/10 px-4 py-2 text-sm font-black uppercase text-sky-200">{temporada}</span>
-            <span className="rounded-2xl border border-yellow-300/35 bg-yellow-300/10 px-4 py-2 text-sm font-black uppercase text-yellow-200">{divisionActual.icon} {divisionActual.label} División</span>
-            <span className="rounded-2xl border border-green-300/30 bg-green-300/10 px-4 py-2 text-sm font-black uppercase text-green-200">● Liga activa</span>
+          <div className="mt-6 flex flex-wrap gap-2.5">
+            <span className="rounded-full border border-sky-200/25 bg-sky-200/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-sky-100 backdrop-blur-md md:text-xs">
+              {temporada}
+            </span>
+            <span className="rounded-full border border-amber-200/30 bg-amber-200/12 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-100 backdrop-blur-md md:text-xs">
+              {divisionActual.icon} {divisionActual.label} División
+            </span>
+            <span className="rounded-full border border-emerald-200/20 bg-emerald-200/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-100 backdrop-blur-md md:text-xs">
+              Liga activa
+            </span>
           </div>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/competicion" className="rounded-2xl bg-yellow-300 px-6 py-3 text-sm font-black uppercase text-[#06111f] transition hover:bg-white">
+            <Link
+              href="/competicion"
+              className="group/btn rounded-2xl border border-amber-100/50 bg-amber-200 px-6 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#06111f] shadow-[0_16px_38px_rgba(245,181,49,.22)] transition hover:-translate-y-0.5 hover:bg-white md:px-7 md:text-sm"
+            >
               Ver competición
+              <span className="ml-2 inline-block transition group-hover/btn:translate-x-1">→</span>
             </Link>
-            <Link href="/guia" className="rounded-2xl border border-white/15 bg-white/10 px-6 py-3 text-sm font-black uppercase text-zinc-100 backdrop-blur transition hover:bg-white/15">
+            <Link
+              href="/guia"
+              className="rounded-2xl border border-white/16 bg-white/[0.06] px-6 py-3 text-xs font-black uppercase tracking-[0.14em] text-slate-100 shadow-[0_16px_35px_rgba(0,0,0,.22)] backdrop-blur-md transition hover:-translate-y-0.5 hover:border-sky-200/35 hover:bg-sky-200/10 md:px-7 md:text-sm"
+            >
               Cómo funciona APA
             </Link>
           </div>
         </div>
 
-        <div className="hidden lg:block">
-          <div className="relative rounded-[36px] border border-yellow-400/25 bg-white/10 p-6 backdrop-blur-md">
-            <div className="relative z-10 text-center">
-              <div className="mx-auto h-32 w-32 overflow-hidden rounded-[34px] border border-sky-400/30 bg-black/35">
-                <img src="/logo-apa.png" alt="APA PSO" className="h-full w-full object-cover" />
+        <div className="mt-12">
+          <div className="mb-4 flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.24em] text-sky-100/70">
+            <span className="h-px w-12 bg-gradient-to-r from-sky-300 to-transparent" />
+            Centro oficial de temporada
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {introStats.map((stat) => (
+              <div
+                key={stat.label}
+                className="group/card relative overflow-hidden rounded-2xl border border-white/10 bg-[#061525]/70 p-4 shadow-[0_18px_42px_rgba(0,0,0,.26)] backdrop-blur-md transition hover:-translate-y-1 hover:border-sky-200/30 hover:bg-[#08203a]/76"
+              >
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-200/45 to-transparent opacity-0 transition group-hover/card:opacity-100" />
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-lg text-amber-200">{stat.icon}</span>
+                  <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-slate-400">
+                    {theme.shortLabel}
+                  </span>
+                </div>
+                <p className="mt-4 text-2xl font-black uppercase leading-none tracking-[-0.05em] text-white md:text-3xl">
+                  {stat.value}
+                </p>
+                <p className="mt-2 text-[10px] font-black uppercase tracking-[0.16em] text-slate-300/85">
+                  {stat.label}
+                </p>
               </div>
-              <p className="mt-5 text-xs font-bold uppercase tracking-[0.16em] text-yellow-300">{theme.shortLabel}</p>
-              <h2 className="mt-2 text-3xl font-black uppercase">World Cup Hub</h2>
-            </div>
+            ))}
           </div>
         </div>
       </div>

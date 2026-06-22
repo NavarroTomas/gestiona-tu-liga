@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const slides = [
   {
-    imagen: "/themes/worldcup/hero-bg.png",
+    imagen: "/themes/worldcup/backgrounds/hero-argentina-brasil-copa-01.png",
     titulo1: "CADA FECHA.",
     titulo2: "CADA PARTIDO.",
     titulo3: "CADA FINAL.",
@@ -88,7 +89,33 @@ export default function HeroImagenesHome() {
   }
 
   return (
-    <section className="relative mx-auto w-full max-w-[1600px] overflow-hidden rounded-[22px] border border-sky-500/50 bg-black shadow-[0_0_55px_rgba(0,120,255,.3)] sm:rounded-[30px]">
+    <div className="relative mx-auto w-full max-w-[1240px]">
+      {/* Fondo exterior del Hero: solo cambia los laterales y el ambiente, no el Hero interno.
+          Usá fotos reales en estas rutas para reemplazar las banderas genéricas. */}
+      <div className="pointer-events-none absolute left-1/2 top-[-28px] z-0 h-[calc(100%+88px)] w-screen -translate-x-1/2 overflow-hidden">
+        <img
+          src="/themes/worldcup/backgrounds/crowd-night-01.png"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover opacity-30"
+        />
+
+        <img
+          src="/themes/worldcup/backgrounds/flag-argentina-real-01.jpg"
+          alt=""
+          className="absolute left-0 top-0 h-full w-[31vw] object-cover opacity-70 [mask-image:linear-gradient(to_right,black_0%,black_58%,transparent_100%)]"
+        />
+
+        <img
+          src="/themes/worldcup/backgrounds/flag-brazil-real-01.jpg"
+          alt=""
+          className="absolute right-0 top-0 h-full w-[31vw] object-cover opacity-70 [mask-image:linear-gradient(to_left,black_0%,black_58%,transparent_100%)]"
+        />
+
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_26%,rgba(14,165,233,.18),transparent_28%),linear-gradient(90deg,rgba(2,8,20,.12),rgba(2,8,20,.82)_28%,rgba(2,8,20,.88)_72%,rgba(2,8,20,.16))]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#020814]/25 via-transparent to-[#020814]/80" />
+      </div>
+
+      <section className="relative z-10 mx-auto w-full max-w-[1020px] overflow-hidden rounded-[22px] border border-sky-500/50 bg-black shadow-[0_0_55px_rgba(0,120,255,.3)] sm:rounded-[30px] xl:max-w-[1240px]">
       <div className="relative min-h-[620px] overflow-hidden sm:min-h-[560px] lg:min-h-[500px] xl:min-h-[460px]">
         {slides.map((item, index) => (
           <div
@@ -103,8 +130,8 @@ export default function HeroImagenesHome() {
               className="h-full w-full object-cover"
             />
 
-            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/58 to-black/5" />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/18 via-transparent to-black/38" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/72 via-black/20 to-transparent" />
+<div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/22" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_68%_45%,rgba(250,204,21,.16),transparent_28%)]" />
           </div>
         ))}
@@ -150,12 +177,12 @@ export default function HeroImagenesHome() {
                 {slide.boton}
               </a>
 
-              <a
+              <Link
                 href="/jugadores"
                 className="rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-xs font-black uppercase backdrop-blur transition-all hover:border-sky-400/60 hover:bg-sky-400/10 sm:px-6 sm:text-sm"
               >
                 VER RANKINGS
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -243,6 +270,7 @@ export default function HeroImagenesHome() {
           @APAPSOARGENTINA
         </p>
       </div>
-    </section>
+      </section>
+    </div>
   );
 }
