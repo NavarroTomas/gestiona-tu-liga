@@ -240,7 +240,7 @@ export default function Navbar() {
 
       const [usuariosRes, jugadoresRes, clubesRes] = await Promise.all([
         supabase
-          .from("profiles")
+          .from("public_profiles")
           .select("display_name, username, playerid, avatar_url")
           .or(`display_name.ilike.${patron},username.ilike.${patron},playerid.ilike.${patron}`)
           .not("username", "is", null)

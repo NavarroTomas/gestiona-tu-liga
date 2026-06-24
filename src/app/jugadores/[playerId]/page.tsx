@@ -63,10 +63,8 @@ export default function JugadorPage() {
       .order("fecha", { ascending: false });
 
     const perfilQuery = supabase
-      .from("profiles")
-      .select(
-        "id, display_name, username, playerid, avatar_url, bio, status, visible_role",
-      )
+      .from("public_profiles")
+      .select("id, display_name, username, playerid, avatar_url, bio, visible_role")
       .eq("playerid", playerId)
       .maybeSingle();
 

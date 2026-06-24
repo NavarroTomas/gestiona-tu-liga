@@ -14,8 +14,6 @@ type Club = {
 };
 
 export default function AdminClubesPage() {
-  
-
   const [clubes, setClubes] = useState<Club[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [loading, setLoading] = useState(true);
@@ -33,7 +31,7 @@ export default function AdminClubesPage() {
 
   const filtrados = useMemo(() => {
     return clubes.filter((c) =>
-      `${c.nombre} ${c.slug}`.toLowerCase().includes(busqueda.toLowerCase())
+      `${c.nombre} ${c.slug}`.toLowerCase().includes(busqueda.toLowerCase()),
     );
   }, [clubes, busqueda]);
 
@@ -55,12 +53,23 @@ export default function AdminClubesPage() {
 
     const { data, error } = await supabase
       .from("clubes_info")
-      .select("id, nombre, slug, logo_url, banner_url, descripcion, color_principal, created_at, updated_at")
+      .select(
+        "id, nombre, slug, logo_url, banner_url, descripcion, color_principal, created_at, updated_at",
+      )
       .order("nombre", { ascending: true });
 
     if (error) {
-      console.error(error);
-      setMensaje("Error cargando clubes.");
+      console.error("ERROR CARGANDO CLUBES:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        full: JSON.stringify(error, null, 2),
+      });
+
+      setMensaje(
+        `Error cargando clubes: ${error.message || error.code || "sin detalle"}`,
+      );
     } else {
       setClubes(data || []);
     }
@@ -105,12 +114,10 @@ export default function AdminClubesPage() {
     const carpeta = tipo === "logo" ? "Logos" : "Banners";
     const path = `${carpeta}/${slug}.${ext}`;
 
-    const { error } = await supabase.storage
-      .from("clubes")
-      .upload(path, file, {
-        upsert: true,
-        cacheControl: "3600",
-      });
+    const { error } = await supabase.storage.from("clubes").upload(path, file, {
+      upsert: true,
+      cacheControl: "3600",
+    });
 
     if (error) {
       console.error(error);
@@ -167,9 +174,7 @@ export default function AdminClubesPage() {
   async function eliminarClub() {
     if (!form.id) return;
 
-    const ok = confirm(
-      "¿Seguro que querés eliminar este club de clubes_info?"
-    );
+    const ok = confirm("¿Seguro que querés eliminar este club de clubes_info?");
 
     if (!ok) return;
 
@@ -312,7 +317,10 @@ export default function AdminClubesPage() {
                 placeholder="Slug"
                 value={form.slug}
                 onChange={(e) =>
-                  setForm((prev) => ({ ...prev, slug: slugify(e.target.value) }))
+                  setForm((prev) => ({
+                    ...prev,
+                    slug: slugify(e.target.value),
+                  }))
                 }
               />
             </div>
@@ -387,7 +395,11 @@ export default function AdminClubesPage() {
                 disabled={saving}
                 className="rounded-xl bg-cyan-400 text-black font-black px-6 py-3 hover:bg-cyan-300 disabled:opacity-50"
               >
-                {saving ? "Guardando..." : form.id ? "Guardar cambios" : "Crear club"}
+                {saving
+                  ? "Guardando..."
+                  : form.id
+                    ? "Guardar cambios"
+                    : "Crear club"}
               </button>
 
               <button

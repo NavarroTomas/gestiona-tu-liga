@@ -10,13 +10,8 @@ type PerfilPublico = {
   display_name: string | null;
   username: string | null;
   playerid: string | null;
-  requested_playerid: string | null;
-  playerid_verified: boolean | null;
-  verification_status: string | null;
-  steam_id: string | null;
   bio: string | null;
   avatar_url: string | null;
-  status: string | null;
   visible_role: string | null;
 };
 
@@ -135,12 +130,6 @@ function premioBg(premio: string) {
   return mapa[premio] || "border-yellow-400/25 bg-yellow-400/10";
 }
 
-function ocultarSteamId(steamId?: string | null) {
-  if (!steamId) return "No vinculado";
-  const limpio = steamId.trim();
-  if (limpio.length <= 8) return "Vinculado";
-  return `${limpio.slice(0, 7)}******${limpio.slice(-4)}`;
-}
 
 function partidoKey(partido: Partido) {
   return partido.partido_id || String(partido.id);
@@ -198,10 +187,8 @@ export default function PerfilPublicoPage() {
     setPremiosApa([]);
 
     const { data: perfilData, error: perfilError } = await supabase
-      .from("profiles")
-      .select(
-        "id,display_name,username,playerid,requested_playerid,playerid_verified,verification_status,steam_id,bio,avatar_url,status,visible_role",
-      )
+      .from("public_profiles")
+      .select("id,display_name,username,playerid,bio,avatar_url,visible_role")
       .eq("username", usernameParam)
       .maybeSingle();
 
@@ -236,7 +223,7 @@ export default function PerfilPublicoPage() {
       .eq("usuario", perfilFinal.id);
 
     const dreamQuery = supabase
-      .from("dream_team_votos")
+      .from("public_dream_team_votos")
       .select("id,usuario,temporada,division,fecha,posicion,nombre")
       .eq("usuario", perfilFinal.id);
 
@@ -813,7 +800,7 @@ export default function PerfilPublicoPage() {
                 </p>
 
                 <span className="rounded-full border border-sky-400/25 bg-sky-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">
-                  {perfil.status || "pending"}
+                  activo
                 </span>
               </div>
 
@@ -845,15 +832,9 @@ export default function PerfilPublicoPage() {
                 </p>
 
                 <div className="mt-4">
-                  {perfil.playerid_verified ? (
-                    <span className="inline-flex rounded-full border border-green-400/25 bg-green-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-green-300">
-                      ✅ Identidad verificada
-                    </span>
-                  ) : (
-                    <span className="inline-flex rounded-full border border-yellow-400/25 bg-yellow-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-yellow-300">
-                      ⏳ Verificación pendiente
-                    </span>
-                  )}
+                  <span className="inline-flex rounded-full border border-sky-400/25 bg-sky-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-sky-300">
+                    Perfil público
+                  </span>
                 </div>
               </div>
 
@@ -870,38 +851,26 @@ export default function PerfilPublicoPage() {
                   </p>
                 </div>
 
-                <div className={`rounded-2xl border p-4 ${
-                  perfil.playerid_verified
-                    ? "border-green-400/20 bg-green-400/10"
-                    : "border-yellow-400/20 bg-yellow-400/10"
-                }`}>
-                  <p className={`text-[10px] font-black uppercase tracking-[0.25em] ${
-                    perfil.playerid_verified ? "text-green-300" : "text-yellow-300"
-                  }`}>
-                    Identidad APA
+                <div className="rounded-2xl border border-sky-400/20 bg-sky-400/10 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-sky-300">
+                    PlayerID público
                   </p>
 
                   <p className="mt-2 break-all text-lg font-black text-white">
-                    {perfil.playerid_verified
-                      ? (perfil.playerid || "Verificado")
-                      : "Pendiente de verificación"}
+                    {perfil.playerid || "Sin PlayerID público"}
                   </p>
 
-                  <p className={`mt-2 text-xs font-black uppercase tracking-[0.18em] ${
-                    perfil.playerid_verified ? "text-green-300" : "text-yellow-300"
-                  }`}>
-                    {perfil.playerid_verified
-                      ? "✅ Verificado por APA"
-                      : "⏳ PlayerId pendiente"}
+                  <p className="mt-2 text-xs font-black uppercase tracking-[0.18em] text-sky-300">
+                    Datos privados ocultos por seguridad
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-yellow-400/20 bg-yellow-400/10 p-4">
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-yellow-300">
-                    Steam
+                <div className="rounded-2xl border border-zinc-500/20 bg-zinc-500/10 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400">
+                    Privacidad
                   </p>
-                  <p className="mt-2 break-all text-lg font-black text-white">
-                    {ocultarSteamId(perfil.steam_id)}
+                  <p className="mt-2 text-sm font-bold text-zinc-300">
+                    Email, Steam, Discord y verificación interna no se muestran públicamente.
                   </p>
                 </div>
               </div>
@@ -923,16 +892,12 @@ export default function PerfilPublicoPage() {
 
               
               <div className="mt-6 flex flex-wrap gap-3">
-                <span className={`rounded-full px-4 py-2 text-xs font-black uppercase ${
-                  perfil.playerid_verified ? "border border-green-400/25 bg-green-400/10 text-green-300" : "border border-yellow-400/25 bg-yellow-400/10 text-yellow-300"
-                }`}>
-                  {perfil.playerid_verified ? "✅ PlayerID verificado" : "⏳ PlayerID pendiente"}
+                <span className="rounded-full border border-sky-400/25 bg-sky-400/10 px-4 py-2 text-xs font-black uppercase text-sky-300">
+                  {perfil.playerid ? `PlayerID ${perfil.playerid}` : "Sin PlayerID público"}
                 </span>
 
-                <span className={`rounded-full px-4 py-2 text-xs font-black uppercase ${
-                  perfil.steam_id ? "border border-cyan-400/25 bg-cyan-400/10 text-cyan-300" : "border border-zinc-500/25 bg-zinc-500/10 text-zinc-400"
-                }`}>
-                  {perfil.steam_id ? "🎮 Steam vinculado" : "Steam no vinculado"}
+                <span className="rounded-full border border-zinc-500/25 bg-zinc-500/10 px-4 py-2 text-xs font-black uppercase text-zinc-300">
+                  Datos privados protegidos
                 </span>
               </div>
 

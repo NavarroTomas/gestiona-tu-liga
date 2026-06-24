@@ -160,7 +160,7 @@ export default function DreamTeamPage() {
         .eq("fecha", fecha),
 
       supabase
-        .from("dream_team_votos")
+        .from("public_dream_team_votos")
         .select(
           'id, temporada, division, fecha, posicion, playerId, nombre, equipo, usuario, fecha_voto'
         )
@@ -259,7 +259,7 @@ export default function DreamTeamPage() {
 
     if (playerIdsPerfil.length > 0) {
       const { data: perfilesData, error: perfilesError } = await supabase
-        .from("profiles")
+        .from("public_profiles")
         .select("id, display_name, username, playerid, avatar_url")
         .in("playerid", playerIdsPerfil);
 

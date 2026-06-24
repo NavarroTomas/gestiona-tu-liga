@@ -136,7 +136,7 @@ export default function RankingPrediccionesPage() {
 
     if (usuariosIds.length > 0) {
       const { data: perfilesData, error: perfilesError } = await supabase
-        .from("profiles")
+        .from("public_profiles")
         .select("id, display_name, username, visible_role, avatar_url")
         .in("id", usuariosIds);
 
