@@ -122,7 +122,7 @@ export default function Home() {
   async function cargarNoticias() {
     const { data, error } = await supabase
       .from("noticias")
-      .select("*")
+      .select("id, titulo, descripcion, temporada, categoria, imagen_url, autor, publicada, destacada, created_at, updated_at")
       .eq("publicada", true)
       .order("destacada", { ascending: false })
       .order("created_at", { ascending: false })
@@ -133,20 +133,20 @@ export default function Home() {
       return;
     }
 
-    setNoticias((data || []) as NoticiaHome[]);
+    setNoticias((data || []) as unknown as NoticiaHome[]);
   }
 
   async function cargarDatos() {
     const { data: partidosData } = await supabase
       .from("partidos")
-      .select("*")
+      .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora")
       .in("division", [division, divisionDb])
       .eq("temporada", temporada)
       .order("fecha", { ascending: true });
 
     const { data: jugadoresData } = await supabase
       .from("partido_jugadores")
-      .select("*")
+      .select("id, partido_id, nombre, jugador, playerId, equipo, temporada, division, fecha, goles, goals, asistencias, assists, mvp, mvps")
       .in("division", [division, divisionDb])
       .eq("temporada", temporada);
 

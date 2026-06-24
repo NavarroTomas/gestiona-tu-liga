@@ -15,7 +15,7 @@ export default function TopRendimiento() {
 
     const { data, error } = await supabase
       .from("jugadores")
-      .select("*");
+      .select("id, nombre, playerId, equipo, goles, asistencias, mvps, temporada, division");
 
     if (error) {
       console.log(error);
@@ -26,7 +26,7 @@ export default function TopRendimiento() {
 
     const conPromedio = data.map((j) => ({
       ...j,
-      rendimiento: (j.goles || 0) + (j.asistencias || 0) + (j.mvp || 0) * 2,
+      rendimiento: (j.goles || 0) + (j.asistencias || 0) + (j.mvps || 0) * 2,
     }));
 
     const ordenados = conPromedio.sort(

@@ -85,7 +85,7 @@ export default function FixtureDivisionPage() {
   async function cargarPartidos() {
     const { data, error } = await supabase
       .from("partidos")
-      .select("*")
+      .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora")
       .eq("division", divisionDb)
       .eq("temporada", temporada)
       .order("fecha", { ascending: true });

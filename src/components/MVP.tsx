@@ -24,7 +24,7 @@ export default function MVP() {
 
       const { data } = await supabase
         .from("jugadores")
-        .select("*");
+        .select("id, nombre, playerId, equipo, goles, asistencias, mvps, temporada, division");
 
       if (data) {
 

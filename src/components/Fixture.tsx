@@ -15,7 +15,7 @@ export default function Fixture() {
 
     const { data } = await supabase
       .from("partidos")
-      .select("*")
+      .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora")
       .order("fecha", { ascending: true });
 
     setPartidos(data || []);

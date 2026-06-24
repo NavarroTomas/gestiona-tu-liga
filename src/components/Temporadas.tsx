@@ -16,7 +16,7 @@ export default function Temporadas() {
 
     const { data } = await supabase
       .from("temporadas")
-      .select("*");
+      .select("id, nombre, campeon, activa, created_at");
 
     setTemporadas(data || []);
 

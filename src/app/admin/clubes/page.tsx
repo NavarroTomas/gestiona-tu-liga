@@ -55,7 +55,7 @@ export default function AdminClubesPage() {
 
     const { data, error } = await supabase
       .from("clubes_info")
-      .select("*")
+      .select("id, nombre, slug, logo_url, banner_url, descripcion, color_principal, created_at, updated_at")
       .order("nombre", { ascending: true });
 
     if (error) {

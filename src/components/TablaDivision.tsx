@@ -34,7 +34,7 @@ export default function TablaDivision({
   async function cargarTabla() {
     const { data, error } = await supabase
       .from("partidos")
-      .select("*")
+      .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora")
       .eq("temporada", temporada)
       .eq("division", division);
 

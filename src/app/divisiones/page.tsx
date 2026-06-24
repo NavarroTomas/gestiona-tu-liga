@@ -51,7 +51,7 @@ export default function DivisionesPage() {
   async function cargarUltimosResultados() {
     const { data, error } = await supabase
       .from("partidos")
-      .select("*")
+      .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora")
       .not("resultado", "is", null)
       .not("partido_id", "is", null)
       .order("id", { ascending: false })

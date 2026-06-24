@@ -102,7 +102,7 @@ export default function AdminVerificacionesPage() {
       return;
     }
 
-    setPerfiles((data || []) as PerfilVerificacion[]);
+    setPerfiles((data || []) as unknown as PerfilVerificacion[]);
   }
 
   const perfilesFiltrados = useMemo(() => {

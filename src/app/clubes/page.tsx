@@ -36,7 +36,7 @@ export default function ClubesPage() {
   async function cargarClubes() {
     const { data, error } = await supabase
       .from("equipos")
-      .select("*")
+      .select("id, nombre, puntos, pj, temporada, division, logo_url, banner_url, descripcion, color_principal, club_slug")
       .eq("temporada", temporada)
       .eq("division", division)
       .order("nombre", { ascending: true });

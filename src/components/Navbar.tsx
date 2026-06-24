@@ -286,7 +286,7 @@ export default function Navbar() {
       return;
     }
 
-    setNotificaciones((data || []) as NotificacionAPA[]);
+    setNotificaciones((data || []) as unknown as NotificacionAPA[]);
   }
 
   async function marcarNotificacionLeida(notificacion: NotificacionAPA) {

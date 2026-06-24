@@ -28,7 +28,7 @@ export default function Tabla() {
 
     const { data: partidos } = await supabase
       .from("partidos")
-      .select("*");
+      .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora");
 
     if (!partidos) return;
 

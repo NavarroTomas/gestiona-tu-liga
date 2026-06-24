@@ -16,7 +16,7 @@ export default function MatchCenter() {
 
     const { data } = await supabase
       .from("partidos")
-      .select("*")
+      .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora")
       .limit(1);
 
     if (data && data.length > 0) {

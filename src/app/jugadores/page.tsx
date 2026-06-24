@@ -118,7 +118,7 @@ export default function JugadoresPage() {
 
       const mapa: Record<string, Jugador> = {};
 
-      ((data || []) as RankingJugadorRow[]).forEach((j) => {
+      ((data || []) as unknown as RankingJugadorRow[]).forEach((j) => {
         const nombre = String(j.nombre || "").trim();
         const playerId = String(j.playerId || "").trim();
 
@@ -247,7 +247,7 @@ export default function JugadoresPage() {
           console.error("Error cargando logos de clubes:", clubesError);
         }
 
-        clubesData = (clubes || []) as ClubInfo[];
+        clubesData = (clubes || []) as unknown as ClubInfo[];
       }
 
       if (cancelado) return;

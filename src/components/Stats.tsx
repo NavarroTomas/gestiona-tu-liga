@@ -18,19 +18,19 @@ export default function Stats() {
 
     const { data: equiposData } = await supabase
       .from("equipos")
-      .select("*");
+      .select("id, nombre, puntos, pj, temporada, division, logo_url, banner_url, descripcion, color_principal, club_slug");
 
     const { data: partidosData } = await supabase
       .from("partidos")
-      .select("*");
+      .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora");
 
     const { data: jugadoresData } = await supabase
       .from("jugadores")
-      .select("*");
+      .select("id, nombre, playerId, equipo, goles, asistencias, mvps, temporada, division");
 
     const { data: goleadorData } = await supabase
       .from("jugadores")
-      .select("*")
+      .select("id, nombre, playerId, equipo, goles, asistencias, mvps, temporada, division")
       .order("goles", { ascending: false })
       .limit(1);
 

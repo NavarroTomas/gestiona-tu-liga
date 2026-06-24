@@ -41,7 +41,7 @@ export default function NoticiasPage() {
 
     const { data, error } = await supabase
       .from("noticias")
-      .select("*")
+      .select("id, titulo, descripcion, temporada, categoria, imagen_url, autor, publicada, destacada, created_at, updated_at")
       .eq("publicada", true)
       .order("destacada", { ascending: false })
       .order("created_at", { ascending: false });
@@ -53,7 +53,7 @@ export default function NoticiasPage() {
       return;
     }
 
-    setNoticias((data || []) as Noticia[]);
+    setNoticias((data || []) as unknown as Noticia[]);
   }
 
   const categorias = useMemo(() => {

@@ -13,11 +13,11 @@ type Profile = {
   display_name: string | null;
   username: string | null;
   avatar_url: string | null;
-  playerId: string | null;
+  playerid: string | null;
+  steam_id: string | null;
   status: "pending" | "active" | "rejected" | "suspended" | string;
   visible_role: string | null;
   created_at: string;
-  updated_at: string | null;
 };
 
 type Role = {
@@ -121,22 +121,22 @@ export default function AdminUsuariosPage() {
       await Promise.all([
         supabase
           .from("profiles")
-          .select("*")
+          .select("id, email, display_name, username, playerid, steam_id, status, visible_role, avatar_url, created_at")
           .order("created_at", { ascending: false }),
         supabase
           .from("roles")
-          .select("*")
+          .select("id, code, name, description, created_at")
           .order("id", { ascending: true }),
         supabase
           .from("permissions")
-          .select("*")
+          .select("id, code, name, description, created_at")
           .order("code", { ascending: true }),
         supabase
           .from("user_roles")
-          .select("*"),
+          .select("user_id, role_id"),
         supabase
           .from("role_permissions")
-          .select("*"),
+          .select("role_id, permission_id"),
       ]);
 
     if (profilesRes.error) {
@@ -174,11 +174,11 @@ export default function AdminUsuariosPage() {
       return;
     }
 
-    setProfiles((profilesRes.data || []) as Profile[]);
-    setRoles((rolesRes.data || []) as Role[]);
-    setPermissions((permissionsRes.data || []) as Permission[]);
-    setUserRoles((userRolesRes.data || []) as UserRole[]);
-    setRolePermissions((rolePermissionsRes.data || []) as RolePermission[]);
+    setProfiles((profilesRes.data || []) as unknown as Profile[]);
+    setRoles((rolesRes.data || []) as unknown as Role[]);
+    setPermissions((permissionsRes.data || []) as unknown as Permission[]);
+    setUserRoles((userRolesRes.data || []) as unknown as UserRole[]);
+    setRolePermissions((rolePermissionsRes.data || []) as unknown as RolePermission[]);
     setLoading(false);
   }
 
@@ -212,7 +212,7 @@ export default function AdminUsuariosPage() {
         profile.email?.toLowerCase().includes(q) ||
         profile.display_name?.toLowerCase().includes(q) ||
         profile.username?.toLowerCase().includes(q) ||
-        profile.playerId?.toLowerCase().includes(q);
+        profile.playerid?.toLowerCase().includes(q);
 
       const coincideEstado =
         estadoFiltro === "todos" || profile.status === estadoFiltro;
@@ -596,7 +596,7 @@ export default function AdminUsuariosPage() {
                                   </p>
                                   <p>
                                     <span className="font-black text-zinc-200">PlayerId:</span>{" "}
-                                    {profile.playerId || "-"}
+                                    {profile.playerid || "-"}
                                   </p>
                                   <p>
                                     <span className="font-black text-zinc-200">Creado:</span>{" "}

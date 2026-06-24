@@ -102,14 +102,14 @@ export default function AdminPlantillasPage() {
       setMensaje("No pude cargar las plantillas.");
     }
 
-    const listaEquipos = (equiposRes.data || []) as Equipo[];
+    const listaEquipos = (equiposRes.data || []) as unknown as Equipo[];
     setEquipos(listaEquipos);
 
     if (!equipo && listaEquipos.length > 0) {
       setEquipo(listaEquipos[0].nombre);
     }
 
-    setPlantillas((plantillasRes.data || []) as Plantilla[]);
+    setPlantillas((plantillasRes.data || []) as unknown as Plantilla[]);
   }
 
   async function cargarPlantillas() {
@@ -127,7 +127,7 @@ export default function AdminPlantillasPage() {
       return;
     }
 
-    setPlantillas((data || []) as Plantilla[]);
+    setPlantillas((data || []) as unknown as Plantilla[]);
   }
 
   function limpiar(value: string) {

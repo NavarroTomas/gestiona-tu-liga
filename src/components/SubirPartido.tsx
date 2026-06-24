@@ -33,7 +33,7 @@ export default function SubirPartido() {
 
       const { data: existe } = await supabase
         .from("partidos")
-        .select("*")
+        .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora")
         .eq("local", team1)
         .eq("visitante", team2)
         .eq("resultado", resultado)
@@ -97,7 +97,7 @@ export default function SubirPartido() {
 
         const { data: existente } = await supabase
           .from("jugadores")
-          .select("*")
+          .select("id, nombre, playerId, equipo, goles, asistencias, mvps, temporada, division")
           .eq("nombre", nombre)
           .eq("equipo", equipo)
           .eq("temporada", temporada)
@@ -110,7 +110,7 @@ export default function SubirPartido() {
             .update({
               goles: (existente.goles || 0) + goles,
               asistencias: (existente.asistencias || 0) + asistencias,
-              mvp: (existente.mvp || 0) + mvp,
+              mvps: (existente.mvps || 0) + mvp,
             })
             .eq("id", existente.id);
         } else {
@@ -122,7 +122,7 @@ export default function SubirPartido() {
               division,
               goles,
               asistencias,
-              mvp,
+              mvps: mvp,
             },
           ]);
         }

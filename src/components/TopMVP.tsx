@@ -19,7 +19,7 @@ export default function TopMVP() {
 
   async function cargarMVPs() {
     try {
-      const { data } = await supabase.from("jugadores").select("*");
+      const { data } = await supabase.from("jugadores").select("id, nombre, playerId, equipo, goles, asistencias, mvps, temporada, division");
       if (data) {
         const mapa: { [key: string]: JugadorMVP } = {};
         data.forEach((j: any) => {
@@ -28,7 +28,7 @@ export default function TopMVP() {
           if (!mapa[name]) {
             mapa[name] = { nombre: name, equipo: j.equipo || "Sin Club", mvps: 0 };
           }
-          mapa[name].mvps += Number(j.mvp) || Number(j.mvps) || 0;
+          mapa[name].mvps += Number(j.mvps || 0);
         });
 
         const procesados = Object.values(mapa)

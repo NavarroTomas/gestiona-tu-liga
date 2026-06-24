@@ -21,9 +21,9 @@ export default function AdminListasPage() {
   }, []);
 
   async function cargarTodo() {
-    const { data: equiposData } = await supabase.from("equipos").select("*").order("nombre");
-    const { data: partidosData } = await supabase.from("partidos").select("*").order("fecha");
-    const { data: jugadoresData } = await supabase.from("jugadores").select("*").order("nombre");
+    const { data: equiposData } = await supabase.from("equipos").select("id, nombre, puntos, pj, temporada, division, logo_url, banner_url, descripcion, color_principal, club_slug").order("nombre");
+    const { data: partidosData } = await supabase.from("partidos").select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora").order("fecha");
+    const { data: jugadoresData } = await supabase.from("jugadores").select("id, nombre, playerId, equipo, goles, asistencias, mvps, temporada, division").order("nombre");
 
     setEquipos(equiposData || []);
     setPartidos(partidosData || []);

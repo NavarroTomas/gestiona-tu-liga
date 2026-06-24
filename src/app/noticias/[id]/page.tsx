@@ -46,7 +46,7 @@ export default function NoticiaDetallePage() {
 
     const { data, error } = await supabase
       .from("noticias")
-      .select("*")
+      .select("id, titulo, descripcion, temporada, categoria, imagen_url, autor, publicada, destacada, created_at, updated_at")
       .eq("id", id)
       .eq("publicada", true)
       .maybeSingle();

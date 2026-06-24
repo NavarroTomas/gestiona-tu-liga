@@ -91,7 +91,7 @@ export default function PaginaEquipo() {
 
       const { data: equiposData, error: equiposError } = await supabase
         .from("equipos")
-        .select("*");
+        .select("id, nombre, puntos, pj, temporada, division, logo_url, banner_url, descripcion, color_principal, club_slug");
 
       if (equiposError) {
         console.log(equiposError);
@@ -133,7 +133,7 @@ export default function PaginaEquipo() {
       if (equipoEncontrado?.club_slug) {
         const { data: clubData, error: clubError } = await supabase
           .from("clubes_info")
-          .select("*")
+          .select("id, nombre, slug, logo_url, banner_url, descripcion, color_principal, created_at, updated_at")
           .eq("slug", equipoEncontrado.club_slug)
           .single();
 
@@ -146,12 +146,12 @@ export default function PaginaEquipo() {
 
       const { data: titulosData } = await supabase
         .from("titulos")
-        .select("*")
+        .select("id, equipo, competicion, temporada, division, descripcion, created_at")
         .ilike("equipo", nombreExacto);
 
       setTitulos(titulosData || []);
 
-      const { data: partidosData } = await supabase.from("partidos").select("*");
+      const { data: partidosData } = await supabase.from("partidos").select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora");
 
       const partidosDelEquipo = (partidosData || []).filter(
         (p: any) =>
@@ -163,11 +163,11 @@ export default function PaginaEquipo() {
 
       const { data: jugadoresData } = await supabase
         .from("jugadores")
-        .select("*");
+        .select("id, nombre, playerId, equipo, goles, asistencias, mvps, temporada, division");
 
       const { data: plantillasData } = await supabase
         .from("plantillas")
-        .select("*")
+        .select("id, jugador, playerid, steam_id, profile_id, equipo, posicion, temporada, division, estado")
         .eq("equipo", nombreExacto)
         .neq("estado", "baja");
 
@@ -205,7 +205,7 @@ export default function PaginaEquipo() {
         mapaAgrupado[clave].goles += Number(j.goles ?? j.goals ?? 0) || 0;
         mapaAgrupado[clave].asistencias +=
           Number(j.asistencias ?? j.assists ?? 0) || 0;
-        mapaAgrupado[clave].mvps += Number(j.mvps ?? j.mvp ?? 0) || 0;
+        mapaAgrupado[clave].mvps += Number(j.mvps ?? 0) || 0;
       });
 
       setPlantel(

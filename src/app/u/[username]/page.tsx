@@ -278,11 +278,11 @@ export default function PerfilPublicoPage() {
     if (plantillasError) console.log(plantillasError);
     if (premiosError) console.log(premiosError);
 
-    const statsData = (statsRaw || []) as StatJugador[];
-    const predData = (predDataRaw || []) as Prediccion[];
-    const dreamData = (dreamDataRaw || []) as DreamVote[];
-    const plantillasData = (plantillasRaw || []) as Plantilla[];
-    const premiosData = (premiosRaw || []) as PremioAPA[];
+    const statsData = (statsRaw || []) as unknown as StatJugador[];
+    const predData = (predDataRaw || []) as unknown as Prediccion[];
+    const dreamData = (dreamDataRaw || []) as unknown as DreamVote[];
+    const plantillasData = (plantillasRaw || []) as unknown as Plantilla[];
+    const premiosData = (premiosRaw || []) as unknown as PremioAPA[];
 
     setStats(statsData);
     setPredicciones(predData);
@@ -305,7 +305,7 @@ export default function PerfilPublicoPage() {
           console.log(partidosError);
           setPartidos([]);
         } else {
-          setPartidos((partidosData || []) as Partido[]);
+          setPartidos((partidosData || []) as unknown as Partido[]);
         }
       } else {
         setPartidos([]);

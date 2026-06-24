@@ -43,7 +43,7 @@ export default function AdminTitulosPage() {
   async function cargarTitulos() {
     const { data, error } = await supabase
       .from("titulos")
-      .select("*")
+      .select("id, equipo, competicion, temporada, division, descripcion, created_at")
       .order("temporada", { ascending: false });
 
     if (error) {

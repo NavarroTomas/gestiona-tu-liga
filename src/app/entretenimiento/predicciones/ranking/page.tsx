@@ -95,8 +95,8 @@ export default function RankingPrediccionesPage() {
     setLoading(true);
     setMensaje("");
 
-    let predQuery = supabase.from("predicciones").select("*");
-    let partidosQuery = supabase.from("partidos").select("*");
+    let predQuery = supabase.from("predicciones").select("id, partido_id, local, visitante, prediccion, usuario, goles_local, goles_visitante, temporada, division, created_at");
+    let partidosQuery = supabase.from("partidos").select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora");
 
     if (temporada !== "Todas") {
       predQuery = predQuery.eq("temporada", temporada);
@@ -124,8 +124,8 @@ export default function RankingPrediccionesPage() {
       return;
     }
 
-    const predData = (predRes.data || []) as Prediccion[];
-    const partidosData = (partidosRes.data || []) as Partido[];
+    const predData = (predRes.data || []) as unknown as Prediccion[];
+    const partidosData = (partidosRes.data || []) as unknown as Partido[];
 
     setPredicciones(predData);
     setPartidos(partidosData);

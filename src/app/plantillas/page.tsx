@@ -84,7 +84,7 @@ export default function PlantillasPage() {
         return;
       }
 
-      const plantillasBase = ((plantillasResult.data || []) as PlantillaJugador[]).map(
+      const plantillasBase = ((plantillasResult.data || []) as unknown as PlantillaJugador[]).map(
         (p) => ({
           ...p,
           playerId: String(p.playerid || "").trim(),
@@ -111,7 +111,7 @@ export default function PlantillasPage() {
           console.error("Error cargando logos de clubes:", clubesError);
         }
 
-        clubesData = (clubes || []) as ClubInfo[];
+        clubesData = (clubes || []) as unknown as ClubInfo[];
       }
 
       if (cancelado) return;

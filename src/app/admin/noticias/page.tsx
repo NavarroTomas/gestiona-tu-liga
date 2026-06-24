@@ -56,7 +56,7 @@ export default function AdminNoticiasPage() {
 
     const { data, error } = await supabase
       .from("noticias")
-      .select("*")
+      .select("id, titulo, descripcion, temporada, categoria, imagen_url, autor, publicada, destacada, created_at, updated_at")
       .order("updated_at", { ascending: false });
 
     setLoading(false);
@@ -67,7 +67,7 @@ export default function AdminNoticiasPage() {
       return;
     }
 
-    setNoticias((data || []) as Noticia[]);
+    setNoticias((data || []) as unknown as Noticia[]);
   }
 
   function limpiarFormulario() {

@@ -70,7 +70,7 @@ export default function EstadisticasPage() {
         return;
       }
 
-      const filas = (data || []) as EquipoPartido[];
+      const filas = (data || []) as unknown as EquipoPartido[];
 
       const fechasUnicas = Array.from(
         new Set(filas.map((item) => item.fecha).filter(Boolean)),
@@ -116,7 +116,7 @@ export default function EstadisticasPage() {
           console.error("Error cargando clubes:", clubesError);
         }
 
-        clubesData = (clubes || []) as ClubInfo[];
+        clubesData = (clubes || []) as unknown as ClubInfo[];
       }
 
       if (cancelado) return;

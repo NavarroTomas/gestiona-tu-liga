@@ -86,7 +86,7 @@ export default function PrediccionesPage() {
 
     const { data: partidosData, error: partidosError } = await supabase
       .from("partidos")
-      .select("*")
+      .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora")
       .eq("temporada", temporada)
       .eq("division", division)
       .order("fecha", { ascending: true });
@@ -101,7 +101,7 @@ export default function PrediccionesPage() {
 
     const { data: predData, error: predError } = await supabase
       .from("predicciones")
-      .select("*")
+      .select("id, partido_id, temporada, division, local, visitante, prediccion, usuario, goles_local, goles_visitante")
       .eq("temporada", temporada)
       .eq("division", division);
 
@@ -111,7 +111,7 @@ export default function PrediccionesPage() {
       return;
     }
 
-    const prediccionesData = (predData || []) as Prediccion[];
+    const prediccionesData = (predData || []) as unknown as Prediccion[];
     setPredicciones(prediccionesData);
 
     const usuariosIds = Array.from(

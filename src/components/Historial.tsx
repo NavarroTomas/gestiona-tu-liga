@@ -15,7 +15,7 @@ export default function Historial() {
 
     const { data, error } = await supabase
       .from("partidos")
-      .select("*")
+      .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora")
       .order("fecha", { ascending: false });
 
     if (error) {

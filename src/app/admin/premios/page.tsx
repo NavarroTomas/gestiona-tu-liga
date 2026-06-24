@@ -239,7 +239,7 @@ export default function AdminPremiosPage() {
       setPerfiles([]);
       setMensaje("Error cargando estadísticas: " + statsError.message);
     } else {
-      const statsLimpias = (statsData || []) as StatJugador[];
+      const statsLimpias = (statsData || []) as unknown as StatJugador[];
       setStats(statsLimpias);
 
       const playerIds = Array.from(
@@ -261,7 +261,7 @@ export default function AdminPremiosPage() {
           setPerfiles([]);
           setMensaje("Error cargando perfiles: " + perfilesError.message);
         } else {
-          setPerfiles((perfilesData || []) as Perfil[]);
+          setPerfiles((perfilesData || []) as unknown as Perfil[]);
         }
       } else {
         setPerfiles([]);
@@ -280,7 +280,7 @@ export default function AdminPremiosPage() {
       setPremiosGuardados([]);
       setMensaje("Error cargando premios: " + premiosError.message);
     } else {
-      setPremiosGuardados((premiosData || []) as PremioGuardado[]);
+      setPremiosGuardados((premiosData || []) as unknown as PremioGuardado[]);
     }
 
     setLoading(false);

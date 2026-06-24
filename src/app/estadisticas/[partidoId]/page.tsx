@@ -164,8 +164,8 @@ export default function PartidoEstadisticasPage() {
         return;
       }
 
-      const equiposLimpios = (equiposData || []) as EquipoStats[];
-      const jugadoresLimpios = (jugadoresData || []) as JugadorStats[];
+      const equiposLimpios = (equiposData || []) as unknown as EquipoStats[];
+      const jugadoresLimpios = (jugadoresData || []) as unknown as JugadorStats[];
 
       const nombresEquipos = Array.from(
         new Set(equiposLimpios.map((equipo) => equipo.equipo).filter(Boolean)),
@@ -183,7 +183,7 @@ export default function PartidoEstadisticasPage() {
           console.error("Error cargando logos de clubes:", clubesError);
         }
 
-        clubesData = (clubes || []) as ClubInfo[];
+        clubesData = (clubes || []) as unknown as ClubInfo[];
       }
 
       if (cancelado) return;

@@ -90,14 +90,14 @@ export default function AdminFixturePage() {
 
     const { data: equiposData, error: equiposError } = await supabase
       .from("equipos")
-      .select("*")
+      .select("id, nombre, puntos, pj, temporada, division, logo_url, banner_url, descripcion, color_principal, club_slug")
       .eq("temporada", temporada)
       .eq("division", division)
       .order("nombre", { ascending: true });
 
     const { data: partidosData, error: partidosError } = await supabase
       .from("partidos")
-      .select("*")
+      .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora")
       .eq("temporada", temporada)
       .eq("division", division)
       .order("fecha", { ascending: true });
@@ -274,7 +274,7 @@ export default function AdminFixturePage() {
 
     const { count, error: countError } = await supabase
       .from("partidos")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .eq("temporada", temporada)
       .eq("division", division);
 

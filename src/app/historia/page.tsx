@@ -168,7 +168,7 @@ export default function HistoriaPage() {
           console.error("Error cargando logos de clubes:", clubesError);
           setClubesInfo([]);
         } else {
-          setClubesInfo((clubesData || []) as ClubInfo[]);
+          setClubesInfo((clubesData || []) as unknown as ClubInfo[]);
         }
       } else {
         setClubesInfo([]);
@@ -181,7 +181,7 @@ export default function HistoriaPage() {
       console.error("Error cargando premios APA:", premiosError);
       setPremiosApa([]);
     } else {
-      setPremiosApa((premiosData || []) as PremioAPA[]);
+      setPremiosApa((premiosData || []) as unknown as PremioAPA[]);
     }
 
     setLoading(false);

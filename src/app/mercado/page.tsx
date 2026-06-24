@@ -36,7 +36,7 @@ export default function MercadoPage() {
   async function cargarMovimientos() {
     const { data, error } = await supabase
       .from("transferencias")
-      .select("*")
+      .select("id, jugador, desde, hacia, temporada, division, tipo, fecha, created_at")
       .eq("temporada", temporada)
       .eq("division", division)
       .order("fecha", { ascending: false });
@@ -74,7 +74,7 @@ export default function MercadoPage() {
         console.log(perfilesError);
         setPerfiles([]);
       } else {
-        setPerfiles((perfilesData || []) as PerfilMercado[]);
+        setPerfiles((perfilesData || []) as unknown as PerfilMercado[]);
       }
     } else {
       setPerfiles([]);

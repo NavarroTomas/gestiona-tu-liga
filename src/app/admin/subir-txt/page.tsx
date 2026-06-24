@@ -76,8 +76,8 @@ export default function SubirTxtPage() {
       console.log(partidosRes.error);
     }
 
-    const equiposData = (equiposRes.data || []) as Equipo[];
-    const partidosData = (partidosRes.data || []) as PartidoProgramado[];
+    const equiposData = (equiposRes.data || []) as unknown as Equipo[];
+    const partidosData = (partidosRes.data || []) as unknown as PartidoProgramado[];
 
     setEquipos(equiposData);
     setPartidosProgramados(partidosData);

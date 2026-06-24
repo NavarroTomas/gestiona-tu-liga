@@ -16,7 +16,7 @@ export default function Clubes() {
 
     const { data } = await supabase
       .from("equipos")
-      .select("*")
+      .select("id, nombre, puntos, pj, temporada, division, logo_url, banner_url, descripcion, color_principal, club_slug")
       .order("puntos", { ascending: false });
 
     setEquipos(data || []);

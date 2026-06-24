@@ -19,7 +19,7 @@ export default function Goleadores() {
 
   async function obtenerGoleadores() {
     try {
-      const { data } = await supabase.from("jugadores").select("*");
+      const { data } = await supabase.from("jugadores").select("id, nombre, playerId, equipo, goles, asistencias, mvps, temporada, division");
       if (data) {
         const mapa: { [key: string]: JugadorGoles } = {};
         data.forEach((j: any) => {
