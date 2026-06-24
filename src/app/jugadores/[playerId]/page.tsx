@@ -15,6 +15,7 @@ export default function JugadorPage() {
   const [partidos, setPartidos] = useState<any[]>([]);
   const [perfilAPA, setPerfilAPA] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!playerIdUrl) return;
@@ -23,47 +24,92 @@ export default function JugadorPage() {
 
   async function cargarJugador() {
     setLoading(true);
+    setErrorMsg(null);
+    setPartidos([]);
 
     const playerId = playerIdUrl;
 
-    const query = supabase
+    const statsQuery = supabase
       .from("estadisticas_jugadores")
-      .select("*")
-      .eq("playerId", playerId);
+      .select(`
+        id,
+        partido_id,
+        nombre,
+        playerId,
+        posicion,
+        equipo,
+        temporada,
+        division,
+        fecha,
+        passes,
+        keyPasses,
+        assists,
+        shots,
+        shotsOnTarget,
+        goals,
+        tackles,
+        keyTackles,
+        interceptions,
+        keyInterceptions,
+        possessionsLost,
+        gKSaves,
+        gKCatches,
+        overallRating,
+        score,
+        mvp,
+        rating_apa
+      `)
+      .eq("playerId", playerId)
+      .order("fecha", { ascending: false });
 
-    const { data, error } = await query;
+    const perfilQuery = supabase
+      .from("profiles")
+      .select(
+        "id, display_name, username, playerid, avatar_url, bio, status, visible_role",
+      )
+      .eq("playerid", playerId)
+      .maybeSingle();
 
-    if (error) {
-      console.log(error);
+    const [statsResult, perfilResult] = await Promise.all([
+      statsQuery,
+      perfilQuery,
+    ]);
+
+    if (statsResult.error) {
+      console.error("Error cargando estadísticas del jugador:", statsResult.error);
+      setStats([]);
+      setPerfilAPA(null);
+      setErrorMsg("No se pudieron cargar las estadísticas del jugador.");
       setLoading(false);
       return;
     }
 
-    const registros = data || [];
-    setStats(registros);
-
-    const { data: perfilData, error: perfilError } = await supabase
-      .from("profiles")
-      .select("id, display_name, username, playerid, avatar_url, bio, status, visible_role")
-      .eq("playerid", playerId)
-      .maybeSingle();
-
-    if (perfilError) {
-      console.log(perfilError);
+    if (perfilResult.error) {
+      console.error("Error cargando perfil APA:", perfilResult.error);
       setPerfilAPA(null);
     } else {
-      setPerfilAPA(perfilData || null);
+      setPerfilAPA(perfilResult.data || null);
     }
 
-    const partidosIds = registros.map((r: any) => r.partido_id).filter(Boolean);
+    const registros = statsResult.data || [];
+    setStats(registros);
+
+    const partidosIds = Array.from(
+      new Set(registros.map((r: any) => r.partido_id).filter(Boolean)),
+    );
 
     if (partidosIds.length > 0) {
-      const { data: partidosData } = await supabase
+      const { data: partidosData, error: partidosError } = await supabase
         .from("partidos")
-        .select("*")
+        .select("id, partido_id, fecha, local, visitante, resultado")
         .in("partido_id", partidosIds);
 
-      setPartidos(partidosData || []);
+      if (partidosError) {
+        console.error("Error cargando partidos relacionados:", partidosError);
+        setPartidos([]);
+      } else {
+        setPartidos(partidosData || []);
+      }
     }
 
     setLoading(false);
@@ -180,7 +226,7 @@ export default function JugadorPage() {
             Jugador no encontrado
           </h1>
           <p className="mt-3 text-zinc-400">
-            No hay estadísticas para este Player ID.
+            {errorMsg || "No hay estadísticas para este Player ID."}
           </p>
           <Link
             href="/jugadores"
@@ -219,6 +265,7 @@ export default function JugadorPage() {
                     src={perfilAPA.avatar_url}
                     alt={perfilAPA.display_name || nombreActual}
                     className="h-full w-full object-cover"
+                    loading="lazy"
                   />
                 ) : (
                   nombreActual.slice(0, 2).toUpperCase()

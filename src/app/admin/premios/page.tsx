@@ -214,37 +214,73 @@ export default function AdminPremiosPage() {
 
   useEffect(() => {
     cargarDatos();
-  }, []);
+  }, [temporada, division]);
 
   async function cargarDatos() {
     setLoading(true);
     setMensaje("");
 
-    const [statsRes, profilesRes, premiosRes] = await Promise.all([
-      supabase.from("estadisticas_jugadores").select("*"),
-      supabase.from("profiles").select("id,display_name,username,playerid,steam_id"),
-      supabase.from("premios_apa").select("*").order("created_at", { ascending: false }),
-    ]);
+    let statsQuery = supabase
+      .from("estadisticas_jugadores")
+      .select(
+        "nombre,playerId,equipo,temporada,division,goals,assists,mvp,overallRating,rating_apa,score,gKSaves,gKCatches",
+      )
+      .eq("temporada", temporada);
 
-    if (statsRes.error) {
-      console.log(statsRes.error);
-      setMensaje("Error cargando estadísticas: " + statsRes.error.message);
-    } else {
-      setStats((statsRes.data || []) as StatJugador[]);
+    if (division !== "Todas") {
+      statsQuery = statsQuery.eq("division", division);
     }
 
-    if (profilesRes.error) {
-      console.log(profilesRes.error);
-      setMensaje("Error cargando perfiles: " + profilesRes.error.message);
+    const { data: statsData, error: statsError } = await statsQuery;
+
+    if (statsError) {
+      console.log(statsError);
+      setStats([]);
+      setPerfiles([]);
+      setMensaje("Error cargando estadísticas: " + statsError.message);
     } else {
-      setPerfiles((profilesRes.data || []) as Perfil[]);
+      const statsLimpias = (statsData || []) as StatJugador[];
+      setStats(statsLimpias);
+
+      const playerIds = Array.from(
+        new Set(
+          statsLimpias
+            .map((stat) => normalizarPlayerId(stat))
+            .filter(Boolean),
+        ),
+      );
+
+      if (playerIds.length > 0) {
+        const { data: perfilesData, error: perfilesError } = await supabase
+          .from("profiles")
+          .select("id,display_name,username,playerid,steam_id")
+          .in("playerid", playerIds);
+
+        if (perfilesError) {
+          console.log(perfilesError);
+          setPerfiles([]);
+          setMensaje("Error cargando perfiles: " + perfilesError.message);
+        } else {
+          setPerfiles((perfilesData || []) as Perfil[]);
+        }
+      } else {
+        setPerfiles([]);
+      }
     }
 
-    if (premiosRes.error) {
-      console.log(premiosRes.error);
-      setMensaje("Error cargando premios: " + premiosRes.error.message);
+    const { data: premiosData, error: premiosError } = await supabase
+      .from("premios_apa")
+      .select(
+        "id,temporada,division,premio,playerid,nombre,equipo,puntos,posicion,created_at",
+      )
+      .order("created_at", { ascending: false });
+
+    if (premiosError) {
+      console.log(premiosError);
+      setPremiosGuardados([]);
+      setMensaje("Error cargando premios: " + premiosError.message);
     } else {
-      setPremiosGuardados((premiosRes.data || []) as PremioGuardado[]);
+      setPremiosGuardados((premiosData || []) as PremioGuardado[]);
     }
 
     setLoading(false);

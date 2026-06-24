@@ -189,10 +189,19 @@ export default function PerfilPublicoPage() {
   async function cargarPerfilPublico() {
     setLoading(true);
     setMensaje("");
+    setPerfil(null);
+    setStats([]);
+    setPredicciones([]);
+    setPartidos([]);
+    setDreamVotes([]);
+    setPlantillas([]);
+    setPremiosApa([]);
 
     const { data: perfilData, error: perfilError } = await supabase
       .from("profiles")
-      .select("id,display_name,username,playerid,requested_playerid,playerid_verified,verification_status,steam_id,bio,avatar_url,status,visible_role")
+      .select(
+        "id,display_name,username,playerid,requested_playerid,playerid_verified,verification_status,steam_id,bio,avatar_url,status,visible_role",
+      )
       .eq("username", usernameParam)
       .maybeSingle();
 
@@ -212,69 +221,68 @@ export default function PerfilPublicoPage() {
     const perfilFinal = perfilData as PerfilPublico;
     setPerfil(perfilFinal);
 
-    let statsData: StatJugador[] = [];
+    const statsQuery = perfilFinal.playerid
+      ? supabase
+          .from("estadisticas_jugadores")
+          .select(
+            "nombre,playerId,equipo,temporada,division,fecha,goals,assists,mvp,overallRating,rating_apa,score,gKSaves,gKCatches",
+          )
+          .eq("playerId", perfilFinal.playerid)
+      : Promise.resolve({ data: [], error: null });
 
-    if (perfilFinal.playerid) {
-      const { data, error } = await supabase
-        .from("estadisticas_jugadores")
-        .select("*")
-        .eq("playerId", perfilFinal.playerid);
-
-      if (error) {
-        console.log(error);
-      } else {
-        statsData = (data || []) as StatJugador[];
-      }
-    }
-
-    const { data: predDataRaw, error: predError } = await supabase
+    const prediccionesQuery = supabase
       .from("predicciones")
-      .select("*")
+      .select("id,partido_id,prediccion,usuario,goles_local,goles_visitante")
       .eq("usuario", perfilFinal.id);
 
-    if (predError) console.log(predError);
-
-    const { data: dreamDataRaw, error: dreamError } = await supabase
+    const dreamQuery = supabase
       .from("dream_team_votos")
-      .select("*")
+      .select("id,usuario,temporada,division,fecha,posicion,nombre")
       .eq("usuario", perfilFinal.id);
 
+    const plantillasQuery = perfilFinal.playerid
+      ? supabase
+          .from("plantillas")
+          .select("id,jugador,playerid,equipo,posicion,temporada,division,estado")
+          .eq("playerid", perfilFinal.playerid)
+      : Promise.resolve({ data: [], error: null });
+
+    const premiosQuery = perfilFinal.playerid
+      ? supabase
+          .from("premios_apa")
+          .select(
+            "id,temporada,division,premio,playerid,nombre,equipo,puntos,posicion,created_at",
+          )
+          .eq("playerid", perfilFinal.playerid)
+          .order("temporada", { ascending: false })
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: [], error: null });
+
+    const [
+      { data: statsRaw, error: statsError },
+      { data: predDataRaw, error: predError },
+      { data: dreamDataRaw, error: dreamError },
+      { data: plantillasRaw, error: plantillasError },
+      { data: premiosRaw, error: premiosError },
+    ] = await Promise.all([
+      statsQuery,
+      prediccionesQuery,
+      dreamQuery,
+      plantillasQuery,
+      premiosQuery,
+    ]);
+
+    if (statsError) console.log(statsError);
+    if (predError) console.log(predError);
     if (dreamError) console.log(dreamError);
+    if (plantillasError) console.log(plantillasError);
+    if (premiosError) console.log(premiosError);
 
-    let plantillasData: Plantilla[] = [];
-
-    if (perfilFinal.playerid) {
-      const { data: plantillasRaw, error: plantillasError } = await supabase
-        .from("plantillas")
-        .select("*")
-        .eq("playerid", perfilFinal.playerid);
-
-      if (plantillasError) {
-        console.log(plantillasError);
-      } else {
-        plantillasData = (plantillasRaw || []) as Plantilla[];
-      }
-    }
-
-    let premiosData: PremioAPA[] = [];
-
-    if (perfilFinal.playerid) {
-      const { data: premiosRaw, error: premiosError } = await supabase
-        .from("premios_apa")
-        .select("*")
-        .eq("playerid", perfilFinal.playerid)
-        .order("temporada", { ascending: false })
-        .order("created_at", { ascending: false });
-
-      if (premiosError) {
-        console.log(premiosError);
-      } else {
-        premiosData = (premiosRaw || []) as PremioAPA[];
-      }
-    }
-
+    const statsData = (statsRaw || []) as StatJugador[];
     const predData = (predDataRaw || []) as Prediccion[];
     const dreamData = (dreamDataRaw || []) as DreamVote[];
+    const plantillasData = (plantillasRaw || []) as Plantilla[];
+    const premiosData = (premiosRaw || []) as PremioAPA[];
 
     setStats(statsData);
     setPredicciones(predData);
@@ -283,7 +291,9 @@ export default function PerfilPublicoPage() {
     setPremiosApa(premiosData);
 
     if (predData.length > 0) {
-      const ids = Array.from(new Set(predData.map((p) => p.partido_id).filter(Boolean)));
+      const ids = Array.from(
+        new Set(predData.map((p) => p.partido_id).filter(Boolean)),
+      );
 
       if (ids.length > 0) {
         const { data: partidosData, error: partidosError } = await supabase
@@ -293,9 +303,12 @@ export default function PerfilPublicoPage() {
 
         if (partidosError) {
           console.log(partidosError);
+          setPartidos([]);
         } else {
           setPartidos((partidosData || []) as Partido[]);
         }
+      } else {
+        setPartidos([]);
       }
     } else {
       setPartidos([]);
@@ -303,7 +316,6 @@ export default function PerfilPublicoPage() {
 
     setLoading(false);
   }
-
 
   async function notificarLogrosDesbloqueados(logrosActivos: {
     key: string;

@@ -149,21 +149,51 @@ export default function DreamTeamPage() {
   async function cargarDatos() {
     setMensaje("");
 
-    const { data: stats, error: statsError } = await supabase
-      .from("estadisticas_jugadores")
-      .select("*")
-      .eq("temporada", temporada)
-      .eq("division", division)
-      .eq("fecha", fecha);
+    const [statsResult, votosResult, equiposResult] = await Promise.all([
+      supabase
+        .from("estadisticas_jugadores")
+        .select(
+          'nombre, playerId, equipo, posicion, goals, assists, overallRating, rating_apa, gKSaves'
+        )
+        .eq("temporada", temporada)
+        .eq("division", division)
+        .eq("fecha", fecha),
 
-    if (statsError) {
-      console.log(statsError);
+      supabase
+        .from("dream_team_votos")
+        .select(
+          'id, temporada, division, fecha, posicion, playerId, nombre, equipo, usuario, fecha_voto'
+        )
+        .eq("temporada", temporada)
+        .eq("division", division)
+        .eq("fecha", fecha),
+
+      supabase
+        .from("equipos")
+        .select("nombre, logo_url")
+        .eq("temporada", temporada)
+        .eq("division", division),
+    ]);
+
+    if (statsResult.error) {
+      console.log(statsResult.error);
+      setJugadores([]);
+      setVotos([]);
+      setPerfilesJugadores({});
       return;
     }
 
+    if (votosResult.error) {
+      console.log(votosResult.error);
+      setVotos([]);
+    }
+
+    const stats = statsResult.data || [];
+    const votosData = votosResult.data || [];
+
     const mapa: Record<string, any> = {};
 
-    stats?.forEach((r: any) => {
+    stats.forEach((r: any) => {
       const nombre = (r.nombre || "").trim();
       const playerId = (r.playerId || "").trim();
       if (!nombre) return;
@@ -216,18 +246,6 @@ export default function DreamTeamPage() {
       })),
     );
 
-    const { data: votosData, error: votosError } = await supabase
-      .from("dream_team_votos")
-      .select("*")
-      .eq("temporada", temporada)
-      .eq("division", division)
-      .eq("fecha", fecha);
-
-    if (votosError) {
-      console.log(votosError);
-      return;
-    }
-
     setVotos(votosData || []);
 
     const playerIdsPerfil = Array.from(
@@ -259,16 +277,15 @@ export default function DreamTeamPage() {
       setPerfilesJugadores({});
     }
 
-    const { data: equiposData } = await supabase
-      .from("equipos")
-      .select("nombre, logo_url")
-      .eq("temporada", temporada)
-      .eq("division", division);
-
     const mapLogos: Record<string, string> = {};
-    equiposData?.forEach((e: any) => {
+    equiposResult.data?.forEach((e: any) => {
       if (e.nombre && e.logo_url) mapLogos[e.nombre] = e.logo_url;
     });
+
+    if (equiposResult.error) {
+      console.log(equiposResult.error);
+    }
+
     setLogos(mapLogos);
   }
 

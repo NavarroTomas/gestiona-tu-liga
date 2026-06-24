@@ -170,7 +170,7 @@ export default function CargarPartidoManualPage() {
         temporada,
         division,
         fecha,
-        Passes: lista.reduce((acc, j) => acc + Number(j.passes || 0), 0),
+        passes: lista.reduce((acc, j) => acc + Number(j.passes || 0), 0),
         keyPasses: lista.reduce((acc, j) => acc + Number(j.keyPasses || 0), 0),
         assists: lista.reduce((acc, j) => acc + Number(j.assists || 0), 0),
         shots: lista.reduce((acc, j) => acc + Number(j.shots || 0), 0),
@@ -192,7 +192,7 @@ export default function CargarPartidoManualPage() {
         yellowCards: 0,
         redCards: 0,
         possession: 0,
-        possessionLost: lista.reduce((acc, j) => acc + Number(j.possessionsLost || 0), 0),
+        possessionsLost: lista.reduce((acc, j) => acc + Number(j.possessionsLost || 0), 0),
       };
     }
 
@@ -239,6 +239,16 @@ export default function CargarPartidoManualPage() {
       return;
     }
 
+    await supabase
+      .from("estadisticas_equipos")
+      .delete()
+      .eq("partido_id", partidoId);
+
+    await supabase
+      .from("estadisticas_jugadores")
+      .delete()
+      .eq("partido_id", partidoId);
+
     const { error: errorEquipos } = await supabase
       .from("estadisticas_equipos")
       .insert(equiposStats);
@@ -274,7 +284,7 @@ export default function CargarPartidoManualPage() {
 
       if (jugadoresBase.length > 0) {
         await supabase.from("jugadores").upsert(jugadoresBase, {
-          onConflict: "playerId",
+          onConflict: "playerId,temporada,division,equipo",
         });
       }
     }

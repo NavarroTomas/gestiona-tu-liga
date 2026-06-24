@@ -35,6 +35,9 @@ type StatJugador = {
   posicion: string | null;
 };
 
+const PLANTILLAS_SELECT =
+  "id,jugador,playerid,steam_id,profile_id,equipo,posicion,temporada,division,estado";
+
 export default function AdminPlantillasPage() {
   const temporadas = ["Temporada 4"];
 
@@ -77,29 +80,42 @@ export default function AdminPlantillasPage() {
   async function cargarContexto() {
     setMensaje("");
 
-    const { data: equiposData, error: equiposError } = await supabase
-      .from("equipos")
-      .select("nombre")
-      .eq("temporada", temporada)
-      .eq("division", division)
-      .order("nombre", { ascending: true });
+    const [equiposRes, plantillasRes] = await Promise.all([
+      supabase
+        .from("equipos")
+        .select("nombre")
+        .eq("temporada", temporada)
+        .eq("division", division)
+        .order("nombre", { ascending: true }),
+      supabase
+        .from("plantillas")
+        .select(PLANTILLAS_SELECT)
+        .eq("temporada", temporada)
+        .eq("division", division)
+        .order("equipo", { ascending: true })
+        .order("jugador", { ascending: true }),
+    ]);
 
-    if (equiposError) console.log(equiposError);
+    if (equiposRes.error) console.log(equiposRes.error);
+    if (plantillasRes.error) {
+      console.log(plantillasRes.error);
+      setMensaje("No pude cargar las plantillas.");
+    }
 
-    const listaEquipos = (equiposData || []) as Equipo[];
+    const listaEquipos = (equiposRes.data || []) as Equipo[];
     setEquipos(listaEquipos);
 
     if (!equipo && listaEquipos.length > 0) {
       setEquipo(listaEquipos[0].nombre);
     }
 
-    await cargarPlantillas();
+    setPlantillas((plantillasRes.data || []) as Plantilla[]);
   }
 
   async function cargarPlantillas() {
     const { data, error } = await supabase
       .from("plantillas")
-      .select("*")
+      .select(PLANTILLAS_SELECT)
       .eq("temporada", temporada)
       .eq("division", division)
       .order("equipo", { ascending: true })
@@ -344,7 +360,7 @@ export default function AdminPlantillasPage() {
     if (playeridLimpio) {
       const { data: origenData, error: origenError } = await supabase
         .from("plantillas")
-        .select("*")
+        .select(PLANTILLAS_SELECT)
         .eq("temporada", transferTemporada)
         .eq("division", transferDivision)
         .eq("equipo", desdeLimpio)

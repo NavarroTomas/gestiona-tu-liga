@@ -82,29 +82,38 @@ export default function PremiosPage() {
   async function cargarDatos() {
     setCargando(true);
 
-    const { data, error } = await supabase
-      .from("estadisticas_jugadores")
-      .select("*")
-      .eq("temporada", temporada)
-      .eq("division", division)
-      .eq("fecha", fecha);
+    const [statsResult, equiposResult] = await Promise.all([
+      supabase
+        .from("estadisticas_jugadores")
+        .select(
+          "nombre, playerId, equipo, posicion, goals, assists, mvp, overallRating, score, tackles, interceptions, gKSaves, gKCatches, passes",
+        )
+        .eq("temporada", temporada)
+        .eq("division", division)
+        .eq("fecha", fecha),
+      supabase
+        .from("equipos")
+        .select("nombre, logo_url")
+        .eq("temporada", temporada)
+        .eq("division", division),
+    ]);
 
-    if (error) {
-      console.log(error);
+    if (statsResult.error) {
+      console.log(statsResult.error);
+      setJugadores([]);
+      setLogos({});
       setCargando(false);
       return;
     }
 
-    setJugadores((data || []).map(normalizarJugador));
+    if (equiposResult.error) {
+      console.log(equiposResult.error);
+    }
 
-    const { data: equiposData } = await supabase
-      .from("equipos")
-      .select("nombre, logo_url")
-      .eq("temporada", temporada)
-      .eq("division", division);
+    setJugadores((statsResult.data || []).map(normalizarJugador));
 
     const mapLogos: Record<string, string> = {};
-    equiposData?.forEach((e: any) => {
+    (equiposResult.data || []).forEach((e: any) => {
       if (e.nombre && e.logo_url) mapLogos[e.nombre] = e.logo_url;
     });
 
@@ -149,7 +158,12 @@ export default function PremiosPage() {
     return (
       <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-sky-400/30 bg-black shadow-[0_0_18px_rgba(56,189,248,.18)]">
         {logo ? (
-          <img src={logo} alt={equipo} className="h-full w-full object-contain p-1" />
+          <img
+            src={logo}
+            alt={equipo}
+            loading="lazy"
+            className="h-full w-full object-contain p-1"
+          />
         ) : (
           <span className="text-xs font-black text-white">
             {(equipo || "?").slice(0, 2).toUpperCase()}

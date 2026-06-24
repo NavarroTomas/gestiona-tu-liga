@@ -33,6 +33,11 @@ interface PremioAPA {
   created_at: string | null;
 }
 
+interface ClubInfo {
+  nombre: string;
+  logo_url: string | null;
+}
+
 const premiosOrden = [
   "balon_oro",
   "the_best",
@@ -43,7 +48,7 @@ const premiosOrden = [
 
 export default function HistoriaPage() {
   const [jugadores, setJugadores] = useState<RankingJugador[]>([]);
-  const [clubesInfo, setClubesInfo] = useState<any[]>([]);
+  const [clubesInfo, setClubesInfo] = useState<ClubInfo[]>([]);
   const [premiosApa, setPremiosApa] = useState<PremioAPA[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -51,100 +56,134 @@ export default function HistoriaPage() {
     cargarHistoria();
   }, []);
 
-  function valorGKSave(r: any) {
-    return Number(r.gKSAVES || r.gKSaves || r.gksaves || 0);
-  }
-
   async function cargarHistoria() {
-    const { data, error } = await supabase
-      .from("estadisticas_jugadores")
-      .select("*");
+    setLoading(true);
 
-    if (error) {
-      console.log(error);
-      setLoading(false);
-      return;
-    }
+    const rankingQuery = supabase
+      .from("v_ranking_jugadores")
+      .select(`
+        playerId,
+        nombre,
+        equipo,
+        partidos_jugados,
+        goals,
+        assists,
+        mvp,
+        score_total,
+        rating_apa_promedio,
+        gKSaves,
+        tackles,
+        interceptions
+      `);
 
-    const mapa: { [key: string]: any } = {};
-
-    data?.forEach((j: any) => {
-      const nombre = (j.nombre || "").trim();
-      const playerId = (j.playerId || "").trim();
-
-      if (!nombre) return;
-
-      const clave = playerId || nombre;
-
-      if (!mapa[clave]) {
-        mapa[clave] = {
-          nombre,
-          playerId,
-          equipo: j.equipo || "Sin Club",
-          partidos: 0,
-          goles: 0,
-          asistencias: 0,
-          mvps: 0,
-          score: 0,
-          ratingTotal: 0,
-          ratingPromedio: 0,
-          atajadas: 0,
-          tackles: 0,
-          intercepciones: 0,
-        };
-      }
-
-      mapa[clave].partidos += 1;
-      mapa[clave].goles += Number(j.goals) || 0;
-      mapa[clave].asistencias += Number(j.assists) || 0;
-      mapa[clave].mvps += Number(j.mvp) || 0;
-      mapa[clave].score += Number(j.score) || 0;
-      mapa[clave].ratingTotal += Number(j.rating_apa || j.overallRating) || 0;
-      mapa[clave].atajadas += valorGKSave(j);
-      mapa[clave].tackles += Number(j.tackles) || 0;
-      mapa[clave].intercepciones += Number(j.interceptions) || 0;
-
-      if (j.equipo) mapa[clave].equipo = j.equipo;
-      if (j.nombre) mapa[clave].nombre = j.nombre;
-      if (j.playerId) mapa[clave].playerId = j.playerId;
-    });
-
-    const lista = Object.values(mapa).map((j: any) => ({
-      ...j,
-      ratingPromedio:
-        j.partidos > 0 ? Math.round((j.ratingTotal / j.partidos) * 10) / 10 : 0,
-    }));
-
-    const nombresEquipos = Array.from(
-      new Set(lista.map((j: any) => j.equipo).filter(Boolean)),
-    );
-
-    if (nombresEquipos.length > 0) {
-      const { data: clubesData, error: clubesError } = await supabase
-        .from("clubes_info")
-        .select("nombre, logo_url")
-        .in("nombre", nombresEquipos);
-
-      if (clubesError) console.log(clubesError);
-      setClubesInfo(clubesData || []);
-    } else {
-      setClubesInfo([]);
-    }
-
-    const { data: premiosData, error: premiosError } = await supabase
+    const premiosQuery = supabase
       .from("premios_apa")
-      .select("*")
+      .select(`
+        id,
+        temporada,
+        division,
+        premio,
+        playerid,
+        nombre,
+        equipo,
+        puntos,
+        posicion,
+        created_at
+      `)
       .order("temporada", { ascending: false })
       .order("created_at", { ascending: false });
 
+    const [
+      { data: rankingData, error: rankingError },
+      { data: premiosData, error: premiosError },
+    ] = await Promise.all([rankingQuery, premiosQuery]);
+
+    if (rankingError) {
+      console.error("Error cargando ranking histórico:", rankingError);
+      setJugadores([]);
+      setClubesInfo([]);
+    } else {
+      const mapa: Record<string, RankingJugador & { ratingTotal: number }> = {};
+
+      (rankingData || []).forEach((j: any) => {
+        const nombre = String(j.nombre || "").trim();
+        const playerId = String(j.playerId || "").trim();
+
+        if (!nombre) return;
+
+        const clave = playerId || nombre;
+        const partidos = Number(j.partidos_jugados || 0);
+        const ratingPromedio = Number(j.rating_apa_promedio || 0);
+
+        if (!mapa[clave]) {
+          mapa[clave] = {
+            nombre,
+            playerId,
+            equipo: j.equipo || "Sin Club",
+            partidos: 0,
+            goles: 0,
+            asistencias: 0,
+            mvps: 0,
+            score: 0,
+            ratingPromedio: 0,
+            ratingTotal: 0,
+            atajadas: 0,
+            tackles: 0,
+            intercepciones: 0,
+          };
+        }
+
+        mapa[clave].partidos += partidos;
+        mapa[clave].goles += Number(j.goals || 0);
+        mapa[clave].asistencias += Number(j.assists || 0);
+        mapa[clave].mvps += Number(j.mvp || 0);
+        mapa[clave].score += Number(j.score_total || 0);
+        mapa[clave].ratingTotal += ratingPromedio * partidos;
+        mapa[clave].atajadas += Number(j.gKSaves || 0);
+        mapa[clave].tackles += Number(j.tackles || 0);
+        mapa[clave].intercepciones += Number(j.interceptions || 0);
+
+        if (j.equipo) mapa[clave].equipo = j.equipo;
+        if (j.nombre) mapa[clave].nombre = j.nombre;
+        if (j.playerId) mapa[clave].playerId = j.playerId;
+      });
+
+      const lista = Object.values(mapa).map(({ ratingTotal, ...j }) => ({
+        ...j,
+        ratingPromedio:
+          j.partidos > 0 ? Math.round((ratingTotal / j.partidos) * 10) / 10 : 0,
+      }));
+
+      const nombresEquipos = Array.from(
+        new Set(lista.map((j) => j.equipo).filter(Boolean)),
+      );
+
+      if (nombresEquipos.length > 0) {
+        const { data: clubesData, error: clubesError } = await supabase
+          .from("clubes_info")
+          .select("nombre, logo_url")
+          .in("nombre", nombresEquipos);
+
+        if (clubesError) {
+          console.error("Error cargando logos de clubes:", clubesError);
+          setClubesInfo([]);
+        } else {
+          setClubesInfo((clubesData || []) as ClubInfo[]);
+        }
+      } else {
+        setClubesInfo([]);
+      }
+
+      setJugadores(lista);
+    }
+
     if (premiosError) {
-      console.log(premiosError);
+      console.error("Error cargando premios APA:", premiosError);
       setPremiosApa([]);
     } else {
       setPremiosApa((premiosData || []) as PremioAPA[]);
     }
 
-    setJugadores(lista);
     setLoading(false);
   }
 
@@ -240,20 +279,20 @@ export default function HistoriaPage() {
     return premiosApa.filter((p) => p.premio === tipo);
   }
 
+  const logosPorEquipo = useMemo(() => {
+    const mapa = new Map<string, string | null>();
+
+    clubesInfo.forEach((club) => {
+      mapa.set(String(club.nombre || "").toLowerCase().trim(), club.logo_url);
+    });
+
+    return mapa;
+  }, [clubesInfo]);
+
   function logoEquipo(nombre?: string) {
     if (!nombre) return null;
 
-    const club = clubesInfo.find(
-      (c) =>
-        String(c.nombre || "")
-          .toLowerCase()
-          .trim() ===
-        String(nombre || "")
-          .toLowerCase()
-          .trim(),
-    );
-
-    return club?.logo_url || null;
+    return logosPorEquipo.get(String(nombre).toLowerCase().trim()) || null;
   }
 
   function EscudoEquipo({
@@ -280,6 +319,7 @@ export default function HistoriaPage() {
             src={logo}
             alt={nombre || "Club"}
             className="h-full w-full object-contain p-1.5"
+            loading="lazy"
           />
         ) : (
           nombre?.slice(0, 2).toUpperCase() || "CL"
@@ -483,6 +523,7 @@ export default function HistoriaPage() {
               src={premioImagen(tipo)}
               alt={premioNombre(tipo)}
               className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
+              loading="lazy"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/10" />
             <div className="absolute left-4 top-4 rounded-2xl border border-yellow-400/25 bg-black/55 px-3 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-yellow-300 backdrop-blur">
@@ -611,6 +652,7 @@ export default function HistoriaPage() {
           src={fondo}
           alt=""
           className="absolute inset-0 h-full w-full object-cover opacity-35 transition duration-500 group-hover:scale-110 group-hover:opacity-50"
+          loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/75 to-black/35" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,.10),transparent_40%)]" />

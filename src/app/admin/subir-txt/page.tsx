@@ -52,38 +52,42 @@ export default function SubirTxtPage() {
   async function cargarContexto() {
     setMensaje("");
 
-    const { data: equiposData, error: equiposError } = await supabase
-      .from("equipos")
-      .select("*")
-      .eq("temporada", temporada)
-      .eq("division", division)
-      .order("nombre", { ascending: true });
+    const [equiposRes, partidosRes] = await Promise.all([
+      supabase
+        .from("equipos")
+        .select("id,nombre,temporada,division")
+        .eq("temporada", temporada)
+        .eq("division", division)
+        .order("nombre", { ascending: true }),
+      supabase
+        .from("partidos")
+        .select("id,partido_id,local,visitante,resultado,fecha,temporada,division,dia,hora")
+        .eq("temporada", temporada)
+        .eq("division", division)
+        .eq("fecha", fecha)
+        .order("local", { ascending: true }),
+    ]);
 
-    if (equiposError) {
-      console.log(equiposError);
+    if (equiposRes.error) {
+      console.log(equiposRes.error);
     }
 
-    const { data: partidosData, error: partidosError } = await supabase
-      .from("partidos")
-      .select("*")
-      .eq("temporada", temporada)
-      .eq("division", division)
-      .eq("fecha", fecha)
-      .order("local", { ascending: true });
-
-    if (partidosError) {
-      console.log(partidosError);
+    if (partidosRes.error) {
+      console.log(partidosRes.error);
     }
 
-    setEquipos(equiposData || []);
-    setPartidosProgramados(partidosData || []);
+    const equiposData = (equiposRes.data || []) as Equipo[];
+    const partidosData = (partidosRes.data || []) as PartidoProgramado[];
 
-    const existeSeleccion = (partidosData || []).some(
-      (p: any) => p.id === partidoSeleccionadoId,
+    setEquipos(equiposData);
+    setPartidosProgramados(partidosData);
+
+    const existeSeleccion = partidosData.some(
+      (p) => p.id === partidoSeleccionadoId,
     );
 
     if (!existeSeleccion) {
-      setPartidoSeleccionadoId((partidosData || [])[0]?.id || "");
+      setPartidoSeleccionadoId(partidosData[0]?.id || "");
     }
   }
 
@@ -283,7 +287,7 @@ export default function SubirTxtPage() {
 
       const { data: partidoYaCargado } = await supabase
         .from("partidos")
-        .select("*")
+        .select("id")
         .eq("partido_id", idPartido);
 
       if (
@@ -397,7 +401,7 @@ export default function SubirTxtPage() {
 
         const { data: historialJugador, error: historialError } = await supabase
           .from("estadisticas_jugadores")
-          .select("*")
+          .select("goals,assists,mvp")
           .eq("playerId", playerId)
           .eq("temporada", temporada)
           .eq("division", division)

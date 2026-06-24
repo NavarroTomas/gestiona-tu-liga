@@ -1,8 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+
+type PlantillaJugador = {
+  id: number;
+  jugador: string;
+  equipo: string;
+  posicion: string | null;
+  estado: string | null;
+  temporada: string;
+  division: string;
+  playerid?: string | null;
+  playerId?: string;
+};
+
+type ClubInfo = {
+  nombre: string;
+  logo_url: string | null;
+};
+
 
 export default function PlantillasPage() {
   const temporadas = ["Temporada 4"];
@@ -13,89 +31,103 @@ export default function PlantillasPage() {
   const [division, setDivision] = useState("Primera");
   const [equipoSeleccionado, setEquipoSeleccionado] = useState("Todos");
 
-  const [plantillas, setPlantillas] = useState<any[]>([]);
+  const [plantillas, setPlantillas] = useState<PlantillaJugador[]>([]);
   const [equipos, setEquipos] = useState<string[]>([]);
-  const [clubesInfo, setClubesInfo] = useState<any[]>([]);
+  const [clubesInfo, setClubesInfo] = useState<ClubInfo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    cargarDatos();
-  }, [temporada, division, equipoSeleccionado]);
+    let cancelado = false;
 
-  async function cargarDatos() {
-    let query = supabase
-      .from("plantillas")
-      .select("*")
-      .eq("temporada", temporada)
-      .eq("division", division)
-      .order("equipo", { ascending: true });
+    async function cargarDatos() {
+      setLoading(true);
+      setErrorMsg(null);
 
-    if (equipoSeleccionado !== "Todos") {
-      query = query.eq("equipo", equipoSeleccionado);
-    }
+      let plantillasQuery = supabase
+        .from("plantillas")
+        .select("id,jugador,equipo,posicion,estado,temporada,division,playerid")
+        .eq("temporada", temporada)
+        .eq("division", division)
+        .order("equipo", { ascending: true })
+        .order("posicion", { ascending: true })
+        .order("jugador", { ascending: true });
 
-    const { data, error } = await query;
-
-    if (error) {
-      console.log(error);
-      return;
-    }
-
-    const plantillasBase = data || [];
-
-    const { data: statsJugadores } = await supabase
-      .from("estadisticas_jugadores")
-      .select("nombre, playerId, equipo")
-      .eq("temporada", temporada)
-      .eq("division", division);
-
-    const plantillasConPlayerId = plantillasBase.map((p: any) => {
-      const encontrado = (statsJugadores || []).find((s: any) => {
-        const nombreStats = (s.nombre || "").trim().toLowerCase();
-        const nombrePlantilla = (p.jugador || "").trim().toLowerCase();
-
-        const equipoStats = (s.equipo || "").trim().toLowerCase();
-        const equipoPlantilla = (p.equipo || "").trim().toLowerCase();
-
-        return (
-          nombreStats === nombrePlantilla && equipoStats === equipoPlantilla
-        );
-      });
-
-      return {
-        ...p,
-        playerId: encontrado?.playerId || "",
-      };
-    });
-
-    setPlantillas(plantillasConPlayerId);
-
-    const { data: equiposData } = await supabase
-      .from("plantillas")
-      .select("equipo")
-      .eq("temporada", temporada)
-      .eq("division", division);
-
-    const equiposUnicos = Array.from(
-      new Set((equiposData || []).map((e: any) => e.equipo).filter(Boolean)),
-    ).sort();
-
-    if (equiposUnicos.length > 0) {
-      const { data: clubesData, error: clubesError } = await supabase
-        .from("clubes_info")
-        .select("nombre, logo_url")
-        .in("nombre", equiposUnicos);
-
-      if (clubesError) {
-        console.log(clubesError);
+      if (equipoSeleccionado !== "Todos") {
+        plantillasQuery = plantillasQuery.eq("equipo", equipoSeleccionado);
       }
 
-      setClubesInfo(clubesData || []);
-    } else {
-      setClubesInfo([]);
+      const equiposQuery = supabase
+        .from("plantillas")
+        .select("equipo")
+        .eq("temporada", temporada)
+        .eq("division", division);
+
+      const [plantillasResult, equiposResult] = await Promise.all([
+        plantillasQuery,
+        equiposQuery,
+      ]);
+
+      if (cancelado) return;
+
+      if (plantillasResult.error || equiposResult.error) {
+        console.error("Error cargando plantillas:", {
+          plantillasError: plantillasResult.error,
+          equiposError: equiposResult.error,
+        });
+
+        setPlantillas([]);
+        setEquipos([]);
+        setClubesInfo([]);
+        setErrorMsg("No se pudieron cargar las plantillas.");
+        setLoading(false);
+        return;
+      }
+
+      const plantillasBase = ((plantillasResult.data || []) as PlantillaJugador[]).map(
+        (p) => ({
+          ...p,
+          playerId: String(p.playerid || "").trim(),
+        }),
+      );
+
+      const equiposUnicos = Array.from(
+        new Set(
+          ((equiposResult.data || []) as { equipo: string }[])
+            .map((e) => e.equipo)
+            .filter(Boolean),
+        ),
+      ).sort((a, b) => a.localeCompare(b));
+
+      let clubesData: ClubInfo[] = [];
+
+      if (equiposUnicos.length > 0) {
+        const { data: clubes, error: clubesError } = await supabase
+          .from("clubes_info")
+          .select("nombre, logo_url")
+          .in("nombre", equiposUnicos);
+
+        if (clubesError) {
+          console.error("Error cargando logos de clubes:", clubesError);
+        }
+
+        clubesData = (clubes || []) as ClubInfo[];
+      }
+
+      if (cancelado) return;
+
+      setPlantillas(plantillasBase);
+      setEquipos(equiposUnicos);
+      setClubesInfo(clubesData);
+      setLoading(false);
     }
 
-    setEquipos(equiposUnicos as string[]);
-  }
+    cargarDatos();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [temporada, division, equipoSeleccionado]);
 
   function cambiarTemporada(temp: string) {
     setTemporada(temp);
@@ -107,20 +139,19 @@ export default function PlantillasPage() {
     setEquipoSeleccionado("Todos");
   }
 
+  const logosPorEquipo = useMemo(() => {
+    const mapa = new Map<string, string | null>();
+
+    clubesInfo.forEach((club) => {
+      mapa.set(String(club.nombre || "").toLowerCase().trim(), club.logo_url);
+    });
+
+    return mapa;
+  }, [clubesInfo]);
+
   function logoEquipo(nombre?: string) {
     if (!nombre) return null;
-
-    const club = clubesInfo.find(
-      (c) =>
-        String(c.nombre || "")
-          .toLowerCase()
-          .trim() ===
-        String(nombre || "")
-          .toLowerCase()
-          .trim(),
-    );
-
-    return club?.logo_url || null;
+    return logosPorEquipo.get(String(nombre).toLowerCase().trim()) || null;
   }
 
   function EscudoEquipo({
@@ -146,6 +177,7 @@ export default function PlantillasPage() {
             src={logo}
             alt={nombre || "Club"}
             className="h-full w-full object-contain p-1.5"
+            loading="lazy"
           />
         ) : (
           nombre?.slice(0, 2).toUpperCase() || "CL"
@@ -154,16 +186,45 @@ export default function PlantillasPage() {
     );
   }
 
-  const agrupadoPorEquipo: any = {};
+  const agrupadoPorEquipo = useMemo(() => {
+    const grupos: Record<string, PlantillaJugador[]> = {};
 
-  plantillas.forEach((p) => {
-    if (!agrupadoPorEquipo[p.equipo]) {
-      agrupadoPorEquipo[p.equipo] = [];
-    }
+    plantillas.forEach((p) => {
+      const equipo = p.equipo || "Sin Club";
 
-    agrupadoPorEquipo[p.equipo].push(p);
-  });
+      if (!grupos[equipo]) {
+        grupos[equipo] = [];
+      }
 
+      grupos[equipo].push(p);
+    });
+
+    return grupos;
+  }, [plantillas]);
+
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-pulse text-sky-400 font-black uppercase tracking-[0.3em]">
+          Cargando plantillas...
+        </div>
+      </main>
+    );
+  }
+
+  if (errorMsg) {
+    return (
+      <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] flex items-center justify-center p-6">
+        <section className="max-w-xl rounded-[30px] border border-red-500/30 bg-[#020714] p-8 text-center">
+          <h1 className="text-3xl font-black uppercase text-red-200">
+            Error cargando plantillas
+          </h1>
+          <p className="mt-3 text-zinc-400">{errorMsg}</p>
+        </section>
+      </main>
+    );
+  }
   return (
     <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
       <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-8 space-y-8">

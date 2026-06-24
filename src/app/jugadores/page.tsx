@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
@@ -31,6 +31,28 @@ type RankingTipo =
   | "atajadas"
   | "atrapadas";
 
+type RankingJugadorRow = {
+  temporada: string | null;
+  division: string | null;
+  playerId: string | null;
+  nombre: string | null;
+  equipo: string | null;
+  partidos_jugados: number | null;
+  goals: number | null;
+  assists: number | null;
+  passes: number | null;
+  tackles: number | null;
+  gKSaves: number | null;
+  mvp: number | null;
+  rating_apa_promedio: number | null;
+  score_total: number | null;
+};
+
+type ClubInfo = {
+  nombre: string;
+  logo_url: string | null;
+};
+
 export default function JugadoresPage() {
   const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
@@ -45,149 +67,216 @@ export default function JugadoresPage() {
   ];
 
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
-  const [clubesInfo, setClubesInfo] = useState<any[]>([]);
-  const [clubActualPorPlayerId, setClubActualPorPlayerId] = useState<Record<string, string>>({});
+  const [clubesInfo, setClubesInfo] = useState<ClubInfo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    cargarJugadores();
-  }, [temporada, division, modo]);
+    let cancelado = false;
 
-  function valorGKSave(r: any) {
-    return Number(r.gKSAVES || r.gKSaves || r.gksaves || 0);
-  }
+    async function cargarJugadores() {
+      setLoading(true);
+      setErrorMsg(null);
 
-  async function cargarJugadores() {
-    let query = supabase.from("estadisticas_jugadores").select("*");
-
-    if (modo === "temporada") {
-      query = query.eq("temporada", temporada).eq("division", division);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.log(error);
-      return;
-    }
-
-    const mapa: { [key: string]: Jugador } = {};
-
-    data?.forEach((j: any) => {
-      const nombre = (j.nombre || "").trim();
-      const playerId = (j.playerId || "").trim();
-
-      if (!nombre) return;
-
-      const clave = playerId || nombre;
-
-      if (!mapa[clave]) {
-        mapa[clave] = {
-          nombre,
+      let rankingQuery = supabase
+        .from("v_ranking_jugadores")
+        .select(`
+          temporada,
+          division,
           playerId,
-          equipo: j.equipo || "Sin Club",
-          goles: 0,
-          asistencias: 0,
-          mvps: 0,
-          score: 0,
-          pases: 0,
-          tackles: 0,
-          ratingTotal: 0,
-          partidos: 0,
-          atajadas: 0,
-          atrapadas: 0,
-        };
-      }
-
-      mapa[clave].goles += Number(j.goals) || 0;
-      mapa[clave].asistencias += Number(j.assists) || 0;
-      mapa[clave].mvps += Number(j.mvp) || 0;
-      mapa[clave].score += Number(j.score) || 0;
-      mapa[clave].pases += Number(j.passes) || 0;
-      mapa[clave].tackles += Number(j.tackles) || 0;
-      mapa[clave].ratingTotal += Number(j.rating_apa || j.overallRating) || 0;
-      mapa[clave].partidos += 1;
-      mapa[clave].atajadas += valorGKSave(j);
-      mapa[clave].atrapadas += Number(j.gKCatches) || 0;
-
-      if (j.equipo) mapa[clave].equipo = j.equipo;
-      if (j.nombre) mapa[clave].nombre = j.nombre;
-      if (j.playerId) mapa[clave].playerId = j.playerId;
-    });
-
-    const listaBase = Object.values(mapa);
-
-    const playerIds = listaBase
-      .map((j: any) => String(j.playerId || "").trim())
-      .filter(Boolean);
-
-    let mapaClubActual: Record<string, string> = {};
-
-    if (playerIds.length > 0) {
-      let plantillasQuery = supabase
-        .from("plantillas")
-        .select("playerid,equipo,temporada,division,estado")
-        .in("playerid", playerIds)
-        .neq("estado", "baja");
+          nombre,
+          equipo,
+          partidos_jugados,
+          goals,
+          assists,
+          passes,
+          tackles,
+          gKSaves,
+          mvp,
+          rating_apa_promedio,
+          score_total
+        `);
 
       if (modo === "temporada") {
-        plantillasQuery = plantillasQuery
+        rankingQuery = rankingQuery
           .eq("temporada", temporada)
           .eq("division", division);
       }
 
-      const { data: plantillasData, error: plantillasError } =
-        await plantillasQuery;
+      const { data, error } = await rankingQuery;
 
-      if (plantillasError) {
-        console.log(plantillasError);
+      if (cancelado) return;
+
+      if (error) {
+        console.error("Error cargando ranking de jugadores:", error);
+        setJugadores([]);
+        setClubesInfo([]);
+        setErrorMsg("No se pudieron cargar los rankings de jugadores.");
+        setLoading(false);
+        return;
+      }
+
+      const mapa: Record<string, Jugador> = {};
+
+      ((data || []) as RankingJugadorRow[]).forEach((j) => {
+        const nombre = String(j.nombre || "").trim();
+        const playerId = String(j.playerId || "").trim();
+
+        if (!nombre && !playerId) return;
+
+        const clave = playerId || nombre;
+        const partidos = Number(j.partidos_jugados || 0);
+        const ratingPromedio = Number(j.rating_apa_promedio || 0);
+
+        if (!mapa[clave]) {
+          mapa[clave] = {
+            nombre: nombre || "Sin nombre",
+            playerId,
+            equipo: j.equipo || "Sin Club",
+            goles: 0,
+            asistencias: 0,
+            mvps: 0,
+            score: 0,
+            pases: 0,
+            tackles: 0,
+            ratingTotal: 0,
+            partidos: 0,
+            atajadas: 0,
+            atrapadas: 0,
+          };
+        }
+
+        mapa[clave].goles += Number(j.goals || 0);
+        mapa[clave].asistencias += Number(j.assists || 0);
+        mapa[clave].mvps += Number(j.mvp || 0);
+        mapa[clave].score += Number(j.score_total || 0);
+        mapa[clave].pases += Number(j.passes || 0);
+        mapa[clave].tackles += Number(j.tackles || 0);
+        mapa[clave].ratingTotal += ratingPromedio * partidos;
+        mapa[clave].partidos += partidos;
+        mapa[clave].atajadas += Number(j.gKSaves || 0);
+
+        if (j.equipo) mapa[clave].equipo = j.equipo;
+        if (nombre) mapa[clave].nombre = nombre;
+        if (playerId) mapa[clave].playerId = playerId;
+      });
+
+      const listaBase = Object.values(mapa);
+      const playerIds = listaBase
+        .map((j) => String(j.playerId || "").trim())
+        .filter(Boolean);
+
+      let mapaClubActual: Record<string, string> = {};
+      let atrapadasPorJugador: Record<string, number> = {};
+
+      const consultasExtra: Array<PromiseLike<any>> = [];
+
+      if (playerIds.length > 0) {
+        let plantillasQuery = supabase
+          .from("plantillas")
+          .select("playerid, equipo, temporada, division, estado")
+          .in("playerid", playerIds)
+          .neq("estado", "baja");
+
+        if (modo === "temporada") {
+          plantillasQuery = plantillasQuery
+            .eq("temporada", temporada)
+            .eq("division", division);
+        }
+
+        let atrapadasQuery = supabase
+          .from("estadisticas_jugadores")
+          .select("playerId, gKCatches")
+          .in("playerId", playerIds);
+
+        if (modo === "temporada") {
+          atrapadasQuery = atrapadasQuery
+            .eq("temporada", temporada)
+            .eq("division", division);
+        }
+
+        consultasExtra.push(plantillasQuery, atrapadasQuery);
+      }
+
+      const [plantillasResult, atrapadasResult] = consultasExtra.length
+        ? await Promise.all(consultasExtra)
+        : [];
+
+      if (cancelado) return;
+
+      if (plantillasResult?.error) {
+        console.error("Error cargando plantillas:", plantillasResult.error);
       } else {
-        (plantillasData || []).forEach((p: any) => {
+        (plantillasResult?.data || []).forEach((p: any) => {
           const pid = String(p.playerid || "").trim();
           if (!pid || !p.equipo) return;
           mapaClubActual[pid] = p.equipo;
         });
       }
-    }
 
-    setClubActualPorPlayerId(mapaClubActual);
-
-    const lista = listaBase.map((j: any) => ({
-      ...j,
-      equipo: mapaClubActual[j.playerId] || j.equipo,
-    }));
-
-    const nombresEquipos = Array.from(
-      new Set(lista.map((j: any) => j.equipo).filter(Boolean)),
-    );
-
-    if (nombresEquipos.length > 0) {
-      const { data: clubesData, error: clubesError } = await supabase
-        .from("clubes_info")
-        .select("nombre, logo_url")
-        .in("nombre", nombresEquipos);
-
-      if (clubesError) {
-        console.log(clubesError);
+      if (atrapadasResult?.error) {
+        console.error("Error cargando atrapadas:", atrapadasResult.error);
+      } else {
+        (atrapadasResult?.data || []).forEach((row: any) => {
+          const pid = String(row.playerId || "").trim();
+          if (!pid) return;
+          atrapadasPorJugador[pid] =
+            (atrapadasPorJugador[pid] || 0) + Number(row.gKCatches || 0);
+        });
       }
 
-      setClubesInfo(clubesData || []);
-    } else {
-      setClubesInfo([]);
+      const lista = listaBase.map((j) => ({
+        ...j,
+        equipo: mapaClubActual[j.playerId] || j.equipo,
+        atrapadas: atrapadasPorJugador[j.playerId] || 0,
+      }));
+
+      const nombresEquipos = Array.from(
+        new Set(lista.map((j) => j.equipo).filter(Boolean)),
+      );
+
+      let clubesData: ClubInfo[] = [];
+
+      if (nombresEquipos.length > 0) {
+        const { data: clubes, error: clubesError } = await supabase
+          .from("clubes_info")
+          .select("nombre, logo_url")
+          .in("nombre", nombresEquipos);
+
+        if (clubesError) {
+          console.error("Error cargando logos de clubes:", clubesError);
+        }
+
+        clubesData = (clubes || []) as ClubInfo[];
+      }
+
+      if (cancelado) return;
+
+      setClubesInfo(clubesData);
+      setJugadores(lista);
+      setLoading(false);
     }
 
-    setJugadores(lista);
-  }
+    cargarJugadores();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [temporada, division, modo]);
+
+  const logosPorEquipo = useMemo(() => {
+    const mapa = new Map<string, string | null>();
+
+    clubesInfo.forEach((club) => {
+      mapa.set(String(club.nombre || "").toLowerCase().trim(), club.logo_url);
+    });
+
+    return mapa;
+  }, [clubesInfo]);
 
   function logoEquipo(nombre?: string) {
     if (!nombre) return null;
-
-    const club = clubesInfo.find(
-      (c) =>
-        String(c.nombre || "").toLowerCase().trim() ===
-        String(nombre || "").toLowerCase().trim(),
-    );
-
-    return club?.logo_url || null;
+    return logosPorEquipo.get(String(nombre).toLowerCase().trim()) || null;
   }
 
   function EscudoEquipo({
@@ -214,6 +303,7 @@ export default function JugadoresPage() {
             src={logo}
             alt={nombre || "Club"}
             className="h-full w-full object-contain p-1.5"
+            loading="lazy"
           />
         ) : (
           nombre?.slice(0, 2).toUpperCase() || "CL"
@@ -614,9 +704,23 @@ export default function JugadoresPage() {
           </h2>
 
           <p className="mt-3 text-zinc-500">
-            {totalJugadores} jugadores encontrados en esta selección.
+            {loading
+              ? "Cargando jugadores..."
+              : `${totalJugadores} jugadores encontrados en esta selección.`}
           </p>
         </section>
+
+        {errorMsg && (
+          <section className="rounded-[26px] border border-red-500/30 bg-red-500/10 p-6 text-center text-red-200 sm:rounded-[34px]">
+            {errorMsg}
+          </section>
+        )}
+
+        {loading && (
+          <section className="rounded-[26px] border border-sky-500/20 bg-[#020714] p-8 text-center text-zinc-500 sm:rounded-[34px]">
+            Cargando rankings de jugadores...
+          </section>
+        )}
 
         {jugadorDestacado && (
           <section className="relative overflow-hidden rounded-[28px] border border-yellow-400/25 bg-gradient-to-br from-yellow-400/12 via-[#020714] to-black p-5 sm:rounded-[36px] sm:p-6 shadow-[0_0_40px_rgba(250,204,21,.10)] md:p-8">

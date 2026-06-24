@@ -1,51 +1,208 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+
+type EquipoStats = {
+  id: number;
+  partido_id: string;
+  equipo: string;
+  temporada: string;
+  division: string;
+  fecha: string;
+  passes: number | null;
+  keyPasses: number | null;
+  assists: number | null;
+  shots: number | null;
+  shotsOnTarget: number | null;
+  goals: number | null;
+  tackles: number | null;
+  keyTackles: number | null;
+  interceptions: number | null;
+  keyInterceptions: number | null;
+  possession: number | null;
+  possessionsLost: number | null;
+  fouls: number | null;
+  cornerKicks: number | null;
+};
+
+type JugadorStats = {
+  id: number;
+  partido_id: string;
+  nombre: string;
+  playerId: string | null;
+  posicion: string | null;
+  equipo: string;
+  temporada: string;
+  division: string;
+  fecha: string;
+  passes: number | null;
+  keyPasses: number | null;
+  assists: number | null;
+  shots: number | null;
+  shotsOnTarget: number | null;
+  goals: number | null;
+  tackles: number | null;
+  keyTackles: number | null;
+  interceptions: number | null;
+  keyInterceptions: number | null;
+  possessionsLost: number | null;
+  gKSaves: number | null;
+  gKCatches: number | null;
+  overallRating: number | null;
+  score: number | null;
+  mvp: number | null;
+  rating_apa: number | null;
+};
+
+type ClubInfo = {
+  nombre: string;
+  logo_url: string | null;
+};
 
 export default function PartidoEstadisticasPage() {
   const params = useParams();
   const partidoId = decodeURIComponent(params.partidoId as string);
 
-  const [equipos, setEquipos] = useState<any[]>([]);
-  const [jugadores, setJugadores] = useState<any[]>([]);
-  const [clubesInfo, setClubesInfo] = useState<any[]>([]);
+  const [equipos, setEquipos] = useState<EquipoStats[]>([]);
+  const [jugadores, setJugadores] = useState<JugadorStats[]>([]);
+  const [clubesInfo, setClubesInfo] = useState<ClubInfo[]>([]);
   const [verDetalleCompleto, setVerDetalleCompleto] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelado = false;
+
+    async function cargarDatos() {
+      setLoading(true);
+      setErrorMsg(null);
+
+      const equiposQuery = supabase
+        .from("estadisticas_equipos")
+        .select(
+          `
+          id,
+          partido_id,
+          equipo,
+          temporada,
+          division,
+          fecha,
+          passes,
+          keyPasses,
+          assists,
+          shots,
+          shotsOnTarget,
+          goals,
+          tackles,
+          keyTackles,
+          interceptions,
+          keyInterceptions,
+          possession,
+          possessionsLost,
+          fouls,
+          cornerKicks
+        `,
+        )
+        .eq("partido_id", partidoId);
+
+      const jugadoresQuery = supabase
+        .from("estadisticas_jugadores")
+        .select(
+          `
+          id,
+          partido_id,
+          nombre,
+          playerId,
+          posicion,
+          equipo,
+          temporada,
+          division,
+          fecha,
+          passes,
+          keyPasses,
+          assists,
+          shots,
+          shotsOnTarget,
+          goals,
+          tackles,
+          keyTackles,
+          interceptions,
+          keyInterceptions,
+          possessionsLost,
+          gKSaves,
+          gKCatches,
+          overallRating,
+          score,
+          mvp,
+          rating_apa
+        `,
+        )
+        .eq("partido_id", partidoId)
+        .order("score", { ascending: false });
+
+      const [
+        { data: equiposData, error: equiposError },
+        { data: jugadoresData, error: jugadoresError },
+      ] = await Promise.all([equiposQuery, jugadoresQuery]);
+
+      if (cancelado) return;
+
+      if (equiposError || jugadoresError) {
+        console.error("Error cargando detalle del partido:", {
+          equiposError,
+          jugadoresError,
+        });
+
+        setEquipos([]);
+        setJugadores([]);
+        setClubesInfo([]);
+        setErrorMsg("No se pudieron cargar las estadísticas del partido.");
+        setLoading(false);
+        return;
+      }
+
+      const equiposLimpios = (equiposData || []) as EquipoStats[];
+      const jugadoresLimpios = (jugadoresData || []) as JugadorStats[];
+
+      const nombresEquipos = Array.from(
+        new Set(equiposLimpios.map((equipo) => equipo.equipo).filter(Boolean)),
+      );
+
+      let clubesData: ClubInfo[] = [];
+
+      if (nombresEquipos.length > 0) {
+        const { data: clubes, error: clubesError } = await supabase
+          .from("clubes_info")
+          .select("nombre, logo_url")
+          .in("nombre", nombresEquipos);
+
+        if (clubesError) {
+          console.error("Error cargando logos de clubes:", clubesError);
+        }
+
+        clubesData = (clubes || []) as ClubInfo[];
+      }
+
+      if (cancelado) return;
+
+      setEquipos(equiposLimpios);
+      setJugadores(jugadoresLimpios);
+      setClubesInfo(clubesData);
+      setLoading(false);
+    }
+
     cargarDatos();
+
+    return () => {
+      cancelado = true;
+    };
   }, [partidoId]);
 
   function valorGKSave(r: any) {
     return Number(r.gKSAVES || r.gKSaves || r.gksaves || 0);
-  }
-
-  async function cargarDatos() {
-    const { data: equiposData } = await supabase
-      .from("estadisticas_equipos")
-      .select("*")
-      .eq("partido_id", partidoId);
-
-    const { data: jugadoresData } = await supabase
-      .from("estadisticas_jugadores")
-      .select("*")
-      .eq("partido_id", partidoId)
-      .order("score", { ascending: false });
-
-    const nombresEquipos = (equiposData || [])
-      .map((e: any) => e.equipo)
-      .filter(Boolean);
-
-    const { data: clubesData } = await supabase
-      .from("clubes_info")
-      .select("*")
-      .in("nombre", nombresEquipos);
-
-    setEquipos(equiposData || []);
-    setJugadores(jugadoresData || []);
-    setClubesInfo(clubesData || []);
   }
 
   const local = equipos[0];
@@ -63,16 +220,25 @@ export default function PartidoEstadisticasPage() {
     .filter((j) => Number(j.assists || 0) > 0)
     .sort((a, b) => Number(b.assists || 0) - Number(a.assists || 0));
 
+  const logosPorEquipo = useMemo(() => {
+    const mapa = new Map<string, string | null>();
+
+    clubesInfo.forEach((club) => {
+      mapa.set(
+        String(club.nombre || "")
+          .toLowerCase()
+          .trim(),
+        club.logo_url,
+      );
+    });
+
+    return mapa;
+  }, [clubesInfo]);
+
   function logoEquipo(nombre?: string) {
     if (!nombre) return null;
 
-    const club = clubesInfo.find(
-      (c) =>
-        String(c.nombre || "").toLowerCase().trim() ===
-        String(nombre || "").toLowerCase().trim(),
-    );
-
-    return club?.logo_url || null;
+    return logosPorEquipo.get(String(nombre).toLowerCase().trim()) || null;
   }
 
   const arqueros = jugadores.filter(
@@ -105,10 +271,17 @@ export default function PartidoEstadisticasPage() {
       });
   }
 
-
-  function EscudoReal({ nombre, grande = false }: { nombre?: string; grande?: boolean }) {
+  function EscudoReal({
+    nombre,
+    grande = false,
+  }: {
+    nombre?: string;
+    grande?: boolean;
+  }) {
     const logo = logoEquipo(nombre);
-    const size = grande ? "h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 text-2xl sm:text-3xl" : "h-12 w-12 sm:h-16 sm:w-16 text-base sm:text-lg";
+    const size = grande
+      ? "h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 text-2xl sm:text-3xl"
+      : "h-12 w-12 sm:h-16 sm:w-16 text-base sm:text-lg";
 
     return (
       <div
@@ -119,6 +292,7 @@ export default function PartidoEstadisticasPage() {
             src={logo}
             alt={nombre || "Equipo"}
             className="h-full w-full object-cover"
+            loading="lazy"
           />
         ) : (
           nombre?.slice(0, 2).toUpperCase()
@@ -182,7 +356,15 @@ export default function PartidoEstadisticasPage() {
     );
   }
 
-  function StatBar({ label, a, b }: { label: string; a: number; b: number }) {
+  function StatBar({
+    label,
+    a,
+    b,
+  }: {
+    label: string;
+    a?: number | null;
+    b?: number | null;
+  }) {
     const total = Number(a || 0) + Number(b || 0);
 
     const porcentajeA = total === 0 ? 50 : (Number(a || 0) / total) * 100;
@@ -214,7 +396,9 @@ export default function PartidoEstadisticasPage() {
           {label}
         </p>
 
-        <p className="mt-3 text-2xl font-black text-white sm:text-3xl">{value ?? 0}</p>
+        <p className="mt-3 text-2xl font-black text-white sm:text-3xl">
+          {value ?? 0}
+        </p>
       </div>
     );
   }
@@ -281,15 +465,61 @@ export default function PartidoEstadisticasPage() {
     );
   }
 
+  function BackLink() {
+    return (
+      <Link
+        href="/estadisticas"
+        className="inline-flex items-center gap-2 rounded-2xl border border-sky-500/20 bg-sky-500/10 px-4 py-3 text-xs sm:px-5 sm:text-sm font-black uppercase tracking-[0.18em] text-sky-300 transition hover:bg-sky-500/20"
+      >
+        ← Volver al Match Center
+      </Link>
+    );
+  }
+
+  if (loading) {
+    return (
+      <main className="min-h-screen overflow-x-hidden text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
+        <div className="mx-auto max-w-[1500px] space-y-6 px-3 py-5 sm:px-4 md:space-y-8 md:px-8 md:py-10">
+          <BackLink />
+          <div className="rounded-[28px] border border-sky-500/20 bg-[#020714] p-10 text-center text-zinc-500">
+            Cargando estadísticas del partido...
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (errorMsg) {
+    return (
+      <main className="min-h-screen overflow-x-hidden text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
+        <div className="mx-auto max-w-[1500px] space-y-6 px-3 py-5 sm:px-4 md:space-y-8 md:px-8 md:py-10">
+          <BackLink />
+          <div className="rounded-[28px] border border-red-500/30 bg-red-500/10 p-10 text-center text-red-200">
+            {errorMsg}
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (equipos.length < 2) {
+    return (
+      <main className="min-h-screen overflow-x-hidden text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
+        <div className="mx-auto max-w-[1500px] space-y-6 px-3 py-5 sm:px-4 md:space-y-8 md:px-8 md:py-10">
+          <BackLink />
+          <div className="rounded-[28px] border border-yellow-400/30 bg-yellow-400/10 p-10 text-center text-yellow-200">
+            Este partido todavía no tiene los dos equipos cargados
+            correctamente.
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen overflow-x-hidden text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
       <div className="mx-auto max-w-[1500px] space-y-6 px-3 py-5 sm:px-4 md:space-y-8 md:px-8 md:py-10">
-        <Link
-          href="/estadisticas"
-          className="inline-flex items-center gap-2 rounded-2xl border border-sky-500/20 bg-sky-500/10 px-4 py-3 text-xs sm:px-5 sm:text-sm font-black uppercase tracking-[0.18em] text-sky-300 transition hover:bg-sky-500/20"
-        >
-          ← Volver al Match Center
-        </Link>
+        <BackLink />
 
         <section className="relative overflow-hidden rounded-[28px] border border-sky-500/30 bg-[#020714] p-5 sm:rounded-[36px] md:p-10 shadow-[0_0_55px_rgba(0,120,255,.2)]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.12),transparent_40%)]" />
@@ -512,7 +742,9 @@ export default function PartidoEstadisticasPage() {
 
         {arqueros.length > 0 && (
           <section className="rounded-[28px] border border-sky-500/20 bg-[#020714] p-5 sm:rounded-[34px] md:p-8">
-            <h2 className="text-xl font-black uppercase sm:text-2xl sm:text-3xl md:text-4xl mb-8">Arqueros</h2>
+            <h2 className="text-xl font-black uppercase sm:text-2xl sm:text-3xl md:text-4xl mb-8">
+              Arqueros
+            </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {arqueros.map((j) => (
