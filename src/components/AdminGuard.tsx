@@ -4,6 +4,63 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+let permissionsCacheUserId: string | undefined;
+let permissionsCache: string[] | undefined;
+let permissionsPromiseUserId: string | undefined;
+let permissionsPromise: Promise<string[]> | undefined;
+
+function normalizarPermisos(data: unknown): string[] {
+  if (!Array.isArray(data)) return [];
+
+  return data
+    .map((item) => {
+      if (!item || typeof item !== "object" || !("code" in item)) {
+        return null;
+      }
+
+      const code = (item as { code?: unknown }).code;
+      return typeof code === "string" ? code : null;
+    })
+    .filter((code): code is string => code !== null);
+}
+
+function limpiarPermisosCache() {
+  permissionsCacheUserId = undefined;
+  permissionsCache = undefined;
+  permissionsPromiseUserId = undefined;
+  permissionsPromise = undefined;
+}
+
+function cargarMisPermisos(userId: string): Promise<string[]> {
+  if (permissionsCacheUserId === userId && permissionsCache) {
+    return Promise.resolve(permissionsCache);
+  }
+
+  if (permissionsPromiseUserId === userId && permissionsPromise) {
+    return permissionsPromise;
+  }
+
+  permissionsPromiseUserId = userId;
+  permissionsPromise = (async () => {
+    try {
+      const { data, error } = await supabase.rpc("get_my_permissions");
+
+      if (error) throw error;
+
+      const permisos = normalizarPermisos(data);
+      permissionsCacheUserId = userId;
+      permissionsCache = permisos;
+      return permisos;
+    } finally {
+      permissionsPromiseUserId = undefined;
+      permissionsPromise = undefined;
+    }
+  })();
+
+  return permissionsPromise;
+}
+
+
 const permisosPanel = [
   "admin.users.manage",
   "clubs.manage",
@@ -27,48 +84,58 @@ export default function AdminGuard({
   const [permitido, setPermitido] = useState(false);
 
   useEffect(() => {
-    verificarAcceso();
-  }, []);
+    let activo = true;
 
-  async function verificarAcceso() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    async function verificarAcceso() {
+      setVerificando(true);
+      setPermitido(false);
 
-    if (!user) {
-      router.push("/login");
-      return;
-    }
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    const resultados = await Promise.all(
-      permisosPanel.map(async (permission) => {
-        const res = await supabase.rpc("has_permission", {
-          requested_permission: permission,
-        });
+      if (!activo) return;
 
-        console.log("PERMISO:", permission, res.data, res.error);
-
-        return res;
-      }),
-    );
-
-    const puedeEntrar = resultados.some((res) => {
-      if (res.error) {
-        console.log(res.error);
-        return false;
+      if (!user) {
+        limpiarPermisosCache();
+        router.push("/login");
+        setVerificando(false);
+        return;
       }
 
-      return !!res.data;
-    });
+      try {
+        const permisos = await cargarMisPermisos(user.id);
 
-    if (!puedeEntrar) {
-      router.push("/");
-      return;
+        if (!activo) return;
+
+        const puedeEntrar = permisosPanel.some((permission) =>
+          permisos.includes(permission),
+        );
+
+        if (!puedeEntrar) {
+          router.push("/");
+          setVerificando(false);
+          return;
+        }
+
+        setPermitido(true);
+        setVerificando(false);
+      } catch (error) {
+        console.error("Error verificando permisos:", error);
+
+        if (!activo) return;
+
+        router.push("/");
+        setVerificando(false);
+      }
     }
 
-    setPermitido(true);
-    setVerificando(false);
-  }
+    verificarAcceso();
+
+    return () => {
+      activo = false;
+    };
+  }, [router]);
 
   if (verificando) {
     return (

@@ -5,6 +5,63 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
+let permissionsCacheUserId: string | undefined;
+let permissionsCache: string[] | undefined;
+let permissionsPromiseUserId: string | undefined;
+let permissionsPromise: Promise<string[]> | undefined;
+
+function normalizarPermisos(data: unknown): string[] {
+  if (!Array.isArray(data)) return [];
+
+  return data
+    .map((item) => {
+      if (!item || typeof item !== "object" || !("code" in item)) {
+        return null;
+      }
+
+      const code = (item as { code?: unknown }).code;
+      return typeof code === "string" ? code : null;
+    })
+    .filter((code): code is string => code !== null);
+}
+
+function limpiarPermisosCache() {
+  permissionsCacheUserId = undefined;
+  permissionsCache = undefined;
+  permissionsPromiseUserId = undefined;
+  permissionsPromise = undefined;
+}
+
+function cargarMisPermisos(userId: string): Promise<string[]> {
+  if (permissionsCacheUserId === userId && permissionsCache) {
+    return Promise.resolve(permissionsCache);
+  }
+
+  if (permissionsPromiseUserId === userId && permissionsPromise) {
+    return permissionsPromise;
+  }
+
+  permissionsPromiseUserId = userId;
+  permissionsPromise = (async () => {
+    try {
+      const { data, error } = await supabase.rpc("get_my_permissions");
+
+      if (error) throw error;
+
+      const permisos = normalizarPermisos(data);
+      permissionsCacheUserId = userId;
+      permissionsCache = permisos;
+      return permisos;
+    } finally {
+      permissionsPromiseUserId = undefined;
+      permissionsPromise = undefined;
+    }
+  })();
+
+  return permissionsPromise;
+}
+
+
 type PerfilNavbar = {
   id: string;
   display_name: string | null;
@@ -149,6 +206,7 @@ export default function Navbar() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(() => {
+      limpiarPermisosCache();
       cargarSesionNavbar();
     });
 
@@ -364,28 +422,23 @@ export default function Navbar() {
       setPerfil((perfilData || null) as PerfilNavbar | null);
     }
 
-    const resultados = await Promise.all(
-      permisosPanel.map((permission) =>
-        supabase.rpc("has_permission", {
-          requested_permission: permission,
-        }),
-      ),
-    );
+    try {
+      const permisos = await cargarMisPermisos(user.id);
+      const tieneAlgunPermiso = permisosPanel.some((permission) =>
+        permisos.includes(permission),
+      );
 
-    const tieneAlgunPermiso = resultados.some((res) => {
-      if (res.error) {
-        console.log(res.error);
-        return false;
-      }
+      setPuedeVerPanel(tieneAlgunPermiso);
+    } catch (error) {
+      console.error("Error cargando permisos del navbar:", error);
+      setPuedeVerPanel(false);
+    }
 
-      return !!res.data;
-    });
-
-    setPuedeVerPanel(tieneAlgunPermiso);
     setCargandoUsuario(false);
   }
 
   async function cerrarSesion() {
+    limpiarPermisosCache();
     await supabase.auth.signOut();
     setPerfil(null);
     setPuedeVerPanel(false);

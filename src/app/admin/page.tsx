@@ -4,6 +4,63 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
+let permissionsCacheUserId: string | undefined;
+let permissionsCache: string[] | undefined;
+let permissionsPromiseUserId: string | undefined;
+let permissionsPromise: Promise<string[]> | undefined;
+
+function normalizarPermisos(data: unknown): string[] {
+  if (!Array.isArray(data)) return [];
+
+  return data
+    .map((item) => {
+      if (!item || typeof item !== "object" || !("code" in item)) {
+        return null;
+      }
+
+      const code = (item as { code?: unknown }).code;
+      return typeof code === "string" ? code : null;
+    })
+    .filter((code): code is string => code !== null);
+}
+
+function limpiarPermisosCache() {
+  permissionsCacheUserId = undefined;
+  permissionsCache = undefined;
+  permissionsPromiseUserId = undefined;
+  permissionsPromise = undefined;
+}
+
+function cargarMisPermisos(userId: string): Promise<string[]> {
+  if (permissionsCacheUserId === userId && permissionsCache) {
+    return Promise.resolve(permissionsCache);
+  }
+
+  if (permissionsPromiseUserId === userId && permissionsPromise) {
+    return permissionsPromise;
+  }
+
+  permissionsPromiseUserId = userId;
+  permissionsPromise = (async () => {
+    try {
+      const { data, error } = await supabase.rpc("get_my_permissions");
+
+      if (error) throw error;
+
+      const permisos = normalizarPermisos(data);
+      permissionsCacheUserId = userId;
+      permissionsCache = permisos;
+      return permisos;
+    } finally {
+      permissionsPromiseUserId = undefined;
+      permissionsPromise = undefined;
+    }
+  })();
+
+  return permissionsPromise;
+}
+
+
 export default function AdminPage() {
   const temporadas = ["Temporada 4"];
   const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
@@ -49,54 +106,42 @@ export default function AdminPage() {
     cargarPermisos();
   }, []);
 
-  async function checkPermission(permission: string) {
-    const { data, error } = await supabase.rpc("has_permission", {
-      requested_permission: permission,
-    });
+  function aplicarPermisos(permisos: string[]) {
+    const tiene = (permission: string) => permisos.includes(permission);
 
-    if (error) {
-      console.log(error);
-      return false;
-    }
-
-    return !!data;
+    setCanUploadTxt(tiene("matches.upload_txt"));
+    setCanManualMatch(tiene("matches.upload_manual"));
+    setCanNews(tiene("news.manage"));
+    setCanTransfers(tiene("transfers.manage"));
+    setCanCompetitions(tiene("competitions.manage"));
+    setCanTitles(tiene("titles.manage"));
+    setCanUsers(tiene("admin.users.manage"));
+    setCanLists(tiene("matches.edit"));
+    setCanClubs(tiene("clubs.manage"));
   }
 
   async function cargarPermisos() {
     setCargandoPermisos(true);
 
-    const [
-      uploadTxt,
-      manualMatch,
-      news,
-      transfers,
-      competitions,
-      titles,
-      users,
-      lists,
-      clubs,
-    ] = await Promise.all([
-      checkPermission("matches.upload_txt"),
-      checkPermission("matches.upload_manual"),
-      checkPermission("news.manage"),
-      checkPermission("transfers.manage"),
-      checkPermission("competitions.manage"),
-      checkPermission("titles.manage"),
-      checkPermission("admin.users.manage"),
-      checkPermission("matches.edit"),
-      checkPermission("clubs.manage"),
-    ]);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    setCanUploadTxt(uploadTxt);
-    setCanManualMatch(manualMatch);
-    setCanNews(news);
-    setCanTransfers(transfers);
-    setCanCompetitions(competitions);
-    setCanTitles(titles);
-    setCanUsers(users);
-    setCanLists(lists);
-    setCanClubs(clubs);
-    setCargandoPermisos(false);
+      if (!user) {
+        limpiarPermisosCache();
+        aplicarPermisos([]);
+        return;
+      }
+
+      const permisos = await cargarMisPermisos(user.id);
+      aplicarPermisos(permisos);
+    } catch (error) {
+      console.log(error);
+      aplicarPermisos([]);
+    } finally {
+      setCargandoPermisos(false);
+    }
   }
 
   async function crearClub() {
