@@ -28,7 +28,7 @@ export default function SubirTxtPage() {
 
   const temporadas = ["Temporada 4"];
 
-  const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
+  const divisiones = ["Primera", "Segunda"];
 
   const [archivo, setArchivo] = useState<File | null>(null);
   const [temporada, setTemporada] = useState("Temporada 4");

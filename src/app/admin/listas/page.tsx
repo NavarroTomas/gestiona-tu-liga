@@ -6,7 +6,7 @@ import PermissionGuard from "@/components/PermissionGuard";
 
 export default function AdminListasPage() {
   const temporadas = ["Temporada 4"];
-  const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
+  const divisiones = ["Primera", "Segunda"];
 
   const [equipos, setEquipos] = useState<any[]>([]);
   const [partidos, setPartidos] = useState<any[]>([]);

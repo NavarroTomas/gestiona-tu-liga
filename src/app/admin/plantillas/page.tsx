@@ -41,7 +41,7 @@ const PLANTILLAS_SELECT =
 export default function AdminPlantillasPage() {
   const temporadas = ["Temporada 4"];
 
-  const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
+  const divisiones = ["Primera", "Segunda"];
   const posiciones = ["GK", "LB", "CB", "RB", "CDM", "CM", "CAM", "LW", "RW", "ST", "N/D"];
   const estados = ["activo", "suplente", "libre", "baja"];
 

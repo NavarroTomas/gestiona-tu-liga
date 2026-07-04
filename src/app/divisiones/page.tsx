@@ -12,7 +12,7 @@ export default function DivisionesPage() {
 
   const temporadas = ["Temporada 4"];
 
-  const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
+  const divisiones = ["Primera", "Segunda"];
 
   useEffect(() => {
     cargarUltimosResultados();

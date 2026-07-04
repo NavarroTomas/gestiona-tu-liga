@@ -17,8 +17,6 @@ export default function MercadoPage() {
   const divisiones = [
     { nombre: "Primera", icon: "🏆" },
     { nombre: "Segunda", icon: "🥈" },
-    { nombre: "Tercera", icon: "🥉" },
-    { nombre: "Cuarta", icon: "⭐" },
   ];
   const tipos = ["Todos", "Fichaje", "Salida", "Préstamo", "Libre"];
 

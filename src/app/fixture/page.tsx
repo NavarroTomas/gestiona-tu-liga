@@ -21,22 +21,6 @@ const divisiones = [
     descripcion: "Calendario completo de la segunda categoría oficial.",
     detalle: "Ascenso en juego",
   },
-  {
-    nombre: "Tercera División",
-    slug: "tercera",
-    color: "border-indigo-400/30 from-indigo-500/18 to-blue-950/30",
-    icon: "🥉",
-    descripcion: "Fixture completo de la tercera categoría competitiva.",
-    detalle: "Camino al ascenso",
-  },
-  {
-    nombre: "Cuarta División",
-    slug: "cuarta",
-    color: "border-purple-400/30 from-purple-500/18 to-blue-950/30",
-    icon: "⭐",
-    descripcion: "Calendario de la cuarta categoría del sistema de liga.",
-    detalle: "Nueva generación",
-  },
 ];
 
 const infoCards = [

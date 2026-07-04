@@ -12,7 +12,7 @@ const torneos = [
     color: "border-sky-400/30 from-sky-500/15 to-blue-950/20",
     glow: "group-hover:shadow-[0_0_45px_rgba(56,189,248,.18)]",
     icon: "🏆",
-    preview: ["Primera", "Segunda", "Tercera", "Cuarta"],
+    preview: ["Primera", "Segunda"],
     estado: "Activo",
   },
   {

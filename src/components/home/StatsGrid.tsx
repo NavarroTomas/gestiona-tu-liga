@@ -18,7 +18,7 @@ export default function StatsGrid({ stats }: Props) {
   return (
     <section className="relative overflow-hidden rounded-[32px] border border-sky-300/20 bg-[#020814] px-5 py-8 shadow-[0_24px_80px_rgba(0,0,0,.42)] md:px-8">
       <img
-        src="/themes/worldcup/backgrounds/stats-keyart-01.png"
+        src="/themes/worldcup/backgrounds/Estadisticas.png"
         alt=""
         className="absolute inset-0 h-full w-full object-cover object-center"
       />

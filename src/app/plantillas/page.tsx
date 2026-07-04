@@ -25,7 +25,7 @@ type ClubInfo = {
 export default function PlantillasPage() {
   const temporadas = ["Temporada 4"];
 
-  const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
+  const divisiones = ["Primera", "Segunda"];
 
   const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");

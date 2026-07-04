@@ -1,0 +1,43 @@
+CARPETA PARA TUS IMÁGENES DE FONDO - APA
+
+Poné tus fotos en esta carpeta y renombrá cada archivo exactamente así.
+Podés usar .jpg, pero si querés usar .png tenés que cambiar también la extensión en el código.
+
+FONDOS PRINCIPALES:
+- fondo-general.jpg              Fondo general de toda la home
+- home-intro.jpg                 Fondo de la sección grande "APA World Cup"
+- selector-competicion.jpg       Fondo de la sección donde elegís temporada/división
+- selector-contexto.jpg          Fondo alternativo del selector viejo, si se usa
+- estadisticas.jpg               Fondo de la sección estadísticas oficiales
+
+HERO / CARRUSEL SUPERIOR:
+- hero-1.jpg
+- hero-2.jpg
+- hero-3.jpg
+
+PANELES INTERNOS:
+- panel-azul.jpg
+- panel-verde.jpg
+- panel-dorado.jpg
+
+TARJETAS DE ACCESO:
+- acceso-competicion.jpg
+- acceso-fixture.jpg
+- acceso-clubes.jpg
+- acceso-jugadores.jpg
+- acceso-mercado.jpg
+- acceso-entretenimiento.jpg
+- acceso-guia.jpg
+- acceso-historia.jpg
+
+ESTADÍSTICAS CHICAS, si después querés usarlas:
+- estadistica-clubes.jpg
+- estadistica-partidos.jpg
+- estadistica-jugadores.jpg
+- estadistica-goles.jpg
+
+RECOMENDACIÓN:
+Usá imágenes horizontales, mínimo 1600px de ancho si podés.
+Para fondos generales: 1920x1080.
+Para tarjetas: 1200x800 o similar.
+No uses nombres con espacios ni tildes.

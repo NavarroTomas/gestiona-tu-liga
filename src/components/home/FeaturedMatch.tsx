@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-const FEATURED_MATCH_BG = "/themes/worldcup/backgrounds/featured-match-bg.png";
+const FEATURED_MATCH_BG = "/themes/worldcup/backgrounds/Tunel.png";
 const STORAGE_KEY = "apa-featured-match-anchors-v1";
 
 type Props = {

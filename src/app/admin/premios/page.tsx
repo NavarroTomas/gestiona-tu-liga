@@ -77,7 +77,7 @@ type PremioGuardado = {
 
 const temporadas = ["Temporada 4"];
 
-const divisiones = ["Todas", "Primera", "Segunda", "Tercera", "Cuarta"];
+const divisiones = ["Todas", "Primera", "Segunda"];
 
 const premios: PremioConfig[] = [
   {

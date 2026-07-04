@@ -23,8 +23,6 @@ const temporadas = ["Temporada 4"];
 const divisiones = [
   { nombre: "primera", label: "Primera", icon: "I" },
   { nombre: "segunda", label: "Segunda", icon: "II" },
-  { nombre: "tercera", label: "Tercera", icon: "III" },
-  { nombre: "cuarta", label: "Cuarta", icon: "IV" },
 ];
 
 type NoticiaHome = {
@@ -83,7 +81,9 @@ function MuralFrame({
         alt=""
         className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.16]"
       />
-      <div className={`pointer-events-none absolute left-0 top-0 h-1.5 w-full bg-gradient-to-r ${assets.tint} via-yellow-300 to-green-300 opacity-80`} />
+      <div
+        className={`pointer-events-none absolute left-0 top-0 h-1.5 w-full bg-gradient-to-r ${assets.tint} via-yellow-300 to-green-300 opacity-80`}
+      />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.035] via-transparent to-black/24" />
       <div className="relative z-10">{children}</div>
     </div>
@@ -122,7 +122,9 @@ export default function Home() {
   async function cargarNoticias() {
     const { data, error } = await supabase
       .from("noticias")
-      .select("id, titulo, descripcion, temporada, categoria, imagen_url, autor, publicada, destacada, created_at, updated_at")
+      .select(
+        "id, titulo, descripcion, temporada, categoria, imagen_url, autor, publicada, destacada, created_at, updated_at",
+      )
       .eq("publicada", true)
       .order("destacada", { ascending: false })
       .order("created_at", { ascending: false })
@@ -139,14 +141,18 @@ export default function Home() {
   async function cargarDatos() {
     const { data: partidosData } = await supabase
       .from("partidos")
-      .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora")
+      .select(
+        "id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora",
+      )
       .in("division", [division, divisionDb])
       .eq("temporada", temporada)
       .order("fecha", { ascending: true });
 
     const { data: jugadoresData } = await supabase
       .from("partido_jugadores")
-      .select("id, partido_id, nombre, jugador, playerId, equipo, temporada, division, fecha, goles, goals, asistencias, assists, mvp, mvps")
+      .select(
+        "id, partido_id, nombre, jugador, playerId, equipo, temporada, division, fecha, goles, goals, asistencias, assists, mvp, mvps",
+      )
       .in("division", [division, divisionDb])
       .eq("temporada", temporada);
 
@@ -175,29 +181,53 @@ export default function Home() {
     setJugadores(jugadoresData || []);
   }
 
-  const divisionActual = divisiones.find((d) => d.nombre === division) || divisiones[0];
+  const divisionActual =
+    divisiones.find((d) => d.nombre === division) || divisiones[0];
 
   function logoEquipo(nombre?: string) {
     if (!nombre) return null;
 
     const club = clubesInfo.find(
       (c) =>
-        String(c.nombre || "").toLowerCase().trim() ===
-        String(nombre || "").toLowerCase().trim(),
+        String(c.nombre || "")
+          .toLowerCase()
+          .trim() ===
+        String(nombre || "")
+          .toLowerCase()
+          .trim(),
     );
 
     return club?.logo_url || null;
   }
 
-  const equiposCantidad = new Set(partidos.flatMap((p) => [p.local, p.visitante]).filter(Boolean)).size;
-  const jugadoresCantidad = new Set(jugadores.map((j) => j.nombre).filter(Boolean)).size;
-  const golesTotales = jugadores.reduce((acc, j) => acc + Number(j.goles || j.goals || 0), 0);
-  const asistenciasTotales = jugadores.reduce((acc, j) => acc + Number(j.asistencias || j.assists || 0), 0);
-  const mvpTotales = jugadores.reduce((acc, j) => acc + Number(j.mvp || j.mvps || 0), 0);
+  const equiposCantidad = new Set(
+    partidos.flatMap((p) => [p.local, p.visitante]).filter(Boolean),
+  ).size;
+  const jugadoresCantidad = new Set(
+    jugadores.map((j) => j.nombre).filter(Boolean),
+  ).size;
+  const golesTotales = jugadores.reduce(
+    (acc, j) => acc + Number(j.goles || j.goals || 0),
+    0,
+  );
+  const asistenciasTotales = jugadores.reduce(
+    (acc, j) => acc + Number(j.asistencias || j.assists || 0),
+    0,
+  );
+  const mvpTotales = jugadores.reduce(
+    (acc, j) => acc + Number(j.mvp || j.mvps || 0),
+    0,
+  );
 
-  const partidoDestacado = partidos.find((p) => !p.resultado) || partidos.find((p) => p.resultado) || partidos[0];
+  const partidoDestacado =
+    partidos.find((p) => !p.resultado) ||
+    partidos.find((p) => p.resultado) ||
+    partidos[0];
   const proximosPartidos = partidos.filter((p) => !p.resultado).slice(0, 4);
-  const ultimosResultados = partidos.filter((p) => p.resultado).slice(-4).reverse();
+  const ultimosResultados = partidos
+    .filter((p) => p.resultado)
+    .slice(-4)
+    .reverse();
 
   const rankings = useMemo(() => {
     const mapa: Record<string, any> = {};
@@ -232,34 +262,126 @@ export default function Home() {
   }, [jugadores]);
 
   const statsHome = [
-    { label: "Clubes", value: equiposCantidad, img: "/themes/worldcup/backgrounds/stadium-night-01.png", detail: "en competencia", color: "text-sky-200" },
-    { label: "Partidos", value: partidos.length, img: "/themes/worldcup/backgrounds/pitch-top-01.png", detail: "en fixture", color: "text-yellow-300" },
-    { label: "Jugadores", value: jugadoresCantidad, img: "/themes/worldcup/backgrounds/crowd-night-01.png", detail: "registrados", color: "text-emerald-200" },
-    { label: "Goles", value: golesTotales, img: "/themes/worldcup/backgrounds/stadium-night-01.png", detail: "temporada", color: "text-orange-200" },
+    {
+      label: "Clubes",
+      value: equiposCantidad,
+      img: "/themes/worldcup/backgrounds/stadium-night-01.png",
+      detail: "en competencia",
+      color: "text-sky-200",
+    },
+    {
+      label: "Partidos",
+      value: partidos.length,
+      img: "/themes/worldcup/backgrounds/pitch-top-01.png",
+      detail: "en fixture",
+      color: "text-yellow-300",
+    },
+    {
+      label: "Jugadores",
+      value: jugadoresCantidad,
+      img: "/themes/worldcup/backgrounds/crowd-night-01.png",
+      detail: "registrados",
+      color: "text-emerald-200",
+    },
+    {
+      label: "Goles",
+      value: golesTotales,
+      img: "/themes/worldcup/backgrounds/stadium-night-01.png",
+      detail: "temporada",
+      color: "text-orange-200",
+    },
   ];
 
   const noticiaDestacada = noticias.find((n) => n.destacada) || noticias[0];
-  const noticiasSecundarias = noticias.filter((n) => n.id !== noticiaDestacada?.id).slice(0, 3);
+  const noticiasSecundarias = noticias
+    .filter((n) => n.id !== noticiaDestacada?.id)
+    .slice(0, 3);
 
   const accesos = [
-    { href: "/competicion", title: "Competicion", desc: "Torneos, copas, fixture, stats e historia.", img: "/themes/worldcup/backgrounds/crowd-night-01.png", bg: "/themes/worldcup/backgrounds/crowd-night-01.png" },
-    { href: `/fixture?temporada=${encodeURIComponent(temporada)}`, title: "Fixture", desc: "Calendario oficial por temporada y categoria.", img: "/themes/worldcup/backgrounds/pitch-top-01.png", bg: "/themes/worldcup/backgrounds/pitch-top-01.png" },
-    { href: "/clubes", title: "Clubes", desc: "Escudos, planteles, identidad e historial.", img: "/themes/worldcup/backgrounds/stadium-night-01.png", bg: "/themes/worldcup/backgrounds/stadium-night-01.png" },
-    { href: "/jugadores", title: "Jugadores", desc: "Rankings, perfiles, goles, MVP y rating.", img: "/themes/worldcup/backgrounds/stadium-aerial-night-01.png", bg: "/themes/worldcup/backgrounds/stadium-aerial-night-01.png" },
-    { href: "/mercado", title: "Mercado", desc: "Fichajes, salidas, libres y prestamos.", img: "/themes/worldcup/backgrounds/pitch-top-01.png", bg: "/themes/worldcup/backgrounds/pitch-top-01.png" },
-    { href: "/entretenimiento", title: "Entretenimiento", desc: "Predicciones, Dream Team y premios APA.", img: "/themes/worldcup/backgrounds/crowd-night-01.png", bg: "/themes/worldcup/backgrounds/crowd-night-01.png" },
-    { href: "/guia", title: "Guia", desc: "Mapa completo para entender la web.", img: "/themes/worldcup/backgrounds/stadium-night-01.png", bg: "/themes/worldcup/backgrounds/stadium-night-01.png" },
-    { href: "/historia", title: "Historia APA", desc: "Premios, records y estadisticas desde la Temporada 4.", img: "/themes/worldcup/backgrounds/crowd-night-01.png", bg: "/themes/worldcup/backgrounds/crowd-night-01.png" },
+    {
+      href: "/competicion",
+      title: "Competicion",
+      desc: "Torneos, copas, fixture, stats e historia.",
+      img: "/themes/worldcup/backgrounds/crowd-night-01.png",
+      bg: "/themes/worldcup/backgrounds/crowd-night-01.png",
+    },
+    {
+      href: `/fixture?temporada=${encodeURIComponent(temporada)}`,
+      title: "Fixture",
+      desc: "Calendario oficial por temporada y categoria.",
+      img: "/themes/worldcup/backgrounds/pitch-top-01.png",
+      bg: "/themes/worldcup/backgrounds/pitch-top-01.png",
+    },
+    {
+      href: "/clubes",
+      title: "Clubes",
+      desc: "Escudos, planteles, identidad e historial.",
+      img: "/themes/worldcup/backgrounds/stadium-night-01.png",
+      bg: "/themes/worldcup/backgrounds/stadium-night-01.png",
+    },
+    {
+      href: "/jugadores",
+      title: "Jugadores",
+      desc: "Rankings, perfiles, goles, MVP y rating.",
+      img: "/themes/worldcup/backgrounds/stadium-aerial-night-01.png",
+      bg: "/themes/worldcup/backgrounds/stadium-aerial-night-01.png",
+    },
+    {
+      href: "/mercado",
+      title: "Mercado",
+      desc: "Fichajes, salidas, libres y prestamos.",
+      img: "/themes/worldcup/backgrounds/pitch-top-01.png",
+      bg: "/themes/worldcup/backgrounds/pitch-top-01.png",
+    },
+    {
+      href: "/entretenimiento",
+      title: "Entretenimiento",
+      desc: "Predicciones, Dream Team y premios APA.",
+      img: "/themes/worldcup/backgrounds/crowd-night-01.png",
+      bg: "/themes/worldcup/backgrounds/crowd-night-01.png",
+    },
+    {
+      href: "/guia",
+      title: "Guia",
+      desc: "Mapa completo para entender la web.",
+      img: "/themes/worldcup/backgrounds/stadium-night-01.png",
+      bg: "/themes/worldcup/backgrounds/stadium-night-01.png",
+    },
+    {
+      href: "/historia",
+      title: "Historia APA",
+      desc: "Premios, records y estadisticas desde la Temporada 4.",
+      img: "/themes/worldcup/backgrounds/crowd-night-01.png",
+      bg: "/themes/worldcup/backgrounds/crowd-night-01.png",
+    },
   ];
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020814] px-4 pb-4 pt-3 text-white md:px-6 md:pb-6 md:pt-4">
       <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-16%,rgba(245,181,49,.18),transparent_31%),radial-gradient(circle_at_13%_18%,rgba(91,167,216,.13),transparent_30%),radial-gradient(circle_at_88%_24%,rgba(37,118,75,.10),transparent_27%),linear-gradient(180deg,#0b1830_0%,#071121_48%,#040b16_78%,#01030a_100%)]" />
-        <div className="absolute inset-x-[-10%] top-[9rem] h-[24rem] rounded-[50%] border-t border-yellow-100/10 bg-[radial-gradient(ellipse_at_top,rgba(245,181,49,.10),transparent_58%)]" />
-        <div className="absolute inset-x-0 top-0 h-64 bg-[linear-gradient(115deg,transparent_0%,rgba(91,167,216,.07)_18%,transparent_36%,rgba(245,181,49,.09)_54%,transparent_74%)] blur-xl" />
-        <div className="absolute inset-0 opacity-[0.04] [background-image:linear-gradient(90deg,rgba(255,255,255,.16)_1px,transparent_1px),linear-gradient(rgba(255,255,255,.12)_1px,transparent_1px)] [background-size:72px_72px] [mask-image:linear-gradient(to_bottom,black,transparent_76%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,246,220,.62)_1px,transparent_1px)] opacity-[0.045] [background-size:36px_36px]" />
+        {/* Fondo general de toda la página.
+            Para cambiar la imagen, reemplazá este archivo:
+            public/themes/worldcup/backgrounds/fondo-general.png */}
+        <img
+          src="/themes/worldcup/backgrounds/fondo-general.png"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover object-center opacity-55"
+        />
+
+        {/* Capa oscura para que el contenido siga siendo legible. 
+            Si querés ver más la foto: cambiá /45 por /35.
+            Si querés oscurecer más: cambiá /45 por /60. */}
+        <div className="absolute inset-0 bg-[#020814]/45" />
+
+        {/* Viñeta: oscurece bordes y deja el centro más limpio. */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_28%,transparent_0%,rgba(2,8,20,.18)_38%,rgba(2,8,20,.72)_100%)]" />
+
+        {/* Luces sutiles para mantener la estética mundialista sin tapar la foto. */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-16%,rgba(245,181,49,.10),transparent_31%),radial-gradient(circle_at_13%_18%,rgba(91,167,216,.08),transparent_30%),radial-gradient(circle_at_88%_24%,rgba(37,118,75,.07),transparent_27%)]" />
+
+        <div className="absolute inset-x-[-10%] top-[9rem] h-[24rem] rounded-[50%] border-t border-yellow-100/10 bg-[radial-gradient(ellipse_at_top,rgba(245,181,49,.06),transparent_58%)]" />
+
+        <div className="absolute inset-0 opacity-[0.035] [background-image:linear-gradient(90deg,rgba(255,255,255,.16)_1px,transparent_1px),linear-gradient(rgba(255,255,255,.12)_1px,transparent_1px)] [background-size:72px_72px] [mask-image:linear-gradient(to_bottom,black,transparent_76%)]" />
       </div>
 
       <SeasonDecorations />
@@ -267,7 +389,11 @@ export default function Home() {
       <section className="relative z-10 mx-auto max-w-[1240px] space-y-10">
         <HeroImagenesHome />
 
-        <HomeIntro theme={theme} temporada={temporada} divisionActual={divisionActual} />
+        <HomeIntro
+          theme={theme}
+          temporada={temporada}
+          divisionActual={divisionActual}
+        />
         <MuralFrame variant="blue">
           <WorldCupExperience
             temporadas={temporadas}
@@ -291,10 +417,6 @@ export default function Home() {
               EscudoEquipo={EscudoEquipo}
             />
           </MuralFrame>
-
-          
-           
-          
         </section>
 
         <MuralFrame variant="green">
@@ -311,8 +433,39 @@ export default function Home() {
         {noticias.length > 0 && (
           <>
             <SeparadorHome label="Noticias APA" />
-            
-              
+
+            <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {noticias.map((noticia) => (
+                <article
+                  key={noticia.id}
+                  className="rounded-2xl border border-white/10 bg-black/45 p-4 backdrop-blur"
+                >
+                  {noticia.imagen_url && (
+                    <img
+                      src={noticia.imagen_url}
+                      alt={noticia.titulo}
+                      className="mb-3 h-36 w-full rounded-xl object-cover"
+                    />
+                  )}
+
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-yellow-300">
+                    {noticia.categoria || "General"}
+                  </p>
+
+                  <h3 className="mt-2 text-lg font-black uppercase text-white">
+                    {noticia.titulo}
+                  </h3>
+
+                  <p className="mt-2 text-sm text-zinc-300">
+                    {noticia.descripcion}
+                  </p>
+
+                  <p className="mt-3 text-[10px] uppercase text-zinc-500">
+                    {fechaNoticia(noticia.created_at)}
+                  </p>
+                </article>
+              ))}
+            </section>
           </>
         )}
 

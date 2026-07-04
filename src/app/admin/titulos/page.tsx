@@ -16,13 +16,11 @@ type Titulo = {
 export default function AdminTitulosPage() {
   const temporadas = ["Temporada 4"];
 
-  const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
+  const divisiones = ["Primera", "Segunda"];
 
   const competiciones = [
     "Primera División",
     "Segunda División",
-    "Tercera División",
-    "Cuarta División",
     "Copa APA",
     "Supercopa APA",
     "Torneo de Liga APA",

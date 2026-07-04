@@ -20,8 +20,6 @@ const temporadas = ["Temporada 4"];
 const divisiones = [
   { nombre: "Primera", icon: "🏆", color: "text-yellow-300" },
   { nombre: "Segunda", icon: "🥈", color: "text-sky-300" },
-  { nombre: "Tercera", icon: "🥉", color: "text-orange-300" },
-  { nombre: "Cuarta", icon: "⭐", color: "text-purple-300" },
 ];
 
 export default function ClubesPage() {

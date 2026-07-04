@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 const slides = [
   {
-    imagen: "/themes/worldcup/backgrounds/hero-argentina-brasil-copa-01.png",
+    imagen: "/themes/worldcup/backgrounds/copita.png",
     titulo1: "CADA FECHA.",
     titulo2: "CADA PARTIDO.",
     titulo3: "CADA FINAL.",
@@ -15,7 +15,7 @@ const slides = [
     href: "/fixture",
   },
   {
-    imagen: "/themes/worldcup/card-clubes.png",
+    imagen: "/themes/worldcup/backgrounds/Mugiwaras.png",
     titulo1: "TU PASIÓN.",
     titulo2: "TU LIGA.",
     titulo3: "TU LEGADO.",
@@ -25,7 +25,7 @@ const slides = [
     href: "/clubes",
   },
   {
-    imagen: "/themes/worldcup/card-jugadores.png",
+    imagen: "/themes/worldcup/backgrounds/Banderin.png",
     titulo1: "FICHÁ.",
     titulo2: "COMPETÍ.",
     titulo3: "ASCENDÉ.",
@@ -90,30 +90,7 @@ export default function HeroImagenesHome() {
 
   return (
     <div className="relative mx-auto w-full max-w-[1240px]">
-      {/* Fondo exterior del Hero: solo cambia los laterales y el ambiente, no el Hero interno.
-          Usá fotos reales en estas rutas para reemplazar las banderas genéricas. */}
-      <div className="pointer-events-none absolute left-1/2 top-[-28px] z-0 h-[calc(100%+88px)] w-screen -translate-x-1/2 overflow-hidden">
-        <img
-          src="/themes/worldcup/backgrounds/crowd-night-01.png"
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-30"
-        />
-
-        <img
-          src="/themes/worldcup/backgrounds/flag-argentina-real-01.jpg"
-          alt=""
-          className="absolute left-0 top-0 h-full w-[31vw] object-cover opacity-70 [mask-image:linear-gradient(to_right,black_0%,black_58%,transparent_100%)]"
-        />
-
-        <img
-          src="/themes/worldcup/backgrounds/flag-brazil-real-01.jpg"
-          alt=""
-          className="absolute right-0 top-0 h-full w-[31vw] object-cover opacity-70 [mask-image:linear-gradient(to_left,black_0%,black_58%,transparent_100%)]"
-        />
-
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_26%,rgba(14,165,233,.18),transparent_28%),linear-gradient(90deg,rgba(2,8,20,.12),rgba(2,8,20,.82)_28%,rgba(2,8,20,.88)_72%,rgba(2,8,20,.16))]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#020814]/25 via-transparent to-[#020814]/80" />
-      </div>
+      
 
       <section className="relative z-10 mx-auto w-full max-w-[1020px] overflow-hidden rounded-[22px] border border-sky-500/50 bg-black shadow-[0_0_55px_rgba(0,120,255,.3)] sm:rounded-[30px] xl:max-w-[1240px]">
       <div className="relative min-h-[620px] overflow-hidden sm:min-h-[560px] lg:min-h-[500px] xl:min-h-[460px]">

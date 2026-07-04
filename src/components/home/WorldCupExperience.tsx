@@ -26,7 +26,7 @@ export default function WorldCupExperience({
   return (
     <section className="relative overflow-hidden rounded-[32px] border border-sky-300/20 bg-[#020814] shadow-[0_24px_80px_rgba(0,0,0,.42)]">
       <img
-        src="/themes/worldcup/backgrounds/context-selector-keyart-02.png"
+        src="/themes/worldcup/backgrounds/Competicion.png"
         alt=""
         className="absolute inset-0 h-full w-full object-cover object-[62%_center]"
       />

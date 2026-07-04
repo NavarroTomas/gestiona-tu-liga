@@ -50,7 +50,7 @@ type RankingItem = {
 
 const temporadas = ["Temporada 4"];
 
-const divisiones = ["Todas", "Primera", "Segunda", "Tercera", "Cuarta"];
+const divisiones = ["Todas", "Primera", "Segunda"];
 
 function partidoKey(partido: Partido) {
   return partido.partido_id || String(partido.id);

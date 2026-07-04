@@ -63,7 +63,7 @@ function cargarMisPermisos(userId: string): Promise<string[]> {
 
 export default function AdminPage() {
   const temporadas = ["Temporada 4"];
-  const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
+  const divisiones = ["Primera", "Segunda"];
 
   const [clubNombre, setClubNombre] = useState("");
   const [clubTemporada, setClubTemporada] = useState("Temporada 4");

@@ -27,8 +27,6 @@ const temporadas = ["Temporada 4"];
 const divisiones = [
   { nombre: "Primera", icon: "🏆" },
   { nombre: "Segunda", icon: "🥈" },
-  { nombre: "Tercera", icon: "🥉" },
-  { nombre: "Cuarta", icon: "⭐" },
 ];
 
 function generarRoundRobin(equiposOriginales: string[]) {

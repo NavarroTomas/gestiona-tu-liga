@@ -93,7 +93,7 @@ function fechaActualISO() {
 
 export default function DreamTeamPage() {
   const temporadas = ["Temporada 4"];
-  const divisiones = ["Primera", "Segunda", "Tercera", "Cuarta"];
+  const divisiones = ["Primera", "Segunda"];
   const fechas = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
   const [temporada, setTemporada] = useState("Temporada 4");

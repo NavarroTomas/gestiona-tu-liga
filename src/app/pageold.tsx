@@ -12,8 +12,6 @@ const temporadas = ["Temporada 4"];
 const divisiones = [
   { nombre: "primera", label: "Primera", icon: "I" },
   { nombre: "segunda", label: "Segunda", icon: "II" },
-  { nombre: "tercera", label: "Tercera", icon: "III" },
-  { nombre: "cuarta", label: "Cuarta", icon: "IV" },
 ];
 
 type NoticiaHome = {

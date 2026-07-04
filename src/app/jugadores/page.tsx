@@ -62,8 +62,6 @@ export default function JugadoresPage() {
   const divisiones = [
     { nombre: "Primera", icon: "🏆" },
     { nombre: "Segunda", icon: "🥈" },
-    { nombre: "Tercera", icon: "🥉" },
-    { nombre: "Cuarta", icon: "⭐" },
   ];
 
   const [jugadores, setJugadores] = useState<Jugador[]>([]);

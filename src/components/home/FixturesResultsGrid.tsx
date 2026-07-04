@@ -46,7 +46,7 @@ function Panel({ title, kicker, href, linkLabel, children, green }: any) {
   return (
     <section className="relative overflow-hidden rounded-[18px] border border-white/15 bg-[#06111f]/72 p-6 shadow-[0_22px_60px_rgba(0,0,0,.25)]">
       <img
-        src={green ? "/themes/worldcup-real/photos/stadium-night.jpg" : "/themes/worldcup-real/photos/pitch-lights.jpg"}
+        src={green ? "/themes/worldcup-real/photos/Calendario.jpg" : "/themes/worldcup-real/photos/espejo.png"}
         alt=""
         className="absolute inset-0 h-full w-full object-cover opacity-16"
       />
