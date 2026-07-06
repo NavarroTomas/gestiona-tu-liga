@@ -7,7 +7,7 @@ const torneos = [
     eyebrow: "Liga oficial",
     titulo: "Torneo de Liga",
     descripcion:
-      "La competencia principal de APA PSO Argentina. Primera, Segunda, Tercera y Cuarta división con tablas, puntos, ascensos y pelea por la gloria.",
+      "La competencia principal de APA PSO Argentina. Primera y Segunda División con tablas, puntos, ascensos y pelea por la gloria.",
     href: "/divisiones",
     color: "border-sky-400/30 from-sky-500/15 to-blue-950/20",
     glow: "group-hover:shadow-[0_0_45px_rgba(56,189,248,.18)]",

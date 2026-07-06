@@ -17,6 +17,15 @@ interface EquipoTabla {
   forma: ("W" | "D" | "L")[];
 }
 
+function normalizarDivision(division: string) {
+  const value = String(division || "").toLowerCase();
+
+  if (value.includes("primera")) return "primera";
+  if (value.includes("segunda")) return "segunda";
+
+  return value;
+}
+
 export default function TablaDivision({
   temporada,
   division,
@@ -42,15 +51,26 @@ export default function TablaDivision({
       console.log(error);
       return;
     }
-    const { data: equiposData } = await supabase
-      .from("equipos")
-      .select("nombre, logo_url")
+    const divisionKey = normalizarDivision(division);
+
+    const { data: equiposData, error: equiposError } = await supabase
+      .from("v_clubes_temporada_public")
+      .select("*")
       .eq("temporada", temporada)
-      .eq("division", division);
+      .eq("activo", true)
+      .order("nombre", { ascending: true });
+
+    if (equiposError) {
+      console.log(equiposError);
+    }
+
+    const equiposFiltrados = (equiposData || []).filter(
+      (e: any) => normalizarDivision(e.division) === divisionKey,
+    );
 
     const logosMap: Record<string, string> = {};
 
-    equiposData?.forEach((e) => {
+    equiposFiltrados?.forEach((e) => {
       if (e.logo_url) {
         logosMap[e.nombre] = e.logo_url;
       }
@@ -60,7 +80,7 @@ export default function TablaDivision({
 
     const equipos: { [key: string]: EquipoTabla } = {};
 
-    equiposData?.forEach((e) => {
+    equiposFiltrados?.forEach((e) => {
       equipos[e.nombre] = {
         nombre: e.nombre,
         logo_url: e.logo_url || undefined,
@@ -211,7 +231,7 @@ export default function TablaDivision({
             {tabla.length === 0 ? (
               <tr>
                 <td colSpan={11} className="py-12 text-center text-zinc-500">
-                  No hay partidos cargados todavía.
+                  No hay clubes cargados para esta temporada y división.
                 </td>
               </tr>
             ) : (

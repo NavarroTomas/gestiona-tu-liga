@@ -52,24 +52,18 @@ function MiniEscudo({
 const nombresDivision: Record<string, string> = {
   primera: "Primera División",
   segunda: "Segunda División",
-  tercera: "Tercera División",
-  cuarta: "Cuarta División",
 };
+
+function normalizarDivisionUrl(value: string) {
+  return value === "primera" || value === "segunda" ? value : "primera";
+}
 
 export default function FixtureDivisionPage() {
   const params = useParams();
-  const division = params.division as string;
+  const divisionParam = params.division as string;
+  const division = normalizarDivisionUrl(divisionParam);
 
-  const divisionDb =
-    division === "primera"
-      ? "Primera"
-      : division === "segunda"
-      ? "Segunda"
-      : division === "tercera"
-      ? "Tercera"
-      : division === "cuarta"
-      ? "Cuarta"
-      : division;
+  const divisionDb = division === "primera" ? "Primera" : "Segunda";
 
   const searchParams = useSearchParams();
   const temporada = searchParams.get("temporada") || "Temporada 4";
@@ -81,6 +75,15 @@ export default function FixtureDivisionPage() {
   useEffect(() => {
     cargarPartidos();
   }, [divisionDb, temporada]);
+
+  function normalizarDivisionFiltro(value: string) {
+    const v = String(value || "").toLowerCase().trim();
+
+    if (v === "primera" || v === "primera division" || v === "primera división") return "primera";
+    if (v === "segunda" || v === "segunda division" || v === "segunda división") return "segunda";
+
+    return v;
+  }
 
   async function cargarPartidos() {
     const { data, error } = await supabase
@@ -108,15 +111,21 @@ export default function FixtureDivisionPage() {
 
     if (nombresEquipos.length > 0) {
       const { data: clubesData, error: clubesError } = await supabase
-        .from("clubes_info")
-        .select("nombre, logo_url")
+        .from("v_clubes_temporada_public")
+        .select("*")
+        .eq("temporada", temporada)
+        .eq("activo", true)
         .in("nombre", nombresEquipos);
 
       if (clubesError) {
         console.log(clubesError);
       }
 
-      setClubesInfo(clubesData || []);
+      setClubesInfo(
+        (clubesData || []).filter(
+          (club: any) => normalizarDivisionFiltro(club.division) === normalizarDivisionFiltro(division),
+        ),
+      );
     } else {
       setClubesInfo([]);
     }

@@ -9,8 +9,8 @@ interface Partido {
   id: string;
   local: string;
   visitante: string;
-  resultado: string;
-  fecha: string;
+  resultado: string | null;
+  fecha: string | null;
   partido_id?: string | null;
   dia?: string | null;
   hora?: string | null;
@@ -27,6 +27,7 @@ interface EstadisticasJugador {
 }
 
 interface ClubVisual {
+  id?: string | number;
   nombre: string;
   slug: string;
   logo_url?: string | null;
@@ -35,22 +36,26 @@ interface ClubVisual {
   color_principal?: string | null;
 }
 
-interface PlantillaClub {
-  jugador: string;
-  playerid: string;
-  equipo: string;
-  posicion?: string;
-  estado?: string;
-}
-
 interface EquipoTemporada {
+  club_id?: string | number | null;
   nombre: string;
   temporada: string;
   division: string;
+  activo?: boolean | null;
   club_slug?: string | null;
+  slug?: string | null;
 }
 
 type ResultadoEquipo = "G" | "E" | "P" | "-";
+
+const TEMPORADA_ACTUAL = "Temporada 4";
+
+const DIVISION_LABELS: Record<string, string> = {
+  primera: "Primera",
+  segunda: "Segunda",
+  Primera: "Primera",
+  Segunda: "Segunda",
+};
 
 export default function PaginaEquipo() {
   const params = useParams();
@@ -83,93 +88,296 @@ export default function PaginaEquipo() {
   useEffect(() => {
     if (!nombreEquipoUrl) return;
     fetchDatosEquipo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nombreEquipoUrl]);
+
+  function normalizar(texto?: string | null) {
+    return String(texto || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+  }
+
+  function slugify(texto: string) {
+    return normalizar(texto)
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+  }
+
+  function divisionParaPartidos(division?: string | null) {
+    if (!division) return ["Primera", "primera"];
+    const limpia = String(division).trim();
+    const lower = limpia.toLowerCase();
+    const label = DIVISION_LABELS[limpia] || DIVISION_LABELS[lower] || limpia;
+    return Array.from(new Set([limpia, lower, label]));
+  }
+
+  function calcularStatsEquipo(nombre: string, listaPartidos: Partido[]) {
+    let pj = 0;
+    let pg = 0;
+    let pe = 0;
+    let pp = 0;
+    let gf = 0;
+    let gc = 0;
+    let puntos = 0;
+    const rachaAux: ResultadoEquipo[] = [];
+    const nombreNorm = normalizar(nombre);
+
+    listaPartidos.forEach((partido: any) => {
+      if (!partido.resultado || !String(partido.resultado).includes("-")) return;
+
+      const golesLocal = parseInt(String(partido.resultado).split("-")[0].trim());
+      const golesVisitante = parseInt(
+        String(partido.resultado).split("-")[1].trim(),
+      );
+
+      if (isNaN(golesLocal) || isNaN(golesVisitante)) return;
+
+      const esLocal = normalizar(partido.local) === nombreNorm;
+      const esVisitante = normalizar(partido.visitante) === nombreNorm;
+
+      if (!esLocal && !esVisitante) return;
+
+      pj++;
+
+      const golesFavor = esLocal ? golesLocal : golesVisitante;
+      const golesContra = esLocal ? golesVisitante : golesLocal;
+
+      gf += golesFavor;
+      gc += golesContra;
+
+      if (golesFavor > golesContra) {
+        pg++;
+        puntos += 3;
+        rachaAux.push("G");
+      } else if (golesFavor === golesContra) {
+        pe++;
+        puntos += 1;
+        rachaAux.push("E");
+      } else {
+        pp++;
+        rachaAux.push("P");
+      }
+    });
+
+    return {
+      pj,
+      pg,
+      pe,
+      pp,
+      gf,
+      gc,
+      puntos,
+      racha: rachaAux.slice(-5),
+    };
+  }
+
+  async function buscarClubEnVista() {
+    const slugUrl = slugify(nombreEquipoUrl);
+    const nombreNorm = normalizar(nombreEquipoUrl);
+
+    const { data, error } = await supabase
+      .from("v_clubes_temporada_public")
+      .select("*")
+      .eq("temporada", TEMPORADA_ACTUAL)
+      .eq("activo", true)
+      .limit(500);
+
+    if (error) {
+      console.error("ERROR CARGANDO CLUB DESDE VISTA:", error);
+      return null;
+    }
+
+    const clubes = data || [];
+
+    return (
+      clubes.find((c: any) => normalizar(c.slug || c.club_slug) === slugUrl) ||
+      clubes.find((c: any) => normalizar(c.nombre) === nombreNorm) ||
+      clubes.find((c: any) => slugify(c.nombre || "") === slugUrl) ||
+      null
+    );
+  }
+
+  async function buscarClubFallback() {
+    const slugUrl = slugify(nombreEquipoUrl);
+    const nombreNorm = normalizar(nombreEquipoUrl);
+
+    const { data, error } = await supabase
+      .from("clubes_info")
+      .select(
+        "id, nombre, slug, logo_url, banner_url, descripcion, color_principal",
+      )
+      .limit(500);
+
+    if (error) {
+      console.error("ERROR CARGANDO CLUB FALLBACK:", error);
+      return null;
+    }
+
+    const club = (data || []).find(
+      (c: any) =>
+        normalizar(c.slug) === slugUrl ||
+        normalizar(c.nombre) === nombreNorm ||
+        slugify(c.nombre || "") === slugUrl,
+    );
+
+    if (!club) return null;
+
+    return {
+      club_id: club.id,
+      nombre: club.nombre,
+      slug: club.slug,
+      logo_url: club.logo_url,
+      banner_url: club.banner_url,
+      descripcion: club.descripcion,
+      color_principal: club.color_principal,
+      temporada: TEMPORADA_ACTUAL,
+      division: "segunda",
+      activo: true,
+    };
+  }
 
   async function fetchDatosEquipo() {
     try {
       setLoading(true);
 
-      const { data: equiposData, error: equiposError } = await supabase
-        .from("equipos")
-        .select("id, nombre, puntos, pj, temporada, division, logo_url, banner_url, descripcion, color_principal, club_slug");
+      const clubTemporada = (await buscarClubEnVista()) || (await buscarClubFallback());
 
-      if (equiposError) {
-        console.log(equiposError);
+      if (!clubTemporada) {
+        setNombreRealEquipo(nombreEquipoUrl);
+        setClubVisual(null);
+        setEquipoTemporada(null);
+        setPartidos([]);
+        setPlantel([]);
+        setTitulos([]);
+        setPosicionLiga(null);
+        setStats({
+          pj: 0,
+          pg: 0,
+          pe: 0,
+          pp: 0,
+          gf: 0,
+          gc: 0,
+          puntos: 0,
+          racha: [],
+        });
         return;
       }
 
-      const equipoEncontrado = equiposData?.find(
-        (e: any) => e.nombre?.toLowerCase() === nombreEquipoUrl.toLowerCase(),
-      );
-
-      const nombreExacto = equipoEncontrado?.nombre || nombreEquipoUrl;
+      const nombreExacto = clubTemporada.nombre || nombreEquipoUrl;
+      const temporadaActual = clubTemporada.temporada || TEMPORADA_ACTUAL;
+      const divisionActual = clubTemporada.division || "segunda";
+      const slugClub = clubTemporada.slug || clubTemporada.club_slug || slugify(nombreExacto);
 
       setNombreRealEquipo(nombreExacto);
-      setEquipoTemporada(equipoEncontrado || null);
 
-      if (equipoEncontrado?.temporada && equipoEncontrado?.division) {
-        const tablaCompetencia = (equiposData || [])
-          .filter(
-            (e: any) =>
-              e.temporada === equipoEncontrado.temporada &&
-              e.division === equipoEncontrado.division,
-          )
-          .sort((a: any, b: any) => {
-            const puntosA = Number(a.puntos || 0);
-            const puntosB = Number(b.puntos || 0);
-            if (puntosB !== puntosA) return puntosB - puntosA;
-            return String(a.nombre || "").localeCompare(String(b.nombre || ""));
-          });
+      setClubVisual({
+        id: clubTemporada.club_id || clubTemporada.id,
+        nombre: nombreExacto,
+        slug: slugClub,
+        logo_url: clubTemporada.logo_url || null,
+        banner_url: clubTemporada.banner_url || null,
+        descripcion: clubTemporada.descripcion || null,
+        color_principal: clubTemporada.color_principal || null,
+      });
 
-        const posicion = tablaCompetencia.findIndex(
-          (e: any) => e.nombre?.toLowerCase() === nombreExacto.toLowerCase(),
-        );
+      setEquipoTemporada({
+        club_id: clubTemporada.club_id || clubTemporada.id,
+        nombre: nombreExacto,
+        temporada: temporadaActual,
+        division: divisionActual,
+        activo: clubTemporada.activo ?? true,
+        club_slug: slugClub,
+        slug: slugClub,
+      });
 
-        setPosicionLiga(posicion >= 0 ? posicion + 1 : null);
-      } else {
-        setPosicionLiga(null);
+      const divisionesPartidos = divisionParaPartidos(divisionActual);
+
+      const { data: partidosData, error: partidosError } = await supabase
+        .from("partidos")
+        .select(
+          "id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora",
+        )
+        .eq("temporada", temporadaActual)
+        .in("division", divisionesPartidos)
+        .limit(1000);
+
+      if (partidosError) {
+        console.error("ERROR CARGANDO PARTIDOS:", partidosError);
       }
 
-      if (equipoEncontrado?.club_slug) {
-        const { data: clubData, error: clubError } = await supabase
-          .from("clubes_info")
-          .select("id, nombre, slug, logo_url, banner_url, descripcion, color_principal, created_at, updated_at")
-          .eq("slug", equipoEncontrado.club_slug)
-          .single();
+      const partidosDeDivision = (partidosData || []) as Partido[];
 
-        if (clubError) {
-          console.log(clubError);
-        } else {
-          setClubVisual(clubData);
-        }
-      }
-
-      const { data: titulosData } = await supabase
-        .from("titulos")
-        .select("id, equipo, competicion, temporada, division, descripcion, created_at")
-        .ilike("equipo", nombreExacto);
-
-      setTitulos(titulosData || []);
-
-      const { data: partidosData } = await supabase.from("partidos").select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora");
-
-      const partidosDelEquipo = (partidosData || []).filter(
+      const partidosDelEquipo = partidosDeDivision.filter(
         (p: any) =>
-          p.local?.toLowerCase() === nombreExacto.toLowerCase() ||
-          p.visitante?.toLowerCase() === nombreExacto.toLowerCase(),
+          normalizar(p.local) === normalizar(nombreExacto) ||
+          normalizar(p.visitante) === normalizar(nombreExacto),
       );
 
       setPartidos(partidosDelEquipo);
 
+      const statsCalculadas = calcularStatsEquipo(nombreExacto, partidosDelEquipo);
+      setStats(statsCalculadas);
+
+      const { data: clubesDivision } = await supabase
+        .from("v_clubes_temporada_public")
+        .select("*")
+        .eq("temporada", temporadaActual)
+        .eq("activo", true)
+        .limit(500);
+
+      const tablaCompetencia = (clubesDivision || [])
+        .filter((club: any) => normalizar(club.division) === normalizar(divisionActual))
+        .map((club: any) => {
+          const s = calcularStatsEquipo(club.nombre, partidosDeDivision);
+          return {
+            nombre: club.nombre,
+            puntos: s.puntos,
+            diferencia: s.gf - s.gc,
+            gf: s.gf,
+          };
+        })
+        .sort((a: any, b: any) => {
+          if (b.puntos !== a.puntos) return b.puntos - a.puntos;
+          if (b.diferencia !== a.diferencia) return b.diferencia - a.diferencia;
+          if (b.gf !== a.gf) return b.gf - a.gf;
+          return String(a.nombre || "").localeCompare(String(b.nombre || ""));
+        });
+
+      const posicion = tablaCompetencia.findIndex(
+        (e: any) => normalizar(e.nombre) === normalizar(nombreExacto),
+      );
+
+      setPosicionLiga(posicion >= 0 ? posicion + 1 : null);
+
+      const { data: titulosData } = await supabase
+        .from("titulos")
+        .select("id, equipo, competicion, temporada, division, descripcion, created_at")
+        .ilike("equipo", nombreExacto)
+        .limit(100);
+
+      setTitulos(titulosData || []);
+
       const { data: jugadoresData } = await supabase
         .from("jugadores")
-        .select("id, nombre, playerId, equipo, goles, asistencias, mvps, temporada, division");
+        .select(
+          "id, nombre, jugador, playerId, player_id, equipo, goles, goals, asistencias, assists, mvps, temporada, division",
+        )
+        .eq("temporada", temporadaActual)
+        .in("division", divisionesPartidos)
+        .limit(2000);
 
       const { data: plantillasData } = await supabase
         .from("plantillas")
-        .select("id, jugador, playerid, steam_id, profile_id, equipo, posicion, temporada, division, estado")
+        .select(
+          "id, jugador, playerid, steam_id, profile_id, equipo, posicion, temporada, division, estado",
+        )
         .eq("equipo", nombreExacto)
-        .neq("estado", "baja");
+        .eq("temporada", temporadaActual)
+        .in("division", divisionesPartidos)
+        .neq("estado", "baja")
+        .limit(200);
 
       const playerIdsActivos = new Set(
         (plantillasData || []).map((p: any) => String(p.playerid || "").trim()),
@@ -177,7 +385,13 @@ export default function PaginaEquipo() {
 
       const jugadoresFiltrados = (jugadoresData || []).filter((j: any) => {
         const pid = String(j.playerId || j.player_id || "").trim();
-        return playerIdsActivos.has(pid);
+        const mismoEquipo = normalizar(j.equipo) === normalizar(nombreExacto);
+
+        if (playerIdsActivos.size > 0) {
+          return playerIdsActivos.has(pid);
+        }
+
+        return mismoEquipo;
       });
 
       const mapaAgrupado: { [key: string]: EstadisticasJugador } = {};
@@ -215,61 +429,8 @@ export default function PaginaEquipo() {
           return b.mvps - a.mvps;
         }),
       );
-
-      let pj = 0;
-      let pg = 0;
-      let pe = 0;
-      let pp = 0;
-      let gf = 0;
-      let gc = 0;
-      let puntos = 0;
-      const rachaAux: ResultadoEquipo[] = [];
-
-      partidosDelEquipo.forEach((partido: any) => {
-        if (!partido.resultado || !partido.resultado.includes("-")) return;
-
-        const golesLocal = parseInt(partido.resultado.split("-")[0].trim());
-        const golesVisitante = parseInt(partido.resultado.split("-")[1].trim());
-
-        if (isNaN(golesLocal) || isNaN(golesVisitante)) return;
-
-        pj++;
-
-        const esLocal =
-          partido.local?.toLowerCase() === nombreExacto.toLowerCase();
-
-        const golesFavor = esLocal ? golesLocal : golesVisitante;
-        const golesContra = esLocal ? golesVisitante : golesLocal;
-
-        gf += golesFavor;
-        gc += golesContra;
-
-        if (golesFavor > golesContra) {
-          pg++;
-          puntos += 3;
-          rachaAux.push("G");
-        } else if (golesFavor === golesContra) {
-          pe++;
-          puntos += 1;
-          rachaAux.push("E");
-        } else {
-          pp++;
-          rachaAux.push("P");
-        }
-      });
-
-      setStats({
-        pj,
-        pg,
-        pe,
-        pp,
-        gf,
-        gc,
-        puntos,
-        racha: rachaAux.slice(-5),
-      });
     } catch (error) {
-      console.log(error);
+      console.error("ERROR CARGANDO PERFIL DEL CLUB:", error);
     } finally {
       setLoading(false);
     }
@@ -292,7 +453,7 @@ export default function PaginaEquipo() {
     const golesVisitante = Number(partes[1]?.trim());
     const tieneResultado = !isNaN(golesLocal) && !isNaN(golesVisitante);
 
-    const esLocal = partido.local?.toLowerCase() === nombreRealEquipo.toLowerCase();
+    const esLocal = normalizar(partido.local) === normalizar(nombreRealEquipo);
     const golesFavor = esLocal ? golesLocal : golesVisitante;
     const golesContra = esLocal ? golesVisitante : golesLocal;
 
@@ -376,11 +537,35 @@ export default function PaginaEquipo() {
     return `#${posicion} Puesto`;
   }
 
+  function divisionBonita(division?: string | null) {
+    if (!division) return "División";
+    return DIVISION_LABELS[division] || DIVISION_LABELS[division.toLowerCase()] || division;
+  }
+
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-black text-white">
         <div className="animate-pulse text-sky-400 font-black uppercase tracking-[0.3em]">
           Cargando club...
+        </div>
+      </main>
+    );
+  }
+
+  if (!clubVisual && !equipoTemporada) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-black px-4 text-white">
+        <div className="max-w-xl rounded-3xl border border-sky-400/20 bg-sky-400/10 p-8 text-center">
+          <h1 className="text-3xl font-black uppercase">Club no encontrado</h1>
+          <p className="mt-3 text-zinc-400">
+            No se encontró un club activo para esta temporada.
+          </p>
+          <Link
+            href="/clubes"
+            className="mt-6 inline-flex rounded-2xl bg-sky-400 px-5 py-3 font-black uppercase text-black"
+          >
+            Volver a clubes
+          </Link>
         </div>
       </main>
     );
@@ -398,12 +583,11 @@ export default function PaginaEquipo() {
 
         <section className="relative overflow-hidden rounded-[38px] border border-sky-500/35 bg-[#020714] shadow-[0_0_55px_rgba(0,120,255,.24)]">
           <div
-            className="absolute inset-0 bg-cover bg-center opacity-35"
+            className="absolute inset-0 bg-cover bg-center opacity-45"
             style={{
-              backgroundImage: `url(${
-                clubVisual?.banner_url ||
-                "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2070&auto=format&fit=crop"
-              })`,
+              backgroundImage: clubVisual?.banner_url
+                ? `url(${clubVisual.banner_url})`
+                : "linear-gradient(135deg, rgba(0,229,255,.16), rgba(255,255,255,.04))",
             }}
           />
 
@@ -465,7 +649,7 @@ export default function PaginaEquipo() {
                       </span>
 
                       <span className="rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-sm font-black uppercase text-yellow-300">
-                        {equipoTemporada?.division || "División"}
+                        {divisionBonita(equipoTemporada?.division)}
                       </span>
 
                       <span
@@ -1066,7 +1250,7 @@ export default function PaginaEquipo() {
 
                       <div className="mt-3 flex justify-between text-[11px] text-zinc-600">
                         <span>{partido.temporada || equipoTemporada?.temporada}</span>
-                        <span>{partido.division || equipoTemporada?.division}</span>
+                        <span>{divisionBonita(partido.division || equipoTemporada?.division)}</span>
                       </div>
                     </Link>
                   );

@@ -113,8 +113,8 @@ export default function DivisionesPage() {
                 </h1>
 
                 <p className="mt-5 max-w-2xl text-lg leading-8 text-zinc-300">
-                  La competencia principal de APA PSO Argentina. Primera,
-                  Segunda, Tercera y Cuarta división compiten por puntos,
+                  La competencia principal de APA PSO Argentina. Primera y
+                  Segunda División compiten por puntos, ascensos,
                   clasificación y gloria temporada tras temporada.
                 </p>
 

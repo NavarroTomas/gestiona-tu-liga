@@ -32,7 +32,7 @@ const infoCards = [
   {
     icon: "2",
     titulo: "Elegí categoría",
-    texto: "Después entrá al fixture de Primera, Segunda, Tercera o Cuarta.",
+    texto: "Después entrá al fixture de Primera o Segunda.",
   },
   {
     icon: "3",
@@ -74,7 +74,7 @@ export default function FixtureHome() {
 
               <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-300">
                 Calendario oficial del Torneo de Liga APA. Primero elegí la
-                temporada y después ingresá al fixture de cada categoría.
+                temporada y después ingresá al fixture de Primera o Segunda.
               </p>
 
               <div className="mt-7 flex flex-wrap gap-3">

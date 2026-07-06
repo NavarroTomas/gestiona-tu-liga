@@ -19,6 +19,7 @@ type PlantillaJugador = {
 type ClubInfo = {
   nombre: string;
   logo_url: string | null;
+  slug?: string | null;
 };
 
 
@@ -26,6 +27,20 @@ export default function PlantillasPage() {
   const temporadas = ["Temporada 4"];
 
   const divisiones = ["Primera", "Segunda"];
+
+  function normalizarDivisionFiltro(value: string) {
+    const v = String(value || "").toLowerCase().trim();
+
+    if (v === "primera" || v === "primera division" || v === "primera división") {
+      return "primera";
+    }
+
+    if (v === "segunda" || v === "segunda division" || v === "segunda división") {
+      return "segunda";
+    }
+
+    return v;
+  }
 
   const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
@@ -48,7 +63,7 @@ export default function PlantillasPage() {
         .from("plantillas")
         .select("id,jugador,equipo,posicion,estado,temporada,division,playerid")
         .eq("temporada", temporada)
-        .eq("division", division)
+        .in("division", [division, division.toLowerCase()])
         .order("equipo", { ascending: true })
         .order("posicion", { ascending: true })
         .order("jugador", { ascending: true });
@@ -57,23 +72,24 @@ export default function PlantillasPage() {
         plantillasQuery = plantillasQuery.eq("equipo", equipoSeleccionado);
       }
 
-      const equiposQuery = supabase
-        .from("plantillas")
-        .select("equipo")
+      const clubesQuery = supabase
+        .from("v_clubes_temporada_public")
+        .select("*")
         .eq("temporada", temporada)
-        .eq("division", division);
+        .eq("activo", true)
+        .order("nombre", { ascending: true });
 
-      const [plantillasResult, equiposResult] = await Promise.all([
+      const [plantillasResult, clubesResult] = await Promise.all([
         plantillasQuery,
-        equiposQuery,
+        clubesQuery,
       ]);
 
       if (cancelado) return;
 
-      if (plantillasResult.error || equiposResult.error) {
+      if (plantillasResult.error || clubesResult.error) {
         console.error("Error cargando plantillas:", {
           plantillasError: plantillasResult.error,
-          equiposError: equiposResult.error,
+          clubesError: clubesResult.error,
         });
 
         setPlantillas([]);
@@ -91,28 +107,15 @@ export default function PlantillasPage() {
         }),
       );
 
-      const equiposUnicos = Array.from(
-        new Set(
-          ((equiposResult.data || []) as { equipo: string }[])
-            .map((e) => e.equipo)
-            .filter(Boolean),
-        ),
-      ).sort((a, b) => a.localeCompare(b));
+      const divisionActual = normalizarDivisionFiltro(division);
 
-      let clubesData: ClubInfo[] = [];
+      const clubesData = ((clubesResult.data || []) as unknown as ClubInfo[])
+        .filter((club: any) => Boolean(club.nombre))
+        .filter((club: any) => normalizarDivisionFiltro(club.division) === divisionActual);
 
-      if (equiposUnicos.length > 0) {
-        const { data: clubes, error: clubesError } = await supabase
-          .from("clubes_info")
-          .select("nombre, logo_url")
-          .in("nombre", equiposUnicos);
-
-        if (clubesError) {
-          console.error("Error cargando logos de clubes:", clubesError);
-        }
-
-        clubesData = (clubes || []) as unknown as ClubInfo[];
-      }
+      const equiposUnicos = clubesData
+        .map((club) => club.nombre)
+        .sort((a, b) => a.localeCompare(b));
 
       if (cancelado) return;
 
@@ -395,7 +398,7 @@ export default function PlantillasPage() {
         {plantillas.length === 0 ? (
           <section className="rounded-[34px] border border-sky-500/20 bg-[#020714] p-10 text-center">
             <p className="text-zinc-500">
-              Todavía no hay jugadores cargados en esta plantilla.
+              Todavía no hay jugadores cargados para esta selección. Los clubes aparecen aunque todavía no tengan plantel registrado.
             </p>
           </section>
         ) : (

@@ -49,15 +49,24 @@ export default function SubirTxtPage() {
     cargarContexto();
   }, [temporada, division, fecha]);
 
+  function normalizarDivisionFiltro(value: string) {
+    const v = String(value || "").toLowerCase().trim();
+
+    if (v === "primera" || v === "primera division" || v === "primera división") return "primera";
+    if (v === "segunda" || v === "segunda division" || v === "segunda división") return "segunda";
+
+    return v;
+  }
+
   async function cargarContexto() {
     setMensaje("");
 
     const [equiposRes, partidosRes] = await Promise.all([
       supabase
-        .from("equipos")
-        .select("id,nombre,temporada,division")
+        .from("v_clubes_temporada_public")
+        .select("*")
         .eq("temporada", temporada)
-        .eq("division", division)
+        .eq("activo", true)
         .order("nombre", { ascending: true }),
       supabase
         .from("partidos")
@@ -76,7 +85,15 @@ export default function SubirTxtPage() {
       console.log(partidosRes.error);
     }
 
-    const equiposData = (equiposRes.data || []) as unknown as Equipo[];
+    const equiposData = ((equiposRes.data || []) as any[])
+      .filter((equipo) => normalizarDivisionFiltro(equipo.division) === normalizarDivisionFiltro(division))
+      .map((equipo) => ({
+        id: equipo.club_id || equipo.id || equipo.nombre,
+        nombre: equipo.nombre,
+        temporada: equipo.temporada,
+        division: equipo.division,
+      })) as Equipo[];
+
     const partidosData = (partidosRes.data || []) as unknown as PartidoProgramado[];
 
     setEquipos(equiposData);

@@ -42,6 +42,15 @@ export default function AdminPlantillasPage() {
   const temporadas = ["Temporada 4"];
 
   const divisiones = ["Primera", "Segunda"];
+
+  function normalizarDivisionFiltro(value: string) {
+    const v = String(value || "").toLowerCase().trim();
+
+    if (v === "primera" || v === "primera division" || v === "primera división") return "primera";
+    if (v === "segunda" || v === "segunda division" || v === "segunda división") return "segunda";
+
+    return v;
+  }
   const posiciones = ["GK", "LB", "CB", "RB", "CDM", "CM", "CAM", "LW", "RW", "ST", "N/D"];
   const estados = ["activo", "suplente", "libre", "baja"];
 
@@ -82,16 +91,16 @@ export default function AdminPlantillasPage() {
 
     const [equiposRes, plantillasRes] = await Promise.all([
       supabase
-        .from("equipos")
-        .select("nombre")
+        .from("v_clubes_temporada_public")
+        .select("*")
         .eq("temporada", temporada)
-        .eq("division", division)
+        .eq("activo", true)
         .order("nombre", { ascending: true }),
       supabase
         .from("plantillas")
         .select(PLANTILLAS_SELECT)
         .eq("temporada", temporada)
-        .eq("division", division)
+        .in("division", [division, division.toLowerCase()])
         .order("equipo", { ascending: true })
         .order("jugador", { ascending: true }),
     ]);
@@ -102,7 +111,13 @@ export default function AdminPlantillasPage() {
       setMensaje("No pude cargar las plantillas.");
     }
 
-    const listaEquipos = (equiposRes.data || []) as unknown as Equipo[];
+    const divisionActual = normalizarDivisionFiltro(division);
+
+    const listaEquipos = ((equiposRes.data || []) as any[])
+      .filter((equipo) => normalizarDivisionFiltro(equipo.division) === divisionActual)
+      .map((equipo) => ({ nombre: equipo.nombre }))
+      .sort((a, b) => a.nombre.localeCompare(b.nombre)) as Equipo[];
+
     setEquipos(listaEquipos);
 
     if (!equipo && listaEquipos.length > 0) {
@@ -117,7 +132,7 @@ export default function AdminPlantillasPage() {
       .from("plantillas")
       .select(PLANTILLAS_SELECT)
       .eq("temporada", temporada)
-      .eq("division", division)
+      .in("division", [division, division.toLowerCase()])
       .order("equipo", { ascending: true })
       .order("jugador", { ascending: true });
 

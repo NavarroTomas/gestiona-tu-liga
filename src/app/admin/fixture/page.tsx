@@ -18,15 +18,17 @@ type Partido = {
 };
 
 type Equipo = {
-  id?: string;
+  id?: string | number;
   nombre: string;
+  logo_url?: string | null;
+  slug?: string | null;
 };
 
 const temporadas = ["Temporada 4"];
 
 const divisiones = [
-  { nombre: "Primera", icon: "🏆" },
-  { nombre: "Segunda", icon: "🥈" },
+  { nombre: "Primera", slug: "primera", icon: "🏆" },
+  { nombre: "Segunda", slug: "segunda", icon: "🥈" },
 ];
 
 function generarRoundRobin(equiposOriginales: string[]) {
@@ -66,6 +68,8 @@ export default function AdminFixturePage() {
 
   const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
+
+  const divisionActual = divisiones.find((d) => d.nombre === division) || divisiones[0];
   const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [seleccionados, setSeleccionados] = useState<string[]>([]);
   const [partidos, setPartidos] = useState<Partido[]>([]);
@@ -82,15 +86,24 @@ export default function AdminFixturePage() {
     cargarTodo();
   }, [temporada, division]);
 
+  function normalizarDivisionFiltro(value: string) {
+    const v = String(value || "").toLowerCase().trim();
+
+    if (v === "primera" || v === "primera division" || v === "primera división") return "primera";
+    if (v === "segunda" || v === "segunda division" || v === "segunda división") return "segunda";
+
+    return v;
+  }
+
   async function cargarTodo() {
     setLoading(true);
     setMensaje("");
 
     const { data: equiposData, error: equiposError } = await supabase
-      .from("equipos")
-      .select("id, nombre, puntos, pj, temporada, division, logo_url, banner_url, descripcion, color_principal, club_slug")
+      .from("v_clubes_temporada_public")
+      .select("*")
       .eq("temporada", temporada)
-      .eq("division", division)
+      .eq("activo", true)
       .order("nombre", { ascending: true });
 
     const { data: partidosData, error: partidosError } = await supabase
@@ -102,7 +115,7 @@ export default function AdminFixturePage() {
 
     if (equiposError) {
       console.log(equiposError);
-      setMensaje("Error cargando equipos.");
+      setMensaje("Error cargando clubes inscriptos. Revisá la vista v_clubes_temporada_public y la tabla clubes_temporada.");
     }
 
     if (partidosError) {
@@ -110,9 +123,16 @@ export default function AdminFixturePage() {
       setMensaje("Error cargando partidos.");
     }
 
-    setEquipos(equiposData || []);
+    const equiposNormalizados = (equiposData || []).map((e: any) => ({
+      id: e.club_id,
+      nombre: e.nombre,
+      slug: e.slug,
+      logo_url: e.logo_url,
+    }));
+
+    setEquipos(equiposNormalizados);
     setPartidos(partidosData || []);
-    setSeleccionados((equiposData || []).map((e: any) => e.nombre));
+    setSeleccionados(equiposNormalizados.map((e: Equipo) => e.nombre));
     setLoading(false);
   }
 
@@ -571,7 +591,7 @@ return (
               <div className="mt-5 max-h-[420px] space-y-2 overflow-y-auto pr-1">
                 {equipos.length === 0 ? (
                   <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-sm text-zinc-500">
-                    No hay equipos cargados para esta selección.
+                    No hay clubes inscriptos para esta temporada/división. Revisá Admin → Clubes y asigná Temporada 4 + Primera/Segunda.
                   </p>
                 ) : (
                   equipos.map((e) => (
@@ -584,8 +604,15 @@ return (
                           : "border-white/10 bg-black/35 text-zinc-500 hover:border-yellow-400/25 hover:text-white"
                       }`}
                     >
-                      <span className="truncate text-sm font-black uppercase">
-                        {e.nombre}
+                      <span className="flex min-w-0 items-center gap-3">
+                        <img
+                          src={e.logo_url || "/placeholder-logo.png"}
+                          alt={e.nombre}
+                          className="h-8 w-8 shrink-0 rounded-lg bg-black/60 object-contain"
+                        />
+                        <span className="truncate text-sm font-black uppercase">
+                          {e.nombre}
+                        </span>
                       </span>
                       <span className="text-lg">
                         {seleccionados.includes(e.nombre) ? "✅" : "⬜"}
@@ -610,8 +637,8 @@ return (
               </button>
 
               <p className="mt-4 rounded-2xl border border-white/10 bg-black/35 p-4 text-xs leading-6 text-zinc-500">
-                El generador crea ida sola: cada equipo se cruza una única vez contra cada rival.
-                Si ya hay fixture, te pregunta antes de reemplazarlo.
+                El generador toma los clubes activos de clubes_temporada para la temporada/división seleccionada.
+                Crea ida sola: cada equipo se cruza una única vez contra cada rival.
               </p>
             </section>
 

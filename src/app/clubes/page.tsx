@@ -10,6 +10,8 @@ interface Club {
   temporada: string;
   division: string;
   logo_url?: string | null;
+  banner_url?: string | null;
+  descripcion?: string | null;
   puntos?: number | string | null;
   pj?: number | string | null;
   color_principal?: string | null;
@@ -18,8 +20,8 @@ interface Club {
 const temporadas = ["Temporada 4"];
 
 const divisiones = [
-  { nombre: "Primera", icon: "🏆", color: "text-yellow-300" },
-  { nombre: "Segunda", icon: "🥈", color: "text-sky-300" },
+  { nombre: "Primera", value: "primera", icon: "🏆", color: "text-yellow-300" },
+  { nombre: "Segunda", value: "segunda", icon: "🥈", color: "text-sky-300" },
 ];
 
 export default function ClubesPage() {
@@ -31,12 +33,24 @@ export default function ClubesPage() {
     cargarClubes();
   }, [temporada, division]);
 
+  function normalizarDivisionFiltro(value: string) {
+    const v = String(value || "").toLowerCase().trim();
+
+    if (v === "primera" || v === "primera division" || v === "primera división") return "primera";
+    if (v === "segunda" || v === "segunda division" || v === "segunda división") return "segunda";
+
+    return v;
+  }
+
   async function cargarClubes() {
+    const divisionActualConfig = divisiones.find((d) => d.nombre === division);
+    const divisionKey = divisionActualConfig?.value || division.toLowerCase();
+
     const { data, error } = await supabase
-      .from("equipos")
-      .select("id, nombre, puntos, pj, temporada, division, logo_url, banner_url, descripcion, color_principal, club_slug")
+      .from("v_clubes_temporada_public")
+      .select("*")
       .eq("temporada", temporada)
-      .eq("division", division)
+      .eq("activo", true)
       .order("nombre", { ascending: true });
 
     if (error) {
@@ -44,7 +58,25 @@ export default function ClubesPage() {
       return;
     }
 
-    setClubes(data || []);
+    const dataFiltrada = (data || []).filter(
+      (club: any) => normalizarDivisionFiltro(club.division) === normalizarDivisionFiltro(divisionKey),
+    );
+
+    setClubes(
+      dataFiltrada.map((club: any) => ({
+        id: club.club_id,
+        nombre: club.nombre,
+        temporada: club.temporada,
+        division:
+          divisiones.find((d) => d.value === club.division)?.nombre || club.division,
+        logo_url: club.logo_url,
+        banner_url: club.banner_url,
+        descripcion: club.descripcion,
+        color_principal: club.color_principal,
+        puntos: 0,
+        pj: 0,
+      })),
+    );
   }
 
   function iniciales(nombre?: string) {
@@ -188,7 +220,7 @@ export default function ClubesPage() {
                   Categorías
                 </p>
 
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3">
                   {divisiones.map((div) => (
                     <button
                       key={div.nombre}

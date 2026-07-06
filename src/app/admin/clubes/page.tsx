@@ -3,6 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
+const TEMPORADAS = ["Temporada 4"];
+
+const DIVISIONES = [
+  { value: "primera", label: "Primera" },
+  { value: "segunda", label: "Segunda" },
+];
+
 type Club = {
   id?: string;
   nombre: string;
@@ -12,6 +19,22 @@ type Club = {
   descripcion: string | null;
   color_principal: string | null;
 };
+
+type InscripcionClub = {
+  temporada: string;
+  division: string;
+  activo: boolean;
+};
+
+const inscripcionDefault: InscripcionClub = {
+  temporada: "Temporada 4",
+  division: "segunda",
+  activo: true,
+};
+
+const EXTENSIONES_PERMITIDAS = ["jpg", "jpeg", "png", "webp"];
+const MIME_PERMITIDOS = ["image/jpeg", "image/png", "image/webp"];
+const MAX_IMAGE_MB = 4;
 
 export default function AdminClubesPage() {
   const [clubes, setClubes] = useState<Club[]>([]);
@@ -29,9 +52,16 @@ export default function AdminClubesPage() {
     color_principal: "#00e5ff",
   });
 
+  const [inscripcion, setInscripcion] =
+    useState<InscripcionClub>(inscripcionDefault);
+
   const filtrados = useMemo(() => {
+    const query = busqueda.trim().toLowerCase();
+
+    if (!query) return clubes;
+
     return clubes.filter((c) =>
-      `${c.nombre} ${c.slug}`.toLowerCase().includes(busqueda.toLowerCase()),
+      `${c.nombre} ${c.slug}`.toLowerCase().includes(query),
     );
   }, [clubes, busqueda]);
 
@@ -48,6 +78,28 @@ export default function AdminClubesPage() {
       .replace(/(^-|-$)/g, "");
   }
 
+  function limpiarTexto(texto: string, max = 120) {
+    return texto.replace(/[<>]/g, "").trim().slice(0, max);
+  }
+
+  function validarImagen(file: File) {
+    const ext = file.name.split(".").pop()?.toLowerCase() || "";
+
+    if (!EXTENSIONES_PERMITIDAS.includes(ext)) {
+      return "Formato inválido. Usá JPG, PNG o WEBP.";
+    }
+
+    if (!MIME_PERMITIDOS.includes(file.type)) {
+      return "Tipo de archivo inválido. No se permite SVG ni otros formatos.";
+    }
+
+    if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
+      return `La imagen no puede superar ${MAX_IMAGE_MB} MB.`;
+    }
+
+    return null;
+  }
+
   async function cargarClubes() {
     setLoading(true);
 
@@ -59,22 +111,42 @@ export default function AdminClubesPage() {
       .order("nombre", { ascending: true });
 
     if (error) {
-      console.error("ERROR CARGANDO CLUBES:", {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code,
-        full: JSON.stringify(error, null, 2),
-      });
-
-      setMensaje(
-        `Error cargando clubes: ${error.message || error.code || "sin detalle"}`,
-      );
+      console.error("ERROR CARGANDO CLUBES:", error);
+      setMensaje("Error cargando clubes.");
     } else {
       setClubes(data || []);
     }
 
     setLoading(false);
+  }
+
+  async function cargarInscripcionClub(clubId?: string) {
+    setInscripcion(inscripcionDefault);
+
+    if (!clubId) return;
+
+    const { data, error } = await supabase
+      .from("clubes_temporada")
+      .select("temporada, division, activo")
+      .eq("club_id", clubId)
+      .eq("temporada", inscripcionDefault.temporada)
+      .maybeSingle();
+
+    if (error) {
+      console.error("ERROR CARGANDO INSCRIPCIÓN DEL CLUB:", error);
+      setMensaje(
+        "Club cargado, pero no se pudo leer su temporada/división. Verificá la tabla clubes_temporada.",
+      );
+      return;
+    }
+
+    if (data) {
+      setInscripcion({
+        temporada: data.temporada || inscripcionDefault.temporada,
+        division: data.division || inscripcionDefault.division,
+        activo: data.activo ?? true,
+      });
+    }
   }
 
   function nuevoClub() {
@@ -86,6 +158,7 @@ export default function AdminClubesPage() {
       descripcion: "",
       color_principal: "#00e5ff",
     });
+    setInscripcion(inscripcionDefault);
     setMensaje("");
   }
 
@@ -99,10 +172,19 @@ export default function AdminClubesPage() {
       descripcion: club.descripcion || "",
       color_principal: club.color_principal || "#00e5ff",
     });
+
+    cargarInscripcionClub(club.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function subirImagen(file: File, tipo: "logo" | "banner") {
+    const errorValidacion = validarImagen(file);
+
+    if (errorValidacion) {
+      setMensaje(errorValidacion);
+      return;
+    }
+
     const slug = form.slug || slugify(form.nombre);
 
     if (!slug) {
@@ -110,13 +192,14 @@ export default function AdminClubesPage() {
       return;
     }
 
-    const ext = file.name.split(".").pop();
+    const ext = file.name.split(".").pop()?.toLowerCase() || "png";
     const carpeta = tipo === "logo" ? "Logos" : "Banners";
     const path = `${carpeta}/${slug}.${ext}`;
 
     const { error } = await supabase.storage.from("clubes").upload(path, file, {
       upsert: true,
       cacheControl: "3600",
+      contentType: file.type,
     });
 
     if (error) {
@@ -136,36 +219,91 @@ export default function AdminClubesPage() {
     setMensaje(`${tipo === "logo" ? "Logo" : "Banner"} subido correctamente.`);
   }
 
+  async function guardarInscripcionClub(clubId: string) {
+    const payload = {
+      club_id: clubId,
+      temporada: inscripcion.temporada,
+      division: inscripcion.division,
+      activo: inscripcion.activo,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await supabase
+      .from("clubes_temporada")
+      .upsert(payload, {
+        onConflict: "club_id,temporada",
+      });
+
+    if (error) {
+      console.error("ERROR GUARDANDO TEMPORADA/DIVISIÓN:", error);
+      throw new Error(
+        "El club se guardó, pero falló la asignación de temporada/división. Revisá la tabla clubes_temporada.",
+      );
+    }
+  }
+
   async function guardarClub() {
     if (!form.nombre.trim()) {
       setMensaje("El nombre del club es obligatorio.");
       return;
     }
 
+    if (!inscripcion.temporada || !inscripcion.division) {
+      setMensaje("Seleccioná temporada y división.");
+      return;
+    }
+
     setSaving(true);
     setMensaje("");
 
+    const slug = form.slug.trim() || slugify(form.nombre);
+
     const payload = {
-      nombre: form.nombre.trim(),
-      slug: form.slug.trim() || slugify(form.nombre),
+      nombre: limpiarTexto(form.nombre, 80),
+      slug,
       logo_url: form.logo_url || null,
       banner_url: form.banner_url || null,
-      descripcion: form.descripcion || null,
+      descripcion: form.descripcion ? limpiarTexto(form.descripcion, 500) : null,
       color_principal: form.color_principal || "#00e5ff",
       updated_at: new Date().toISOString(),
     };
 
-    const { error } = form.id
-      ? await supabase.from("clubes_info").update(payload).eq("id", form.id)
-      : await supabase.from("clubes_info").insert(payload);
+    try {
+      let clubId = form.id;
 
-    if (error) {
-      console.error(error);
-      setMensaje("Error guardando club.");
-    } else {
+      if (form.id) {
+        const { error } = await supabase
+          .from("clubes_info")
+          .update(payload)
+          .eq("id", form.id);
+
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from("clubes_info")
+          .insert(payload)
+          .select("id")
+          .single();
+
+        if (error) throw error;
+
+        clubId = data?.id;
+      }
+
+      if (!clubId) {
+        throw new Error("No se pudo obtener el ID del club guardado.");
+      }
+
+      await guardarInscripcionClub(clubId);
+
       setMensaje(form.id ? "Club actualizado." : "Club creado.");
       nuevoClub();
       await cargarClubes();
+    } catch (error) {
+      console.error(error);
+      setMensaje(
+        error instanceof Error ? error.message : "Error guardando club.",
+      );
     }
 
     setSaving(false);
@@ -174,7 +312,9 @@ export default function AdminClubesPage() {
   async function eliminarClub() {
     if (!form.id) return;
 
-    const ok = confirm("¿Seguro que querés eliminar este club de clubes_info?");
+    const ok = confirm(
+      "¿Seguro que querés eliminar este club? También se eliminará su inscripción por temporada.",
+    );
 
     if (!ok) return;
 
@@ -204,8 +344,8 @@ export default function AdminClubesPage() {
             Administrar Clubes
           </h1>
           <p className="text-white/60 mt-3">
-            Crear, editar y personalizar clubes con logo, banner, descripción y
-            color principal.
+            Crear, editar y personalizar clubes con logo, banner, descripción,
+            color principal, temporada y división.
           </p>
         </div>
 
@@ -293,6 +433,11 @@ export default function AdminClubesPage() {
                     {form.nombre || "Nombre del club"}
                   </h3>
                   <p className="text-white/60">/{form.slug || "slug"}</p>
+                  <p className="mt-1 text-xs uppercase tracking-[0.18em] text-cyan-200/80">
+                    {inscripcion.temporada} ·{" "}
+                    {DIVISIONES.find((d) => d.value === inscripcion.division)
+                      ?.label || inscripcion.division}
+                  </p>
                 </div>
               </div>
             </div>
@@ -336,6 +481,68 @@ export default function AdminClubesPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
+                <label className="text-sm text-white/60">Temporada</label>
+                <select
+                  className="mt-2 w-full rounded-xl bg-black/40 border border-white/10 px-4 py-3 outline-none"
+                  value={inscripcion.temporada}
+                  onChange={(e) =>
+                    setInscripcion((prev) => ({
+                      ...prev,
+                      temporada: e.target.value,
+                    }))
+                  }
+                >
+                  {TEMPORADAS.map((temporada) => (
+                    <option key={temporada} value={temporada}>
+                      {temporada}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm text-white/60">División</label>
+                <select
+                  className="mt-2 w-full rounded-xl bg-black/40 border border-white/10 px-4 py-3 outline-none"
+                  value={inscripcion.division}
+                  onChange={(e) =>
+                    setInscripcion((prev) => ({
+                      ...prev,
+                      division: e.target.value,
+                    }))
+                  }
+                >
+                  {DIVISIONES.map((division) => (
+                    <option key={division.value} value={division.value}>
+                      {division.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm text-white/60">Estado</label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setInscripcion((prev) => ({
+                      ...prev,
+                      activo: !prev.activo,
+                    }))
+                  }
+                  className={`mt-2 w-full rounded-xl border px-4 py-3 text-left font-black uppercase ${
+                    inscripcion.activo
+                      ? "border-emerald-300/25 bg-emerald-400/10 text-emerald-200"
+                      : "border-red-300/25 bg-red-400/10 text-red-200"
+                  }`}
+                >
+                  {inscripcion.activo ? "Activo" : "Inactivo"}
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
                 <label className="text-sm text-white/60">Color principal</label>
                 <div className="flex gap-3 mt-2">
                   <input
@@ -366,11 +573,12 @@ export default function AdminClubesPage() {
                 <label className="text-sm text-white/60">Subir logo</label>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                   className="mt-2 block w-full text-sm"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) subirImagen(file, "logo");
+                    e.currentTarget.value = "";
                   }}
                 />
               </div>
@@ -379,11 +587,12 @@ export default function AdminClubesPage() {
                 <label className="text-sm text-white/60">Subir banner</label>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                   className="mt-2 block w-full text-sm"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) subirImagen(file, "banner");
+                    e.currentTarget.value = "";
                   }}
                 />
               </div>
