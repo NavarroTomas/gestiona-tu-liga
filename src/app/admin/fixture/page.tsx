@@ -103,6 +103,7 @@ export default function AdminFixturePage() {
       .from("v_clubes_temporada_public")
       .select("*")
       .eq("temporada", temporada)
+      .eq("division", normalizarDivisionFiltro(division))
       .eq("activo", true)
       .order("nombre", { ascending: true });
 
@@ -110,7 +111,7 @@ export default function AdminFixturePage() {
       .from("partidos")
       .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora")
       .eq("temporada", temporada)
-      .eq("division", division)
+      .eq("division", normalizarDivisionFiltro(division))
       .order("fecha", { ascending: true });
 
     if (equiposError) {
@@ -124,11 +125,11 @@ export default function AdminFixturePage() {
     }
 
     const equiposNormalizados = (equiposData || []).map((e: any) => ({
-      id: e.club_id,
-      nombre: e.nombre,
-      slug: e.slug,
-      logo_url: e.logo_url,
-    }));
+    id: e.club_id,
+    nombre: e.nombre,
+    slug: e.slug,
+    logo_url: e.logo_url,
+  }));
 
     setEquipos(equiposNormalizados);
     setPartidos(partidosData || []);
@@ -266,7 +267,7 @@ export default function AdminFixturePage() {
       resultado: null,
       fecha: fechaManual,
       temporada,
-      division,
+      division: normalizarDivisionFiltro(division),
       dia: diaManual || null,
       hora: horaManual || null,
       partido_id: null,
@@ -294,7 +295,7 @@ export default function AdminFixturePage() {
       .from("partidos")
       .select("id", { count: "exact", head: true })
       .eq("temporada", temporada)
-      .eq("division", division);
+      .eq("division", normalizarDivisionFiltro(division))
 
     if (countError) {
       console.log(countError);
@@ -313,7 +314,7 @@ export default function AdminFixturePage() {
         .from("partidos")
         .delete()
         .eq("temporada", temporada)
-        .eq("division", division);
+        .eq("division", normalizarDivisionFiltro(division))
 
       if (deleteError) {
         console.log(deleteError);
@@ -336,7 +337,7 @@ export default function AdminFixturePage() {
       resultado: null,
       fecha: String(p.fecha),
       temporada,
-      division,
+      division: normalizarDivisionFiltro(division),
       dia: null,
       hora: null,
       partido_id: null,
@@ -370,7 +371,7 @@ export default function AdminFixturePage() {
       .from("partidos")
       .delete()
       .eq("temporada", temporada)
-      .eq("division", division);
+      .eq("division", normalizarDivisionFiltro(division))
 
     if (error) {
       console.log(error);

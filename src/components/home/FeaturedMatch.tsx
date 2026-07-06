@@ -120,7 +120,7 @@ export default function FeaturedMatch({
           <div className="ml-0 flex flex-wrap gap-3 md:ml-auto">
             <Link
               href={fixtureHref}
-              className="rounded-full border border-amber-200/35 bg-amber-200 px-6 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#06111f] transition hover:bg-white"
+              className="rounded-full border border-[#B88A1B]/70 bg-[#C9981A] px-6 py-3 text-xs font-black uppercase tracking-[0.14em] text-white transition-all duration-300 hover:bg-[#D4A017] hover:border-[#E2BE5A]"
             >
               Ver partido →
             </Link>
