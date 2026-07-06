@@ -194,11 +194,11 @@ export default function AdminClubesPage() {
 
     const ext = file.name.split(".").pop()?.toLowerCase() || "png";
     const carpeta = tipo === "logo" ? "Logos" : "Banners";
-    const path = `${carpeta}/${slug}.${ext}`;
+    const path = `${carpeta}/${slug}-${Date.now()}.${ext}`;
 
     const { error } = await supabase.storage.from("clubes").upload(path, file, {
       upsert: true,
-      cacheControl: "3600",
+      cacheControl: "0",
       contentType: file.type,
     });
 
