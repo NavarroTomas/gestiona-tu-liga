@@ -66,6 +66,7 @@ export default function PaginaEquipo() {
 
   const [partidos, setPartidos] = useState<Partido[]>([]);
   const [plantel, setPlantel] = useState<EstadisticasJugador[]>([]);
+  const [lideresHistoricos, setLideresHistoricos] = useState<EstadisticasJugador[]>([]);
   const [clubVisual, setClubVisual] = useState<ClubVisual | null>(null);
   const [equipoTemporada, setEquipoTemporada] =
     useState<EquipoTemporada | null>(null);
@@ -250,6 +251,7 @@ export default function PaginaEquipo() {
         setEquipoTemporada(null);
         setPartidos([]);
         setPlantel([]);
+        setLideresHistoricos([]);
         setTitulos([]);
         setPosicionLiga(null);
         setStats({
@@ -359,14 +361,14 @@ export default function PaginaEquipo() {
 
       setTitulos(titulosData || []);
 
-      const { data: jugadoresData } = await supabase
-        .from("jugadores")
+      const { data: estadisticasJugadoresData } = await supabase
+        .from("estadisticas_jugadores")
         .select(
-          "id, nombre, jugador, playerId, player_id, equipo, goles, goals, asistencias, assists, mvps, temporada, division",
+          "id, nombre, playerId, posicion, equipo, goals, assists, mvp, temporada, division",
         )
         .eq("temporada", temporadaActual)
         .in("division", divisionesPartidos)
-        .limit(2000);
+        .limit(3000);
 
       const { data: plantillasData } = await supabase
         .from("plantillas")
@@ -383,52 +385,63 @@ export default function PaginaEquipo() {
         (plantillasData || []).map((p: any) => String(p.playerid || "").trim()),
       );
 
-      const jugadoresFiltrados = (jugadoresData || []).filter((j: any) => {
-        const pid = String(j.playerId || j.player_id || "").trim();
-        const mismoEquipo = normalizar(j.equipo) === normalizar(nombreExacto);
+      const estadisticasDelClub = (estadisticasJugadoresData || []).filter(
+        (j: any) => normalizar(j.equipo) === normalizar(nombreExacto),
+      );
+
+      // Historial del club: no depende de la plantilla actual.
+      // Si un jugador se va de este club, sus goles/asistencias/MVP anteriores
+      // siguen contando para el historial de este club.
+      const jugadoresHistoricosClub = estadisticasDelClub;
+
+      // Plantel actual: usa la plantilla activa. Si todavía no hay plantilla cargada,
+      // cae al historial del club para no dejar la sección vacía.
+      const jugadoresPlantelActual = estadisticasDelClub.filter((j: any) => {
+        const pid = String(j.playerId || "").trim();
 
         if (playerIdsActivos.size > 0) {
           return playerIdsActivos.has(pid);
         }
 
-        return mismoEquipo;
+        return true;
       });
 
-      const mapaAgrupado: { [key: string]: EstadisticasJugador } = {};
+      function agruparEstadisticasJugadores(lista: any[]) {
+        const mapaAgrupado: { [key: string]: EstadisticasJugador } = {};
 
-      jugadoresFiltrados.forEach((j: any) => {
-        const playerId = String(j.playerId || j.player_id || "").trim();
-        const nombreJugador = String(
-          j.jugador || j.nombre || j.playerName || "Sin Nombre",
-        ).trim();
+        lista.forEach((j: any) => {
+          const playerId = String(j.playerId || "").trim();
+          const nombreJugador = String(j.nombre || j.jugador || "Sin Nombre").trim();
 
-        if (!playerId && !nombreJugador) return;
+          if (!playerId && !nombreJugador) return;
 
-        const clave = playerId || nombreJugador;
+          const clave = playerId || nombreJugador;
 
-        if (!mapaAgrupado[clave]) {
-          mapaAgrupado[clave] = {
-            jugador: nombreJugador || "Sin Nombre",
-            playerId: playerId || encodeURIComponent(nombreJugador),
-            goles: 0,
-            asistencias: 0,
-            mvps: 0,
-          };
-        }
+          if (!mapaAgrupado[clave]) {
+            mapaAgrupado[clave] = {
+              jugador: nombreJugador || "Sin Nombre",
+              playerId: playerId || encodeURIComponent(nombreJugador),
+              goles: 0,
+              asistencias: 0,
+              mvps: 0,
+            };
+          }
 
-        mapaAgrupado[clave].goles += Number(j.goles ?? j.goals ?? 0) || 0;
-        mapaAgrupado[clave].asistencias +=
-          Number(j.asistencias ?? j.assists ?? 0) || 0;
-        mapaAgrupado[clave].mvps += Number(j.mvps ?? 0) || 0;
-      });
+          mapaAgrupado[clave].goles += Number(j.goals ?? j.goles ?? 0) || 0;
+          mapaAgrupado[clave].asistencias +=
+            Number(j.assists ?? j.asistencias ?? 0) || 0;
+          mapaAgrupado[clave].mvps += Number(j.mvp ?? j.mvps ?? 0) || 0;
+        });
 
-      setPlantel(
-        Object.values(mapaAgrupado).sort((a, b) => {
+        return Object.values(mapaAgrupado).sort((a, b) => {
           if (b.goles !== a.goles) return b.goles - a.goles;
           if (b.asistencias !== a.asistencias) return b.asistencias - a.asistencias;
           return b.mvps - a.mvps;
-        }),
-      );
+        });
+      }
+
+      setPlantel(agruparEstadisticasJugadores(jugadoresPlantelActual));
+      setLideresHistoricos(agruparEstadisticasJugadores(jugadoresHistoricosClub));
     } catch (error) {
       console.error("ERROR CARGANDO PERFIL DEL CLUB:", error);
     } finally {
@@ -498,13 +511,16 @@ export default function PaginaEquipo() {
     return "border-white/10 bg-white/[0.04] text-zinc-400";
   }
 
-  const topGoleador = plantel[0];
+  const estadisticasHistoricasClub =
+    lideresHistoricos.length > 0 ? lideresHistoricos : plantel;
 
-  const topAsistidor = [...plantel].sort(
+  const topGoleador = estadisticasHistoricasClub[0];
+
+  const topAsistidor = [...estadisticasHistoricasClub].sort(
     (a, b) => b.asistencias - a.asistencias,
   )[0];
 
-  const topMvp = [...plantel].sort((a, b) => b.mvps - a.mvps)[0];
+  const topMvp = [...estadisticasHistoricasClub].sort((a, b) => b.mvps - a.mvps)[0];
 
   const colorPrincipal = clubVisual?.color_principal || "#38bdf8";
   const diferenciaGol = stats.gf - stats.gc;
@@ -985,11 +1001,11 @@ export default function PaginaEquipo() {
         <section className="grid grid-cols-1 gap-5 xl:grid-cols-[1.25fr_1fr_1fr_1fr]">
           <div className="xl:col-span-4">
             <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
-              Destacados del club
+              Historial estadístico del club
             </p>
 
             <h2 className="mt-2 text-3xl font-black uppercase md:text-5xl">
-              Figura y líderes internos
+              Figura histórica y líderes del club
             </h2>
           </div>
           <Link
@@ -1002,7 +1018,7 @@ export default function PaginaEquipo() {
               <div className="mb-7 flex items-center justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.28em] text-yellow-300">
-                    Figura del club
+                    Figura histórica del club
                   </p>
                   <h2 className="mt-2 text-3xl font-black uppercase">
                     ⭐ Jugador clave
