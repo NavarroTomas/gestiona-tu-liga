@@ -48,7 +48,7 @@ interface EquipoTemporada {
 
 type ResultadoEquipo = "G" | "E" | "P" | "-";
 
-const TEMPORADA_ACTUAL = "temporada 4";
+const TEMPORADA_ACTUAL = "Temporada 4";
 
 const DIVISION_LABELS: Record<string, string> = {
   primera: "Primera",
