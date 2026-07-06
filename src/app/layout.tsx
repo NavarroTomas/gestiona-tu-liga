@@ -15,6 +15,9 @@ const orbitron = Orbitron({
 export const metadata: Metadata = {
   title: "APA PSO Argentina",
   description: "Liga APA PSO Argentina",
+  other: {
+    "google-adsense-account": "ca-pub-9012377872796123",
+  },
 };
 
 export default function RootLayout({
