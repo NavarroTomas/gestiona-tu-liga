@@ -6,7 +6,6 @@ import BienvenidaAPA from "../components/BienvenidaAPA";
 import IntroAPA from "../components/IntroAPA";
 import { Orbitron } from "next/font/google";
 
-
 const orbitron = Orbitron({
   subsets: ["latin"],
   weight: ["400", "500", "700", "900"],
@@ -15,10 +14,13 @@ const orbitron = Orbitron({
 export const metadata: Metadata = {
   title: "APA PSO Argentina",
   description: "Liga APA PSO Argentina",
-   icons: {
-    icon: "/favicon.png",
-    shortcut: "/favicon.png",
-    apple: "/favicon.png",
+  icons: {
+    icon: [
+      { url: "/favicon.png?v=5", type: "image/png" },
+      { url: "/icon.png?v=5", type: "image/png", sizes: "32x32" },
+    ],
+    shortcut: "/favicon.png?v=5",
+    apple: "/apple-icon.png?v=5",
   },
   other: {
     "google-adsense-account": "ca-pub-9012377872796123",
