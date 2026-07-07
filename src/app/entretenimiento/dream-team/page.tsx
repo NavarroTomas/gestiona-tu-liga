@@ -93,7 +93,7 @@ function fechaActualISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-type Competicion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa";
+type Competicion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones";
 
 const temporadasDisponibles = ["Temporada 4"];
 const competicionesDisponibles: { value: Competicion; label: string }[] = [
@@ -101,10 +101,12 @@ const competicionesDisponibles: { value: Competicion; label: string }[] = [
   { value: "copa_clasificatoria", label: "Clasificación a Copas" },
   { value: "copa_argentina", label: "Copa Argentina" },
   { value: "copa_apa", label: "Copa APA" },
+  { value: "copa_campeones", label: "Copa de Campeones" },
 ];
 const divisionesDisponibles = ["Primera", "Segunda"];
 const gruposDisponibles = ["A", "B", "C", "D"];
 const fasesDisponibles = ["Octavos", "Cuartos", "Semifinal", "Final"];
+const fasesCampeonesDisponibles = ["Semifinal", "Final"];
 
 function faseDb(value: string) {
   const v = String(value || "").toLowerCase().trim();
@@ -196,7 +198,7 @@ export default function DreamTeamPage() {
       query = query.eq("fase", "grupos").eq("grupo", grupo);
     }
 
-    if (competicion === "copa_argentina" || competicion === "copa_apa") {
+    if (competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones") {
       query = query.eq("fase", faseDb(fase));
     }
 
@@ -250,7 +252,7 @@ export default function DreamTeamPage() {
       query = query.eq("grupo", grupo).eq("fase", "grupos");
     }
 
-    if (competicion === "copa_argentina" || competicion === "copa_apa") {
+    if (competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones") {
       query = query.eq("fase", faseDb(fase));
     }
 
@@ -985,13 +987,13 @@ export default function DreamTeamPage() {
               </div>
             )}
 
-            {(competicion === "copa_argentina" || competicion === "copa_apa") && (
+            {(competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones") && (
               <div>
                 <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
                   Fase
                 </p>
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                  {fasesDisponibles.map((f) => (
+                  {(competicion === "copa_campeones" ? fasesCampeonesDisponibles : fasesDisponibles).map((f) => (
                     <button
                       key={f}
                       onClick={() => {

@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import PermissionGuard from "@/components/PermissionGuard";
 
 type Competicion =
-  "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa";
+  "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones";
 
 type OrdenTxt = "normal" | "invertido";
 
@@ -39,11 +39,13 @@ const COMPETICIONES: { value: Competicion; label: string }[] = [
   { value: "copa_clasificatoria", label: "Clasificación a Copas" },
   { value: "copa_argentina", label: "Copa Argentina" },
   { value: "copa_apa", label: "Copa APA" },
+  { value: "copa_campeones", label: "Copa de Campeones" },
 ];
 
 const DIVISIONES = ["Primera", "Segunda"];
 const GRUPOS = ["A", "B", "C", "D"];
 const FASES_COPA = ["Octavos", "Cuartos", "Semifinal", "Final"];
+const FASES_CAMPEONES = ["Semifinal", "Final"];
 
 export default function SubirTxtPage() {
   const [archivo, setArchivo] = useState<File | null>(null);
@@ -126,6 +128,7 @@ export default function SubirTxtPage() {
     if (v === "copa argentina" || v === "copa_argentina")
       return "copa_argentina";
     if (v === "copa apa" || v === "copa_apa") return "copa_apa";
+    if (v === "copa campeones" || v === "copa de campeones" || v === "copa_campeones") return "copa_campeones";
 
     return v;
   }
@@ -158,7 +161,7 @@ export default function SubirTxtPage() {
       partidosQuery = partidosQuery.eq("fase", "grupos").eq("grupo", grupoDb());
     }
 
-    if (competicion === "copa_argentina" || competicion === "copa_apa") {
+    if (competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones") {
       partidosQuery = partidosQuery.eq("fase", faseDb());
     }
 
@@ -974,13 +977,14 @@ export default function SubirTxtPage() {
                 )}
 
                 {(competicion === "copa_argentina" ||
-                  competicion === "copa_apa") && (
+                  competicion === "copa_apa" ||
+                  competicion === "copa_campeones") && (
                   <select
                     className="input"
                     value={fase}
                     onChange={(e) => setFase(e.target.value)}
                   >
-                    {FASES_COPA.map((f) => (
+                    {(competicion === "copa_campeones" ? FASES_CAMPEONES : FASES_COPA).map((f) => (
                       <option key={f}>{f}</option>
                     ))}
                   </select>

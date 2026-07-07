@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import CompetitionSelector from "@/components/CompetitionSelector";
 
-type Competicion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa";
+type Competicion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones";
 
 type Contexto = {
   id: string;
@@ -56,6 +56,19 @@ function construirContexto(competicion: Competicion, subcategoria: string): Cont
       short: faseLabel,
       competicion: "copa_argentina",
       fase,
+    };
+  }
+
+  if (competicion === "copa_campeones") {
+    const faseCampeones = fase === "final" ? "final" : "semifinal";
+    const faseCampeonesLabel = faseCampeones === "final" ? "Final" : "Semifinal";
+
+    return {
+      id: `copa-campeones-${faseCampeones}`,
+      label: `Copa de Campeones · ${faseCampeonesLabel}`,
+      short: faseCampeonesLabel,
+      competicion: "copa_campeones",
+      fase: faseCampeones,
     };
   }
 
@@ -178,7 +191,7 @@ export default function PrediccionesPage() {
       query = query.eq("fase", "grupos").eq("grupo", contexto.grupo);
     }
 
-    if (contexto.competicion === "copa_argentina" || contexto.competicion === "copa_apa") {
+    if (contexto.competicion === "copa_argentina" || contexto.competicion === "copa_apa" || contexto.competicion === "copa_campeones") {
       query = query.eq("fase", contexto.fase);
     }
 

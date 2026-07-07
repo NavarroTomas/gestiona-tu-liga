@@ -56,6 +56,7 @@ const nombresDivision: Record<string, string> = {
   "grupo-b": "Grupo B",
   "grupo-c": "Grupo C",
   "grupo-d": "Grupo D",
+  "copa-campeones": "Copa de Campeones",
 };
 
 const gruposCopa: Record<string, string> = {
@@ -66,7 +67,7 @@ const gruposCopa: Record<string, string> = {
 };
 
 function normalizarDivisionUrl(value: string) {
-  const permitido = ["primera", "segunda", "grupo-a", "grupo-b", "grupo-c", "grupo-d"];
+  const permitido = ["primera", "segunda", "grupo-a", "grupo-b", "grupo-c", "grupo-d", "copa-campeones"];
   return permitido.includes(value) ? value : "primera";
 }
 
@@ -76,11 +77,13 @@ export default function FixtureDivisionPage() {
   const division = normalizarDivisionUrl(divisionParam);
 
   const esCopaGrupos = Boolean(gruposCopa[division]);
+  const esCopaCampeones = division === "copa-campeones";
   const grupoCopa = gruposCopa[division];
   const divisionDb = division === "primera" ? "primera" : "segunda";
 
   const searchParams = useSearchParams();
   const temporada = searchParams.get("temporada") || "Temporada 4";
+  const faseCopaCampeones = searchParams.get("fase") || "";
 
   const [partidos, setPartidos] = useState<any[]>([]);
   const [clubesInfo, setClubesInfo] = useState<any[]>([]);
@@ -88,7 +91,7 @@ export default function FixtureDivisionPage() {
 
   useEffect(() => {
     cargarPartidos();
-  }, [division, divisionDb, grupoCopa, temporada]);
+  }, [division, divisionDb, grupoCopa, temporada, faseCopaCampeones]);
 
   function normalizarDivisionFiltro(value: string) {
     const v = String(value || "").toLowerCase().trim();
@@ -111,6 +114,12 @@ export default function FixtureDivisionPage() {
         .eq("competicion", "copa_clasificatoria")
         .eq("fase", "grupos")
         .eq("grupo", grupoCopa);
+    } else if (esCopaCampeones) {
+      query = query.eq("competicion", "copa_campeones");
+
+      if (faseCopaCampeones) {
+        query = query.eq("fase", faseCopaCampeones);
+      }
     } else {
       query = query
         .eq("competicion", "liga")
@@ -148,7 +157,7 @@ export default function FixtureDivisionPage() {
       }
 
       setClubesInfo(
-        esCopaGrupos
+        esCopaGrupos || esCopaCampeones
           ? (clubesData || [])
           : (clubesData || []).filter(
               (club: any) =>
@@ -330,7 +339,7 @@ export default function FixtureDivisionPage() {
           <div className="relative z-10 grid gap-8 xl:grid-cols-[1fr_360px] xl:items-center">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.45em] text-sky-400">
-                {esCopaGrupos ? "Fixture Clasificación a Copas" : "Fixture oficial"}
+                {esCopaCampeones ? "Fixture Copa de Campeones" : esCopaGrupos ? "Fixture Clasificación a Copas" : "Fixture oficial"}
               </p>
 
               <h1 className="mt-4 text-5xl font-black uppercase italic leading-none md:text-7xl">
@@ -344,13 +353,13 @@ export default function FixtureDivisionPage() {
 
               <p className="mt-6 max-w-3xl text-lg leading-8 text-zinc-300">
                 Centro de calendario, resultados, programación y tabla de
-                posiciones de {esCopaGrupos ? "la fase de grupos" : "la categoría seleccionada"}.
+                posiciones de {esCopaCampeones ? "la Copa de Campeones" : esCopaGrupos ? "la fase de grupos" : "la categoría seleccionada"}.
               </p>
             </div>
 
             <div className="rounded-[34px] border border-sky-400/25 bg-black/35 p-6">
               <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-300">
-                {esCopaGrupos ? "Resumen del grupo" : "Resumen competitivo"}
+                {esCopaCampeones ? "Resumen de copa" : esCopaGrupos ? "Resumen del grupo" : "Resumen competitivo"}
               </p>
 
               <div className="mt-5 grid grid-cols-2 gap-3">
@@ -403,11 +412,11 @@ export default function FixtureDivisionPage() {
               <div className="mb-5 flex items-end justify-between gap-4">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-300">
-                    {esCopaGrupos ? "Tabla del grupo" : "Tabla de posiciones"}
+                    {esCopaCampeones ? "Tabla de copa" : esCopaGrupos ? "Tabla del grupo" : "Tabla de posiciones"}
                   </p>
 
                   <h2 className="mt-2 text-3xl font-black uppercase">
-                    {esCopaGrupos ? "Clasificación a copas" : "Clasificación"}
+                    {esCopaCampeones ? "Copa de Campeones" : esCopaGrupos ? "Clasificación a copas" : "Clasificación"}
                   </h2>
                 </div>
 
@@ -537,11 +546,11 @@ export default function FixtureDivisionPage() {
               <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
-                    {esCopaGrupos ? "Fixture de grupo" : "Calendario"}
+                    {esCopaCampeones ? "Fixture de copa" : esCopaGrupos ? "Fixture de grupo" : "Calendario"}
                   </p>
 
                   <h2 className="mt-2 text-4xl font-black uppercase text-blue-100">
-                    📅 {esCopaGrupos ? `Grupo ${grupoCopa} · Fecha ${fechaActiva}` : `Fecha ${fechaActiva}`}
+                    📅 {esCopaCampeones ? `${faseCopaCampeones || "Todas las fases"} · Fecha ${fechaActiva}` : esCopaGrupos ? `Grupo ${grupoCopa} · Fecha ${fechaActiva}` : `Fecha ${fechaActiva}`}
                   </h2>
 
                   <p className="mt-2 text-zinc-400">

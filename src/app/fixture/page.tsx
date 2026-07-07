@@ -1,289 +1,316 @@
 "use client";
 
-import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 
-const temporadas = ["Temporada 4"];
-
-const competencias = [
+const temporadas = [
   {
-    id: "liga",
-    eyebrow: "Torneo oficial",
-    titulo: "Torneo de Liga",
-    descripcion: "Fixture de Primera y Segunda División del torneo principal de APA.",
-    icon: "🏆",
-    color: "border-sky-400/30 from-sky-500/18 to-blue-950/30",
-    opciones: [
-      {
-        nombre: "Primera División",
-        slug: "primera",
-        detalle: "Elite competitiva",
-        icon: "🏆",
-      },
-      {
-        nombre: "Segunda División",
-        slug: "segunda",
-        detalle: "Ascenso en juego",
-        icon: "🥈",
-      },
-    ],
-  },
-  {
-    id: "copas",
-    eyebrow: "Fase de grupos",
-    titulo: "Clasificación a Copas",
-    descripcion: "Fixture de los grupos A, B, C y D. Define clasificados a Copa Argentina y Copa APA.",
-    icon: "🏅",
-    color: "border-yellow-400/30 from-yellow-500/18 to-orange-950/30",
-    opciones: [
-      { nombre: "Grupo A", slug: "grupo-a", detalle: "Clasificación", icon: "A" },
-      { nombre: "Grupo B", slug: "grupo-b", detalle: "Clasificación", icon: "B" },
-      { nombre: "Grupo C", slug: "grupo-c", detalle: "Clasificación", icon: "C" },
-      { nombre: "Grupo D", slug: "grupo-d", detalle: "Clasificación", icon: "D" },
-    ],
+    label: "Temporada 4",
+    href: "/fixture?temporada=Temporada%204",
   },
 ];
 
-const infoCards = [
+const competencias = [
   {
-    icon: "1",
+    eyebrow: "Torneo regular",
+    titulo: "Torneo de Liga",
+    descripcion:
+      "Primera y Segunda División con calendario oficial, resultados y partidos programados.",
+    image: "/images/fixture/liga.png",
+    color: "border-sky-400/35",
+    accent: "text-sky-300",
+    glow: "hover:shadow-[0_0_42px_rgba(56,189,248,.18)]",
+    badge: "Temporada 4",
+    items: [
+      {
+        titulo: "Primera División",
+        texto: "Ver calendario",
+        href: "/fixture/primera?temporada=Temporada%204",
+      },
+      {
+        titulo: "Segunda División",
+        texto: "Ver calendario",
+        href: "/fixture/segunda?temporada=Temporada%204",
+      },
+    ],
+  },
+  {
+    eyebrow: "Fase de grupos",
+    titulo: "Clasificación a Copas",
+    descripcion:
+      "Grupos A, B, C y D. Los dos primeros van a Copa Argentina y los dos últimos a Copa APA.",
+    image: "/images/fixture/clasificacion.png",
+    color: "border-yellow-400/35",
+    accent: "text-yellow-300",
+    glow: "hover:shadow-[0_0_42px_rgba(250,204,21,.16)]",
+    badge: "Temporada 4",
+    items: [
+      {
+        titulo: "Grupo A",
+        texto: "Ver calendario",
+        href: "/fixture/grupo-a?temporada=Temporada%204",
+      },
+      {
+        titulo: "Grupo B",
+        texto: "Ver calendario",
+        href: "/fixture/grupo-b?temporada=Temporada%204",
+      },
+      {
+        titulo: "Grupo C",
+        texto: "Ver calendario",
+        href: "/fixture/grupo-c?temporada=Temporada%204",
+      },
+      {
+        titulo: "Grupo D",
+        texto: "Ver calendario",
+        href: "/fixture/grupo-d?temporada=Temporada%204",
+      },
+    ],
+  },,
+  {
+    eyebrow: "Máxima final",
+    titulo: "Copa de Campeones",
+    descripcion:
+      "Campeón de Primera, campeón de Segunda, campeón de Copa Argentina y campeón de Copa APA. Semifinales y final por el título máximo.",
+    image: "/images/fixture/copa-campeones.png",
+    color: "border-cyan-300/35",
+    accent: "text-cyan-200",
+    glow: "hover:shadow-[0_0_42px_rgba(34,211,238,.18)]",
+    badge: "Temporada 4",
+    items: [
+      {
+        titulo: "Semifinales",
+        texto: "Ver cruces",
+        href: "/fixture/copa-campeones?temporada=Temporada%204&fase=Semifinal",
+      },
+      {
+        titulo: "Final",
+        texto: "Ver final",
+        href: "/fixture/copa-campeones?temporada=Temporada%204&fase=Final",
+      },
+    ],
+  },];
+
+const pasos = [
+  {
+    numero: "1",
     titulo: "Elegí temporada",
     texto: "Seleccioná el ciclo competitivo que querés consultar.",
   },
   {
-    icon: "2",
+    numero: "2",
     titulo: "Elegí competencia",
-    texto: "Entrá al fixture de Liga o a la Clasificación a Copas.",
+    texto: "Entrá a Liga o Clasificación según el calendario que buscás.",
   },
   {
-    icon: "3",
+    numero: "3",
     titulo: "Consultá fechas",
-    texto: "Revisá jornadas, horarios, resultados y estadísticas disponibles.",
+    texto: "Revisá partidos, horarios, resultados y estadísticas cargadas.",
   },
 ];
 
-export default function FixtureHome() {
-  const [temporada, setTemporada] = useState("Temporada 4");
-
-  function fixtureHref(slug: string) {
-    return `/fixture/${slug}?temporada=${encodeURIComponent(temporada)}`;
-  }
-
+export default function FixturePage() {
   return (
     <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] text-white">
-      <section className="mx-auto max-w-[1500px] space-y-9 px-4 py-8 md:px-8">
-        <section className="relative overflow-hidden rounded-[40px] border border-sky-500/30 bg-[#020714] p-7 shadow-[0_0_55px_rgba(0,120,255,.22)] md:p-10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.22),transparent_42%)]" />
-          <div className="absolute -right-24 top-0 h-80 w-80 rounded-full bg-sky-500/10 blur-3xl" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/82 to-black/30" />
+      <section className="mx-auto max-w-[1500px] space-y-7 px-4 py-6 md:px-8 md:py-8">
+        <section className="relative min-h-[330px] overflow-hidden rounded-[36px] border border-sky-500/30 bg-[#020714] shadow-[0_0_55px_rgba(0,120,255,.18)] md:min-h-[390px]">
+          <Image
+            src="/images/fixture/fixture.png"
+            alt="Fixture oficial APA"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
 
-          <div className="relative z-10 grid gap-8 lg:grid-cols-[1fr_330px] lg:items-center">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.45em] text-sky-400">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#020714]/96 via-[#020714]/74 to-[#020714]/18" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#020714]/85 to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.14),transparent_46%)]" />
+          <div className="absolute inset-0 ring-1 ring-inset ring-white/10" />
+
+          <div className="relative z-10 flex min-h-[330px] items-center p-6 md:min-h-[390px] md:p-10 lg:p-12">
+            <div className="max-w-4xl">
+              <p className="text-[10px] font-black uppercase tracking-[0.42em] text-sky-400 md:text-xs">
                 Competición · Calendario
               </p>
 
-              <h1 className="mt-5 text-5xl font-black uppercase italic leading-none md:text-7xl">
-                <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
+              <h1 className="mt-4 text-[clamp(2.4rem,8vw,5.8rem)] font-black uppercase italic leading-none">
+                <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent drop-shadow-[0_8px_22px_rgba(0,0,0,.75)]">
                   Fixture
                 </span>
-
                 <span className="block text-sky-400 drop-shadow-[0_0_22px_rgba(56,189,248,.55)]">
                   Oficial APA
                 </span>
               </h1>
 
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-300">
-                Calendario oficial de Liga y Clasificación a Copas. Elegí la temporada, la competencia y después la categoría o grupo.
+              <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-200 drop-shadow-[0_4px_16px_rgba(0,0,0,.9)] md:text-lg md:leading-8">
+                Calendario oficial de Liga, Clasificación a Copas y Copa de Campeones. Elegí la temporada, la competencia y después la categoría, grupo o fase.
               </p>
 
-              <div className="mt-7 flex flex-wrap gap-3">
-                <a
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
                   href="/competicion"
-                  className="rounded-2xl border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-sm font-black uppercase text-sky-300 transition hover:bg-sky-400/20"
+                  className="rounded-2xl border border-white/15 bg-black/45 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white shadow-[0_0_18px_rgba(255,255,255,.08)] backdrop-blur-md transition hover:border-sky-400/50 hover:text-sky-300"
                 >
                   ← Volver a competición
-                </a>
+                </Link>
 
-                <a
+                <Link
                   href="/divisiones"
-                  className="rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-sm font-black uppercase text-yellow-300 transition hover:bg-yellow-400/20"
+                  className="rounded-2xl border border-yellow-400/35 bg-yellow-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-yellow-300 shadow-[0_0_18px_rgba(250,204,21,.10)] backdrop-blur-md transition hover:bg-yellow-400 hover:text-black"
                 >
-                  🏆 Ver Torneo
-                </a>
+                  🏆 Ver torneo
+                </Link>
 
-                <span className="rounded-2xl border border-green-400/30 bg-green-400/10 px-4 py-2 text-sm font-black uppercase text-green-300">
+                <span className="rounded-2xl border border-green-400/35 bg-green-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-green-300 shadow-[0_0_18px_rgba(74,222,128,.10)] backdrop-blur-md">
                   ● Calendario activo
                 </span>
               </div>
             </div>
-
-            <div className="hidden lg:block">
-              <div className="relative rounded-[34px] border border-sky-400/25 bg-black/35 p-6 shadow-[0_0_38px_rgba(56,189,248,.18)]">
-                <div className="absolute -inset-5 rounded-full bg-sky-400/10 blur-3xl" />
-
-                <div className="relative z-10 text-center">
-                  <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-[32px] border border-sky-400/30 bg-sky-400/10 text-6xl">
-                    📅
-                  </div>
-
-                  <p className="mt-5 text-xs font-bold uppercase tracking-[0.14em] text-sky-300">
-                    Calendario oficial
-                  </p>
-
-                  <h2 className="mt-2 text-3xl font-black uppercase">
-                    APA Matchday
-                  </h2>
-                </div>
-              </div>
-            </div>
           </div>
         </section>
 
-        <section className="rounded-[34px] border border-sky-500/20 bg-[#020714]/90 p-6 shadow-[0_0_35px_rgba(0,120,255,.10)]">
-          <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <section className="relative overflow-hidden rounded-[28px] border border-sky-500/25 bg-[#020714] shadow-[0_0_35px_rgba(0,120,255,.10)]">
+          <Image
+            src="/images/fixture/temporada.png"
+            alt="Elegir temporada"
+            fill
+            sizes="100vw"
+            className="object-cover object-center opacity-55"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#020714]/96 via-[#020714]/78 to-[#020714]/42" />
+          <div className="absolute inset-0 ring-1 ring-inset ring-white/10" />
+
+          <div className="relative z-10 grid gap-5 p-5 md:grid-cols-[1fr_1.2fr] md:p-7">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
+              <p className="text-[10px] font-black uppercase tracking-[0.32em] text-sky-300">
                 Paso 1
               </p>
-
-              <h2 className="mt-2 text-3xl font-black uppercase md:text-5xl">
+              <h2 className="mt-2 text-3xl font-black uppercase italic md:text-5xl">
                 Elegí temporada
               </h2>
             </div>
 
-            <p className="max-w-xl text-base leading-7 text-zinc-400">
-              La temporada seleccionada se usará para todos los fixtures disponibles.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-            {temporadas.map((temp) => (
-              <button
-                key={temp}
-                onClick={() => setTemporada(temp)}
-                className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
-                  temporada === temp
-                    ? "border-sky-300 bg-gradient-to-b from-sky-400 to-blue-700 text-white shadow-[0_0_24px_rgba(56,189,248,.45)]"
-                    : "border-white/10 bg-white/[0.035] text-zinc-400 hover:border-sky-400/40 hover:bg-sky-500/10 hover:text-white"
-                }`}
-              >
-                {temp}
-              </button>
-            ))}
+            <div className="flex flex-wrap items-center gap-3 md:justify-end">
+              {temporadas.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="rounded-2xl border border-sky-300/50 bg-gradient-to-b from-sky-400 to-blue-700 px-7 py-4 text-xs font-black uppercase tracking-[0.18em] text-white shadow-[0_0_24px_rgba(56,189,248,.35)] transition hover:scale-[1.02]"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 
-        <section className="space-y-8">
-          <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <section>
+          <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
-                Paso 2 · {temporada}
+                Paso 2 · Temporada 4
               </p>
-
               <h2 className="mt-2 text-3xl font-black uppercase md:text-5xl">
                 Elegí competencia
               </h2>
             </div>
-
-            <p className="max-w-xl text-base leading-7 text-zinc-400">
-              Liga y Clasificación a Copas conviven en el mismo calendario, sin mezclarse.
+            <p className="max-w-xl text-sm leading-7 text-zinc-400 md:text-base">
+              Liga, Clasificación a Copas y Copa de Campeones conviven en el mismo calendario oficial.
             </p>
           </div>
 
-          {competencias.map((competencia) => (
-            <section
-              key={competencia.id}
-              className={`relative overflow-hidden rounded-[38px] border bg-gradient-to-br ${competencia.color} p-6 shadow-[0_16px_45px_rgba(0,0,0,.24)]`}
-            >
-              <div className="absolute inset-0 bg-[#020714]/70" />
-              <div className="absolute -bottom-16 -right-12 text-[170px] opacity-[0.06]">
-                {competencia.icon}
-              </div>
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+            {competencias.map((competencia) => (
+              <article
+                key={competencia.titulo}
+                className={`group relative min-h-[430px] overflow-hidden rounded-[32px] border ${competencia.color} bg-[#020714] shadow-[0_0_30px_rgba(0,0,0,.35)] transition duration-300 hover:-translate-y-1 ${competencia.glow}`}
+              >
+                <Image
+                  src={competencia.image}
+                  alt={competencia.titulo}
+                  fill
+                  sizes="(max-width: 1280px) 100vw, 50vw"
+                  className="object-cover object-center transition duration-700 group-hover:scale-105"
+                />
 
-              <div className="relative z-10">
-                <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                <div className="absolute inset-0 bg-gradient-to-r from-[#020714]/96 via-[#020714]/72 to-[#020714]/30" />
+                <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#020714]/95 to-transparent" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,.10),transparent_38%)] opacity-0 transition group-hover:opacity-100" />
+                <div className="absolute inset-0 ring-1 ring-inset ring-white/10" />
+
+                <div className="relative z-10 flex min-h-[430px] flex-col justify-between p-5 md:p-7">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-[0.25em] text-sky-300">
-                      {competencia.eyebrow}
-                    </p>
+                    <div className="mb-5 flex items-start justify-between gap-4">
+                      <div>
+                        <p className={`text-xs font-black uppercase tracking-[0.25em] ${competencia.accent}`}>
+                          {competencia.eyebrow}
+                        </p>
+                        <h3 className="mt-4 max-w-[700px] text-[clamp(2rem,6vw,4.2rem)] font-black uppercase italic leading-none text-white drop-shadow-[0_8px_22px_rgba(0,0,0,.75)]">
+                          {competencia.titulo}
+                        </h3>
+                      </div>
 
-                    <h3 className="mt-3 text-4xl font-black uppercase italic md:text-5xl">
-                      {competencia.titulo}
-                    </h3>
+                      <span className="rounded-full border border-green-400/30 bg-green-400/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-green-300 backdrop-blur-md">
+                        {competencia.badge}
+                      </span>
+                    </div>
 
-                    <p className="mt-4 max-w-3xl text-base leading-7 text-zinc-300">
+                    <p className="max-w-2xl text-sm leading-7 text-zinc-200 drop-shadow-[0_4px_16px_rgba(0,0,0,.85)] md:text-base">
                       {competencia.descripcion}
                     </p>
                   </div>
 
-                  <span className="w-fit rounded-full border border-green-400/25 bg-green-400/10 px-4 py-2 text-xs font-black uppercase text-green-300">
-                    {temporada}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                  {competencia.opciones.map((opcion) => (
-                    <a
-                      key={opcion.slug}
-                      href={fixtureHref(opcion.slug)}
-                      className="group rounded-[28px] border border-white/10 bg-black/35 p-5 transition hover:-translate-y-1 hover:border-sky-400/40 hover:bg-sky-500/10"
-                    >
-                      <div className="mb-5 flex items-start justify-between gap-3">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-2xl font-black text-sky-300">
-                          {opcion.icon}
+                  <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-2 2xl:grid-cols-4">
+                    {competencia.items.map((item) => (
+                      <Link
+                        key={item.titulo}
+                        href={item.href}
+                        className="group/item rounded-2xl border border-white/12 bg-black/48 p-4 backdrop-blur-md transition hover:border-sky-400/45 hover:bg-sky-400/10"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                            Calendario
+                          </span>
+                          <span className="text-sky-300 transition group-hover/item:translate-x-1">→</span>
                         </div>
-
-                        <span className="text-2xl text-sky-300 transition group-hover:translate-x-1">
-                          →
-                        </span>
-                      </div>
-
-                      <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-500">
-                        {opcion.detalle}
-                      </p>
-
-                      <h4 className="mt-2 text-2xl font-black uppercase">
-                        {opcion.nombre}
-                      </h4>
-
-                      <p className="mt-4 text-sm font-black uppercase text-sky-300">
-                        Ver calendario
-                      </p>
-                    </a>
-                  ))}
+                        <p className="mt-3 text-sm font-black uppercase text-white">
+                          {item.titulo}
+                        </p>
+                        <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-sky-300">
+                          {item.texto}
+                        </p>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </section>
-          ))}
+              </article>
+            ))}
+          </div>
         </section>
 
-        <section className="rounded-[34px] border border-sky-500/20 bg-[#020714]/90 p-6">
-          <div className="mb-5">
-            <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
-              Información del fixture
-            </p>
+        <section className="rounded-[28px] border border-sky-500/20 bg-[#020714]/90 p-5 shadow-[0_0_30px_rgba(0,120,255,.10)] md:p-7">
+          <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
+            Calendario
+          </p>
+          <h2 className="mt-2 text-2xl font-black uppercase md:text-4xl">
+            Cómo funciona el fixture
+          </h2>
 
-            <h2 className="mt-2 text-3xl font-black uppercase">
-              Cómo funciona el calendario
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {infoCards.map((card) => (
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+            {pasos.map((paso) => (
               <div
-                key={card.titulo}
-                className="group rounded-[28px] border border-white/10 bg-white/[0.035] p-6 transition hover:-translate-y-1 hover:border-sky-400/35 hover:bg-sky-500/10"
+                key={paso.numero}
+                className="rounded-2xl border border-white/10 bg-white/[0.035] p-5"
               >
-                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-sky-400/25 bg-sky-400/10 text-2xl font-black text-sky-300 transition group-hover:scale-110">
-                  {card.icon}
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-sky-400/35 bg-sky-400/10 text-sm font-black text-sky-300">
+                  {paso.numero}
                 </div>
-
-                <h3 className="text-2xl font-black uppercase">
-                  {card.titulo}
+                <h3 className="mt-4 text-lg font-black uppercase text-white">
+                  {paso.titulo}
                 </h3>
-
-                <p className="mt-3 text-base leading-7 text-zinc-400">
-                  {card.texto}
+                <p className="mt-2 text-sm leading-6 text-zinc-500">
+                  {paso.texto}
                 </p>
               </div>
             ))}

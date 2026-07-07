@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
-type Competicion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa";
+type Competicion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones";
 
 type ContextoCompetencia = {
   id: string;
@@ -152,6 +152,20 @@ const contextos: ContextoCompetencia[] = [
     fase: "final",
     badge: "Final",
   },
+  {
+    id: "copa-campeones-semis",
+    label: "Copa Campeones · Semifinal",
+    competicion: "copa_campeones",
+    fase: "semifinal",
+    badge: "Semifinal",
+  },
+  {
+    id: "copa-campeones-final",
+    label: "Copa Campeones · Final",
+    competicion: "copa_campeones",
+    fase: "final",
+    badge: "Final",
+  },
 ];
 
 function valorGKSave(r: any) {
@@ -216,6 +230,7 @@ function getNombreCompeticion(contexto: ContextoCompetencia) {
   if (contexto.competicion === "liga") return "Torneo de Liga";
   if (contexto.competicion === "copa_clasificatoria") return "Clasificación a Copas";
   if (contexto.competicion === "copa_argentina") return "Copa Argentina";
+  if (contexto.competicion === "copa_campeones") return "Copa de Campeones";
   return "Copa APA";
 }
 
@@ -251,7 +266,8 @@ export default function PremiosPage() {
 
     if (
       contexto.competicion === "copa_argentina" ||
-      contexto.competicion === "copa_apa"
+      contexto.competicion === "copa_apa" ||
+      contexto.competicion === "copa_campeones"
     ) {
       query = query.eq("fase", contexto.fase);
     }

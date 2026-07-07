@@ -18,7 +18,7 @@ import QuickAccessGrid from "@/components/home/QuickAccessGrid";
 
 const temporadas = ["Temporada 4"];
 
-type ContextoCompetencia = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa";
+type ContextoCompetencia = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones";
 
 type ContextoHome = {
   nombre: string;
@@ -151,6 +151,22 @@ const contextosHome: ContextoHome[] = [
     fase: "final",
     badge: "Final",
   },
+  {
+    nombre: "copa-campeones-semis",
+    label: "Copa de Campeones · Semifinal",
+    icon: "CC",
+    competicion: "copa_campeones",
+    fase: "semifinal",
+    badge: "Semifinal",
+  },
+  {
+    nombre: "copa-campeones-final",
+    label: "Copa de Campeones · Final",
+    icon: "CC",
+    competicion: "copa_campeones",
+    fase: "final",
+    badge: "Final",
+  },
 ];
 
 type NoticiaHome = {
@@ -241,6 +257,10 @@ function getContextoPartido(p: any) {
     return p?.fase ? `Copa APA · ${p.fase}` : "Copa APA";
   }
 
+  if (competicion === "copa_campeones") {
+    return p?.fase ? `Copa de Campeones · ${p.fase}` : "Copa de Campeones";
+  }
+
   return competicion;
 }
 
@@ -309,7 +329,8 @@ export default function Home() {
 
     if (
       contextoActual.competicion === "copa_argentina" ||
-      contextoActual.competicion === "copa_apa"
+      contextoActual.competicion === "copa_apa" ||
+      contextoActual.competicion === "copa_campeones"
     ) {
       query = query.eq("fase", contextoActual.fase);
     }
@@ -469,7 +490,9 @@ export default function Home() {
         ? "Clasificación a Copas"
         : contextoActual.competicion === "copa_argentina"
           ? "Copa Argentina"
-          : "Copa APA";
+          : contextoActual.competicion === "copa_campeones"
+            ? "Copa de Campeones"
+            : "Copa APA";
 
   const detalleCompetencia =
     contextoActual.competicion === "liga"

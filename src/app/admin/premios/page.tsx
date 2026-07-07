@@ -77,6 +77,7 @@ type Candidato = {
   goldenPonderado: number;
   influencia: number;
   bonusEquipo: number;
+  pesoCompetitivoPromedio: number;
   competicionesResumen: string;
   puntos: number;
   posicion: number;
@@ -115,35 +116,35 @@ const premios: PremioConfig[] = [
     nombre: "Balón de Oro",
     icono: "🏆",
     descripcion:
-      "Premio máximo APA. Calcula rendimiento global con peso por competición, división, influencia individual y logro colectivo.",
+      "Premio máximo APA. Calcula rendimiento global con jerarquía competitiva, influencia individual y logro colectivo.",
   },
   {
     key: "the_best",
     nombre: "The Best",
     icono: "🏅",
     descripcion:
-      "Mejor jugador de Segunda División. Cuenta todo su rendimiento oficial de temporada, incluyendo copas.",
+      "Mejor jugador de Segunda División. Cuenta todo su rendimiento oficial de temporada, incluyendo copas y playoffs.",
   },
   {
     key: "raiko_trophy",
     nombre: "Raiko Trophy",
     icono: "🧤",
     descripcion:
-      "Mejor arquero de la temporada. Mantiene peso por división y suma peso por competición, influencia y logro colectivo.",
+      "Mejor arquero de la temporada. Usa jerarquía competitiva, influencia del arquero y logro colectivo.",
   },
   {
     key: "bota_oro",
     nombre: "Bota de Oro",
     icono: "⚽",
     descripcion:
-      "Máximo goleador de la temporada. Cuenta goles oficiales con peso por competición.",
+      "Máximo goleador de la temporada. Cuenta goles oficiales con peso de importancia competitiva.",
   },
   {
     key: "golden_boy",
     nombre: "Golden Boy",
     icono: "⭐",
     descripcion:
-      "Mejor promesa: máximo 2 temporadas, menos de 25 PJ y menos de 500 hs en PSO. Cuenta Liga y copas con pesos oficiales.",
+      "Mejor promesa: máximo 2 temporadas, menos de 25 PJ y menos de 500 hs en PSO. Cuenta todas las competencias oficiales con jerarquía APA.",
   },
 ];
 
@@ -181,22 +182,77 @@ function normalizarCompeticion(competicion?: string | null) {
     .trim();
 }
 
+function esPlayoffCompetitivo(competicion?: string | null, fase?: string | null) {
+  const c = normalizarCompeticion(competicion);
+  const f = String(fase || "").toLowerCase().trim();
+
+  return c.includes("playoff") || f.includes("playoff") || f.includes("promocion") || f.includes("promoción");
+}
+
+function pesoImportanciaCompetitiva(
+  competicion?: string | null,
+  division?: string | null,
+  fase?: string | null,
+) {
+  const c = normalizarCompeticion(competicion);
+  const d = normalizarDivision(division);
+
+  if (c === "copa_campeones") return 1.2;
+
+  if (esPlayoffCompetitivo(c, fase)) return 0.6;
+
+  if (c === "liga") {
+    if (d.includes("primera")) return 1;
+    if (d.includes("segunda")) return 0.85;
+    return 1;
+  }
+
+  if (c === "copa_argentina") return 0.95;
+  if (c === "copa_apa") return 0.75;
+
+  // La clasificación a copas no es un título final: suma, pero por debajo de las competencias principales.
+  if (c === "copa_clasificatoria") return 0.7;
+
+  return 1;
+}
+
+function labelPesoImportancia(
+  competicion?: string | null,
+  division?: string | null,
+  fase?: string | null,
+) {
+  const c = normalizarCompeticion(competicion);
+  const d = normalizarDivision(division);
+
+  if (c === "copa_campeones") return "Copa Campeones x1.20";
+  if (esPlayoffCompetitivo(c, fase)) return "Playoffs x0.60";
+  if (c === "liga" && d.includes("primera")) return "Primera División x1.00";
+  if (c === "liga" && d.includes("segunda")) return "Segunda División x0.85";
+  if (c === "copa_argentina") return "Copa Argentina x0.95";
+  if (c === "copa_apa") return "Copa APA x0.75";
+  if (c === "copa_clasificatoria") return "Clasificación x0.70";
+
+  return "Peso competitivo x1.00";
+}
+
 function pesoDivision(division?: string | null) {
   const d = normalizarDivision(division);
 
   if (d.includes("primera")) return 1;
-  if (d.includes("segunda")) return 0.75;
+  if (d.includes("segunda")) return 0.85;
 
   return 1;
 }
 
 function pesoCompeticion(competicion?: string | null) {
+  // Compatibilidad visual: el cálculo real usa pesoImportanciaCompetitiva().
   const c = normalizarCompeticion(competicion);
 
-  if (c === "liga") return 1;
-  if (c === "copa_argentina") return 1.05;
-  if (c === "copa_clasificatoria") return 0.95;
-  if (c === "copa_apa") return 0.9;
+  if (c === "copa_campeones") return 1.2;
+  if (c === "copa_argentina") return 0.95;
+  if (c === "copa_apa") return 0.75;
+  if (c === "copa_clasificatoria") return 0.7;
+  if (c.includes("playoff")) return 0.6;
 
   return 1;
 }
@@ -205,9 +261,11 @@ function nombreCompeticion(competicion?: string | null) {
   const c = normalizarCompeticion(competicion);
 
   if (c === "liga") return "Liga";
+  if (c === "copa_campeones") return "Copa Campeones";
   if (c === "copa_argentina") return "Copa Argentina";
   if (c === "copa_clasificatoria") return "Clasificación";
   if (c === "copa_apa") return "Copa APA";
+  if (c.includes("playoff")) return "Playoffs";
 
   return competicion || "Competición";
 }
@@ -376,7 +434,12 @@ function crearBonusEquipo(partidos: PartidoOficial[]) {
       );
     }
 
-    if (comp === "copa_argentina" || comp === "copa_apa") {
+    if (
+      comp === "copa_campeones" ||
+      comp === "copa_argentina" ||
+      comp === "copa_apa" ||
+      comp.includes("playoff")
+    ) {
       const maxFase = faseValor(p.fase);
       if (!copas[comp]) copas[comp] = {};
       copas[comp][local] = Math.max(copas[comp][local] || 0, maxFase);
@@ -386,13 +449,30 @@ function crearBonusEquipo(partidos: PartidoOficial[]) {
         const ganador = ganadorPartido(p);
         if (ganador) {
           const perdedor = ganador === local ? visitante : local;
+          const bonusCampeon =
+            comp === "copa_campeones"
+              ? 0.12
+              : comp === "copa_argentina"
+                ? 0.08
+                : comp.includes("playoff")
+                  ? 0.04
+                  : 0.05;
+          const bonusFinalista =
+            comp === "copa_campeones"
+              ? 0.08
+              : comp === "copa_argentina"
+                ? 0.05
+                : comp.includes("playoff")
+                  ? 0.025
+                  : 0.03;
+
           bonus[`${comp}|${ganador}`] = Math.max(
             bonus[`${comp}|${ganador}`] || 0,
-            comp === "copa_argentina" ? 0.06 : 0.04,
+            bonusCampeon,
           );
           bonus[`${comp}|${perdedor}`] = Math.max(
             bonus[`${comp}|${perdedor}`] || 0,
-            comp === "copa_argentina" ? 0.04 : 0.02,
+            bonusFinalista,
           );
         }
       }
@@ -446,7 +526,14 @@ function crearBonusEquipo(partidos: PartidoOficial[]) {
   Object.entries(copas).forEach(([comp, equipos]) => {
     Object.entries(equipos).forEach(([equipo, maxFase]) => {
       if (maxFase >= 3) {
-        const valor = comp === "copa_argentina" ? 0.02 : 0.015;
+        const valor =
+          comp === "copa_campeones"
+            ? 0.035
+            : comp === "copa_argentina"
+              ? 0.025
+              : comp.includes("playoff")
+                ? 0.012
+                : 0.018;
         bonus[`${comp}|${equipo}`] = Math.max(
           bonus[`${comp}|${equipo}`] || 0,
           valor,
@@ -710,9 +797,11 @@ export default function AdminPremiosPage() {
       const partido = partidoPorId[String(s.partido_id || "").trim()];
       const divisionOficial = partido?.division || s.division || "Sin división";
       const competicion = normalizarCompeticion(partido?.competicion);
-      const pCompeticion = pesoCompeticion(competicion);
-      const pDivision = pesoDivision(divisionOficial);
-      const peso = pCompeticion * pDivision;
+      const peso = pesoImportanciaCompetitiva(
+        competicion,
+        divisionOficial,
+        partido?.fase,
+      );
       const rating = Number(s.rating_apa ?? 0);
       const equipo = s.equipo || "Sin club";
       const equipoKey = `${s.partido_id}|${equipo}`;
@@ -787,6 +876,8 @@ export default function AdminPremiosPage() {
           influenciaPartidos: 0,
           bonusEquipoTotal: 0,
           bonusEquipoPartidos: 0,
+          pesoCompetitivoTotal: 0,
+          pesoCompetitivoPartidos: 0,
         };
       }
 
@@ -810,12 +901,14 @@ export default function AdminPremiosPage() {
       mapa[key].atrapadas += valorGKCatches(s);
       mapa[key].basePonderada += calcularBaseStat(s) * peso;
       mapa[key].raikoPonderado += calcularRaikoStat(s) * peso;
-      mapa[key].golesPonderados += Number(s.goals || 0) * pCompeticion;
+      mapa[key].golesPonderados += Number(s.goals || 0) * peso;
       mapa[key].goldenPonderado += calcularGoldenStat(s) * peso;
       mapa[key].influenciaTotal += influenciaPartido;
       mapa[key].influenciaPartidos += 1;
       mapa[key].bonusEquipoTotal += bonusPartidoEquipo;
       mapa[key].bonusEquipoPartidos += bonusPartidoEquipo > 0 ? 1 : 0;
+      mapa[key].pesoCompetitivoTotal += peso;
+      mapa[key].pesoCompetitivoPartidos += 1;
 
       if (rating > 0) {
         mapa[key].ratingTotal += rating;
@@ -868,6 +961,10 @@ export default function AdminPremiosPage() {
             ? Math.round((j.bonusEquipoTotal / j.bonusEquipoPartidos) * 100) /
               100
             : 0,
+        pesoCompetitivoPromedio:
+          j.pesoCompetitivoPartidos > 0
+            ? Math.round((j.pesoCompetitivoTotal / j.pesoCompetitivoPartidos) * 100) / 100
+            : 1,
         competicionesResumen: competicionesResumen || "Sin competición",
       };
 
@@ -1238,13 +1335,13 @@ export default function AdminPremiosPage() {
                       premio === "raiko_trophy" ||
                       premio === "golden_boy") && (
                       <p className="mt-3 rounded-xl border border-yellow-400/20 bg-yellow-400/10 p-3 text-xs font-bold leading-5 text-yellow-200">
-                        Fórmula: 65% rendimiento individual · 20% impacto en el equipo · 15% logro colectivo. Pesos: Liga x1.00 · Copa Argentina x1.05 · Clasificación x0.95 · Copa APA x0.90 · Primera x1.00 · Segunda x0.75
+                        Fórmula: 65% rendimiento individual · 20% impacto en el equipo · 15% logro colectivo. Jerarquía: Copa Campeones x1.20 · Primera x1.00 · Copa Argentina x0.95 · Segunda x0.85 · Copa APA x0.75 · Playoffs x0.60 · Clasificación x0.70
                       </p>
                     )}
 
                     {premio === "the_best" && (
                       <p className="mt-3 rounded-xl border border-purple-400/20 bg-purple-400/10 p-3 text-xs font-bold leading-5 text-purple-200">
-                        Solo compiten jugadores cuya división principal sea Segunda. También cuentan sus partidos de copas oficiales. Fórmula: 65% rendimiento individual · 20% impacto en el equipo · 15% logro colectivo.
+                        Solo compiten jugadores cuya división principal sea Segunda. También cuentan copas y playoffs oficiales. Fórmula: 65% rendimiento individual · 20% impacto en el equipo · 15% logro colectivo.
                       </p>
                     )}
                   </div>
@@ -1443,8 +1540,7 @@ export default function AdminPremiosPage() {
                               premio === "raiko_trophy" ||
                               premio === "golden_boy") && (
                               <p className="mt-1 text-xs font-black uppercase tracking-[0.14em] text-yellow-300">
-                                División x
-                                {pesoDivision(c.divisionPrincipal).toFixed(2)} ·
+                                Peso competitivo x{c.pesoCompetitivoPromedio.toFixed(2)} ·
                                 Influencia {(c.influencia * 100).toFixed(0)}% ·
                                 Equipo +{(c.bonusEquipo * 100).toFixed(0)}%
                               </p>

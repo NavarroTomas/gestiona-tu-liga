@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
-type CompeticionValue = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa";
+type CompeticionValue = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones";
 
 type EquipoPartido = {
   partido_id: string;
@@ -41,11 +42,13 @@ const competiciones: { value: CompeticionValue; label: string; short: string }[]
   { value: "copa_clasificatoria", label: "Clasificación a Copas", short: "Clasificación" },
   { value: "copa_argentina", label: "Copa Argentina", short: "Argentina" },
   { value: "copa_apa", label: "Copa APA", short: "APA" },
+  { value: "copa_campeones", label: "Copa de Campeones", short: "Campeones" },
 ];
 
 const divisiones = ["Primera", "Segunda"];
 const grupos = ["A", "B", "C", "D"];
-const fases = ["Octavos", "Cuartos", "Semifinal", "Final"];
+const fasesEliminacion = ["Octavos", "Cuartos", "Semifinal", "Final"];
+const fasesCampeones = ["Semifinal", "Final"];
 
 function normalizarDivision(value?: string | null) {
   const v = String(value || "").toLowerCase().trim();
@@ -70,7 +73,7 @@ function labelContextoPartido(partido: PartidoAgrupado) {
   const competicion = String(partido.competicion || "liga") as CompeticionValue;
 
   if (competicion === "copa_clasificatoria") return `Grupo ${partido.grupo || "-"}`;
-  if (competicion === "copa_argentina" || competicion === "copa_apa") return partido.fase || "Fase";
+  if (competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones") return partido.fase || "Fase";
 
   return partido.division || "División";
 }
@@ -89,10 +92,17 @@ export default function EstadisticasPage() {
   const [loading, setLoading] = useState(true);
 
   const contextoActual = labelContexto(competicion, division, grupo, fase);
+  const fasesDisponibles = competicion === "copa_campeones" ? fasesCampeones : fasesEliminacion;
 
   useEffect(() => {
     setFecha("Todas");
   }, [temporada, competicion, division, grupo, fase]);
+
+  useEffect(() => {
+    if (competicion === "copa_campeones" && !fasesCampeones.includes(fase)) {
+      setFase("Semifinal");
+    }
+  }, [competicion, fase]);
 
   useEffect(() => {
     let cancelado = false;
@@ -114,7 +124,7 @@ export default function EstadisticasPage() {
         partidosQuery = partidosQuery.eq("grupo", grupo);
       }
 
-      if (competicion === "copa_argentina" || competicion === "copa_apa") {
+      if (competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones") {
         partidosQuery = partidosQuery.eq("fase", fase);
       }
 
@@ -279,10 +289,22 @@ export default function EstadisticasPage() {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] text-white">
       <section className="mx-auto max-w-[1500px] space-y-8 px-4 py-8 md:px-8">
-        <div className="relative overflow-hidden rounded-[34px] border border-sky-500/40 bg-[#020714] shadow-[0_0_55px_rgba(0,120,255,.28)]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_40%)]" />
+        <div className="relative min-h-[330px] overflow-hidden rounded-[34px] border border-sky-500/40 bg-[#020714] shadow-[0_0_55px_rgba(0,120,255,.28)] md:min-h-[390px]">
+          <Image
+            src="/images/stats/stats.png"
+            alt="Match Center APA"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
 
-          <div className="relative z-10 p-7 md:p-10">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#020714]/96 via-[#020714]/74 to-[#020714]/20" />
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#020714]/90 to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_40%)]" />
+          <div className="absolute inset-0 ring-1 ring-inset ring-white/10" />
+
+          <div className="relative z-10 flex min-h-[330px] items-center p-7 md:min-h-[390px] md:p-10">
             <p className="text-xs font-black uppercase tracking-[0.45em] text-sky-400">APA PSO ARGENTINA</p>
 
             <h1 className="mt-4 text-5xl font-black uppercase italic leading-none md:text-7xl">
@@ -296,8 +318,20 @@ export default function EstadisticasPage() {
           </div>
         </div>
 
-        <section className="rounded-[30px] border border-sky-500/30 bg-[#020714] p-6 shadow-[0_0_35px_rgba(0,120,255,.14)] md:p-7">
-          <div className="grid gap-6">
+        <section className="relative overflow-hidden rounded-[30px] border border-sky-500/30 bg-[#020714] p-6 shadow-[0_0_35px_rgba(0,120,255,.14)] md:p-7">
+          <Image
+            src="/images/stats/seleccion.png"
+            alt="Selector de estadísticas APA"
+            fill
+            sizes="100vw"
+            className="object-cover object-center opacity-40"
+          />
+
+          <div className="absolute inset-0 bg-gradient-to-r from-[#020714]/97 via-[#020714]/84 to-[#020714]/58" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.12),transparent_42%)]" />
+          <div className="absolute inset-0 ring-1 ring-inset ring-white/10" />
+
+          <div className="relative z-10 grid gap-6">
             <FilterBlock title="Temporada">
               <div className="grid grid-cols-1 gap-3">
                 {temporadas.map((temp) => (
@@ -309,7 +343,7 @@ export default function EstadisticasPage() {
             </FilterBlock>
 
             <FilterBlock title="Competencia">
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
                 {competiciones.map((item) => (
                   <FilterButton key={item.value} active={competicion === item.value} variant="yellow" onClick={() => setCompeticion(item.value)}>
                     {item.short}
@@ -342,10 +376,10 @@ export default function EstadisticasPage() {
               </FilterBlock>
             )}
 
-            {(competicion === "copa_argentina" || competicion === "copa_apa") && (
+            {(competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones") && (
               <FilterBlock title="Fase">
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                  {fases.map((f) => (
+                  {fasesDisponibles.map((f) => (
                     <FilterButton key={f} active={fase === f} variant="yellow" onClick={() => setFase(f)}>
                       {f}
                     </FilterButton>

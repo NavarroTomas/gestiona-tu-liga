@@ -1,6 +1,6 @@
 "use client";
 
-type Competicion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa";
+type Competicion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones";
 
 type Props = {
   competicion: Competicion;
@@ -13,6 +13,7 @@ const competiciones: { id: Competicion; label: string; accent: string }[] = [
   { id: "copa_clasificatoria", label: "Clasificación a Copas", accent: "text-yellow-300" },
   { id: "copa_argentina", label: "Copa Argentina", accent: "text-yellow-300" },
   { id: "copa_apa", label: "Copa APA", accent: "text-cyan-300" },
+  { id: "copa_campeones", label: "Copa de Campeones", accent: "text-cyan-200" },
 ];
 
 const opciones: Record<Competicion, { id: string; label: string }[]> = {
@@ -35,6 +36,10 @@ const opciones: Record<Competicion, { id: string; label: string }[]> = {
   copa_apa: [
     { id: "octavos", label: "Octavos" },
     { id: "cuartos", label: "Cuartos" },
+    { id: "semifinal", label: "Semifinal" },
+    { id: "final", label: "Final" },
+  ],
+  copa_campeones: [
     { id: "semifinal", label: "Semifinal" },
     { id: "final", label: "Final" },
   ],
