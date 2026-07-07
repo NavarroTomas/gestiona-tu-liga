@@ -397,7 +397,6 @@ export default function HistoriaPage() {
   const mejorArquero = top("atajadas", 1)[0];
 
   const totalPremios = premiosApa.length;
-  const ultimoGanador = premiosApa[0];
 
   const leyendas = useMemo(
     () => [
@@ -899,7 +898,7 @@ export default function HistoriaPage() {
           <div className="relative z-10 grid gap-8 p-5 sm:p-8 lg:grid-cols-[1fr_430px] lg:items-center lg:p-10 xl:p-12">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.45em] text-yellow-300 sm:text-xs">
-                APA PSO Argentina · World Cup Edition
+                APA PSO Argentina · Historia oficial
               </p>
 
               <h1 className="mt-5 text-[clamp(3.2rem,10vw,7rem)] font-black uppercase italic leading-none">
@@ -941,25 +940,39 @@ export default function HistoriaPage() {
             </div>
 
             <div className="relative hidden lg:block">
-              <div className="relative overflow-hidden rounded-[42px] border border-yellow-400/25 bg-black/45 p-5 shadow-[0_0_55px_rgba(250,204,21,.22)]">
-                <img
-                  src="/themes/worldcup/trophy-worldcup.png"
-                  alt="Copa"
-                  className="h-[360px] w-full rounded-[32px] object-cover"
-                />
-                <div className="absolute inset-5 rounded-[32px] bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                <div className="absolute bottom-9 left-9 right-9">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-yellow-300">
-                    Último ganador
+              <div className="relative overflow-hidden rounded-[42px] border border-sky-400/20 bg-black/45 p-7 shadow-[0_0_55px_rgba(56,189,248,.14)]">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.18),transparent_45%)]" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] via-transparent to-black/70" />
+
+                <div className="relative z-10 space-y-5">
+                  <p className="text-[10px] font-black uppercase tracking-[0.32em] text-sky-300">
+                    Archivo histórico
                   </p>
-                  <h2 className="mt-2 truncate text-3xl font-black uppercase">
-                    {ultimoGanador?.nombre || "Sin datos"}
+
+                  <h2 className="text-4xl font-black uppercase italic leading-none text-white">
+                    Legado
+                    <span className="block text-sky-300">competitivo</span>
                   </h2>
-                  <p className="mt-1 truncate text-xs font-black uppercase tracking-[0.16em] text-zinc-400">
-                    {ultimoGanador
-                      ? `${premioNombre(ultimoGanador.premio)} · ${ultimoGanador.temporada}`
-                      : "Cargá premios desde el panel"}
+
+                  <p className="max-w-sm text-sm leading-7 text-zinc-400">
+                    Premios, récords, rankings y marcas acumuladas de la comunidad APA.
                   </p>
+
+                  <div className="grid grid-cols-2 gap-3 pt-2">
+                    <div className="rounded-3xl border border-white/10 bg-black/40 p-4">
+                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
+                        Temporadas
+                      </p>
+                      <p className="mt-2 text-3xl font-black text-yellow-300">T4+</p>
+                    </div>
+
+                    <div className="rounded-3xl border border-white/10 bg-black/40 p-4">
+                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
+                        Fuente
+                      </p>
+                      <p className="mt-2 text-3xl font-black text-sky-300">APA</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

@@ -4,22 +4,42 @@ import { useState } from "react";
 
 const temporadas = ["Temporada 4"];
 
-const divisiones = [
+const competencias = [
   {
-    nombre: "Primera División",
-    slug: "primera",
-    color: "border-sky-400/30 from-sky-500/18 to-blue-950/30",
+    id: "liga",
+    eyebrow: "Torneo oficial",
+    titulo: "Torneo de Liga",
+    descripcion: "Fixture de Primera y Segunda División del torneo principal de APA.",
     icon: "🏆",
-    descripcion: "Fixture oficial de la máxima categoría del Torneo de Liga APA.",
-    detalle: "Elite competitiva",
+    color: "border-sky-400/30 from-sky-500/18 to-blue-950/30",
+    opciones: [
+      {
+        nombre: "Primera División",
+        slug: "primera",
+        detalle: "Elite competitiva",
+        icon: "🏆",
+      },
+      {
+        nombre: "Segunda División",
+        slug: "segunda",
+        detalle: "Ascenso en juego",
+        icon: "🥈",
+      },
+    ],
   },
   {
-    nombre: "Segunda División",
-    slug: "segunda",
-    color: "border-cyan-400/30 from-cyan-500/18 to-blue-950/30",
-    icon: "🥈",
-    descripcion: "Calendario completo de la segunda categoría oficial.",
-    detalle: "Ascenso en juego",
+    id: "copas",
+    eyebrow: "Fase de grupos",
+    titulo: "Clasificación a Copas",
+    descripcion: "Fixture de los grupos A, B, C y D. Define clasificados a Copa Argentina y Copa APA.",
+    icon: "🏅",
+    color: "border-yellow-400/30 from-yellow-500/18 to-orange-950/30",
+    opciones: [
+      { nombre: "Grupo A", slug: "grupo-a", detalle: "Clasificación", icon: "A" },
+      { nombre: "Grupo B", slug: "grupo-b", detalle: "Clasificación", icon: "B" },
+      { nombre: "Grupo C", slug: "grupo-c", detalle: "Clasificación", icon: "C" },
+      { nombre: "Grupo D", slug: "grupo-d", detalle: "Clasificación", icon: "D" },
+    ],
   },
 ];
 
@@ -27,17 +47,17 @@ const infoCards = [
   {
     icon: "1",
     titulo: "Elegí temporada",
-    texto: "Primero seleccioná el ciclo competitivo que querés consultar.",
+    texto: "Seleccioná el ciclo competitivo que querés consultar.",
   },
   {
     icon: "2",
-    titulo: "Elegí categoría",
-    texto: "Después entrá al fixture de Primera o Segunda.",
+    titulo: "Elegí competencia",
+    texto: "Entrá al fixture de Liga o a la Clasificación a Copas.",
   },
   {
     icon: "3",
-    titulo: "Consultá partidos",
-    texto: "Revisá jornadas, horarios, resultados y acceso a estadísticas.",
+    titulo: "Consultá fechas",
+    texto: "Revisá jornadas, horarios, resultados y estadísticas disponibles.",
   },
 ];
 
@@ -73,8 +93,7 @@ export default function FixtureHome() {
               </h1>
 
               <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-300">
-                Calendario oficial del Torneo de Liga APA. Primero elegí la
-                temporada y después ingresá al fixture de Primera o Segunda.
+                Calendario oficial de Liga y Clasificación a Copas. Elegí la temporada, la competencia y después la categoría o grupo.
               </p>
 
               <div className="mt-7 flex flex-wrap gap-3">
@@ -133,8 +152,7 @@ export default function FixtureHome() {
             </div>
 
             <p className="max-w-xl text-base leading-7 text-zinc-400">
-              La temporada seleccionada se usará para entrar al fixture de cada
-              categoría.
+              La temporada seleccionada se usará para todos los fixtures disponibles.
             </p>
           </div>
 
@@ -155,7 +173,7 @@ export default function FixtureHome() {
           </div>
         </section>
 
-        <section>
+        <section className="space-y-8">
           <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
@@ -163,67 +181,80 @@ export default function FixtureHome() {
               </p>
 
               <h2 className="mt-2 text-3xl font-black uppercase md:text-5xl">
-                Elegí categoría
+                Elegí competencia
               </h2>
             </div>
 
             <p className="max-w-xl text-base leading-7 text-zinc-400">
-              Entrá a la división correspondiente para ver jornadas, partidos y
-              resultados de {temporada}.
+              Liga y Clasificación a Copas conviven en el mismo calendario, sin mezclarse.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-            {divisiones.map((d) => (
-              <a
-                key={d.slug}
-                href={fixtureHref(d.slug)}
-                className={`group relative min-h-[350px] overflow-hidden rounded-[36px] border bg-gradient-to-br ${d.color} p-6 shadow-[0_16px_45px_rgba(0,0,0,.24)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_0_45px_rgba(56,189,248,.16)]`}
-              >
-                <div className="absolute inset-0 bg-[#020714]/62" />
-                <div className="absolute inset-0 opacity-0 transition group-hover:opacity-100 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,.16),transparent_38%)]" />
-                <div className="absolute -bottom-14 -right-10 text-[140px] opacity-[0.07] transition group-hover:scale-110">
-                  {d.icon}
+          {competencias.map((competencia) => (
+            <section
+              key={competencia.id}
+              className={`relative overflow-hidden rounded-[38px] border bg-gradient-to-br ${competencia.color} p-6 shadow-[0_16px_45px_rgba(0,0,0,.24)]`}
+            >
+              <div className="absolute inset-0 bg-[#020714]/70" />
+              <div className="absolute -bottom-16 -right-12 text-[170px] opacity-[0.06]">
+                {competencia.icon}
+              </div>
+
+              <div className="relative z-10">
+                <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.25em] text-sky-300">
+                      {competencia.eyebrow}
+                    </p>
+
+                    <h3 className="mt-3 text-4xl font-black uppercase italic md:text-5xl">
+                      {competencia.titulo}
+                    </h3>
+
+                    <p className="mt-4 max-w-3xl text-base leading-7 text-zinc-300">
+                      {competencia.descripcion}
+                    </p>
+                  </div>
+
+                  <span className="w-fit rounded-full border border-green-400/25 bg-green-400/10 px-4 py-2 text-xs font-black uppercase text-green-300">
+                    {temporada}
+                  </span>
                 </div>
 
-                <div className="relative z-10 flex h-full flex-col justify-between">
-                  <div>
-                    <div className="mb-7 flex items-start justify-between gap-5">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-white/10 bg-white/10 text-3xl">
-                        {d.icon}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  {competencia.opciones.map((opcion) => (
+                    <a
+                      key={opcion.slug}
+                      href={fixtureHref(opcion.slug)}
+                      className="group rounded-[28px] border border-white/10 bg-black/35 p-5 transition hover:-translate-y-1 hover:border-sky-400/40 hover:bg-sky-500/10"
+                    >
+                      <div className="mb-5 flex items-start justify-between gap-3">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-2xl font-black text-sky-300">
+                          {opcion.icon}
+                        </div>
+
+                        <span className="text-2xl text-sky-300 transition group-hover:translate-x-1">
+                          →
+                        </span>
                       </div>
 
-                      <span className="rounded-full border border-green-400/25 bg-green-400/10 px-3 py-1 text-xs font-black uppercase text-green-300">
-                        {temporada}
-                      </span>
-                    </div>
+                      <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-500">
+                        {opcion.detalle}
+                      </p>
 
-                    <p className="text-xs font-bold uppercase tracking-[0.12em] text-sky-300">
-                      {d.detalle}
-                    </p>
+                      <h4 className="mt-2 text-2xl font-black uppercase">
+                        {opcion.nombre}
+                      </h4>
 
-                    <h2 className="mt-4 text-3xl font-black uppercase italic leading-tight md:text-4xl">
-                      {d.nombre}
-                    </h2>
-
-                    <p className="mt-5 text-base leading-7 text-zinc-300">
-                      {d.descripcion}
-                    </p>
-                  </div>
-
-                  <div className="mt-9 flex items-center justify-between rounded-2xl border border-white/10 bg-black/35 px-4 py-4">
-                    <span className="text-sm font-black uppercase text-zinc-200">
-                      Ver calendario
-                    </span>
-
-                    <span className="text-2xl text-sky-300 transition group-hover:translate-x-2">
-                      →
-                    </span>
-                  </div>
+                      <p className="mt-4 text-sm font-black uppercase text-sky-300">
+                        Ver calendario
+                      </p>
+                    </a>
+                  ))}
                 </div>
-              </a>
-            ))}
-          </div>
+              </div>
+            </section>
+          ))}
         </section>
 
         <section className="rounded-[34px] border border-sky-500/20 bg-[#020714]/90 p-6">

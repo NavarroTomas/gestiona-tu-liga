@@ -356,6 +356,23 @@ export default function AdminPage() {
           </Link>
           )}
 
+          {canCompetitions && (
+          <Link
+            href="/admin/copas"
+            className="group rounded-3xl border border-yellow-500/20 bg-[#11151c] p-6 transition hover:border-yellow-400 hover:shadow-[0_0_25px_rgba(250,204,21,.15)]"
+          >
+            <p className="text-yellow-300 text-xs uppercase tracking-[0.25em] font-black">
+              Competición
+            </p>
+
+            <h3 className="text-3xl font-black mt-3">🏆 Copas</h3>
+
+            <p className="text-zinc-400 mt-3">
+              Administrá fase de grupos, Copa Argentina y Copa APA.
+            </p>
+          </Link>
+          )}
+
           {canUploadTxt && (
           <Link
             href="/admin/subir-txt"

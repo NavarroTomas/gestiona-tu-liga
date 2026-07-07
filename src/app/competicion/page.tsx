@@ -16,39 +16,39 @@ const torneos = [
     estado: "Activo",
   },
   {
-    eyebrow: "Eliminación directa",
-    titulo: "Copa APA",
+    eyebrow: "Fase de grupos",
+    titulo: "Clasificación a Copas",
     descripcion:
-      "Formato de copa para duelos decisivos. Cruces, fases eliminatorias y partidos donde no hay margen de error.",
-    href: "/competicion/copa",
+      "Cuatro grupos de cuatro equipos. Los dos primeros clasifican a Copa Argentina y los dos últimos clasifican a Copa APA.",
+    href: "/competicion/copas",
     color: "border-yellow-400/30 from-yellow-500/15 to-orange-950/20",
     glow: "group-hover:shadow-[0_0_45px_rgba(250,204,21,.16)]",
     icon: "🏅",
+    preview: ["Grupo A", "Grupo B", "Grupo C", "Grupo D"],
+    estado: "Activo",
+  },
+  {
+    eyebrow: "Eliminatoria mayor",
+    titulo: "Copa Argentina",
+    descripcion:
+      "La copa principal para los mejores clasificados de la fase de grupos. Cruces decisivos hasta coronar al campeón.",
+    href: "/competicion/copa-argentina",
+    color: "border-emerald-400/30 from-emerald-500/15 to-cyan-950/20",
+    glow: "group-hover:shadow-[0_0_45px_rgba(16,185,129,.16)]",
+    icon: "🇦🇷",
     preview: ["Octavos", "Cuartos", "Semis", "Final"],
     estado: "Próximamente",
   },
   {
-    eyebrow: "Preparación",
-    titulo: "Pretemporada",
+    eyebrow: "Eliminatoria APA",
+    titulo: "Copa APA",
     descripcion:
-      "Torneos preparatorios, pruebas de planteles y partidos especiales antes del inicio de la temporada oficial.",
-    href: "/competicion/pretemporada",
-    color: "border-emerald-400/30 from-emerald-500/15 to-cyan-950/20",
-    glow: "group-hover:shadow-[0_0_45px_rgba(16,185,129,.16)]",
-    icon: "🔥",
-    preview: ["Amistosos", "Grupos", "Pruebas", "Final"],
-    estado: "Próximamente",
-  },
-  {
-    eyebrow: "Campeón vs campeón",
-    titulo: "Supercopa",
-    descripcion:
-      "El choque especial entre campeones. Una final premium para abrir o cerrar ciclos competitivos dentro de APA.",
-    href: "/competicion/supercopa",
+      "La segunda copa de la temporada para los equipos que terminen terceros y cuartos en sus grupos clasificatorios.",
+    href: "/competicion/copa-apa",
     color: "border-purple-400/30 from-purple-500/15 to-fuchsia-950/20",
     glow: "group-hover:shadow-[0_0_45px_rgba(168,85,247,.16)]",
     icon: "⭐",
-    preview: ["Campeón Liga", "Campeón Copa", "Final única"],
+    preview: ["Octavos", "Cuartos", "Semis", "Final"],
     estado: "Próximamente",
   },
 ];
@@ -154,8 +154,7 @@ export default function CompeticionPage() {
             </div>
 
             <p className="max-w-xl text-base leading-7 text-zinc-400">
-              La liga principal ya está disponible. Las demás competencias
-              quedan preparadas para activar cuando APA las necesite.
+              La liga y la clasificación a copas ya están disponibles. Copa Argentina y Copa APA quedan preparadas para la fase eliminatoria.
             </p>
           </div>
 

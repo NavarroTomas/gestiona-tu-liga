@@ -31,7 +31,7 @@ export default function StatsGrid({ stats }: Props) {
         <div className="mb-8 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.28em] text-amber-200">
-              Centro oficial de temporada
+              Centro oficial de competición
             </p>
             <h2 className="mt-2 text-3xl font-black uppercase italic tracking-[-0.05em] text-white md:text-5xl">
               Estadísticas oficiales
@@ -39,7 +39,7 @@ export default function StatsGrid({ stats }: Props) {
           </div>
 
           <p className="max-w-md text-sm leading-6 text-slate-200/80">
-            Datos actualizados según la temporada y división seleccionada.
+            Datos actualizados según la temporada y la competición seleccionadas.
           </p>
         </div>
 

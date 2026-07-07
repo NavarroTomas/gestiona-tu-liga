@@ -13,16 +13,144 @@ import HomeIntro from "@/components/home/HomeIntro";
 import WorldCupExperience from "@/components/home/WorldCupExperience";
 import StatsGrid from "@/components/home/StatsGrid";
 import FeaturedMatch from "@/components/home/FeaturedMatch";
-
 import FixturesResultsGrid from "@/components/home/FixturesResultsGrid";
-
 import QuickAccessGrid from "@/components/home/QuickAccessGrid";
 
 const temporadas = ["Temporada 4"];
 
-const divisiones = [
-  { nombre: "primera", label: "Primera", icon: "I" },
-  { nombre: "segunda", label: "Segunda", icon: "II" },
+type ContextoCompetencia = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa";
+
+type ContextoHome = {
+  nombre: string;
+  label: string;
+  icon: string;
+  competicion: ContextoCompetencia;
+  division?: string;
+  divisionDb?: string;
+  grupo?: string;
+  fase?: string;
+  badge: string;
+};
+
+const contextosHome: ContextoHome[] = [
+  {
+    nombre: "liga-primera",
+    label: "Liga · Primera",
+    icon: "I",
+    competicion: "liga",
+    division: "primera",
+    divisionDb: "Primera",
+    badge: "Primera",
+  },
+  {
+    nombre: "liga-segunda",
+    label: "Liga · Segunda",
+    icon: "II",
+    competicion: "liga",
+    division: "segunda",
+    divisionDb: "Segunda",
+    badge: "Segunda",
+  },
+  {
+    nombre: "copas-grupo-a",
+    label: "Clasificación · Grupo A",
+    icon: "A",
+    competicion: "copa_clasificatoria",
+    grupo: "A",
+    fase: "grupos",
+    badge: "Grupo A",
+  },
+  {
+    nombre: "copas-grupo-b",
+    label: "Clasificación · Grupo B",
+    icon: "B",
+    competicion: "copa_clasificatoria",
+    grupo: "B",
+    fase: "grupos",
+    badge: "Grupo B",
+  },
+  {
+    nombre: "copas-grupo-c",
+    label: "Clasificación · Grupo C",
+    icon: "C",
+    competicion: "copa_clasificatoria",
+    grupo: "C",
+    fase: "grupos",
+    badge: "Grupo C",
+  },
+  {
+    nombre: "copas-grupo-d",
+    label: "Clasificación · Grupo D",
+    icon: "D",
+    competicion: "copa_clasificatoria",
+    grupo: "D",
+    fase: "grupos",
+    badge: "Grupo D",
+  },
+  {
+    nombre: "copa-argentina-octavos",
+    label: "Copa Argentina · Octavos",
+    icon: "CA",
+    competicion: "copa_argentina",
+    fase: "octavos",
+    badge: "Octavos",
+  },
+  {
+    nombre: "copa-argentina-cuartos",
+    label: "Copa Argentina · Cuartos",
+    icon: "CA",
+    competicion: "copa_argentina",
+    fase: "cuartos",
+    badge: "Cuartos",
+  },
+  {
+    nombre: "copa-argentina-semis",
+    label: "Copa Argentina · Semis",
+    icon: "CA",
+    competicion: "copa_argentina",
+    fase: "semifinal",
+    badge: "Semifinal",
+  },
+  {
+    nombre: "copa-argentina-final",
+    label: "Copa Argentina · Final",
+    icon: "CA",
+    competicion: "copa_argentina",
+    fase: "final",
+    badge: "Final",
+  },
+  {
+    nombre: "copa-apa-octavos",
+    label: "Copa APA · Octavos",
+    icon: "APA",
+    competicion: "copa_apa",
+    fase: "octavos",
+    badge: "Octavos",
+  },
+  {
+    nombre: "copa-apa-cuartos",
+    label: "Copa APA · Cuartos",
+    icon: "APA",
+    competicion: "copa_apa",
+    fase: "cuartos",
+    badge: "Cuartos",
+  },
+  {
+    nombre: "copa-apa-semis",
+    label: "Copa APA · Semis",
+    icon: "APA",
+    competicion: "copa_apa",
+    fase: "semifinal",
+    badge: "Semifinal",
+  },
+  {
+    nombre: "copa-apa-final",
+    label: "Copa APA · Final",
+    icon: "APA",
+    competicion: "copa_apa",
+    fase: "final",
+    badge: "Final",
+  },
 ];
 
 type NoticiaHome = {
@@ -90,6 +218,44 @@ function MuralFrame({
   );
 }
 
+function normalizarTexto(value?: string | null) {
+  return String(value || "").toLowerCase().trim();
+}
+
+function getContextoPartido(p: any) {
+  const competicion = p?.competicion || "liga";
+
+  if (competicion === "liga") {
+    return p?.division || "Liga";
+  }
+
+  if (competicion === "copa_clasificatoria") {
+    return p?.grupo ? `Grupo ${p.grupo}` : "Clasificación";
+  }
+
+  if (competicion === "copa_argentina") {
+    return p?.fase ? `Copa Argentina · ${p.fase}` : "Copa Argentina";
+  }
+
+  if (competicion === "copa_apa") {
+    return p?.fase ? `Copa APA · ${p.fase}` : "Copa APA";
+  }
+
+  return competicion;
+}
+
+function ordenarPartidos(a: any, b: any) {
+  const fechaA = Number(a?.fecha || 999);
+  const fechaB = Number(b?.fecha || 999);
+
+  if (fechaA !== fechaB) return fechaA - fechaB;
+
+  const horaA = String(a?.hora || "99:99");
+  const horaB = String(b?.hora || "99:99");
+
+  return horaA.localeCompare(horaB);
+}
+
 export default function Home() {
   const theme = getSeasonTheme();
 
@@ -97,19 +263,11 @@ export default function Home() {
   const [jugadores, setJugadores] = useState<any[]>([]);
   const [clubesInfo, setClubesInfo] = useState<any[]>([]);
   const [noticias, setNoticias] = useState<NoticiaHome[]>([]);
-  const [division, setDivision] = useState("primera");
+  const [division, setDivision] = useState("liga-primera");
   const [temporada, setTemporada] = useState("Temporada 4");
 
-  const divisionDb =
-    division === "primera"
-      ? "Primera"
-      : division === "segunda"
-        ? "Segunda"
-        : division === "tercera"
-          ? "Tercera"
-          : division === "cuarta"
-            ? "Cuarta"
-            : division;
+  const contextoActual =
+    contextosHome.find((item) => item.nombre === division) || contextosHome[0];
 
   useEffect(() => {
     cargarDatos();
@@ -138,23 +296,61 @@ export default function Home() {
     setNoticias((data || []) as unknown as NoticiaHome[]);
   }
 
+  function aplicarFiltroContexto(query: any) {
+    query = query.eq("temporada", temporada).eq("competicion", contextoActual.competicion);
+
+    if (contextoActual.competicion === "liga") {
+      query = query.in("division", [contextoActual.division, contextoActual.divisionDb].filter(Boolean));
+    }
+
+    if (contextoActual.competicion === "copa_clasificatoria") {
+      query = query.eq("fase", "grupos").eq("grupo", contextoActual.grupo);
+    }
+
+    if (
+      contextoActual.competicion === "copa_argentina" ||
+      contextoActual.competicion === "copa_apa"
+    ) {
+      query = query.eq("fase", contextoActual.fase);
+    }
+
+    return query;
+  }
+
   async function cargarDatos() {
-    const { data: partidosData } = await supabase
+    let partidosQuery = supabase
       .from("partidos")
       .select(
-        "id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora",
+        "id, partido_id, local, visitante, resultado, fecha, temporada, division, competicion, fase, grupo, dia, hora",
       )
-      .in("division", [division, divisionDb])
-      .eq("temporada", temporada)
-      .order("fecha", { ascending: true });
+      .order("fecha", { ascending: true })
+      .order("hora", { ascending: true });
 
-    const { data: jugadoresData } = await supabase
+    partidosQuery = aplicarFiltroContexto(partidosQuery);
+
+    const { data: partidosData, error: partidosError } = await partidosQuery;
+
+    if (partidosError) {
+      console.log(partidosError);
+      setPartidos([]);
+      setJugadores([]);
+      setClubesInfo([]);
+      return;
+    }
+
+    let jugadoresQuery = supabase
       .from("partido_jugadores")
       .select(
-        "id, partido_id, nombre, jugador, playerId, equipo, temporada, division, fecha, goles, goals, asistencias, assists, mvp, mvps",
-      )
-      .in("division", [division, divisionDb])
-      .eq("temporada", temporada);
+        "id, partido_id, nombre, jugador, playerId, equipo, temporada, division, competicion, fase, grupo, fecha, goles, goals, asistencias, assists, mvp, mvps",
+      );
+
+    jugadoresQuery = aplicarFiltroContexto(jugadoresQuery);
+
+    const { data: jugadoresData, error: jugadoresError } = await jugadoresQuery;
+
+    if (jugadoresError) {
+      console.log(jugadoresError);
+    }
 
     const nombresClubes = Array.from(
       new Set(
@@ -177,24 +373,21 @@ export default function Home() {
       setClubesInfo([]);
     }
 
-    setPartidos(partidosData || []);
+    setPartidos([...(partidosData || [])].sort(ordenarPartidos));
     setJugadores(jugadoresData || []);
   }
 
-  const divisionActual =
-    divisiones.find((d) => d.nombre === division) || divisiones[0];
+  const divisionActual = {
+    nombre: contextoActual.nombre,
+    label: contextoActual.label,
+    icon: contextoActual.icon,
+  };
 
   function logoEquipo(nombre?: string) {
     if (!nombre) return null;
 
     const club = clubesInfo.find(
-      (c) =>
-        String(c.nombre || "")
-          .toLowerCase()
-          .trim() ===
-        String(nombre || "")
-          .toLowerCase()
-          .trim(),
+      (c) => normalizarTexto(c.nombre) === normalizarTexto(nombre),
     );
 
     return club?.logo_url || null;
@@ -204,7 +397,7 @@ export default function Home() {
     partidos.flatMap((p) => [p.local, p.visitante]).filter(Boolean),
   ).size;
   const jugadoresCantidad = new Set(
-    jugadores.map((j) => j.nombre).filter(Boolean),
+    jugadores.map((j) => j.nombre || j.jugador).filter(Boolean),
   ).size;
   const golesTotales = jugadores.reduce(
     (acc, j) => acc + Number(j.goles || j.goals || 0),
@@ -219,12 +412,20 @@ export default function Home() {
     0,
   );
 
+  const partidosOrdenados = useMemo(
+    () => [...partidos].sort(ordenarPartidos),
+    [partidos],
+  );
+
   const partidoDestacado =
-    partidos.find((p) => !p.resultado) ||
-    partidos.find((p) => p.resultado) ||
-    partidos[0];
-  const proximosPartidos = partidos.filter((p) => !p.resultado).slice(0, 4);
-  const ultimosResultados = partidos
+    partidosOrdenados.find((p) => !p.resultado) ||
+    partidosOrdenados
+      .filter((p) => p.resultado)
+      .slice(-1)[0] ||
+    partidosOrdenados[0];
+
+  const proximosPartidos = partidosOrdenados.filter((p) => !p.resultado).slice(0, 4);
+  const ultimosResultados = partidosOrdenados
     .filter((p) => p.resultado)
     .slice(-4)
     .reverse();
@@ -261,33 +462,49 @@ export default function Home() {
     };
   }, [jugadores]);
 
+  const nombreCompetencia =
+    contextoActual.competicion === "liga"
+      ? "Liga"
+      : contextoActual.competicion === "copa_clasificatoria"
+        ? "Clasificación a Copas"
+        : contextoActual.competicion === "copa_argentina"
+          ? "Copa Argentina"
+          : "Copa APA";
+
+  const detalleCompetencia =
+    contextoActual.competicion === "liga"
+      ? contextoActual.badge
+      : contextoActual.competicion === "copa_clasificatoria"
+        ? `Grupo ${contextoActual.grupo || ""}`.trim()
+        : contextoActual.badge || contextoActual.fase || "Fase";
+
   const statsHome = [
     {
       label: "Clubes",
       value: equiposCantidad,
       img: "/themes/worldcup/backgrounds/stadium-night-01.png",
-      detail: "en competencia",
+      detail: detalleCompetencia || "Competencia",
       color: "text-sky-200",
     },
     {
       label: "Partidos",
       value: partidos.length,
       img: "/themes/worldcup/backgrounds/pitch-top-01.png",
-      detail: "en fixture",
+      detail: nombreCompetencia,
       color: "text-yellow-300",
     },
     {
       label: "Jugadores",
       value: jugadoresCantidad,
       img: "/themes/worldcup/backgrounds/crowd-night-01.png",
-      detail: "registrados",
+      detail: "Con estadísticas",
       color: "text-emerald-200",
     },
     {
       label: "Goles",
       value: golesTotales,
       img: "/themes/worldcup/backgrounds/stadium-night-01.png",
-      detail: "temporada",
+      detail: temporada,
       color: "text-orange-200",
     },
   ];
@@ -359,28 +576,16 @@ export default function Home() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020814] px-4 pb-4 pt-3 text-white md:px-6 md:pb-6 md:pt-4">
       <div className="pointer-events-none fixed inset-0 z-0">
-        {/* Fondo general de toda la página.
-            Para cambiar la imagen, reemplazá este archivo:
-            public/themes/worldcup/backgrounds/fondo-general.png */}
         <img
           src="/themes/worldcup/backgrounds/fondo-general.png"
           alt=""
           className="absolute inset-0 h-full w-full object-cover object-center opacity-55"
         />
 
-        {/* Capa oscura para que el contenido siga siendo legible. 
-            Si querés ver más la foto: cambiá /45 por /35.
-            Si querés oscurecer más: cambiá /45 por /60. */}
         <div className="absolute inset-0 bg-[#020814]/45" />
-
-        {/* Viñeta: oscurece bordes y deja el centro más limpio. */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_28%,transparent_0%,rgba(2,8,20,.18)_38%,rgba(2,8,20,.72)_100%)]" />
-
-        {/* Luces sutiles para mantener la estética mundialista sin tapar la foto. */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-16%,rgba(245,181,49,.10),transparent_31%),radial-gradient(circle_at_13%_18%,rgba(91,167,216,.08),transparent_30%),radial-gradient(circle_at_88%_24%,rgba(37,118,75,.07),transparent_27%)]" />
-
         <div className="absolute inset-x-[-10%] top-[9rem] h-[24rem] rounded-[50%] border-t border-yellow-100/10 bg-[radial-gradient(ellipse_at_top,rgba(245,181,49,.06),transparent_58%)]" />
-
         <div className="absolute inset-0 opacity-[0.035] [background-image:linear-gradient(90deg,rgba(255,255,255,.16)_1px,transparent_1px),linear-gradient(rgba(255,255,255,.12)_1px,transparent_1px)] [background-size:72px_72px] [mask-image:linear-gradient(to_bottom,black,transparent_76%)]" />
       </div>
 
@@ -394,25 +599,28 @@ export default function Home() {
           temporada={temporada}
           divisionActual={divisionActual}
         />
+
         <MuralFrame variant="blue">
           <WorldCupExperience
             temporadas={temporadas}
             temporada={temporada}
             setTemporada={setTemporada}
-            divisiones={divisiones}
+            divisiones={contextosHome}
             division={division}
             setDivision={setDivision}
           />
         </MuralFrame>
+
         <StatsGrid stats={statsHome} />
         <SeparadorHome label="Qué está pasando" />
+
         <section className="grid grid-cols-1 gap-6">
           <MuralFrame variant="blue">
             <FeaturedMatch
               partido={partidoDestacado}
               temporada={temporada}
               division={division}
-              divisionLabel={divisionActual.label}
+              divisionLabel={contextoActual.label}
               logoEquipo={logoEquipo}
               EscudoEquipo={EscudoEquipo}
             />

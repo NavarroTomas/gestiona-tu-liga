@@ -15,6 +15,8 @@ type Jugador = {
   rating: number;
   rating_apa: number;
   atajadas: number;
+  score: number;
+  mvps: number;
 };
 
 type PerfilDreamTeam = {
@@ -91,14 +93,40 @@ function fechaActualISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export default function DreamTeamPage() {
-  const temporadas = ["Temporada 4"];
-  const divisiones = ["Primera", "Segunda"];
-  const fechas = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+type Competicion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa";
 
+const temporadasDisponibles = ["Temporada 4"];
+const competicionesDisponibles: { value: Competicion; label: string }[] = [
+  { value: "liga", label: "Liga" },
+  { value: "copa_clasificatoria", label: "Clasificación a Copas" },
+  { value: "copa_argentina", label: "Copa Argentina" },
+  { value: "copa_apa", label: "Copa APA" },
+];
+const divisionesDisponibles = ["Primera", "Segunda"];
+const gruposDisponibles = ["A", "B", "C", "D"];
+const fasesDisponibles = ["Octavos", "Cuartos", "Semifinal", "Final"];
+
+function faseDb(value: string) {
+  const v = String(value || "").toLowerCase().trim();
+  if (v === "octavos") return "octavos";
+  if (v === "cuartos") return "cuartos";
+  if (v === "semifinal" || v === "semis") return "semifinal";
+  if (v === "final") return "final";
+  return v;
+}
+
+function competicionNombre(value: Competicion) {
+  return competicionesDisponibles.find((c) => c.value === value)?.label || "Competición";
+}
+
+export default function DreamTeamPage() {
   const [temporada, setTemporada] = useState("Temporada 4");
+  const [competicion, setCompeticion] = useState<Competicion>("liga");
   const [division, setDivision] = useState("Primera");
+  const [grupo, setGrupo] = useState("A");
+  const [fase, setFase] = useState("Octavos");
   const [fecha, setFecha] = useState("1");
+  const [fechas, setFechas] = useState<string[]>([]);
   const [usuarioId, setUsuarioId] = useState("");
   const [miPerfil, setMiPerfil] = useState<PerfilDreamTeam | null>(null);
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
@@ -144,36 +172,143 @@ export default function DreamTeamPage() {
 
   useEffect(() => {
     cargarDatos();
-  }, [temporada, division, fecha]);
+  }, [temporada, competicion, division, grupo, fase, fecha]);
+
+  const competicionLabel = competicionNombre(competicion);
+  const contextoLabel =
+    competicion === "liga"
+      ? division
+      : competicion === "copa_clasificatoria"
+        ? `Grupo ${grupo}`
+        : fase;
+
+  const contextoVoto = contextoLabel;
+
+  function aplicarFiltroPartidos(query: any) {
+    query = query.eq("temporada", temporada).eq("competicion", competicion);
+
+    if (competicion === "liga") {
+      const divisionLower = division.toLowerCase();
+      query = query.in("division", [division, divisionLower]);
+    }
+
+    if (competicion === "copa_clasificatoria") {
+      query = query.eq("fase", "grupos").eq("grupo", grupo);
+    }
+
+    if (competicion === "copa_argentina" || competicion === "copa_apa") {
+      query = query.eq("fase", faseDb(fase));
+    }
+
+    return query;
+  }
+
+  async function cargarFechasDisponibles() {
+    let query = supabase
+      .from("partidos")
+      .select("fecha")
+      .eq("temporada", temporada)
+      .eq("competicion", competicion);
+
+    query = aplicarFiltroPartidos(query);
+
+    const { data, error } = await query.order("fecha", { ascending: true });
+
+    if (error) {
+      console.log(error);
+      setFechas(["1"]);
+      return ["1"];
+    }
+
+    const lista = Array.from(
+      new Set((data || []).map((p: any) => String(p.fecha || "")).filter(Boolean)),
+    ).sort((a, b) => Number(a) - Number(b));
+
+    const fechasFinales = lista.length > 0 ? lista : ["1"];
+    setFechas(fechasFinales);
+
+    if (!fechasFinales.includes(String(fecha))) {
+      setFecha(fechasFinales[0]);
+    }
+
+    return fechasFinales;
+  }
+
+  async function cargarVotos() {
+    let query: any = supabase
+      .from("public_dream_team_votos")
+      .select(
+        "id, temporada, division, competicion, fase, grupo, fecha, posicion, playerId, nombre, equipo, usuario, fecha_voto",
+      )
+      .eq("temporada", temporada)
+      .eq("division", contextoVoto)
+      .eq("fecha", fecha);
+
+    query = query.eq("competicion", competicion);
+
+    if (competicion === "copa_clasificatoria") {
+      query = query.eq("grupo", grupo).eq("fase", "grupos");
+    }
+
+    if (competicion === "copa_argentina" || competicion === "copa_apa") {
+      query = query.eq("fase", faseDb(fase));
+    }
+
+    const result = await query;
+
+    if (!result.error) return result;
+
+    // Compatibilidad con la tabla/vista vieja, por si todavía no tiene competicion/fase/grupo.
+    return await supabase
+      .from("public_dream_team_votos")
+      .select(
+        "id, temporada, division, fecha, posicion, playerId, nombre, equipo, usuario, fecha_voto",
+      )
+      .eq("temporada", temporada)
+      .eq("division", contextoVoto)
+      .eq("fecha", fecha);
+  }
 
   async function cargarDatos() {
     setMensaje("");
+    setPosicionActiva(null);
 
-    const [statsResult, votosResult, equiposResult] = await Promise.all([
-      supabase
+    await cargarFechasDisponibles();
+
+    let partidosQuery = supabase
+      .from("partidos")
+      .select("partido_id, local, visitante")
+      .eq("fecha", fecha);
+
+    partidosQuery = aplicarFiltroPartidos(partidosQuery);
+
+    const { data: partidosData, error: partidosError } = await partidosQuery;
+
+    if (partidosError) {
+      console.log(partidosError);
+      setJugadores([]);
+      setVotos([]);
+      setLogos({});
+      setPerfilesJugadores({});
+      return;
+    }
+
+    const partidoIds = Array.from(
+      new Set((partidosData || []).map((p: any) => p.partido_id).filter(Boolean)),
+    );
+
+    let statsResult: any = { data: [], error: null };
+
+    if (partidoIds.length > 0) {
+      statsResult = await supabase
         .from("estadisticas_jugadores")
         .select(
-          'nombre, playerId, equipo, posicion, goals, assists, overallRating, rating_apa, gKSaves'
+          "nombre, playerId, equipo, posicion, goals, assists, overallRating, rating_apa, gKSaves, score, mvp",
         )
-        .eq("temporada", temporada)
-        .eq("division", division)
-        .eq("fecha", fecha),
+        .in("partido_id", partidoIds);
+    }
 
-      supabase
-        .from("public_dream_team_votos")
-        .select(
-          'id, temporada, division, fecha, posicion, playerId, nombre, equipo, usuario, fecha_voto'
-        )
-        .eq("temporada", temporada)
-        .eq("division", division)
-        .eq("fecha", fecha),
-
-      supabase
-        .from("equipos")
-        .select("nombre, logo_url")
-        .eq("temporada", temporada)
-        .eq("division", division),
-    ]);
+    const votosResult = await cargarVotos();
 
     if (statsResult.error) {
       console.log(statsResult.error);
@@ -211,6 +346,8 @@ export default function DreamTeamPage() {
           asistencias: 0,
           ratingTotal: 0,
           ratingApaTotal: 0,
+          score: 0,
+          mvps: 0,
           rating: 0,
           rating_apa: 0,
           atajadas: 0,
@@ -221,10 +358,10 @@ export default function DreamTeamPage() {
       mapa[clave].goles += Number(r.goals || 0);
       mapa[clave].asistencias += Number(r.assists || 0);
       mapa[clave].ratingTotal += Number(r.overallRating || 0);
-      mapa[clave].ratingApaTotal += Number(
-        r.rating_apa || r.overallRating || 0,
-      );
+      mapa[clave].ratingApaTotal += Number(r.rating_apa || r.overallRating || 0);
       mapa[clave].atajadas += valorGKSave(r);
+      mapa[clave].score += Number(r.score || 0);
+      mapa[clave].mvps += Number(r.mvp || 0);
 
       if (r.equipo) mapa[clave].equipo = r.equipo;
       if (r.posicion) mapa[clave].posicion = r.posicion;
@@ -277,16 +414,30 @@ export default function DreamTeamPage() {
       setPerfilesJugadores({});
     }
 
-    const mapLogos: Record<string, string> = {};
-    equiposResult.data?.forEach((e: any) => {
-      if (e.nombre && e.logo_url) mapLogos[e.nombre] = e.logo_url;
-    });
+    const nombresClubes = Array.from(
+      new Set([
+        ...(partidosData || []).flatMap((p: any) => [p.local, p.visitante]),
+        ...Object.values(mapa).map((j: any) => j.equipo),
+        ...(votosData || []).map((v: any) => v.equipo),
+      ].filter(Boolean)),
+    );
 
-    if (equiposResult.error) {
-      console.log(equiposResult.error);
+    if (nombresClubes.length > 0) {
+      const { data: clubesData, error: clubesError } = await supabase
+        .from("clubes_info")
+        .select("nombre, logo_url")
+        .in("nombre", nombresClubes);
+
+      if (clubesError) console.log(clubesError);
+
+      const mapLogos: Record<string, string> = {};
+      (clubesData || []).forEach((e: any) => {
+        if (e.nombre && e.logo_url) mapLogos[e.nombre] = e.logo_url;
+      });
+      setLogos(mapLogos);
+    } else {
+      setLogos({});
     }
-
-    setLogos(mapLogos);
   }
 
   const votosPorPosicion = useMemo(() => {
@@ -379,18 +530,39 @@ export default function DreamTeamPage() {
       .slice(0, 3);
   }
 
+  function scoreCandidato(j: Jugador, tipo?: string) {
+    const rating = Number(j.rating_apa || j.rating || 0);
+    const goles = Number(j.goles || 0);
+    const asistencias = Number(j.asistencias || 0);
+    const atajadas = Number(j.atajadas || 0);
+    const score = Number(j.score || 0);
+    const mvps = Number(j.mvps || 0);
+    const partidos = Number(j.partidos || 0);
+
+    if (tipo === "arquero") {
+      return atajadas * 2 + rating * 5 + mvps * 6 + score * 0.05 + partidos * 0.2;
+    }
+
+    if (tipo === "delantero") {
+      return goles * 5 + asistencias * 3 + rating * 4 + mvps * 6 + score * 0.05;
+    }
+
+    if (tipo === "medio") {
+      return rating * 5 + asistencias * 4 + goles * 2 + mvps * 5 + score * 0.05;
+    }
+
+    return rating * 6 + mvps * 5 + score * 0.06 + partidos * 0.4;
+  }
+
   function candidatos(posicion: string) {
     const tipo = posiciones.find((p) => p.id === posicion)?.tipo;
 
     return jugadores
       .filter((j) => tipoJugador(j) === tipo)
       .sort((a, b) => {
-        if (tipo === "arquero") return b.atajadas - a.atajadas;
-        if (tipo === "delantero")
-          return b.goles - a.goles || b.asistencias - a.asistencias;
-        if (tipo === "medio")
-          return b.asistencias - a.asistencias || b.rating - a.rating;
-        return b.rating - a.rating || b.partidos - a.partidos;
+        const diff = scoreCandidato(b, tipo) - scoreCandidato(a, tipo);
+        if (diff !== 0) return diff;
+        return Number(b.rating || 0) - Number(a.rating || 0);
       })
       .slice(0, 40);
   }
@@ -414,8 +586,9 @@ export default function DreamTeamPage() {
     const votosMismaFecha = votos.filter(
       (v) =>
         v.temporada === temporada &&
-        v.division === division &&
+        v.division === contextoVoto &&
         String(v.fecha) === String(fecha) &&
+        (!v.competicion || v.competicion === competicion) &&
         v.usuario === user.id,
     );
 
@@ -448,19 +621,33 @@ export default function DreamTeamPage() {
       return;
     }
 
-    const { error } = await supabase.from("dream_team_votos").insert([
-      {
-        temporada,
-        division,
-        fecha,
-        posicion: posicionActiva,
-        playerId: jugador.playerId,
-        nombre: jugador.nombre,
-        equipo: jugador.equipo,
-        usuario: user.id,
-        fecha_voto: fechaActualISO(),
-      },
-    ]);
+    const votoPayload = {
+      temporada,
+      division: contextoVoto,
+      competicion,
+      fase:
+        competicion === "liga"
+          ? null
+          : competicion === "copa_clasificatoria"
+            ? "grupos"
+            : faseDb(fase),
+      grupo: competicion === "copa_clasificatoria" ? grupo : null,
+      fecha,
+      posicion: posicionActiva,
+      playerId: jugador.playerId,
+      nombre: jugador.nombre,
+      equipo: jugador.equipo,
+      usuario: user.id,
+      fecha_voto: fechaActualISO(),
+    };
+
+    let { error } = await supabase.from("dream_team_votos").insert([votoPayload]);
+
+    if (error && String(error.message || "").toLowerCase().includes("column")) {
+      const { competicion: _competicion, fase: _fase, grupo: _grupo, ...payloadViejo } = votoPayload;
+      const retry = await supabase.from("dream_team_votos").insert([payloadViejo]);
+      error = retry.error;
+    }
 
     if (error) {
       console.log(error);
@@ -684,16 +871,16 @@ export default function DreamTeamPage() {
 
               <div className="rounded-2xl border border-yellow-500/20 bg-black/35 px-5 py-4">
                 <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
-                  División
+                  Competición
                 </p>
-                <p className="mt-1 font-black text-yellow-300">{division}</p>
+                <p className="mt-1 font-black text-yellow-300">{competicionLabel}</p>
               </div>
 
               <div className="rounded-2xl border border-green-500/20 bg-black/35 px-5 py-4">
                 <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
-                  Fecha
+                  Contexto
                 </p>
-                <p className="mt-1 font-black text-green-400">Fecha {fecha}</p>
+                <p className="mt-1 font-black text-green-400">{contextoLabel}</p>
               </div>
             </div>
           </div>
@@ -706,7 +893,7 @@ export default function DreamTeamPage() {
                 Temporada
               </p>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                {temporadas.map((temp) => (
+                {temporadasDisponibles.map((temp) => (
                   <button
                     key={temp}
                     onClick={() => setTemporada(temp)}
@@ -724,24 +911,105 @@ export default function DreamTeamPage() {
 
             <div>
               <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
-                División
+                Competencia
               </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {divisiones.map((div) => (
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+                {competicionesDisponibles.map((comp) => (
                   <button
-                    key={div}
-                    onClick={() => setDivision(div)}
-                    className={`rounded-2xl border px-3 py-3 text-xs font-black uppercase sm:px-4 sm:py-4 sm:text-sm transition-all ${
-                      division === div
+                    key={comp.value}
+                    onClick={() => {
+                      setCompeticion(comp.value);
+                      setFecha("1");
+                    }}
+                    className={`rounded-2xl border px-3 py-3 text-xs font-black uppercase transition-all sm:px-4 sm:py-4 sm:text-sm ${
+                      competicion === comp.value
                         ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
                         : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
                     }`}
                   >
-                    {div}
+                    {comp.label}
                   </button>
                 ))}
               </div>
             </div>
+
+            {competicion === "liga" && (
+              <div>
+                <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+                  División
+                </p>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {divisionesDisponibles.map((div) => (
+                    <button
+                      key={div}
+                      onClick={() => {
+                        setDivision(div);
+                        setFecha("1");
+                      }}
+                      className={`rounded-2xl border px-3 py-3 text-xs font-black uppercase transition-all sm:px-4 sm:py-4 sm:text-sm ${
+                        division === div
+                          ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
+                          : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
+                      }`}
+                    >
+                      {div}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {competicion === "copa_clasificatoria" && (
+              <div>
+                <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+                  Grupo
+                </p>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {gruposDisponibles.map((g) => (
+                    <button
+                      key={g}
+                      onClick={() => {
+                        setGrupo(g);
+                        setFecha("1");
+                      }}
+                      className={`rounded-2xl border px-3 py-3 text-xs font-black uppercase transition-all sm:px-4 sm:py-4 sm:text-sm ${
+                        grupo === g
+                          ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
+                          : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
+                      }`}
+                    >
+                      Grupo {g}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {(competicion === "copa_argentina" || competicion === "copa_apa") && (
+              <div>
+                <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+                  Fase
+                </p>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {fasesDisponibles.map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => {
+                        setFase(f);
+                        setFecha("1");
+                      }}
+                      className={`rounded-2xl border px-3 py-3 text-xs font-black uppercase transition-all sm:px-4 sm:py-4 sm:text-sm ${
+                        fase === f
+                          ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
+                          : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
+                      }`}
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div>
               <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">

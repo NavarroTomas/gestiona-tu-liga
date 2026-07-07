@@ -4,10 +4,15 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
+type CompeticionValue = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa";
+
 type EquipoPartido = {
   partido_id: string;
   temporada: string;
-  division: string;
+  competicion?: string | null;
+  division?: string | null;
+  grupo?: string | null;
+  fase?: string | null;
   fecha: string;
   equipo: string;
   goals: number | null;
@@ -16,7 +21,10 @@ type EquipoPartido = {
 type PartidoAgrupado = {
   partido_id: string;
   temporada: string;
-  division: string;
+  competicion?: string | null;
+  division?: string | null;
+  grupo?: string | null;
+  fase?: string | null;
   fecha: string;
   equipos: EquipoPartido[];
 };
@@ -26,12 +34,53 @@ type ClubInfo = {
   logo_url: string | null;
 };
 
-export default function EstadisticasPage() {
-  const temporadas = ["Temporada 4"];
-  const divisiones = ["Primera", "Segunda"];
+const temporadas = ["Temporada 4"];
 
+const competiciones: { value: CompeticionValue; label: string; short: string }[] = [
+  { value: "liga", label: "Torneo de Liga", short: "Liga" },
+  { value: "copa_clasificatoria", label: "Clasificación a Copas", short: "Clasificación" },
+  { value: "copa_argentina", label: "Copa Argentina", short: "Argentina" },
+  { value: "copa_apa", label: "Copa APA", short: "APA" },
+];
+
+const divisiones = ["Primera", "Segunda"];
+const grupos = ["A", "B", "C", "D"];
+const fases = ["Octavos", "Cuartos", "Semifinal", "Final"];
+
+function normalizarDivision(value?: string | null) {
+  const v = String(value || "").toLowerCase().trim();
+
+  if (v === "primera" || v === "primera division" || v === "primera división") return "primera";
+  if (v === "segunda" || v === "segunda division" || v === "segunda división") return "segunda";
+
+  return v;
+}
+
+function labelCompeticion(value?: string | null) {
+  return competiciones.find((c) => c.value === value)?.label || "Competición oficial";
+}
+
+function labelContexto(competicion: CompeticionValue, division: string, grupo: string, fase: string) {
+  if (competicion === "liga") return division;
+  if (competicion === "copa_clasificatoria") return `Grupo ${grupo}`;
+  return fase;
+}
+
+function labelContextoPartido(partido: PartidoAgrupado) {
+  const competicion = String(partido.competicion || "liga") as CompeticionValue;
+
+  if (competicion === "copa_clasificatoria") return `Grupo ${partido.grupo || "-"}`;
+  if (competicion === "copa_argentina" || competicion === "copa_apa") return partido.fase || "Fase";
+
+  return partido.division || "División";
+}
+
+export default function EstadisticasPage() {
   const [temporada, setTemporada] = useState("Temporada 4");
+  const [competicion, setCompeticion] = useState<CompeticionValue>("liga");
   const [division, setDivision] = useState("Primera");
+  const [grupo, setGrupo] = useState("A");
+  const [fase, setFase] = useState("Octavos");
   const [fecha, setFecha] = useState("Todas");
 
   const [fechas, setFechas] = useState<string[]>([]);
@@ -39,30 +88,48 @@ export default function EstadisticasPage() {
   const [clubesInfo, setClubesInfo] = useState<ClubInfo[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const contextoActual = labelContexto(competicion, division, grupo, fase);
+
+  useEffect(() => {
+    setFecha("Todas");
+  }, [temporada, competicion, division, grupo, fase]);
+
   useEffect(() => {
     let cancelado = false;
 
     async function cargarDatos() {
       setLoading(true);
 
-      let query = supabase
-        .from("estadisticas_equipos")
-        .select("partido_id, temporada, division, fecha, equipo, goals")
+      let partidosQuery = supabase
+        .from("partidos")
+        .select("id, partido_id, local, visitante, resultado, fecha, temporada, competicion, division, grupo, fase")
         .eq("temporada", temporada)
-        .eq("division", division);
+        .eq("competicion", competicion);
 
-      if (fecha !== "Todas") {
-        query = query.eq("fecha", fecha);
+      if (competicion === "liga") {
+        partidosQuery = partidosQuery.in("division", [division, normalizarDivision(division)]);
       }
 
-      const { data, error } = await query.order("fecha", {
+      if (competicion === "copa_clasificatoria") {
+        partidosQuery = partidosQuery.eq("grupo", grupo);
+      }
+
+      if (competicion === "copa_argentina" || competicion === "copa_apa") {
+        partidosQuery = partidosQuery.eq("fase", fase);
+      }
+
+      if (fecha !== "Todas") {
+        partidosQuery = partidosQuery.eq("fecha", fecha);
+      }
+
+      const { data: partidosBase, error: partidosBaseError } = await partidosQuery.order("fecha", {
         ascending: false,
       });
 
       if (cancelado) return;
 
-      if (error) {
-        console.error("Error cargando partidos:", error);
+      if (partidosBaseError) {
+        console.error("Error cargando partidos base:", partidosBaseError);
         setFechas([]);
         setPartidos([]);
         setClubesInfo([]);
@@ -70,10 +137,59 @@ export default function EstadisticasPage() {
         return;
       }
 
-      const filas = (data || []) as unknown as EquipoPartido[];
+      const partidosBaseLimpios = ((partidosBase || []) as any[]).filter((p) => p.partido_id);
+
+      const partidoIds = Array.from(
+        new Set(partidosBaseLimpios.map((p) => String(p.partido_id)).filter(Boolean)),
+      );
+
+      if (partidoIds.length === 0) {
+        setFechas([]);
+        setPartidos([]);
+        setClubesInfo([]);
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("estadisticas_equipos")
+        .select("partido_id, temporada, division, fecha, equipo, goals")
+        .in("partido_id", partidoIds)
+        .order("fecha", { ascending: false });
+
+      if (cancelado) return;
+
+      if (error) {
+        console.error("Error cargando estadísticas de equipos:", error);
+        setFechas([]);
+        setPartidos([]);
+        setClubesInfo([]);
+        setLoading(false);
+        return;
+      }
+
+      const metaPorPartido = new Map<string, any>();
+
+      partidosBaseLimpios.forEach((p: any) => {
+        metaPorPartido.set(String(p.partido_id), p);
+      });
+
+      const filas = ((data || []) as any[]).map((item) => {
+        const meta = metaPorPartido.get(String(item.partido_id));
+
+        return {
+          ...item,
+          temporada: meta?.temporada || item.temporada || temporada,
+          competicion: meta?.competicion || competicion,
+          division: meta?.division || item.division || division,
+          grupo: meta?.grupo || null,
+          fase: meta?.fase || null,
+          fecha: String(meta?.fecha || item.fecha || ""),
+        };
+      }) as EquipoPartido[];
 
       const fechasUnicas = Array.from(
-        new Set(filas.map((item) => item.fecha).filter(Boolean)),
+        new Set(filas.map((item) => String(item.fecha || "")).filter(Boolean)),
       ).sort((a, b) => Number(a) - Number(b));
 
       const agrupados = new Map<string, PartidoAgrupado>();
@@ -83,7 +199,10 @@ export default function EstadisticasPage() {
           agrupados.set(equipo.partido_id, {
             partido_id: equipo.partido_id,
             temporada: equipo.temporada,
+            competicion: equipo.competicion,
             division: equipo.division,
+            grupo: equipo.grupo,
+            fase: equipo.fase,
             fecha: equipo.fecha,
             equipos: [],
           });
@@ -92,9 +211,7 @@ export default function EstadisticasPage() {
         agrupados.get(equipo.partido_id)?.equipos.push(equipo);
       });
 
-      const lista = Array.from(agrupados.values()).sort(
-        (a, b) => Number(b.fecha) - Number(a.fecha),
-      );
+      const lista = Array.from(agrupados.values()).sort((a, b) => Number(b.fecha) - Number(a.fecha));
 
       const nombresEquipos = Array.from(
         new Set(
@@ -112,9 +229,7 @@ export default function EstadisticasPage() {
           .select("nombre, logo_url")
           .in("nombre", nombresEquipos);
 
-        if (clubesError) {
-          console.error("Error cargando clubes:", clubesError);
-        }
+        if (clubesError) console.error("Error cargando clubes:", clubesError);
 
         clubesData = (clubes || []) as unknown as ClubInfo[];
       }
@@ -132,7 +247,7 @@ export default function EstadisticasPage() {
     return () => {
       cancelado = true;
     };
-  }, [temporada, division, fecha]);
+  }, [temporada, competicion, division, grupo, fase, fecha]);
 
   const logosPorEquipo = useMemo(() => {
     const mapa = new Map<string, string | null>();
@@ -149,22 +264,11 @@ export default function EstadisticasPage() {
     return logosPorEquipo.get(String(nombre).toLowerCase().trim()) || null;
   }
 
-  function EscudoEquipo({
-    nombre,
-    logo,
-  }: {
-    nombre?: string;
-    logo?: string | null;
-  }) {
+  function EscudoEquipo({ nombre, logo }: { nombre?: string; logo?: string | null }) {
     return (
       <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-sky-400/30 bg-gradient-to-br from-sky-500 to-blue-950 text-sm font-black shadow-[0_0_15px_rgba(56,189,248,.22)]">
         {logo ? (
-          <img
-            src={logo}
-            alt={nombre || "Equipo"}
-            className="h-full w-full object-contain p-1.5"
-            loading="lazy"
-          />
+          <img src={logo} alt={nombre || "Equipo"} className="h-full w-full object-contain p-1.5" loading="lazy" />
         ) : (
           nombre?.slice(0, 2).toUpperCase()
         )}
@@ -173,141 +277,118 @@ export default function EstadisticasPage() {
   }
 
   return (
-    <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
-      <section className="max-w-[1500px] mx-auto px-4 md:px-8 py-8 space-y-8">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] text-white">
+      <section className="mx-auto max-w-[1500px] space-y-8 px-4 py-8 md:px-8">
         <div className="relative overflow-hidden rounded-[34px] border border-sky-500/40 bg-[#020714] shadow-[0_0_55px_rgba(0,120,255,.28)]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_40%)]" />
 
           <div className="relative z-10 p-7 md:p-10">
-            <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black">
-              APA PSO ARGENTINA
-            </p>
+            <p className="text-xs font-black uppercase tracking-[0.45em] text-sky-400">APA PSO ARGENTINA</p>
 
-            <h1 className="mt-4 text-5xl md:text-7xl font-black uppercase italic leading-none">
-              <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
-                MATCH
-              </span>
-
-              <span className="block text-sky-400 drop-shadow-[0_0_18px_rgba(56,189,248,.65)]">
-                CENTER
-              </span>
+            <h1 className="mt-4 text-5xl font-black uppercase italic leading-none md:text-7xl">
+              <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">MATCH</span>
+              <span className="block text-sky-400 drop-shadow-[0_0_18px_rgba(56,189,248,.65)]">CENTER</span>
             </h1>
 
-            <p className="mt-5 max-w-2xl text-zinc-400 text-sm md:text-base">
-              Explorá estadísticas completas, resultados y rendimiento de cada
-              partido de APA PSO Argentina UE5.
+            <p className="mt-5 max-w-2xl text-sm text-zinc-400 md:text-base">
+              Explorá estadísticas completas, resultados y rendimiento de cada partido de APA PSO Argentina UE5.
             </p>
           </div>
         </div>
 
-        <section className="rounded-[30px] border border-sky-500/30 bg-[#020714] p-6 md:p-7 shadow-[0_0_35px_rgba(0,120,255,.14)]">
+        <section className="rounded-[30px] border border-sky-500/30 bg-[#020714] p-6 shadow-[0_0_35px_rgba(0,120,255,.14)] md:p-7">
           <div className="grid gap-6">
-            <div>
-              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
-                Temporada
-              </p>
-
+            <FilterBlock title="Temporada">
               <div className="grid grid-cols-1 gap-3">
                 {temporadas.map((temp) => (
-                  <button
-                    key={temp}
-                    onClick={() => {
-                      setTemporada(temp);
-                      setFecha("Todas");
-                    }}
-                    className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
-                      temporada === temp
-                        ? "border-sky-300 bg-gradient-to-b from-sky-400 to-blue-700 text-white shadow-[0_0_20px_rgba(56,189,248,.45)]"
-                        : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
-                    }`}
-                  >
-                    {temp.replace("Temporada ", "")}
-                  </button>
+                  <FilterButton key={temp} active={temporada === temp} variant="sky" onClick={() => setTemporada(temp)}>
+                    {temp.replace("Temporada ", "Temporada ")}
+                  </FilterButton>
                 ))}
               </div>
-            </div>
+            </FilterBlock>
 
-            <div>
-              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
-                División
-              </p>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {divisiones.map((div) => (
-                  <button
-                    key={div}
-                    onClick={() => {
-                      setDivision(div);
-                      setFecha("Todas");
-                    }}
-                    className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
-                      division === div
-                        ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
-                        : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
-                    }`}
-                  >
-                    🛡️ {div}
-                  </button>
+            <FilterBlock title="Competencia">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+                {competiciones.map((item) => (
+                  <FilterButton key={item.value} active={competicion === item.value} variant="yellow" onClick={() => setCompeticion(item.value)}>
+                    {item.short}
+                  </FilterButton>
                 ))}
               </div>
-            </div>
+            </FilterBlock>
 
-            <div>
-              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
-                Fecha
-              </p>
+            {competicion === "liga" && (
+              <FilterBlock title="División">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {divisiones.map((div) => (
+                    <FilterButton key={div} active={division === div} variant="yellow" onClick={() => setDivision(div)}>
+                      {div}
+                    </FilterButton>
+                  ))}
+                </div>
+              </FilterBlock>
+            )}
 
+            {competicion === "copa_clasificatoria" && (
+              <FilterBlock title="Grupo">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {grupos.map((g) => (
+                    <FilterButton key={g} active={grupo === g} variant="yellow" onClick={() => setGrupo(g)}>
+                      Grupo {g}
+                    </FilterButton>
+                  ))}
+                </div>
+              </FilterBlock>
+            )}
+
+            {(competicion === "copa_argentina" || competicion === "copa_apa") && (
+              <FilterBlock title="Fase">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {fases.map((f) => (
+                    <FilterButton key={f} active={fase === f} variant="yellow" onClick={() => setFase(f)}>
+                      {f}
+                    </FilterButton>
+                  ))}
+                </div>
+              </FilterBlock>
+            )}
+
+            <FilterBlock title="Fecha">
               <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => setFecha("Todas")}
-                  className={`rounded-2xl border px-5 py-3 text-sm font-black uppercase transition-all ${
-                    fecha === "Todas"
-                      ? "border-sky-300 bg-sky-400 text-black shadow-[0_0_20px_rgba(56,189,248,.35)]"
-                      : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
-                  }`}
-                >
+                <FilterButton active={fecha === "Todas"} variant="sky" onClick={() => setFecha("Todas")}>
                   Todas
-                </button>
+                </FilterButton>
 
                 {fechas.map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setFecha(f)}
-                    className={`rounded-2xl border px-5 py-3 text-sm font-black uppercase transition-all ${
-                      fecha === f
-                        ? "border-sky-300 bg-sky-400 text-black shadow-[0_0_20px_rgba(56,189,248,.35)]"
-                        : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
-                    }`}
-                  >
+                  <FilterButton key={f} active={fecha === f} variant="sky" onClick={() => setFecha(f)}>
                     Fecha {f}
-                  </button>
+                  </FilterButton>
                 ))}
               </div>
-            </div>
+            </FilterBlock>
           </div>
         </section>
 
         <div>
-          <p className="text-sky-300 uppercase tracking-[0.35em] text-xs font-black">
-            Selección actual
-          </p>
+          <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">Selección actual</p>
 
-          <h2 className="mt-3 text-3xl md:text-5xl font-black uppercase">
+          <h2 className="mt-3 text-3xl font-black uppercase md:text-5xl">
             {temporada}
             <span className="text-sky-400"> / </span>
-            {division}
+            {labelCompeticion(competicion)}
+            <span className="text-sky-400"> / </span>
+            {contextoActual}
           </h2>
 
-          <p className="mt-2 text-zinc-500 uppercase tracking-[0.25em] text-xs font-black">
+          <p className="mt-2 text-xs font-black uppercase tracking-[0.25em] text-zinc-500">
             {fecha === "Todas" ? "Todas las fechas" : `Fecha ${fecha}`}
           </p>
         </div>
 
         <div className="space-y-5">
           {loading ? (
-            <div className="rounded-[28px] border border-sky-500/20 bg-[#020714] p-10 text-center text-zinc-500">
-              Cargando partidos...
-            </div>
+            <div className="rounded-[28px] border border-sky-500/20 bg-[#020714] p-10 text-center text-zinc-500">Cargando partidos...</div>
           ) : partidos.length === 0 ? (
             <div className="rounded-[28px] border border-sky-500/20 bg-[#020714] p-10 text-center text-zinc-500">
               No hay partidos cargados para esta selección.
@@ -319,10 +400,7 @@ export default function EstadisticasPage() {
 
               if (!e1 || !e2) {
                 return (
-                  <div
-                    key={partido.partido_id}
-                    className="rounded-[28px] border border-yellow-400/20 bg-yellow-400/10 p-6 text-sm text-yellow-200"
-                  >
+                  <div key={partido.partido_id} className="rounded-[28px] border border-yellow-400/20 bg-yellow-400/10 p-6 text-sm text-yellow-200">
                     Partido incompleto: {partido.partido_id}
                   </div>
                 );
@@ -331,22 +409,18 @@ export default function EstadisticasPage() {
               return (
                 <Link
                   key={partido.partido_id}
-                  href={`/estadisticas/${encodeURIComponent(
-                    partido.partido_id,
-                  )}`}
-                  className="group relative block overflow-hidden rounded-[32px] border border-sky-500/20 bg-[#020714] p-6 md:p-8 transition-all duration-300 hover:border-sky-400/50 hover:shadow-[0_0_35px_rgba(56,189,248,.16)]"
+                  href={`/estadisticas/${encodeURIComponent(partido.partido_id)}`}
+                  className="group relative block overflow-hidden rounded-[32px] border border-sky-500/20 bg-[#020714] p-6 transition-all duration-300 hover:border-sky-400/50 hover:shadow-[0_0_35px_rgba(56,189,248,.16)] md:p-8"
                 >
-                  <div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.12),transparent_35%)]" />
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.12),transparent_35%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
                   <div className="relative z-10">
-                    <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                       <div>
-                        <p className="text-zinc-500 text-[11px] uppercase tracking-[0.28em] font-black">
-                          Fecha {partido.fecha}
-                        </p>
+                        <p className="text-[11px] font-black uppercase tracking-[0.28em] text-zinc-500">Fecha {partido.fecha}</p>
 
-                        <p className="mt-2 text-sky-300 text-xs uppercase tracking-[0.2em] font-black">
-                          {partido.temporada} · {partido.division}
+                        <p className="mt-2 text-xs font-black uppercase tracking-[0.2em] text-sky-300">
+                          {partido.temporada} · {labelCompeticion(partido.competicion)} · {labelContextoPartido(partido)}
                         </p>
                       </div>
 
@@ -355,39 +429,29 @@ export default function EstadisticasPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 xl:grid-cols-[1fr_auto_1fr] items-center gap-4 md:gap-8">
-                      <div className="flex items-center gap-4 min-w-0">
-                        <EscudoEquipo
-                          nombre={e1.equipo}
-                          logo={logoEquipo(e1.equipo)}
-                        />
+                    <div className="grid grid-cols-1 items-center gap-4 md:gap-8 xl:grid-cols-[1fr_auto_1fr]">
+                      <div className="flex min-w-0 items-center gap-4">
+                        <EscudoEquipo nombre={e1.equipo} logo={logoEquipo(e1.equipo)} />
 
                         <div className="min-w-0">
-                          <h2 className="truncate text-lg md:text-3xl font-black uppercase">
-                            {e1.equipo}
-                          </h2>
+                          <h2 className="truncate text-lg font-black uppercase md:text-3xl">{e1.equipo}</h2>
                         </div>
                       </div>
 
                       <div className="flex justify-center">
                         <div className="min-w-[140px] rounded-3xl border border-yellow-400/30 bg-yellow-400/10 px-6 py-4 text-center shadow-[0_0_20px_rgba(250,204,21,.08)]">
-                          <span className="text-4xl md:text-5xl font-black text-yellow-400 whitespace-nowrap drop-shadow-[0_0_10px_rgba(250,204,21,.45)]">
+                          <span className="whitespace-nowrap text-4xl font-black text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,.45)] md:text-5xl">
                             {e1.goals ?? 0}-{e2.goals ?? 0}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-end gap-4 min-w-0">
+                      <div className="flex min-w-0 items-center justify-end gap-4">
                         <div className="min-w-0 text-right">
-                          <h2 className="truncate text-lg md:text-3xl font-black uppercase">
-                            {e2.equipo}
-                          </h2>
+                          <h2 className="truncate text-lg font-black uppercase md:text-3xl">{e2.equipo}</h2>
                         </div>
 
-                        <EscudoEquipo
-                          nombre={e2.equipo}
-                          logo={logoEquipo(e2.equipo)}
-                        />
+                        <EscudoEquipo nombre={e2.equipo} logo={logoEquipo(e2.equipo)} />
                       </div>
                     </div>
                   </div>
@@ -398,5 +462,43 @@ export default function EstadisticasPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+function FilterBlock({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-sky-300">{title}</p>
+      {children}
+    </div>
+  );
+}
+
+function FilterButton({
+  active,
+  variant,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  variant: "sky" | "yellow";
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  const activeClass =
+    variant === "yellow"
+      ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
+      : "border-sky-300 bg-sky-400 text-black shadow-[0_0_20px_rgba(56,189,248,.35)]";
+
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded-2xl border px-5 py-3 text-sm font-black uppercase transition-all ${
+        active ? activeClass : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
+      }`}
+      type="button"
+    >
+      {children}
+    </button>
   );
 }

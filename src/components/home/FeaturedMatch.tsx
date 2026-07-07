@@ -1,126 +1,150 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
 
 const FEATURED_MATCH_BG = "/themes/worldcup/backgrounds/Tunel.png";
-const STORAGE_KEY = "apa-featured-match-anchors-v1";
 
 type Props = {
   partido: any;
   temporada: string;
-  division: string;
-  divisionLabel: string;
+  division?: string;
+  divisionLabel?: string;
+  competicion?: string;
+  competicionLabel?: string;
+  grupo?: string;
+  fase?: string;
   logoEquipo: (nombre?: string) => string | null;
   EscudoEquipo: any;
 };
 
-type AnchorKey = "local" | "score" | "visitor";
+function getCompeticionLabel(partido: any, fallback?: string) {
+  const value = String(partido?.competicion || fallback || "liga").toLowerCase();
 
-type Anchor = {
-  x: number;
-  y: number;
-  rotate: number;
-  scale: number;
-};
+  if (value === "liga") return "Torneo de Liga";
+  if (value === "copa_clasificatoria") return "Clasificación a Copas";
+  if (value === "copa_argentina") return "Copa Argentina";
+  if (value === "copa_apa") return "Copa APA";
 
-type Anchors = Record<AnchorKey, Anchor>;
+  return fallback || "Competición oficial";
+}
 
-const DEFAULT_ANCHORS: Anchors = {
-  local: { x: 24, y: 66, rotate: -6, scale: 1 },
-  score: { x: 50, y: 63, rotate: -1, scale: 1 },
-  visitor: { x: 76, y: 66, rotate: 6, scale: 1 },
-};
+function getContextLabel(partido: any, divisionLabel?: string, grupo?: string, fase?: string) {
+  const competicion = String(partido?.competicion || "").toLowerCase();
+
+  if (competicion === "copa_clasificatoria" || partido?.grupo || grupo) {
+    return `Grupo ${String(partido?.grupo || grupo || "").replace(/^grupo\s+/i, "")}`.trim();
+  }
+
+  if (competicion === "copa_argentina" || competicion === "copa_apa" || partido?.fase || fase) {
+    return String(partido?.fase || fase || "Fase");
+  }
+
+  return divisionLabel || partido?.division || "División";
+}
+
+function fixtureHref(partido: any, temporada: string, division?: string) {
+  const competicion = String(partido?.competicion || "liga").toLowerCase();
+  const params = new URLSearchParams();
+  params.set("temporada", temporada);
+
+  if (competicion === "liga") {
+    const div = String(partido?.division || division || "primera").toLowerCase();
+    return `/fixture/${div}?${params.toString()}`;
+  }
+
+  params.set("competicion", competicion);
+  if (partido?.grupo) params.set("grupo", String(partido.grupo));
+  if (partido?.fase) params.set("fase", String(partido.fase));
+
+  return `/fixture?${params.toString()}`;
+}
 
 export default function FeaturedMatch({
   partido,
   temporada,
   division,
   divisionLabel,
+  competicionLabel,
+  grupo,
+  fase,
   logoEquipo,
   EscudoEquipo,
 }: Props) {
   const estado = !partido ? "Sin partido" : partido.resultado ? "Finalizado" : "Programado";
-  const [anchors, setAnchors] = useState<Anchors>(DEFAULT_ANCHORS);
-  const [editMode, setEditMode] = useState(false);
-  const [selected, setSelected] = useState<AnchorKey>("local");
-
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved) setAnchors({ ...DEFAULT_ANCHORS, ...JSON.parse(saved) });
-      setEditMode(new URLSearchParams(window.location.search).get("editFeatured") === "1");
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(anchors));
-    } catch {}
-  }, [anchors]);
-
-  const fixtureHref = `/fixture/${division}?temporada=${encodeURIComponent(temporada)}`;
+  const competition = getCompeticionLabel(partido, competicionLabel);
+  const context = getContextLabel(partido, divisionLabel, grupo, fase);
+  const verPartidoHref = partido ? fixtureHref(partido, temporada, division) : `/fixture?temporada=${encodeURIComponent(temporada)}`;
   const allFixtureHref = `/fixture?temporada=${encodeURIComponent(temporada)}`;
 
   return (
-    <section className="relative min-h-[680px] overflow-hidden rounded-[30px] border border-sky-300/20 bg-[#020814] shadow-[0_24px_80px_rgba(0,0,0,.42)]">
+    <section className="relative min-h-[560px] overflow-hidden rounded-[30px] border border-sky-300/20 bg-[#020814] shadow-[0_24px_80px_rgba(0,0,0,.42)] md:min-h-[640px]">
       <img
         src={FEATURED_MATCH_BG}
         alt=""
         className="absolute inset-0 h-full w-full object-cover object-center"
       />
 
-      <div className="absolute inset-0 bg-gradient-to-r from-[#020814]/86 via-[#020814]/22 to-[#020814]/8" />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#020814]/10 via-transparent to-[#020814]/55" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#020814]/90 via-[#020814]/28 to-[#020814]/18" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#020814]/10 via-transparent to-[#020814]/68" />
+      <div className="absolute inset-x-0 bottom-0 h-[42%] bg-gradient-to-t from-[#020814]/88 via-[#020814]/24 to-transparent" />
 
-      <div className="relative z-10 flex min-h-[680px] flex-col p-5 md:p-8">
+      <div className="relative z-10 flex min-h-[560px] flex-col p-5 md:min-h-[640px] md:p-8">
         <div className="flex flex-wrap gap-2">
-          <Badge>Partido destacado</Badge>
-          <Badge>{temporada} · {divisionLabel}</Badge>
+          <Badge>{competition}</Badge>
+          <Badge>{context}</Badge>
+          <Badge>Fecha {partido?.fecha || "sin cargar"}</Badge>
           <Badge>{estado}</Badge>
         </div>
 
-        <h2 className="mt-6 max-w-[640px] text-[clamp(2.5rem,5.4vw,5rem)] font-black uppercase italic leading-[0.88] tracking-[-0.07em] text-white drop-shadow-[0_12px_35px_rgba(0,0,0,.75)]">
+        <h2 className="mt-5 max-w-[620px] text-[clamp(2.4rem,5vw,4.8rem)] font-black uppercase italic leading-[0.9] tracking-[-0.065em] text-white drop-shadow-[0_12px_35px_rgba(0,0,0,.78)]">
           La noche del partido
         </h2>
 
         {partido ? (
-          <>
-            <FloorTeam
-              anchor={anchors.local}
-              side="Local"
-              name={partido.local}
-              logo={logoEquipo(partido.local)}
-              EscudoEquipo={EscudoEquipo}
-              align="left"
-            />
+          <div className="mt-auto pb-16 md:pb-20">
+            <div className="grid items-center gap-4 md:grid-cols-[minmax(0,1fr)_150px_minmax(0,1fr)] md:gap-7">
+              <TeamCard
+                side="Local"
+                name={partido.local}
+                logo={logoEquipo(partido.local)}
+                EscudoEquipo={EscudoEquipo}
+                align="left"
+              />
 
-            <FloorScore anchor={anchors.score} score={partido.resultado || "VS"} />
+              <div className="order-2 flex justify-center md:order-none md:translate-y-[-10px]">
+                <div className="flex h-[104px] w-[124px] flex-col items-center justify-center rounded-[28px] border border-sky-300/18 bg-[#020814]/72 text-center backdrop-blur-md shadow-[0_20px_55px_rgba(0,0,0,.45)]">
+                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-200/80">
+                    Partido
+                  </p>
+                  <div className="mt-1 translate-x-[2px] text-[clamp(2rem,4.2vw,3.35rem)] font-black not-italic leading-none tracking-[-0.035em] text-white drop-shadow-[0_10px_18px_rgba(0,0,0,.9)]">
+                    {partido.resultado || "VS"}
+                  </div>
+                </div>
+              </div>
 
-            <FloorTeam
-              anchor={anchors.visitor}
-              side="Visitante"
-              name={partido.visitante}
-              logo={logoEquipo(partido.visitante)}
-              EscudoEquipo={EscudoEquipo}
-              align="right"
-            />
-          </>
+              <TeamCard
+                side="Visitante"
+                name={partido.visitante}
+                logo={logoEquipo(partido.visitante)}
+                EscudoEquipo={EscudoEquipo}
+                align="right"
+              />
+            </div>
+          </div>
         ) : (
-          <div className="mt-10 max-w-xl rounded-[26px] border border-white/12 bg-black/25 p-5 text-sm text-slate-300 backdrop-blur-md">
-            No hay partidos cargados para esta temporada y división.
+          <div className="mt-10 max-w-xl rounded-[26px] border border-white/12 bg-black/30 p-5 text-sm text-slate-300 backdrop-blur-md">
+            No hay partidos cargados para este contexto.
           </div>
         )}
 
-        <div className="mt-auto flex flex-wrap items-center gap-3">
-          <Meta>{partido?.fecha || "Fecha sin cargar"}</Meta>
+        <div className="absolute bottom-5 left-5 right-5 z-20 flex flex-wrap items-center gap-3 md:bottom-7 md:left-8 md:right-8">
           <Meta>{partido?.dia || "Día sin cargar"}</Meta>
           <Meta>{partido?.hora || "Hora sin cargar"}</Meta>
 
           <div className="ml-0 flex flex-wrap gap-3 md:ml-auto">
             <Link
-              href={fixtureHref}
-              className="rounded-full border border-[#B88A1B]/70 bg-[#C9981A] px-6 py-3 text-xs font-black uppercase tracking-[0.14em] text-white transition-all duration-300 hover:bg-[#D4A017] hover:border-[#E2BE5A]"
+              href={verPartidoHref}
+              className="rounded-full border border-[#B88A1B]/70 bg-[#C9981A] px-6 py-3 text-xs font-black uppercase tracking-[0.14em] text-white transition-all duration-300 hover:border-[#E2BE5A] hover:bg-[#D4A017]"
             >
               Ver partido →
             </Link>
@@ -135,29 +159,18 @@ export default function FeaturedMatch({
         </div>
       </div>
 
-      {editMode && (
-        <OverlayEditor
-          anchors={anchors}
-          setAnchors={setAnchors}
-          selected={selected}
-          setSelected={setSelected}
-        />
-      )}
-
       <div className="pointer-events-none absolute inset-0 rounded-[30px] ring-1 ring-inset ring-white/10" />
     </section>
   );
 }
 
-function FloorTeam({
-  anchor,
+function TeamCard({
   side,
   name,
   logo,
   EscudoEquipo,
   align,
 }: {
-  anchor: Anchor;
   side: string;
   name: string;
   logo: string | null;
@@ -169,56 +182,35 @@ function FloorTeam({
   return (
     <div
       className={[
-        "absolute z-20 flex items-center gap-4",
-        isRight ? "text-right" : "text-left",
+        "relative overflow-hidden rounded-[28px] border border-white/12 bg-[#020814]/54 p-4 backdrop-blur-md shadow-[0_24px_70px_rgba(0,0,0,.45)] md:p-5 md:min-h-[136px]",
+        isRight ? "md:text-right" : "md:text-left",
       ].join(" ")}
-      style={{
-        left: `${anchor.x}%`,
-        top: `${anchor.y}%`,
-        transform: `translate(-50%, -50%) perspective(1150px) rotateX(55deg) rotateZ(${anchor.rotate}deg) scale(${anchor.scale})`,
-        transformOrigin: "center center",
-      }}
     >
-      {!isRight && <FloorShield name={name} logo={logo} EscudoEquipo={EscudoEquipo} />}
+      <div className="absolute inset-0 bg-gradient-to-br from-sky-300/[0.08] via-transparent to-yellow-300/[0.05]" />
+      <div className="relative z-10 flex items-center gap-4 md:gap-5">
+        {!isRight && <Shield name={name} logo={logo} EscudoEquipo={EscudoEquipo} />}
 
-      <div className="max-w-[450px]">
-        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.24em] text-amber-200/80 drop-shadow-[0_5px_12px_rgba(0,0,0,.9)]">
-          {side}
-        </p>
+        <div className="min-w-0 flex-1">
+          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.24em] text-amber-200/85">
+            {side}
+          </p>
 
-        <h3 className="break-words text-[clamp(2rem,4.4vw,4.8rem)] font-black uppercase italic leading-[0.76] tracking-[-0.085em] text-white/95 mix-blend-screen drop-shadow-[0_8px_16px_rgba(0,0,0,.95)]">
-          {name}
-        </h3>
+          <h3 className="max-w-full break-words text-[clamp(1.35rem,2.75vw,2.7rem)] font-black uppercase italic leading-[0.88] tracking-[-0.055em] text-white drop-shadow-[0_8px_16px_rgba(0,0,0,.85)]">
+            {name}
+          </h3>
 
-        <div className={["mt-3 h-1 w-28 rounded-full bg-amber-200/75 mix-blend-screen shadow-[0_0_18px_rgba(250,204,21,.25)]", isRight ? "ml-auto" : ""].join(" ")} />
-      </div>
+          <div className={["mt-3 h-1 w-24 rounded-full bg-amber-200/80 shadow-[0_0_18px_rgba(250,204,21,.25)]", isRight ? "md:ml-auto" : ""].join(" ")} />
+        </div>
 
-      {isRight && <FloorShield name={name} logo={logo} EscudoEquipo={EscudoEquipo} />}
-    </div>
-  );
-}
-
-function FloorScore({ anchor, score }: { anchor: Anchor; score: string }) {
-  return (
-    <div
-      className="absolute z-20 text-center"
-      style={{
-        left: `${anchor.x}%`,
-        top: `${anchor.y}%`,
-        transform: `translate(-50%, -50%) perspective(1100px) rotateX(56deg) rotateZ(${anchor.rotate}deg) scale(${anchor.scale})`,
-        transformOrigin: "center center",
-      }}
-    >
-      <div className="text-[clamp(3.1rem,6.5vw,6rem)] font-black italic leading-none tracking-[-0.08em] text-white/95 mix-blend-screen drop-shadow-[0_10px_18px_rgba(0,0,0,.95)]">
-        {score}
+        {isRight && <Shield name={name} logo={logo} EscudoEquipo={EscudoEquipo} />}
       </div>
     </div>
   );
 }
 
-function FloorShield({ name, logo, EscudoEquipo }: any) {
+function Shield({ name, logo, EscudoEquipo }: any) {
   return (
-    <div className="shrink-0 opacity-95 mix-blend-screen drop-shadow-[0_12px_18px_rgba(0,0,0,.9)] grayscale-[10%] contrast-125">
+    <div className="flex h-[70px] w-[70px] shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-black/30 p-2 shadow-[0_12px_30px_rgba(0,0,0,.45)] md:h-[92px] md:w-[92px]">
       <EscudoEquipo nombre={name} logo={logo} size="lg" />
     </div>
   );
@@ -226,7 +218,7 @@ function FloorShield({ name, logo, EscudoEquipo }: any) {
 
 function Badge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full border border-white/15 bg-black/35 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-white/90 backdrop-blur-md">
+    <span className="rounded-full border border-white/15 bg-black/38 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-white/90 backdrop-blur-md">
       {children}
     </span>
   );
@@ -234,198 +226,8 @@ function Badge({ children }: { children: React.ReactNode }) {
 
 function Meta({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full border border-white/12 bg-black/45 px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/85 backdrop-blur-md">
+    <span className="rounded-full border border-white/12 bg-black/48 px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/85 backdrop-blur-md">
       {children}
     </span>
-  );
-}
-
-function OverlayEditor({
-  anchors,
-  setAnchors,
-  selected,
-  setSelected,
-}: {
-  anchors: Anchors;
-  setAnchors: React.Dispatch<React.SetStateAction<Anchors>>;
-  selected: AnchorKey;
-  setSelected: (value: AnchorKey) => void;
-}) {
-  const current = anchors[selected];
-
-  function updateAnchor(key: AnchorKey, patch: Partial<Anchor>) {
-    setAnchors((prev) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        ...patch,
-      },
-    }));
-  }
-
-  function pointerToPercent(event: React.PointerEvent<HTMLElement>, key: AnchorKey) {
-    const section = event.currentTarget.closest("section");
-    if (!section) return;
-
-    const rect = section.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * 100;
-    const y = ((event.clientY - rect.top) / rect.height) * 100;
-
-    updateAnchor(key, {
-      x: Number(x.toFixed(2)),
-      y: Number(y.toFixed(2)),
-    });
-  }
-
-  function copyJson() {
-    navigator.clipboard.writeText(JSON.stringify(anchors, null, 2));
-  }
-
-  return (
-    <>
-      <div className="absolute inset-0 z-40">
-        {(Object.keys(anchors) as AnchorKey[]).map((key) => (
-          <button
-            key={key}
-            type="button"
-            onPointerDown={(event) => {
-              event.currentTarget.setPointerCapture(event.pointerId);
-              setSelected(key);
-              pointerToPercent(event, key);
-            }}
-            onPointerMove={(event) => {
-              if (event.buttons !== 1) return;
-              pointerToPercent(event, key);
-            }}
-            className={[
-              "absolute flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 text-[10px] font-black uppercase shadow-[0_10px_30px_rgba(0,0,0,.45)] backdrop-blur-md transition",
-              selected === key
-                ? "border-amber-200 bg-amber-200 text-[#06111f]"
-                : "border-white/50 bg-black/55 text-white hover:bg-white/15",
-            ].join(" ")}
-            style={{ left: `${anchors[key].x}%`, top: `${anchors[key].y}%` }}
-          >
-            {key === "local" ? "L" : key === "score" ? "VS" : "V"}
-          </button>
-        ))}
-      </div>
-
-      <div className="absolute bottom-5 right-5 z-50 w-[320px] rounded-[24px] border border-white/15 bg-[#020814]/88 p-4 text-white shadow-[0_24px_70px_rgba(0,0,0,.55)] backdrop-blur-xl">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-200">
-            Editor overlay
-          </p>
-
-          <button
-            type="button"
-            onClick={copyJson}
-            className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-white hover:bg-white/15"
-          >
-            Copiar JSON
-          </button>
-        </div>
-
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {(["local", "score", "visitor"] as AnchorKey[]).map((key) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setSelected(key)}
-              className={[
-                "rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em]",
-                selected === key
-                  ? "border-amber-200 bg-amber-200 text-[#06111f]"
-                  : "border-white/12 bg-white/5 text-white/80",
-              ].join(" ")}
-            >
-              {key}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-4 space-y-3">
-          <Slider
-            label="X"
-            value={current.x}
-            min={0}
-            max={100}
-            step={0.1}
-            onChange={(value) => updateAnchor(selected, { x: value })}
-          />
-          <Slider
-            label="Y"
-            value={current.y}
-            min={0}
-            max={100}
-            step={0.1}
-            onChange={(value) => updateAnchor(selected, { y: value })}
-          />
-          <Slider
-            label="Rotación"
-            value={current.rotate}
-            min={-30}
-            max={30}
-            step={0.5}
-            onChange={(value) => updateAnchor(selected, { rotate: value })}
-          />
-          <Slider
-            label="Escala"
-            value={current.scale}
-            min={0.5}
-            max={1.6}
-            step={0.01}
-            onChange={(value) => updateAnchor(selected, { scale: value })}
-          />
-        </div>
-
-        <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            onClick={() => setAnchors(DEFAULT_ANCHORS)}
-            className="flex-1 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-white hover:bg-white/15"
-          >
-            Reset
-          </button>
-        </div>
-
-        <p className="mt-3 text-[10px] leading-4 text-slate-400">
-          Arrastrá L, VS o V sobre la imagen. Los cambios se guardan en tu navegador.
-        </p>
-      </div>
-    </>
-  );
-}
-
-function Slider({
-  label,
-  value,
-  min,
-  max,
-  step,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  onChange: (value: number) => void;
-}) {
-  return (
-    <label className="block">
-      <div className="mb-1 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.16em] text-slate-300">
-        <span>{label}</span>
-        <span>{value}</span>
-      </div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
-        className="w-full accent-amber-200"
-      />
-    </label>
   );
 }

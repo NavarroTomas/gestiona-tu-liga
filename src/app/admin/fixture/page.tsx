@@ -112,6 +112,7 @@ export default function AdminFixturePage() {
       .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora")
       .eq("temporada", temporada)
       .eq("division", normalizarDivisionFiltro(division))
+      .eq("competicion", "liga")
       .order("fecha", { ascending: true });
 
     if (equiposError) {
@@ -271,6 +272,10 @@ export default function AdminFixturePage() {
       dia: diaManual || null,
       hora: horaManual || null,
       partido_id: null,
+      competicion: "liga",
+      fase: "liga",
+      ronda: `Fecha ${fechaManual}`,
+      grupo: null,
     });
 
     if (error) {
@@ -296,6 +301,7 @@ export default function AdminFixturePage() {
       .select("id", { count: "exact", head: true })
       .eq("temporada", temporada)
       .eq("division", normalizarDivisionFiltro(division))
+      .eq("competicion", "liga")
 
     if (countError) {
       console.log(countError);
@@ -315,6 +321,7 @@ export default function AdminFixturePage() {
         .delete()
         .eq("temporada", temporada)
         .eq("division", normalizarDivisionFiltro(division))
+        .eq("competicion", "liga")
 
       if (deleteError) {
         console.log(deleteError);
@@ -341,6 +348,10 @@ export default function AdminFixturePage() {
       dia: null,
       hora: null,
       partido_id: null,
+      competicion: "liga",
+      fase: "liga",
+      ronda: `Fecha ${p.fecha}`,
+      grupo: null,
     }));
 
     const { error } = await supabase.from("partidos").insert(payload);
@@ -372,6 +383,7 @@ export default function AdminFixturePage() {
       .delete()
       .eq("temporada", temporada)
       .eq("division", normalizarDivisionFiltro(division))
+      .eq("competicion", "liga")
 
     if (error) {
       console.log(error);

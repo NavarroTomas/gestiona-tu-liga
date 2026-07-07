@@ -4,6 +4,30 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
+type Competicion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa";
+
+type ContextoCompetencia = {
+  id: string;
+  label: string;
+  competicion: Competicion;
+  division?: string;
+  divisionDb?: string;
+  grupo?: string;
+  fase?: string;
+  badge: string;
+};
+
+type Partido = {
+  id: string | number;
+  partido_id?: string | null;
+  fecha?: string | number | null;
+  temporada: string;
+  division?: string | null;
+  competicion?: string | null;
+  grupo?: string | null;
+  fase?: string | null;
+};
+
 type JugadorPremio = {
   nombre: string;
   playerId: string;
@@ -23,8 +47,112 @@ type JugadorPremio = {
 
 const temporadas = ["Temporada 4"];
 
-const divisiones = ["Primera", "Segunda"];
-const fechas = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+const contextos: ContextoCompetencia[] = [
+  {
+    id: "liga-primera",
+    label: "Liga · Primera",
+    competicion: "liga",
+    division: "primera",
+    divisionDb: "Primera",
+    badge: "Primera",
+  },
+  {
+    id: "liga-segunda",
+    label: "Liga · Segunda",
+    competicion: "liga",
+    division: "segunda",
+    divisionDb: "Segunda",
+    badge: "Segunda",
+  },
+  {
+    id: "copas-grupo-a",
+    label: "Clasificación · Grupo A",
+    competicion: "copa_clasificatoria",
+    grupo: "A",
+    fase: "grupos",
+    badge: "Grupo A",
+  },
+  {
+    id: "copas-grupo-b",
+    label: "Clasificación · Grupo B",
+    competicion: "copa_clasificatoria",
+    grupo: "B",
+    fase: "grupos",
+    badge: "Grupo B",
+  },
+  {
+    id: "copas-grupo-c",
+    label: "Clasificación · Grupo C",
+    competicion: "copa_clasificatoria",
+    grupo: "C",
+    fase: "grupos",
+    badge: "Grupo C",
+  },
+  {
+    id: "copas-grupo-d",
+    label: "Clasificación · Grupo D",
+    competicion: "copa_clasificatoria",
+    grupo: "D",
+    fase: "grupos",
+    badge: "Grupo D",
+  },
+  {
+    id: "copa-argentina-octavos",
+    label: "Copa Argentina · Octavos",
+    competicion: "copa_argentina",
+    fase: "octavos",
+    badge: "Octavos",
+  },
+  {
+    id: "copa-argentina-cuartos",
+    label: "Copa Argentina · Cuartos",
+    competicion: "copa_argentina",
+    fase: "cuartos",
+    badge: "Cuartos",
+  },
+  {
+    id: "copa-argentina-semis",
+    label: "Copa Argentina · Semifinal",
+    competicion: "copa_argentina",
+    fase: "semifinal",
+    badge: "Semifinal",
+  },
+  {
+    id: "copa-argentina-final",
+    label: "Copa Argentina · Final",
+    competicion: "copa_argentina",
+    fase: "final",
+    badge: "Final",
+  },
+  {
+    id: "copa-apa-octavos",
+    label: "Copa APA · Octavos",
+    competicion: "copa_apa",
+    fase: "octavos",
+    badge: "Octavos",
+  },
+  {
+    id: "copa-apa-cuartos",
+    label: "Copa APA · Cuartos",
+    competicion: "copa_apa",
+    fase: "cuartos",
+    badge: "Cuartos",
+  },
+  {
+    id: "copa-apa-semis",
+    label: "Copa APA · Semifinal",
+    competicion: "copa_apa",
+    fase: "semifinal",
+    badge: "Semifinal",
+  },
+  {
+    id: "copa-apa-final",
+    label: "Copa APA · Final",
+    competicion: "copa_apa",
+    fase: "final",
+    badge: "Final",
+  },
+];
 
 function valorGKSave(r: any) {
   return Number(r.gKSaves || r.gKSAVES || r.GKSaves || r.gksaves || 0);
@@ -39,7 +167,7 @@ function normalizarJugador(r: any): JugadorPremio {
     goals: Number(r.goals || 0),
     assists: Number(r.assists || 0),
     mvp: Number(r.mvp || 0),
-    overallRating: Number(r.overallRating || 0),
+    overallRating: Number(r.overallRating || r.rating_apa || 0),
     score: Number(r.score || 0),
     tackles: Number(r.tackles || 0),
     interceptions: Number(r.interceptions || 0),
@@ -51,7 +179,12 @@ function normalizarJugador(r: any): JugadorPremio {
 
 function esArquero(j: JugadorPremio) {
   const pos = j.posicion.toUpperCase();
-  return j.gKSaves > 0 || j.gKCatches > 0 || pos.includes("GK") || pos.includes("POR");
+  return (
+    j.gKSaves > 0 ||
+    j.gKCatches > 0 ||
+    pos.includes("GK") ||
+    pos.includes("POR")
+  );
 }
 
 function esDefensor(j: JugadorPremio) {
@@ -67,57 +200,159 @@ function esDefensor(j: JugadorPremio) {
   );
 }
 
+function partidoKey(partido: Partido) {
+  return partido.partido_id || String(partido.id);
+}
+
+function normalizarTexto(value?: string | number | null) {
+  return String(value || "").toLowerCase().trim();
+}
+
+function ordenFecha(a: string, b: string) {
+  return Number(a) - Number(b);
+}
+
+function getNombreCompeticion(contexto: ContextoCompetencia) {
+  if (contexto.competicion === "liga") return "Torneo de Liga";
+  if (contexto.competicion === "copa_clasificatoria") return "Clasificación a Copas";
+  if (contexto.competicion === "copa_argentina") return "Copa Argentina";
+  return "Copa APA";
+}
+
 export default function PremiosPage() {
   const [temporada, setTemporada] = useState("Temporada 4");
-  const [division, setDivision] = useState("Primera");
+  const [contextoId, setContextoId] = useState("liga-primera");
   const [fecha, setFecha] = useState("1");
+  const [fechas, setFechas] = useState<string[]>([]);
   const [jugadores, setJugadores] = useState<JugadorPremio[]>([]);
   const [logos, setLogos] = useState<Record<string, string>>({});
   const [cargando, setCargando] = useState(true);
 
+  const contexto = contextos.find((item) => item.id === contextoId) || contextos[0];
+  const nombreCompeticion = getNombreCompeticion(contexto);
+
   useEffect(() => {
     cargarDatos();
-  }, [temporada, division, fecha]);
+  }, [temporada, contextoId, fecha]);
+
+  function aplicarFiltroContexto(query: any) {
+    query = query.eq("temporada", temporada).eq("competicion", contexto.competicion);
+
+    if (contexto.competicion === "liga") {
+      query = query.in(
+        "division",
+        [contexto.division, contexto.divisionDb].filter(Boolean),
+      );
+    }
+
+    if (contexto.competicion === "copa_clasificatoria") {
+      query = query.eq("fase", "grupos").eq("grupo", contexto.grupo);
+    }
+
+    if (
+      contexto.competicion === "copa_argentina" ||
+      contexto.competicion === "copa_apa"
+    ) {
+      query = query.eq("fase", contexto.fase);
+    }
+
+    return query;
+  }
 
   async function cargarDatos() {
     setCargando(true);
 
-    const [statsResult, equiposResult] = await Promise.all([
-      supabase
-        .from("estadisticas_jugadores")
-        .select(
-          "nombre, playerId, equipo, posicion, goals, assists, mvp, overallRating, score, tackles, interceptions, gKSaves, gKCatches, passes",
-        )
-        .eq("temporada", temporada)
-        .eq("division", division)
-        .eq("fecha", fecha),
-      supabase
-        .from("equipos")
-        .select("nombre, logo_url")
-        .eq("temporada", temporada)
-        .eq("division", division),
-    ]);
+    let partidosQuery = supabase
+      .from("partidos")
+      .select("id, partido_id, fecha, temporada, division, competicion, grupo, fase")
+      .order("fecha", { ascending: true });
 
-    if (statsResult.error) {
-      console.log(statsResult.error);
+    partidosQuery = aplicarFiltroContexto(partidosQuery);
+
+    const { data: partidosData, error: partidosError } = await partidosQuery;
+
+    if (partidosError) {
+      console.log(partidosError);
+      setJugadores([]);
+      setLogos({});
+      setFechas([]);
+      setCargando(false);
+      return;
+    }
+
+    const partidos = (partidosData || []) as unknown as Partido[];
+
+    const fechasDisponibles = Array.from(
+      new Set(partidos.map((p) => String(p.fecha || "")).filter(Boolean)),
+    ).sort(ordenFecha);
+
+    const fechaValida = fechasDisponibles.includes(fecha)
+      ? fecha
+      : fechasDisponibles[0] || "1";
+
+    setFechas(fechasDisponibles);
+
+    if (fechaValida !== fecha) {
+      setFecha(fechaValida);
+      setCargando(false);
+      return;
+    }
+
+    const partidosFecha = partidos.filter(
+      (p) => String(p.fecha || "") === String(fechaValida),
+    );
+
+    const partidoIds = partidosFecha.map(partidoKey).filter(Boolean);
+
+    if (partidoIds.length === 0) {
       setJugadores([]);
       setLogos({});
       setCargando(false);
       return;
     }
 
-    if (equiposResult.error) {
-      console.log(equiposResult.error);
+    const { data: statsData, error: statsError } = await supabase
+      .from("estadisticas_jugadores")
+      .select(
+        "nombre, playerId, equipo, posicion, goals, assists, mvp, overallRating, rating_apa, score, tackles, interceptions, gKSaves, gKCatches, passes, partido_id",
+      )
+      .in("partido_id", partidoIds);
+
+    if (statsError) {
+      console.log(statsError);
+      setJugadores([]);
+      setLogos({});
+      setCargando(false);
+      return;
     }
 
-    setJugadores((statsResult.data || []).map(normalizarJugador));
+    const jugadoresNormalizados = (statsData || []).map(normalizarJugador);
+    setJugadores(jugadoresNormalizados);
 
-    const mapLogos: Record<string, string> = {};
-    (equiposResult.data || []).forEach((e: any) => {
-      if (e.nombre && e.logo_url) mapLogos[e.nombre] = e.logo_url;
-    });
+    const equipos = Array.from(
+      new Set(jugadoresNormalizados.map((j) => j.equipo).filter(Boolean)),
+    );
 
-    setLogos(mapLogos);
+    if (equipos.length > 0) {
+      const { data: clubesData, error: clubesError } = await supabase
+        .from("clubes_info")
+        .select("nombre, logo_url")
+        .in("nombre", equipos);
+
+      if (clubesError) {
+        console.log(clubesError);
+      }
+
+      const mapLogos: Record<string, string> = {};
+      (clubesData || []).forEach((e: any) => {
+        if (e.nombre && e.logo_url) mapLogos[e.nombre] = e.logo_url;
+      });
+
+      setLogos(mapLogos);
+    } else {
+      setLogos({});
+    }
+
     setCargando(false);
   }
 
@@ -125,15 +360,31 @@ export default function PremiosPage() {
     const ordenar = (fn: (j: JugadorPremio) => number) =>
       [...jugadores].sort((a, b) => fn(b) - fn(a))[0];
 
-    const mvpFecha = ordenar((j) => j.mvp * 1000 + j.overallRating + j.score / 100);
+    const mvpFecha = ordenar(
+      (j) => j.mvp * 1000 + j.overallRating * 10 + j.score / 100,
+    );
+
     const goleador = ordenar((j) => j.goals * 100 + j.overallRating);
-    const asistidor = ordenar((j) => j.assists * 100 + j.passes / 50 + j.overallRating);
+    const asistidor = ordenar(
+      (j) => j.assists * 100 + j.passes / 50 + j.overallRating,
+    );
+
     const arquero = [...jugadores]
       .filter(esArquero)
-      .sort((a, b) => b.gKSaves + b.gKCatches * 2 - (a.gKSaves + a.gKCatches * 2))[0];
+      .sort(
+        (a, b) =>
+          b.gKSaves + b.gKCatches * 2 + b.overallRating -
+          (a.gKSaves + a.gKCatches * 2 + a.overallRating),
+      )[0];
+
     const defensor = [...jugadores]
       .filter((j) => esDefensor(j) || j.tackles > 0 || j.interceptions > 0)
-      .sort((a, b) => b.tackles + b.interceptions * 2 + b.overallRating - (a.tackles + a.interceptions * 2 + a.overallRating))[0];
+      .sort(
+        (a, b) =>
+          b.tackles + b.interceptions * 2 + b.overallRating -
+          (a.tackles + a.interceptions * 2 + a.overallRating),
+      )[0];
+
     const estrella = ordenar((j) => j.overallRating * 100 + j.score / 10);
 
     return {
@@ -153,7 +404,11 @@ export default function PremiosPage() {
   }, [jugadores]);
 
   function LogoEquipo({ equipo }: { equipo?: string }) {
-    const logo = equipo ? logos[equipo] : "";
+    const logo = equipo
+      ? Object.entries(logos).find(
+          ([nombre]) => normalizarTexto(nombre) === normalizarTexto(equipo),
+        )?.[1]
+      : "";
 
     return (
       <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-sky-400/30 bg-black shadow-[0_0_18px_rgba(56,189,248,.18)]">
@@ -192,7 +447,7 @@ export default function PremiosPage() {
 
         <div className="relative z-10">
           <div className="flex items-start justify-between gap-4">
-            <div>
+            <div className="min-w-0">
               <p className={`text-xs font-black uppercase tracking-[0.28em] ${color}`}>
                 {titulo}
               </p>
@@ -210,18 +465,18 @@ export default function PremiosPage() {
           </div>
 
           <div className="mt-7 flex items-end justify-between gap-4">
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-3">
               <LogoEquipo equipo={jugador?.equipo} />
 
-              <div>
+              <div className="min-w-0">
                 <p className="text-[10px] uppercase tracking-[0.22em] text-zinc-500 font-black">
                   Métrica
                 </p>
-                <p className={`text-2xl font-black ${color}`}>{metrica}</p>
+                <p className={`truncate text-2xl font-black ${color}`}>{metrica}</p>
               </div>
             </div>
 
-            <p className="text-right text-xs uppercase tracking-[0.2em] text-zinc-500">
+            <p className="shrink-0 text-right text-xs uppercase tracking-[0.2em] text-zinc-500">
               Fecha {fecha}
             </p>
           </div>
@@ -278,7 +533,7 @@ export default function PremiosPage() {
                 Reconocimientos automáticos otorgados a los mejores jugadores de cada fecha según sus estadísticas oficiales.
               </p>
 
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-4">
                 <div className="rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4">
                   <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
                     Jugadores
@@ -290,16 +545,18 @@ export default function PremiosPage() {
 
                 <div className="rounded-2xl border border-yellow-500/20 bg-black/35 px-5 py-4">
                   <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
-                    Temporada
+                    Competición
                   </p>
-                  <p className="mt-1 font-black text-yellow-300">{temporada}</p>
+                  <p className="mt-1 font-black text-yellow-300">
+                    {nombreCompeticion}
+                  </p>
                 </div>
 
                 <div className="rounded-2xl border border-green-500/20 bg-black/35 px-5 py-4">
                   <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
-                    División
+                    Contexto
                   </p>
-                  <p className="mt-1 font-black text-green-400">{division}</p>
+                  <p className="mt-1 font-black text-green-400">{contexto.badge}</p>
                 </div>
 
                 <div className="rounded-2xl border border-purple-500/20 bg-black/35 px-5 py-4">
@@ -343,21 +600,24 @@ export default function PremiosPage() {
 
             <div>
               <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
-                División
+                Competencia
               </p>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {divisiones.map((div) => (
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-4">
+                {contextos.map((item) => (
                   <button
-                    key={div}
-                    onClick={() => setDivision(div)}
+                    key={item.id}
+                    onClick={() => {
+                      setContextoId(item.id);
+                      setFecha("1");
+                    }}
                     className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
-                      division === div
+                      contextoId === item.id
                         ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
                         : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
                     }`}
                   >
-                    {div}
+                    {item.label}
                   </button>
                 ))}
               </div>
@@ -368,21 +628,27 @@ export default function PremiosPage() {
                 Fecha
               </p>
 
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                {fechas.map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setFecha(f)}
-                    className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
-                      fecha === f
-                        ? "border-green-300 bg-gradient-to-r from-green-400 to-emerald-600 text-black shadow-[0_0_20px_rgba(74,222,128,.35)]"
-                        : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
-                    }`}
-                  >
-                    Fecha {f}
-                  </button>
-                ))}
-              </div>
+              {fechas.length === 0 ? (
+                <div className="rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-4 py-4 text-sm font-black uppercase text-yellow-300">
+                  No hay fechas cargadas para esta competencia.
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+                  {fechas.map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setFecha(f)}
+                      className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
+                        fecha === f
+                          ? "border-green-300 bg-gradient-to-r from-green-400 to-emerald-600 text-black shadow-[0_0_20px_rgba(74,222,128,.35)]"
+                          : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
+                      }`}
+                    >
+                      Fecha {f}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -405,13 +671,13 @@ export default function PremiosPage() {
               </h2>
 
               <p className="mt-4 text-zinc-400">
-                Cuando cargues estadísticas de jugadores para esta fecha, los premios aparecerán automáticamente.
+                Cuando cargues estadísticas de jugadores para esta fecha y competencia, los premios aparecerán automáticamente.
               </p>
             </div>
           </section>
         ) : (
           <>
-            <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
               <PremioCard
                 titulo="MVP de la Fecha"
                 icono="⭐"
@@ -432,7 +698,7 @@ export default function PremiosPage() {
                 titulo="Asistidor"
                 icono="🎯"
                 jugador={premios.asistidor}
-                metrica={`${premios.asistidor?.assists || 0} asist. `}
+                metrica={`${premios.asistidor?.assists || 0} asist.`}
                 color="text-sky-300"
               />
 
@@ -461,7 +727,7 @@ export default function PremiosPage() {
               />
             </section>
 
-            <section className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-8">
+            <section className="grid grid-cols-1 gap-8 xl:grid-cols-[1fr_380px]">
               <div className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6">
                 <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black">
                   Top rendimiento
@@ -535,6 +801,16 @@ export default function PremiosPage() {
                     </div>
 
                     <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/35 px-4 py-3">
+                      <span className="text-zinc-400">Competencia</span>
+                      <b className="text-yellow-300">{nombreCompeticion}</b>
+                    </div>
+
+                    <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/35 px-4 py-3">
+                      <span className="text-zinc-400">Contexto</span>
+                      <b className="text-green-400">{contexto.badge}</b>
+                    </div>
+
+                    <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/35 px-4 py-3">
                       <span className="text-zinc-400">Goles totales</span>
                       <b className="text-green-400">
                         {jugadores.reduce((acc, j) => acc + j.goals, 0)}
@@ -570,7 +846,7 @@ export default function PremiosPage() {
                     <p>⭐ MVP: MVP marcado + rating + score.</p>
                     <p>⚽ Goleador: más goles y rating.</p>
                     <p>🎯 Asistidor: asistencias, pases y rating.</p>
-                    <p>🧤 Arquero: atajadas y atrapadas.</p>
+                    <p>🧤 Arquero: atajadas, atrapadas y rating.</p>
                     <p>🛡️ Defensa: tackles, intercepciones y rating.</p>
                   </div>
                 </section>
