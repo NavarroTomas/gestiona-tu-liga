@@ -15,6 +15,11 @@ const orbitron = Orbitron({
 export const metadata: Metadata = {
   title: "APA PSO Argentina",
   description: "Liga APA PSO Argentina",
+   icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
   other: {
     "google-adsense-account": "ca-pub-9012377872796123",
   },

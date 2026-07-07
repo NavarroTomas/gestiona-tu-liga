@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import CompetitionSelector from "@/components/CompetitionSelector";
 
 type Competicion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa";
 
@@ -19,22 +20,53 @@ type Contexto = {
 
 const temporadas = ["Temporada 4"];
 
-const contextos: Contexto[] = [
-  { id: "liga-primera", label: "Liga · Primera", short: "Primera", competicion: "liga", division: "primera", divisionDb: "Primera" },
-  { id: "liga-segunda", label: "Liga · Segunda", short: "Segunda", competicion: "liga", division: "segunda", divisionDb: "Segunda" },
-  { id: "clasificacion-a", label: "Clasificación · Grupo A", short: "Grupo A", competicion: "copa_clasificatoria", fase: "grupos", grupo: "A" },
-  { id: "clasificacion-b", label: "Clasificación · Grupo B", short: "Grupo B", competicion: "copa_clasificatoria", fase: "grupos", grupo: "B" },
-  { id: "clasificacion-c", label: "Clasificación · Grupo C", short: "Grupo C", competicion: "copa_clasificatoria", fase: "grupos", grupo: "C" },
-  { id: "clasificacion-d", label: "Clasificación · Grupo D", short: "Grupo D", competicion: "copa_clasificatoria", fase: "grupos", grupo: "D" },
-  { id: "copa-argentina-octavos", label: "Copa Argentina · Octavos", short: "Octavos", competicion: "copa_argentina", fase: "octavos" },
-  { id: "copa-argentina-cuartos", label: "Copa Argentina · Cuartos", short: "Cuartos", competicion: "copa_argentina", fase: "cuartos" },
-  { id: "copa-argentina-semis", label: "Copa Argentina · Semifinal", short: "Semifinal", competicion: "copa_argentina", fase: "semifinal" },
-  { id: "copa-argentina-final", label: "Copa Argentina · Final", short: "Final", competicion: "copa_argentina", fase: "final" },
-  { id: "copa-apa-octavos", label: "Copa APA · Octavos", short: "Octavos", competicion: "copa_apa", fase: "octavos" },
-  { id: "copa-apa-cuartos", label: "Copa APA · Cuartos", short: "Cuartos", competicion: "copa_apa", fase: "cuartos" },
-  { id: "copa-apa-semis", label: "Copa APA · Semifinal", short: "Semifinal", competicion: "copa_apa", fase: "semifinal" },
-  { id: "copa-apa-final", label: "Copa APA · Final", short: "Final", competicion: "copa_apa", fase: "final" },
-];
+function construirContexto(competicion: Competicion, subcategoria: string): Contexto {
+  if (competicion === "liga") {
+    const esPrimera = subcategoria === "primera";
+    return {
+      id: esPrimera ? "liga-primera" : "liga-segunda",
+      label: esPrimera ? "Liga · Primera" : "Liga · Segunda",
+      short: esPrimera ? "Primera" : "Segunda",
+      competicion: "liga",
+      division: esPrimera ? "primera" : "segunda",
+      divisionDb: esPrimera ? "Primera" : "Segunda",
+    };
+  }
+
+  if (competicion === "copa_clasificatoria") {
+    const grupo = subcategoria || "A";
+    return {
+      id: `clasificacion-${grupo.toLowerCase()}`,
+      label: `Clasificación a Copas · Grupo ${grupo}`,
+      short: `Grupo ${grupo}`,
+      competicion: "copa_clasificatoria",
+      fase: "grupos",
+      grupo,
+    };
+  }
+
+  const fase = subcategoria || "octavos";
+  const faseLabel =
+    fase === "semifinal" ? "Semifinal" : fase.charAt(0).toUpperCase() + fase.slice(1);
+
+  if (competicion === "copa_argentina") {
+    return {
+      id: `copa-argentina-${fase}`,
+      label: `Copa Argentina · ${faseLabel}`,
+      short: faseLabel,
+      competicion: "copa_argentina",
+      fase,
+    };
+  }
+
+  return {
+    id: `copa-apa-${fase}`,
+    label: `Copa APA · ${faseLabel}`,
+    short: faseLabel,
+    competicion: "copa_apa",
+    fase,
+  };
+}
 
 type Partido = {
   id: number | string;
@@ -110,7 +142,8 @@ function normalizarFecha(value: any) {
 
 export default function PrediccionesPage() {
   const [temporada, setTemporada] = useState("Temporada 4");
-  const [contextoId, setContextoId] = useState("liga-primera");
+  const [competicion, setCompeticion] = useState<Competicion>("liga");
+  const [subcategoria, setSubcategoria] = useState("primera");
   const [fechaActiva, setFechaActiva] = useState("Todas");
   const [usuarioId, setUsuarioId] = useState("");
   const [miPerfil, setMiPerfil] = useState<PerfilPrediccion | null>(null);
@@ -121,15 +154,18 @@ export default function PrediccionesPage() {
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(true);
 
-  const contexto = contextos.find((c) => c.id === contextoId) || contextos[0];
+  const contexto = useMemo(
+    () => construirContexto(competicion, subcategoria),
+    [competicion, subcategoria],
+  );
 
   useEffect(() => {
     setFechaActiva("Todas");
-  }, [temporada, contextoId]);
+  }, [temporada, competicion, subcategoria]);
 
   useEffect(() => {
     cargarDatos();
-  }, [temporada, contextoId]);
+  }, [temporada, competicion, subcategoria]);
 
   function aplicarFiltroContexto(query: any) {
     query = query.eq("temporada", temporada).eq("competicion", contexto.competicion);
@@ -477,16 +513,14 @@ export default function PrediccionesPage() {
         <section className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 shadow-[0_0_35px_rgba(0,120,255,.12)] sm:rounded-[34px] md:p-8">
           <div className="grid gap-7">
             <Filtro label="Temporada" items={temporadas} value={temporada} setValue={setTemporada} color="sky" />
-            <div>
-              <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-yellow-300">Competencia / División / Grupo / Fase</p>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-4">
-                {contextos.map((ctx) => (
-                  <button key={ctx.id} onClick={() => setContextoId(ctx.id)} className={`rounded-2xl border px-3 py-3 text-xs font-black uppercase transition-all sm:px-4 sm:py-4 sm:text-sm ${contextoId === ctx.id ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]" : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"}`}>
-                    {ctx.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <CompetitionSelector
+              competicion={competicion}
+              subcategoria={subcategoria}
+              onChange={(nextCompeticion, nextSubcategoria) => {
+                setCompeticion(nextCompeticion as Competicion);
+                setSubcategoria(nextSubcategoria);
+              }}
+            />
             <Filtro label="Fecha" items={fechas} value={fechaActiva} setValue={setFechaActiva} color="green" />
           </div>
         </section>

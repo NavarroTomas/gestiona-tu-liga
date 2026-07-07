@@ -105,6 +105,10 @@ const temporadas = ["Temporada 4"];
 
 const divisiones = ["Todas", "Primera", "Segunda"];
 
+const PESO_RENDIMIENTO_INDIVIDUAL = 0.65;
+const PESO_IMPACTO_EQUIPO = 0.20;
+const PESO_LOGRO_COLECTIVO = 0.15;
+
 const premios: PremioConfig[] = [
   {
     key: "balon_oro",
@@ -213,7 +217,7 @@ function esSegundaDivision(division?: string | null) {
 }
 
 function calcularBaseStat(s: StatJugador) {
-  const rating = Number(s.rating_apa || s.overallRating || 0);
+  const rating = Number(s.rating_apa ?? 0);
 
   return (
     Number(s.goals || 0) * 3 +
@@ -225,7 +229,7 @@ function calcularBaseStat(s: StatJugador) {
 }
 
 function calcularRaikoStat(s: StatJugador) {
-  const rating = Number(s.rating_apa || s.overallRating || 0);
+  const rating = Number(s.rating_apa ?? 0);
 
   return (
     valorGKSave(s) * 2 +
@@ -236,7 +240,7 @@ function calcularRaikoStat(s: StatJugador) {
 }
 
 function calcularGoldenStat(s: StatJugador) {
-  const rating = Number(s.rating_apa || s.overallRating || 0);
+  const rating = Number(s.rating_apa ?? 0);
 
   return (
     Number(s.goals || 0) * 4 +
@@ -474,21 +478,11 @@ function obtenerBonusEquipo(
   return bonus[`${comp}|${equipo}`] || 0;
 }
 
-function calcularPuntos(
+function rendimientoIndividualPremio(
   premio: PremioKey,
   c: Omit<Candidato, "puntos" | "posicion">,
 ) {
-  if (premio === "balon_oro") {
-    return c.basePonderada * (1 + c.influencia * 0.2 + c.bonusEquipo * 0.1);
-  }
-
-  if (premio === "the_best") {
-    return c.basePonderada * (1 + c.influencia * 0.2 + c.bonusEquipo * 0.1);
-  }
-
-  if (premio === "raiko_trophy") {
-    return c.raikoPonderado * (1 + c.influencia * 0.2 + c.bonusEquipo * 0.1);
-  }
+  if (premio === "raiko_trophy") return c.raikoPonderado;
 
   if (premio === "bota_oro") {
     return (
@@ -499,11 +493,27 @@ function calcularPuntos(
     );
   }
 
-  if (premio === "golden_boy") {
-    return c.goldenPonderado * (1 + c.influencia * 0.2 + c.bonusEquipo * 0.1);
-  }
+  if (premio === "golden_boy") return c.goldenPonderado;
 
-  return 0;
+  return c.basePonderada;
+}
+
+function calcularPuntos(
+  premio: PremioKey,
+  c: Omit<Candidato, "puntos" | "posicion">,
+) {
+  const rendimientoIndividual = rendimientoIndividualPremio(premio, c);
+
+  const impactoEquipo = rendimientoIndividual * Math.min(1, Math.max(0, c.influencia));
+
+  const logroColectivo =
+    rendimientoIndividual * Math.min(1, Math.max(0, c.bonusEquipo * 10));
+
+  return (
+    rendimientoIndividual * PESO_RENDIMIENTO_INDIVIDUAL +
+    impactoEquipo * PESO_IMPACTO_EQUIPO +
+    logroColectivo * PESO_LOGRO_COLECTIVO
+  );
 }
 
 export default function AdminPremiosPage() {
@@ -703,7 +713,7 @@ export default function AdminPremiosPage() {
       const pCompeticion = pesoCompeticion(competicion);
       const pDivision = pesoDivision(divisionOficial);
       const peso = pCompeticion * pDivision;
-      const rating = Number(s.rating_apa || s.overallRating || 0);
+      const rating = Number(s.rating_apa ?? 0);
       const equipo = s.equipo || "Sin club";
       const equipoKey = `${s.partido_id}|${equipo}`;
       const totalesEquipo = equipoTotales[equipoKey] || {};
@@ -1228,16 +1238,13 @@ export default function AdminPremiosPage() {
                       premio === "raiko_trophy" ||
                       premio === "golden_boy") && (
                       <p className="mt-3 rounded-xl border border-yellow-400/20 bg-yellow-400/10 p-3 text-xs font-bold leading-5 text-yellow-200">
-                        Pesos: Liga x1.00 · Copa Argentina x1.05 · Clasificación
-                        x0.95 · Copa APA x0.90 · Primera x1.00 · Segunda x0.75
+                        Fórmula: 65% rendimiento individual · 20% impacto en el equipo · 15% logro colectivo. Pesos: Liga x1.00 · Copa Argentina x1.05 · Clasificación x0.95 · Copa APA x0.90 · Primera x1.00 · Segunda x0.75
                       </p>
                     )}
 
                     {premio === "the_best" && (
                       <p className="mt-3 rounded-xl border border-purple-400/20 bg-purple-400/10 p-3 text-xs font-bold leading-5 text-purple-200">
-                        Solo compiten jugadores cuya división principal sea
-                        Segunda. También cuentan sus partidos de copas
-                        oficiales.
+                        Solo compiten jugadores cuya división principal sea Segunda. También cuentan sus partidos de copas oficiales. Fórmula: 65% rendimiento individual · 20% impacto en el equipo · 15% logro colectivo.
                       </p>
                     )}
                   </div>
@@ -1461,13 +1468,15 @@ export default function AdminPremiosPage() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-2 md:w-[410px] md:grid-cols-6">
+                        <div className="grid grid-cols-3 gap-2 md:w-[520px] md:grid-cols-8">
                           {[
                             ["G", c.goles],
                             ["A", c.asistencias],
                             ["MVP", c.mvps],
                             ["SCORE", c.score],
                             ["ATAJ", c.atajadas],
+                            ["IMP", `${Math.round(c.influencia * 100)}%`],
+                            ["LOG", `${Math.round(c.bonusEquipo * 100)}%`],
                             ["PTS", c.puntos.toFixed(1)],
                           ].map(([label, value]) => (
                             <div
