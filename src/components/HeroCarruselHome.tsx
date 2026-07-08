@@ -48,7 +48,7 @@ export default function HeroCarruselHome() {
             </a>
 
             <a
-              href="https://www.youtube.com/watch?v=iiM-PKmB3cA"
+              href="https://youtu.be/iiM-PKmB3cA?t=12"
               target="_blank"
               className="bg-white/10 border border-white/15 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl text-xs sm:text-sm font-black uppercase text-center hover:border-pink-400/60 transition-all"
             >
