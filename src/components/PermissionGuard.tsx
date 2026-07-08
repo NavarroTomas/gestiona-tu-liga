@@ -2,51 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getMyAdminPermissions, hasPermission } from "@/lib/adminPermissions";
 import { supabase } from "@/lib/supabase";
-
-let permissionsCache: string[] | undefined;
-let permissionsPromise: Promise<string[]> | undefined;
-
-function normalizarPermisos(data: unknown): string[] {
-  if (!Array.isArray(data)) return [];
-
-  return data
-    .map((item) => {
-      if (!item || typeof item !== "object" || !("code" in item)) {
-        return null;
-      }
-
-      const code = (item as { code?: unknown }).code;
-      return typeof code === "string" ? code : null;
-    })
-    .filter((code): code is string => code !== null);
-}
-
-function cargarMisPermisos(): Promise<string[]> {
-  if (permissionsCache) {
-    return Promise.resolve(permissionsCache);
-  }
-
-  if (permissionsPromise) {
-    return permissionsPromise;
-  }
-
-  permissionsPromise = (async () => {
-    try {
-      const { data, error } = await supabase.rpc("get_my_permissions");
-
-      if (error) throw error;
-
-      const permisos = normalizarPermisos(data);
-      permissionsCache = permisos;
-      return permisos;
-    } finally {
-      permissionsPromise = undefined;
-    }
-  })();
-
-  return permissionsPromise;
-}
 
 export default function PermissionGuard({
   permission,
@@ -79,11 +36,11 @@ export default function PermissionGuard({
       }
 
       try {
-        const permisos = await cargarMisPermisos();
+        const permisos = await getMyAdminPermissions(user.id);
 
         if (!activo) return;
 
-        if (!permisos.includes(permission)) {
+        if (!hasPermission(permisos, permission)) {
           router.push("/admin");
           setVerificando(false);
           return;
@@ -110,7 +67,7 @@ export default function PermissionGuard({
 
   if (verificando) {
     return (
-      <main className="min-h-screen bg-black flex items-center justify-center text-white">
+      <main className="flex min-h-screen items-center justify-center bg-black text-white">
         <p className="text-2xl font-black uppercase tracking-[0.18em] text-sky-300">
           Verificando permisos...
         </p>

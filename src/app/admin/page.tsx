@@ -1,127 +1,167 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import {
+  getMyAdminPermissions,
+  hasPermission,
+} from "@/lib/adminPermissions";
 import { supabase } from "@/lib/supabase";
 
-let permissionsCacheUserId: string | undefined;
-let permissionsCache: string[] | undefined;
-let permissionsPromiseUserId: string | undefined;
-let permissionsPromise: Promise<string[]> | undefined;
+type AdminCard = {
+  href: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  icon: string;
+  permission: string;
+  color: string;
+  priority?: boolean;
+};
 
-function normalizarPermisos(data: unknown): string[] {
-  if (!Array.isArray(data)) return [];
-
-  return data
-    .map((item) => {
-      if (!item || typeof item !== "object" || !("code" in item)) {
-        return null;
-      }
-
-      const code = (item as { code?: unknown }).code;
-      return typeof code === "string" ? code : null;
-    })
-    .filter((code): code is string => code !== null);
-}
-
-function limpiarPermisosCache() {
-  permissionsCacheUserId = undefined;
-  permissionsCache = undefined;
-  permissionsPromiseUserId = undefined;
-  permissionsPromise = undefined;
-}
-
-function cargarMisPermisos(userId: string): Promise<string[]> {
-  if (permissionsCacheUserId === userId && permissionsCache) {
-    return Promise.resolve(permissionsCache);
-  }
-
-  if (permissionsPromiseUserId === userId && permissionsPromise) {
-    return permissionsPromise;
-  }
-
-  permissionsPromiseUserId = userId;
-  permissionsPromise = (async () => {
-    try {
-      const { data, error } = await supabase.rpc("get_my_permissions");
-
-      if (error) throw error;
-
-      const permisos = normalizarPermisos(data);
-      permissionsCacheUserId = userId;
-      permissionsCache = permisos;
-      return permisos;
-    } finally {
-      permissionsPromiseUserId = undefined;
-      permissionsPromise = undefined;
-    }
-  })();
-
-  return permissionsPromise;
-}
-
+const ADMIN_CARDS: AdminCard[] = [
+  {
+    href: "/admin/permisos",
+    eyebrow: "Seguridad",
+    title: "Permisos",
+    description: "Marcá y desmarcá qué zonas administrativas puede usar cada usuario.",
+    icon: "🔐",
+    permission: "admin.permissions.manage",
+    color: "border-cyan-500/25 hover:border-cyan-300 hover:shadow-[0_0_25px_rgba(34,211,238,.15)]",
+    priority: true,
+  },
+  {
+    href: "/admin/competicion",
+    eyebrow: "Competición",
+    title: "Competición General",
+    description: "Administrá clasificación, Copa de Campeones y Playoffs de Ascenso.",
+    icon: "🏆",
+    permission: "competitions.manage",
+    color: "border-yellow-500/25 hover:border-yellow-300 hover:shadow-[0_0_25px_rgba(250,204,21,.15)]",
+    priority: true,
+  },
+  {
+    href: "/admin/fixture",
+    eyebrow: "Liga",
+    title: "Fixture Liga",
+    description: "Generá y programá partidos de Primera y Segunda División.",
+    icon: "📅",
+    permission: "fixtures.manage",
+    color: "border-sky-500/25 hover:border-sky-300 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]",
+    priority: true,
+  },
+  {
+    href: "/admin/subir-txt",
+    eyebrow: "Resultados",
+    title: "Subir TXT",
+    description: "Cargá estadísticas oficiales desde archivos MatchStats.",
+    icon: "📄",
+    permission: "matches.upload_txt",
+    color: "border-sky-500/25 hover:border-sky-300 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]",
+    priority: true,
+  },
+  {
+    href: "/admin/listas",
+    eyebrow: "Registros",
+    title: "Listas",
+    description: "Editá partidos y datos ya cargados sin romper competición/fase.",
+    icon: "📋",
+    permission: "matches.edit",
+    color: "border-blue-500/25 hover:border-blue-300 hover:shadow-[0_0_25px_rgba(59,130,246,.15)]",
+  },
+  {
+    href: "/admin/cargar-partido-manual",
+    eyebrow: "Históricos",
+    title: "Partido Manual",
+    description: "Cargá partidos, goleadores, asistencias y MVP sin TXT.",
+    icon: "⚽",
+    permission: "matches.upload_manual",
+    color: "border-amber-500/25 hover:border-amber-300 hover:shadow-[0_0_25px_rgba(245,158,11,.15)]",
+  },
+  {
+    href: "/admin/copas",
+    eyebrow: "Auxiliar",
+    title: "Copas viejo",
+    description: "Panel auxiliar antiguo. Usalo solo si necesitás revisar datos viejos.",
+    icon: "🏅",
+    permission: "competitions.manage",
+    color: "border-orange-500/25 hover:border-orange-300 hover:shadow-[0_0_25px_rgba(251,146,60,.15)]",
+  },
+  {
+    href: "/admin/clubes",
+    eyebrow: "Clubes",
+    title: "Clubes",
+    description: "Administrá logos, banners, colores y datos visuales.",
+    icon: "🏟️",
+    permission: "clubs.manage",
+    color: "border-cyan-500/25 hover:border-cyan-300 hover:shadow-[0_0_25px_rgba(34,211,238,.15)]",
+  },
+  {
+    href: "/admin/plantillas",
+    eyebrow: "Mercado",
+    title: "Plantillas y Mercado",
+    description: "Administrá jugadores, plantillas y transferencias.",
+    icon: "👥",
+    permission: "transfers.manage",
+    color: "border-emerald-500/25 hover:border-emerald-300 hover:shadow-[0_0_25px_rgba(52,211,153,.15)]",
+  },
+  {
+    href: "/admin/noticias",
+    eyebrow: "Prensa",
+    title: "Noticias",
+    description: "Administrá publicaciones, comunicados y novedades.",
+    icon: "📰",
+    permission: "news.manage",
+    color: "border-sky-500/25 hover:border-sky-300 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]",
+  },
+  {
+    href: "/admin/titulos",
+    eyebrow: "Historia",
+    title: "Palmarés",
+    description: "Cargá campeones oficiales por competición.",
+    icon: "🏛️",
+    permission: "titles.manage",
+    color: "border-yellow-500/25 hover:border-yellow-300 hover:shadow-[0_0_25px_rgba(250,204,21,.15)]",
+  },
+  {
+    href: "/admin/premios",
+    eyebrow: "Premios",
+    title: "Premios APA",
+    description: "Asigná premios de temporada e historia APA.",
+    icon: "🏆",
+    permission: "titles.manage",
+    color: "border-amber-500/25 hover:border-amber-300 hover:shadow-[0_0_25px_rgba(251,191,36,.15)]",
+  },
+  {
+    href: "/admin/verificaciones",
+    eyebrow: "Verificación",
+    title: "Player IDs",
+    description: "Revisá solicitudes, aprobaciones, rechazos y disputas.",
+    icon: "✅",
+    permission: "admin.users.manage",
+    color: "border-green-500/25 hover:border-green-300 hover:shadow-[0_0_25px_rgba(74,222,128,.15)]",
+  },
+  {
+    href: "/admin/usuarios",
+    eyebrow: "Comunidad",
+    title: "Usuarios",
+    description: "Aprobá, suspendé y revisá usuarios. Los permisos se editan en /admin/permisos.",
+    icon: "👤",
+    permission: "admin.users.manage",
+    color: "border-purple-500/25 hover:border-purple-300 hover:shadow-[0_0_25px_rgba(168,85,247,.15)]",
+  },
+];
 
 export default function AdminPage() {
-  const temporadas = ["Temporada 4"];
-  const divisiones = ["Primera", "Segunda"];
-
-  const [clubNombre, setClubNombre] = useState("");
-  const [clubTemporada, setClubTemporada] = useState("Temporada 4");
-  const [clubDivision, setClubDivision] = useState("Primera");
-
-  const [temporadaNombre, setTemporadaNombre] = useState("");
-  const [temporadaCampeon, setTemporadaCampeon] = useState("");
-
-  const [local, setLocal] = useState("");
-  const [visitante, setVisitante] = useState("");
-  const [resultado, setResultado] = useState("");
-  const [fecha, setFecha] = useState("");
-  const [partidoTemporada, setPartidoTemporada] = useState("Temporada 4");
-  const [partidoDivision, setPartidoDivision] = useState("Primera");
-
-  const [jugadorNombre, setJugadorNombre] = useState("");
-  const [jugadorEquipo, setJugadorEquipo] = useState("");
-  const [goles, setGoles] = useState("0");
-  const [asistencias, setAsistencias] = useState("0");
-  const [mvps, setMvps] = useState("0");
-  const [jugadorTemporada, setJugadorTemporada] = useState("Temporada 4");
-  const [jugadorDivision, setJugadorDivision] = useState("Primera");
-
-  const [noticiaTitulo, setNoticiaTitulo] = useState("");
-  const [noticiaDescripcion, setNoticiaDescripcion] = useState("");
-  const [noticiaTemporada, setNoticiaTemporada] = useState("Temporada 4");
-
-  const [cargandoPermisos, setCargandoPermisos] = useState(true);
-  const [canUploadTxt, setCanUploadTxt] = useState(false);
-  const [canManualMatch, setCanManualMatch] = useState(false);
-  const [canNews, setCanNews] = useState(false);
-  const [canTransfers, setCanTransfers] = useState(false);
-  const [canCompetitions, setCanCompetitions] = useState(false);
-  const [canTitles, setCanTitles] = useState(false);
-  const [canUsers, setCanUsers] = useState(false);
-  const [canLists, setCanLists] = useState(false);
-  const [canClubs, setCanClubs] = useState(false);
+  const [permisos, setPermisos] = useState<string[]>([]);
+  const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     cargarPermisos();
   }, []);
 
-  function aplicarPermisos(permisos: string[]) {
-    const tiene = (permission: string) => permisos.includes(permission);
-
-    setCanUploadTxt(tiene("matches.upload_txt"));
-    setCanManualMatch(tiene("matches.upload_manual"));
-    setCanNews(tiene("news.manage"));
-    setCanTransfers(tiene("transfers.manage"));
-    setCanCompetitions(tiene("competitions.manage"));
-    setCanTitles(tiene("titles.manage"));
-    setCanUsers(tiene("admin.users.manage"));
-    setCanLists(tiene("matches.edit"));
-    setCanClubs(tiene("clubs.manage"));
-  }
-
   async function cargarPermisos() {
-    setCargandoPermisos(true);
+    setCargando(true);
 
     try {
       const {
@@ -129,159 +169,30 @@ export default function AdminPage() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        limpiarPermisosCache();
-        aplicarPermisos([]);
+        setPermisos([]);
         return;
       }
 
-      const permisos = await cargarMisPermisos(user.id);
-      aplicarPermisos(permisos);
+      const misPermisos = await getMyAdminPermissions(user.id);
+      setPermisos(misPermisos);
     } catch (error) {
       console.log(error);
-      aplicarPermisos([]);
+      setPermisos([]);
     } finally {
-      setCargandoPermisos(false);
+      setCargando(false);
     }
   }
 
-  async function crearClub() {
-    if (!canClubs) {
-      alert("No tenés permiso para crear clubes.");
-      return;
-    }
+  const cardsVisibles = useMemo(() => {
+    return ADMIN_CARDS.filter((card) => hasPermission(permisos, card.permission));
+  }, [permisos]);
 
-    const { error } = await supabase.from("equipos").insert([
-  {
-    nombre: clubNombre,
-    temporada: clubTemporada,
-    division: clubDivision,
-    puntos: 0,
-    pj: 0,
-  },
-]);
+  const cardsPrioritarias = cardsVisibles.filter((card) => card.priority);
+  const cardsSecundarias = cardsVisibles.filter((card) => !card.priority);
 
-    if (error) {
-      console.log(error);
-      alert("Error creando club: " + error.message);
-      return;
-    }
-
-    alert("Club creado");
-    setClubNombre("");
-  }
-
-  async function crearTemporada() {
-    if (!canCompetitions) {
-      alert("No tenés permiso para crear temporadas.");
-      return;
-    }
-
-    const { error } = await supabase
-      .from("temporadas")
-      .insert([{ nombre: temporadaNombre, campeon: temporadaCampeon }]);
-
-    if (error) {
-      console.log(error);
-      alert("Error creando temporada");
-      return;
-    }
-
-    alert("Temporada creada");
-    setTemporadaNombre("");
-    setTemporadaCampeon("");
-  }
-
-  async function crearPartido() {
-    if (!canManualMatch) {
-      alert("No tenés permiso para cargar partidos manuales.");
-      return;
-    }
-
-    const { error } = await supabase.from("partidos").insert([
-      {
-        local,
-        visitante,
-        resultado,
-        fecha,
-        temporada: partidoTemporada,
-        division: partidoDivision,
-      },
-    ]);
-
-    if (error) {
-      console.log(error);
-      alert("Error creando partido");
-      return;
-    }
-
-    alert("Partido cargado");
-    setLocal("");
-    setVisitante("");
-    setResultado("");
-    setFecha("");
-  }
-
-  async function crearJugador() {
-    if (!canTransfers) {
-      alert("No tenés permiso para cargar jugadores desde este panel.");
-      return;
-    }
-
-    const { error } = await supabase.from("jugadores").insert([
-      {
-        nombre: jugadorNombre,
-        equipo: jugadorEquipo,
-        goles: Number(goles),
-        asistencias: Number(asistencias),
-        mvps: Number(mvps),
-        temporada: jugadorTemporada,
-        division: jugadorDivision,
-      },
-    ]);
-
-    if (error) {
-      console.log(error);
-      alert("Error creando jugador");
-      return;
-    }
-
-    alert("Jugador cargado");
-    setJugadorNombre("");
-    setJugadorEquipo("");
-    setGoles("0");
-    setAsistencias("0");
-    setMvps("0");
-    setJugadorTemporada("Temporada 4");
-    setJugadorDivision("Primera");
-  }
-
-  async function crearNoticia() {
-    if (!canNews) {
-      alert("No tenés permiso para publicar noticias.");
-      return;
-    }
-
-    const { error } = await supabase.from("noticias").insert([
-      {
-        titulo: noticiaTitulo,
-        descripcion: noticiaDescripcion,
-        temporada: noticiaTemporada,
-      },
-    ]);
-
-    if (error) {
-      console.log(error);
-      alert("Error creando noticia");
-      return;
-    }
-
-    alert("Noticia publicada");
-    setNoticiaTitulo("");
-    setNoticiaDescripcion("");
-  }
-  if (cargandoPermisos) {
+  if (cargando) {
     return (
-      <main className="min-h-screen bg-[#0b0f14] text-white flex items-center justify-center">
+      <main className="flex min-h-screen items-center justify-center bg-[#0b0f14] text-white">
         <p className="text-2xl font-black uppercase tracking-[0.18em] text-sky-300">
           Cargando permisos...
         </p>
@@ -291,493 +202,90 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen bg-[#0b0f14] text-white">
-      <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-10 space-y-10">
-        <div>
-          <p className="text-sky-400 text-xs uppercase tracking-[4px] font-bold">
-            PANEL ADMINISTRATIVO
-          </p>
-
-          <h1 className="mt-3 text-4xl md:text-5xl font-black">Admin Panel</h1>
-
-          <p className="mt-4 text-zinc-400 max-w-2xl">
-            Gestioná clubes, partidos, jugadores, noticias, plantillas y mercado sin tocar código. La plataforma inicia oficialmente en Temporada 4.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-5 mt-8">
-          {canTitles && (
-          <Link
-            href="/admin/titulos"
-            className="group rounded-3xl border border-yellow-500/20 bg-[#11151c] p-6 transition hover:border-yellow-400 hover:shadow-[0_0_25px_rgba(250,204,21,.15)]"
-          >
-            <p className="text-yellow-300 text-xs uppercase tracking-[0.25em] font-black">
-              Historia
+      <div className="mx-auto max-w-[1500px] space-y-10 px-4 py-10 md:px-8">
+        <section className="relative overflow-hidden rounded-[34px] border border-sky-500/25 bg-[#11151c] p-7 shadow-[0_0_45px_rgba(56,189,248,.10)] md:p-9">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.14),transparent_42%)]" />
+          <div className="relative z-10">
+            <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-400">
+              Panel Administrativo
             </p>
-
-            <h3 className="text-3xl font-black mt-3">🏆 Palmarés</h3>
-
-            <p className="text-zinc-400 mt-3">
-              Cargá campeones, copas y títulos oficiales.
+            <h1 className="mt-3 text-4xl font-black uppercase md:text-6xl">
+              Admin APA
+            </h1>
+            <p className="mt-4 max-w-3xl text-zinc-400">
+              Dashboard limpio por permisos. Si una tarjeta no aparece, ese usuario no tiene permiso para esa sección.
             </p>
-          </Link>
-          )}
+          </div>
+        </section>
 
-          {canTitles && (
-          <Link
-            href="/admin/premios"
-            className="group rounded-3xl border border-amber-500/20 bg-[#11151c] p-6 transition hover:border-amber-400 hover:shadow-[0_0_25px_rgba(251,191,36,.15)]"
-          >
-            <p className="text-amber-300 text-xs uppercase tracking-[0.25em] font-black">
-              Premios
+        {cardsVisibles.length === 0 ? (
+          <section className="rounded-[30px] border border-red-500/25 bg-red-500/10 p-8 text-center">
+            <h2 className="text-3xl font-black uppercase text-red-300">
+              Sin permisos de admin
+            </h2>
+            <p className="mt-3 text-zinc-400">
+              Tu usuario no tiene permisos asignados para administrar la página.
             </p>
-
-            <h3 className="text-3xl font-black mt-3">🏆 Premios APA</h3>
-
-            <p className="text-zinc-400 mt-3">
-              Asigná Balón de Oro, Raiko Trophy, Bota de Oro y Golden Boy con candidatos automáticos.
-            </p>
-          </Link>
-          )}
-
-
-          {canCompetitions && (
-          <Link
-            href="/admin/fixture"
-            className="group rounded-3xl border border-yellow-500/20 bg-[#11151c] p-6 transition hover:border-yellow-400 hover:shadow-[0_0_25px_rgba(250,204,21,.15)]"
-          >
-            <p className="text-yellow-300 text-xs uppercase tracking-[0.25em] font-black">
-              Competición
-            </p>
-
-            <h3 className="text-3xl font-black mt-3">📅 Fixture Manager</h3>
-
-            <p className="text-zinc-400 mt-3">
-              Generá fixtures, programá horarios y gestioná partidos.
-            </p>
-          </Link>
-          )}
-
-          {canCompetitions && (
-          <Link
-            href="/admin/copas"
-            className="group rounded-3xl border border-yellow-500/20 bg-[#11151c] p-6 transition hover:border-yellow-400 hover:shadow-[0_0_25px_rgba(250,204,21,.15)]"
-          >
-            <p className="text-yellow-300 text-xs uppercase tracking-[0.25em] font-black">
-              Competición
-            </p>
-
-            <h3 className="text-3xl font-black mt-3">🏆 Copas</h3>
-
-            <p className="text-zinc-400 mt-3">
-              Administrá fase de grupos, Copa Argentina y Copa APA.
-            </p>
-          </Link>
-          )}
-
-          {canUploadTxt && (
-          <Link
-            href="/admin/subir-txt"
-            className="group rounded-3xl border border-sky-500/20 bg-[#11151c] p-6 transition hover:border-sky-400 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]"
-          >
-            <p className="text-sky-400 text-xs uppercase tracking-[0.25em] font-black">
-              Estadísticas
-            </p>
-
-            <h3 className="text-3xl font-black mt-3">📄 Subir TXT</h3>
-
-            <p className="text-zinc-400 mt-3">
-              Cargá automáticamente los archivos de partidos.
-            </p>
-          </Link>
-          )}
-
-          {canLists && (
-          <Link
-            href="/admin/listas"
-            className="group rounded-3xl border border-sky-500/20 bg-[#11151c] p-6 transition hover:border-sky-400 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]"
-          >
-            <p className="text-sky-400 text-xs uppercase tracking-[0.25em] font-black">
-              Administración
-            </p>
-
-            <h3 className="text-3xl font-black mt-3">📋 Listas</h3>
-
-            <p className="text-zinc-400 mt-3">
-              Gestioná registros y datos cargados.
-            </p>
-          </Link>
-          )}
-
-          {canTransfers && (
-          <Link
-            href="/admin/plantillas"
-            className="group rounded-3xl border border-sky-500/20 bg-[#11151c] p-6 transition hover:border-sky-400 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]"
-          >
-            <p className="text-sky-400 text-xs uppercase tracking-[0.25em] font-black">
-              Equipos
-            </p>
-
-            <h3 className="text-3xl font-black mt-3">👥 Plantillas</h3>
-
-            <p className="text-zinc-400 mt-3">
-              Administrá jugadores y transferencias.
-            </p>
-          </Link>
-          )}
-          {canManualMatch && (
-          <Link
-            href="/admin/cargar-partido-manual"
-            className="group rounded-3xl border border-yellow-500/20 bg-[#11151c] p-6 transition hover:border-yellow-400 hover:shadow-[0_0_25px_rgba(250,204,21,.15)]"
-          >
-            <p className="text-yellow-300 text-xs uppercase tracking-[0.25em] font-black">
-              Históricos
-            </p>
-
-            <h3 className="text-3xl font-black mt-3">⚽ Partido Manual</h3>
-
-            <p className="text-zinc-400 mt-3">
-              Cargá partidos, goleadores, asistencias y MVP sin TXT.
-            </p>
-          </Link>
-          )}
-
-
-
-          {canNews && (
-          <Link
-            href="/admin/noticias"
-            className="group rounded-3xl border border-sky-500/20 bg-[#11151c] p-6 transition hover:border-sky-400 hover:shadow-[0_0_25px_rgba(56,189,248,.15)]"
-          >
-            <p className="text-sky-400 text-xs uppercase tracking-[0.25em] font-black">
-              Prensa
-            </p>
-
-            <h3 className="text-3xl font-black mt-3">📰 Noticias</h3>
-
-            <p className="text-zinc-400 mt-3">
-              Administrá publicaciones, comunicados y noticias oficiales.
-            </p>
-          </Link>
-          )}
-
-          {canUsers && (
-          <Link
-            href="/admin/verificaciones"
-            className="group rounded-3xl border border-green-500/20 bg-[#11151c] p-6 transition hover:border-green-400 hover:shadow-[0_0_25px_rgba(74,222,128,.15)]"
-          >
-            <p className="text-green-300 text-xs uppercase tracking-[0.25em] font-black">
-              Verificación
-            </p>
-
-            <h3 className="text-3xl font-black mt-3">✅ Player IDs</h3>
-
-            <p className="text-zinc-400 mt-3">
-              Revisá solicitudes de PlayerId, aprobaciones, rechazos y disputas.
-            </p>
-          </Link>
-          )}
-
-          {canUsers && (
-          <Link
-            href="/admin/usuarios"
-            className="group rounded-3xl border border-purple-500/20 bg-[#11151c] p-6 transition hover:border-purple-400 hover:shadow-[0_0_25px_rgba(168,85,247,.15)]"
-          >
-            <p className="text-purple-300 text-xs uppercase tracking-[0.25em] font-black">
-              Comunidad
-            </p>
-
-            <h3 className="text-3xl font-black mt-3">👥 Usuarios</h3>
-
-            <p className="text-zinc-400 mt-3">
-              Gestioná usuarios, roles, aprobaciones y suspensiones.
-            </p>
-          </Link>
-          )}
-
-          {canClubs && (
-          <Link
-            href="/admin/clubes"
-            className="group rounded-3xl border border-cyan-500/20 bg-[#11151c] p-6 transition hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(34,211,238,.15)]"
-          >
-            <p className="text-cyan-300 text-xs uppercase tracking-[0.25em] font-black">
-              Clubes
-            </p>
-
-            <h3 className="text-3xl font-black mt-3">🏟️ Clubes</h3>
-
-            <p className="text-zinc-400 mt-3">
-              Administrá logos, banners, colores, descripciones y datos visuales de los clubes.
-            </p>
-          </Link>
-          )}
-
-        </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          {canClubs && (
-          <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
-            <h2 className="text-2xl font-black mb-5">Crear Club</h2>
-
-            <div className="space-y-4">
-              <input
-                className="input"
-                placeholder="Nombre del club"
-                value={clubNombre}
-                onChange={(e) => setClubNombre(e.target.value)}
-              />
-
-              <select
-                className="input"
-                value={clubTemporada}
-                onChange={(e) => setClubTemporada(e.target.value)}
-              >
-                {temporadas.map((temp) => (
-                  <option key={temp}>{temp}</option>
-                ))}
-              </select>
-
-              <select
-                className="input"
-                value={clubDivision}
-                onChange={(e) => setClubDivision(e.target.value)}
-              >
-                {divisiones.map((div) => (
-                  <option key={div}>{div}</option>
-                ))}
-              </select>
-
-              <button onClick={crearClub} className="btn">
-                Guardar Club
-              </button>
-            </div>
           </section>
-          )}
-
-          {canCompetitions && (
-          <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
-            <h2 className="text-2xl font-black mb-5">Crear Temporada</h2>
-
-            <div className="space-y-4">
-              <input
-                className="input"
-                placeholder="Ej: Temporada 1"
-                value={temporadaNombre}
-                onChange={(e) => setTemporadaNombre(e.target.value)}
-              />
-              <input
-                className="input"
-                placeholder="Campeón"
-                value={temporadaCampeon}
-                onChange={(e) => setTemporadaCampeon(e.target.value)}
-              />
-
-              <button onClick={crearTemporada} className="btn">
-                Guardar Temporada
-              </button>
-            </div>
-          </section>
-          )}
-
-          {canManualMatch && (
-          <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
-            <h2 className="text-2xl font-black mb-5">Cargar Partido</h2>
-
-            <div className="space-y-4">
-              <input
-                className="input"
-                placeholder="Local"
-                value={local}
-                onChange={(e) => setLocal(e.target.value)}
-              />
-              <input
-                className="input"
-                placeholder="Visitante"
-                value={visitante}
-                onChange={(e) => setVisitante(e.target.value)}
-              />
-              <input
-                className="input"
-                placeholder="Resultado ej: 3-1"
-                value={resultado}
-                onChange={(e) => setResultado(e.target.value)}
-              />
-              <input
-                className="input"
-                placeholder="Fecha ej: 1"
-                value={fecha}
-                onChange={(e) => setFecha(e.target.value)}
-              />
-
-              <select
-                className="input"
-                value={partidoTemporada}
-                onChange={(e) => setPartidoTemporada(e.target.value)}
-              >
-                {temporadas.map((temp) => (
-                  <option key={temp}>{temp}</option>
-                ))}
-              </select>
-
-              <select
-                className="input"
-                value={partidoDivision}
-                onChange={(e) => setPartidoDivision(e.target.value)}
-              >
-                {divisiones.map((div) => (
-                  <option key={div}>{div}</option>
-                ))}
-              </select>
-
-              <button onClick={crearPartido} className="btn">
-                Guardar Partido
-              </button>
-            </div>
-          </section>
-          )}
-
-          {canTransfers && (
-          <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6">
-            <h2 className="text-2xl font-black mb-5">Cargar Jugador</h2>
-
-            <div className="space-y-4">
-              <input
-                className="input"
-                placeholder="Jugador"
-                value={jugadorNombre}
-                onChange={(e) => setJugadorNombre(e.target.value)}
-              />
-              <input
-                className="input"
-                placeholder="Equipo"
-                value={jugadorEquipo}
-                onChange={(e) => setJugadorEquipo(e.target.value)}
-              />
-              <input
-                className="input"
-                placeholder="Goles"
-                value={goles}
-                onChange={(e) => setGoles(e.target.value)}
-              />
-              <input
-                className="input"
-                placeholder="Asistencias"
-                value={asistencias}
-                onChange={(e) => setAsistencias(e.target.value)}
-              />
-              <input
-                className="input"
-                placeholder="MVPs"
-                value={mvps}
-                onChange={(e) => setMvps(e.target.value)}
-              />
-
-              <select
-                className="input"
-                value={jugadorTemporada}
-                onChange={(e) => setJugadorTemporada(e.target.value)}
-              >
-                {temporadas.map((temp) => (
-                  <option key={temp}>{temp}</option>
-                ))}
-              </select>
-
-              <select
-                className="input"
-                value={jugadorDivision}
-                onChange={(e) => setJugadorDivision(e.target.value)}
-              >
-                {divisiones.map((div) => (
-                  <option key={div}>{div}</option>
-                ))}
-              </select>
-
-              <button onClick={crearJugador} className="btn">
-                Guardar Jugador
-              </button>
-            </div>
-          </section>
-          )}
-
-          {canTransfers && (
-          <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6 xl:col-span-2">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-              <div>
-                <h2 className="text-2xl font-black">Plantillas y Mercado</h2>
-                <p className="text-zinc-400 mt-2">
-                  Cargá jugadores a plantillas y registrá transferencias.
+        ) : (
+          <>
+            {cardsPrioritarias.length > 0 && (
+              <section>
+                <p className="mb-4 text-xs font-black uppercase tracking-[0.35em] text-sky-300">
+                  Accesos principales
                 </p>
-              </div>
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+                  {cardsPrioritarias.map((card) => (
+                    <AdminCard key={card.href} card={card} />
+                  ))}
+                </div>
+              </section>
+            )}
 
-              <Link
-                href="/admin/plantillas"
-                className="bg-sky-400 text-black px-6 py-3 rounded-2xl font-black text-center"
-              >
-                Abrir Panel
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="bg-[#0b0f14] border border-white/[0.05] rounded-2xl p-5">
-                <p className="text-zinc-500 text-sm uppercase font-bold">
-                  Plantillas
+            {cardsSecundarias.length > 0 && (
+              <section>
+                <p className="mb-4 text-xs font-black uppercase tracking-[0.35em] text-zinc-500">
+                  Herramientas
                 </p>
-                <h3 className="text-3xl font-black mt-3">
-                  Registrar jugadores
-                </h3>
-                <p className="text-zinc-400 mt-3">
-                  Agregá jugadores a clubes por temporada, división y posición.
-                </p>
-              </div>
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-3 xl:grid-cols-5">
+                  {cardsSecundarias.map((card) => (
+                    <AdminCard key={card.href} card={card} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
+        )}
 
-              <div className="bg-[#0b0f14] border border-white/[0.05] rounded-2xl p-5">
-                <p className="text-zinc-500 text-sm uppercase font-bold">
-                  Mercado
-                </p>
-                <h3 className="text-3xl font-black mt-3">Transferencias</h3>
-                <p className="text-zinc-400 mt-3">
-                  Registrá fichajes, salidas, libres y préstamos.
-                </p>
-              </div>
-            </div>
-          </section>
-          )}
-
-          {canNews && (
-          <section className="bg-[#11151c] border border-white/[0.06] rounded-3xl p-6 xl:col-span-2">
-            <h2 className="text-2xl font-black mb-5">Publicar Noticia</h2>
-
-            <div className="space-y-4">
-              <input
-                className="input"
-                placeholder="Título"
-                value={noticiaTitulo}
-                onChange={(e) => setNoticiaTitulo(e.target.value)}
-              />
-
-              <textarea
-                className="input min-h-[120px]"
-                placeholder="Descripción"
-                value={noticiaDescripcion}
-                onChange={(e) => setNoticiaDescripcion(e.target.value)}
-              />
-
-              <select
-                className="input"
-                value={noticiaTemporada}
-                onChange={(e) => setNoticiaTemporada(e.target.value)}
-              >
-                {temporadas.map((temp) => (
-                  <option key={temp}>{temp}</option>
-                ))}
-              </select>
-
-              <button onClick={crearNoticia} className="btn">
-                Publicar Noticia
-              </button>
-            </div>
-          </section>
-          )}
-        </div>
+        <section className="rounded-[26px] border border-yellow-500/20 bg-yellow-500/10 p-5 text-sm leading-7 text-yellow-100">
+          <b>Nota:</b> el panel viejo de roles/permisos en Usuarios queda obsoleto. Los permisos reales ahora se administran desde <b>/admin/permisos</b>.
+        </section>
       </div>
     </main>
+  );
+}
+
+function AdminCard({ card }: { card: AdminCard }) {
+  return (
+    <Link
+      href={card.href}
+      className={`group rounded-3xl border bg-[#11151c] p-6 transition hover:-translate-y-1 ${card.color}`}
+    >
+      <p className="text-xs font-black uppercase tracking-[0.25em] text-zinc-500">
+        {card.eyebrow}
+      </p>
+      <h3 className="mt-3 text-3xl font-black">
+        {card.icon} {card.title}
+      </h3>
+      <p className="mt-3 text-sm leading-6 text-zinc-400">
+        {card.description}
+      </p>
+      <div className="mt-5 flex items-center justify-between rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
+        <span className="text-xs font-black uppercase tracking-[0.2em] text-sky-300">
+          Entrar
+        </span>
+        <span className="text-xl text-sky-300 transition group-hover:translate-x-1">→</span>
+      </div>
+    </Link>
   );
 }
