@@ -40,7 +40,7 @@ export default function HeroCarruselHome() {
             </a>
 
             <a
-              href="https://tiktok.com"
+              href="https://www.tiktok.com/@psoargentina_2026"
               target="_blank"
               className="bg-white/10 border border-white/15 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl text-xs sm:text-sm font-black uppercase text-center hover:border-sky-400/60 transition-all"
             >
@@ -48,7 +48,7 @@ export default function HeroCarruselHome() {
             </a>
 
             <a
-              href="https://instagram.com"
+              href="https://www.youtube.com/watch?v=iiM-PKmB3cA"
               target="_blank"
               className="bg-white/10 border border-white/15 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl text-xs sm:text-sm font-black uppercase text-center hover:border-pink-400/60 transition-all"
             >
