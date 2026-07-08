@@ -885,23 +885,31 @@ export default function HistoriaPage() {
       </div>
 
       <div className="relative z-10 mx-auto max-w-[1600px] space-y-12 px-3 py-5 sm:px-4 md:px-8 md:py-8">
-        <section className="relative overflow-hidden rounded-[34px] border border-yellow-400/25 bg-[#020714] shadow-[0_0_75px_rgba(250,204,21,.20)] sm:rounded-[48px]">
+        <section className="relative min-h-[500px] overflow-hidden rounded-[34px] border border-yellow-400/25 bg-[#020714] shadow-[0_0_75px_rgba(250,204,21,.20)] sm:rounded-[48px] lg:min-h-[560px]">
           <img
-            src="/themes/worldcup/hero-bg.png"
+            src="/images/stats/stats.png"
             alt=""
-            className="absolute inset-0 h-full w-full object-cover opacity-45"
+            className="absolute inset-0 h-full w-full object-cover object-center opacity-35"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/82 to-black/35" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#020714] via-[#020714]/86 to-[#020714]/38" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/82" />
           <div className="absolute -right-24 top-16 hidden h-[520px] w-[520px] rounded-full bg-yellow-400/10 blur-3xl lg:block" />
 
-          <div className="relative z-10 grid gap-8 p-5 sm:p-8 lg:grid-cols-[1fr_430px] lg:items-center lg:p-10 xl:p-12">
+          <img
+            src="/images/competicion/historia.png"
+            alt=""
+            className="pointer-events-none absolute right-0 top-1/2 hidden h-[88%] w-auto -translate-y-1/2 object-contain opacity-90 drop-shadow-[0_0_45px_rgba(0,0,0,.8)] lg:block xl:right-8"
+          />
+
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_42%,rgba(250,204,21,.16),transparent_30%)]" />
+
+          <div className="relative z-10 grid min-h-[500px] max-w-5xl gap-8 p-5 sm:p-8 lg:min-h-[560px] lg:p-10 xl:p-12">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.45em] text-yellow-300 sm:text-xs">
                 APA PSO Argentina · Historia oficial
               </p>
 
-              <h1 className="mt-5 text-[clamp(3.2rem,10vw,7rem)] font-black uppercase italic leading-none">
+              <h1 className="mt-5 text-[clamp(4rem,11vw,8rem)] font-black uppercase italic leading-none">
                 <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-700 bg-clip-text text-transparent">
                   Historia
                 </span>
@@ -922,8 +930,8 @@ export default function HistoriaPage() {
                   color="text-sky-300"
                 />
                 <StatPill
-                  label="Registros"
-                  value={totalPartidos}
+                  label="MVP"
+                  value={totalMvps}
                   color="text-white"
                 />
                 <StatPill
@@ -939,43 +947,6 @@ export default function HistoriaPage() {
               </div>
             </div>
 
-            <div className="relative hidden lg:block">
-              <div className="relative overflow-hidden rounded-[42px] border border-sky-400/20 bg-black/45 p-7 shadow-[0_0_55px_rgba(56,189,248,.14)]">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.18),transparent_45%)]" />
-                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] via-transparent to-black/70" />
-
-                <div className="relative z-10 space-y-5">
-                  <p className="text-[10px] font-black uppercase tracking-[0.32em] text-sky-300">
-                    Archivo histórico
-                  </p>
-
-                  <h2 className="text-4xl font-black uppercase italic leading-none text-white">
-                    Legado
-                    <span className="block text-sky-300">competitivo</span>
-                  </h2>
-
-                  <p className="max-w-sm text-sm leading-7 text-zinc-400">
-                    Premios, récords, rankings y marcas acumuladas de la comunidad APA.
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-3 pt-2">
-                    <div className="rounded-3xl border border-white/10 bg-black/40 p-4">
-                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
-                        Temporadas
-                      </p>
-                      <p className="mt-2 text-3xl font-black text-yellow-300">T4+</p>
-                    </div>
-
-                    <div className="rounded-3xl border border-white/10 bg-black/40 p-4">
-                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
-                        Fuente
-                      </p>
-                      <p className="mt-2 text-3xl font-black text-sky-300">APA</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </section>
 

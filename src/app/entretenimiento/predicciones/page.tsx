@@ -3,9 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import CompetitionSelector from "@/components/CompetitionSelector";
 
-type Competicion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones";
+type Competicion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones" | "playoffs";
 
 type Contexto = {
   id: string;
@@ -19,6 +18,49 @@ type Contexto = {
 };
 
 const temporadas = ["Temporada 4"];
+
+const competicionesPrincipalesPredicciones: { value: Competicion; label: string }[] = [
+  { value: "liga", label: "Liga" },
+  { value: "copa_clasificatoria", label: "Clasificación" },
+  { value: "copa_argentina", label: "Copa Argentina" },
+  { value: "copa_apa", label: "Copa APA" },
+  { value: "copa_campeones", label: "Copa Campeones" },
+  { value: "playoffs", label: "Playoffs" },
+];
+
+const subcategoriasPredicciones: Record<Competicion, { value: string; label: string }[]> = {
+  liga: [
+    { value: "primera", label: "Primera" },
+    { value: "segunda", label: "Segunda" },
+  ],
+  copa_clasificatoria: [
+    { value: "A", label: "Grupo A" },
+    { value: "B", label: "Grupo B" },
+    { value: "C", label: "Grupo C" },
+    { value: "D", label: "Grupo D" },
+  ],
+  copa_argentina: [
+    { value: "octavos", label: "Octavos" },
+    { value: "cuartos", label: "Cuartos" },
+    { value: "semifinal", label: "Semifinal" },
+    { value: "final", label: "Final" },
+  ],
+  copa_apa: [
+    { value: "octavos", label: "Octavos" },
+    { value: "cuartos", label: "Cuartos" },
+    { value: "semifinal", label: "Semifinal" },
+    { value: "final", label: "Final" },
+  ],
+  copa_campeones: [
+    { value: "semifinal", label: "Semifinal" },
+    { value: "final", label: "Final" },
+  ],
+  playoffs: [
+    { value: "semifinal", label: "Semifinal" },
+    { value: "final_ascenso", label: "Final Ascenso" },
+    { value: "promocion", label: "Promoción" },
+  ],
+};
 
 function construirContexto(competicion: Competicion, subcategoria: string): Contexto {
   if (competicion === "liga") {
@@ -69,6 +111,24 @@ function construirContexto(competicion: Competicion, subcategoria: string): Cont
       short: faseCampeonesLabel,
       competicion: "copa_campeones",
       fase: faseCampeones,
+    };
+  }
+
+  if (competicion === "playoffs") {
+    const fasePlayoffs = subcategoria || "semifinal";
+    const faseLabel =
+      fasePlayoffs === "final_ascenso"
+        ? "Final Ascenso"
+        : fasePlayoffs === "promocion"
+          ? "Promoción"
+          : "Semifinal";
+
+    return {
+      id: `playoffs-${fasePlayoffs}`,
+      label: `Playoffs de Ascenso · ${faseLabel}`,
+      short: faseLabel,
+      competicion: "playoffs",
+      fase: fasePlayoffs,
     };
   }
 
@@ -191,7 +251,7 @@ export default function PrediccionesPage() {
       query = query.eq("fase", "grupos").eq("grupo", contexto.grupo);
     }
 
-    if (contexto.competicion === "copa_argentina" || contexto.competicion === "copa_apa" || contexto.competicion === "copa_campeones") {
+    if (contexto.competicion === "copa_argentina" || contexto.competicion === "copa_apa" || contexto.competicion === "copa_campeones" || contexto.competicion === "playoffs") {
       query = query.eq("fase", contexto.fase);
     }
 
@@ -526,14 +586,47 @@ export default function PrediccionesPage() {
         <section className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 shadow-[0_0_35px_rgba(0,120,255,.12)] sm:rounded-[34px] md:p-8">
           <div className="grid gap-7">
             <Filtro label="Temporada" items={temporadas} value={temporada} setValue={setTemporada} color="sky" />
-            <CompetitionSelector
-              competicion={competicion}
-              subcategoria={subcategoria}
-              onChange={(nextCompeticion, nextSubcategoria) => {
-                setCompeticion(nextCompeticion as Competicion);
-                setSubcategoria(nextSubcategoria);
-              }}
-            />
+            <div>
+              <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-sky-300">Competencia</p>
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
+                {competicionesPrincipalesPredicciones.map((item) => (
+                  <button
+                    key={item.value}
+                    onClick={() => {
+                      setCompeticion(item.value);
+                      setSubcategoria(subcategoriasPredicciones[item.value][0].value);
+                    }}
+                    className={`rounded-2xl border px-3 py-3 text-xs font-black uppercase transition-all sm:px-4 sm:py-4 sm:text-sm ${
+                      competicion === item.value
+                        ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
+                        : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-sky-300">Subcategoría</p>
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-5">
+                {subcategoriasPredicciones[competicion].map((item) => (
+                  <button
+                    key={`${competicion}-${item.value}`}
+                    onClick={() => setSubcategoria(item.value)}
+                    className={`rounded-2xl border px-3 py-3 text-xs font-black uppercase transition-all sm:px-4 sm:py-4 sm:text-sm ${
+                      subcategoria === item.value
+                        ? "border-green-300 bg-gradient-to-r from-green-400 to-emerald-600 text-black shadow-[0_0_20px_rgba(74,222,128,.35)]"
+                        : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <Filtro label="Fecha" items={fechas} value={fechaActiva} setValue={setFechaActiva} color="green" />
           </div>
         </section>

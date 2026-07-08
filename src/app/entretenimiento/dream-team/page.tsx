@@ -93,7 +93,7 @@ function fechaActualISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-type Competicion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones";
+type Competicion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones" | "playoffs";
 
 const temporadasDisponibles = ["Temporada 4"];
 const competicionesDisponibles: { value: Competicion; label: string }[] = [
@@ -102,11 +102,13 @@ const competicionesDisponibles: { value: Competicion; label: string }[] = [
   { value: "copa_argentina", label: "Copa Argentina" },
   { value: "copa_apa", label: "Copa APA" },
   { value: "copa_campeones", label: "Copa de Campeones" },
+  { value: "playoffs", label: "Playoffs de Ascenso" },
 ];
 const divisionesDisponibles = ["Primera", "Segunda"];
 const gruposDisponibles = ["A", "B", "C", "D"];
 const fasesDisponibles = ["Octavos", "Cuartos", "Semifinal", "Final"];
 const fasesCampeonesDisponibles = ["Semifinal", "Final"];
+const fasesPlayoffsDisponibles = ["Semifinal", "Final Ascenso", "Promoción"];
 
 function faseDb(value: string) {
   const v = String(value || "").toLowerCase().trim();
@@ -114,6 +116,8 @@ function faseDb(value: string) {
   if (v === "cuartos") return "cuartos";
   if (v === "semifinal" || v === "semis") return "semifinal";
   if (v === "final") return "final";
+  if (v === "final ascenso" || v === "final_ascenso") return "final_ascenso";
+  if (v === "promocion" || v === "promoción") return "promocion";
   return v;
 }
 
@@ -173,6 +177,16 @@ export default function DreamTeamPage() {
   }
 
   useEffect(() => {
+    if (competicion === "copa_campeones" && !fasesCampeonesDisponibles.includes(fase)) {
+      setFase("Semifinal");
+    }
+
+    if (competicion === "playoffs" && !fasesPlayoffsDisponibles.includes(fase)) {
+      setFase("Semifinal");
+    }
+  }, [competicion, fase]);
+
+  useEffect(() => {
     cargarDatos();
   }, [temporada, competicion, division, grupo, fase, fecha]);
 
@@ -198,7 +212,7 @@ export default function DreamTeamPage() {
       query = query.eq("fase", "grupos").eq("grupo", grupo);
     }
 
-    if (competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones") {
+    if (competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones" || competicion === "playoffs") {
       query = query.eq("fase", faseDb(fase));
     }
 
@@ -252,7 +266,7 @@ export default function DreamTeamPage() {
       query = query.eq("grupo", grupo).eq("fase", "grupos");
     }
 
-    if (competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones") {
+    if (competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones" || competicion === "playoffs") {
       query = query.eq("fase", faseDb(fase));
     }
 
@@ -993,7 +1007,7 @@ export default function DreamTeamPage() {
                   Fase
                 </p>
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                  {(competicion === "copa_campeones" ? fasesCampeonesDisponibles : fasesDisponibles).map((f) => (
+                  {(competicion === "copa_campeones" ? fasesCampeonesDisponibles : competicion === "playoffs" ? fasesPlayoffsDisponibles : fasesDisponibles).map((f) => (
                     <button
                       key={f}
                       onClick={() => {

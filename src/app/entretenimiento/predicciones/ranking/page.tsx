@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
-type Competicion = "todas" | "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones";
+type Competicion = "todas" | "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones" | "playoffs";
 
 type Partido = {
   id: string | number;
@@ -62,12 +62,14 @@ const competencias = [
   { id: "copa_argentina" as Competicion, label: "Copa Argentina" },
   { id: "copa_apa" as Competicion, label: "Copa APA" },
   { id: "copa_campeones" as Competicion, label: "Copa de Campeones" },
+  { id: "playoffs" as Competicion, label: "Playoffs" },
 ];
 
 const divisionesLiga = ["Todas", "Primera", "Segunda"];
 const grupos = ["Todos", "A", "B", "C", "D"];
 const fases = ["Todas", "octavos", "cuartos", "semifinal", "final"];
 const fasesCampeones = ["Todas", "semifinal", "final"];
+const fasesPlayoffs = ["Todas", "semifinal", "final_ascenso", "promocion"];
 
 function partidoKey(partido: Partido) {
   return partido.partido_id || String(partido.id);
@@ -143,7 +145,7 @@ export default function RankingPrediccionesPage() {
         if (grupo !== "Todos") partidosQuery = partidosQuery.eq("grupo", grupo);
       }
 
-      if ((competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones") && fase !== "Todas") {
+      if ((competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones" || competicion === "playoffs") && fase !== "Todas") {
         partidosQuery = partidosQuery.eq("fase", fase);
       }
     }

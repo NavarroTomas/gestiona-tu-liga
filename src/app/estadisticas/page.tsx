@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
-type CompeticionValue = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones";
+type CompeticionValue = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones" | "playoffs";
 
 type EquipoPartido = {
   partido_id: string;
@@ -43,18 +43,37 @@ const competiciones: { value: CompeticionValue; label: string; short: string }[]
   { value: "copa_argentina", label: "Copa Argentina", short: "Argentina" },
   { value: "copa_apa", label: "Copa APA", short: "APA" },
   { value: "copa_campeones", label: "Copa de Campeones", short: "Campeones" },
+  { value: "playoffs", label: "Playoffs de Ascenso", short: "Playoffs" },
 ];
 
 const divisiones = ["Primera", "Segunda"];
 const grupos = ["A", "B", "C", "D"];
 const fasesEliminacion = ["Octavos", "Cuartos", "Semifinal", "Final"];
 const fasesCampeones = ["Semifinal", "Final"];
+const fasesPlayoffs = ["Semifinal", "Final Ascenso", "Promoción"];
 
 function normalizarDivision(value?: string | null) {
   const v = String(value || "").toLowerCase().trim();
 
   if (v === "primera" || v === "primera division" || v === "primera división") return "primera";
   if (v === "segunda" || v === "segunda division" || v === "segunda división") return "segunda";
+
+  return v;
+}
+
+function faseDb(value: string) {
+  const v = String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+
+  if (v === "semifinal" || v === "semis") return "semifinal";
+  if (v === "final") return "final";
+  if (v === "final ascenso" || v === "final_ascenso") return "final_ascenso";
+  if (v === "promocion" || v === "promoción") return "promocion";
+  if (v === "octavos") return "octavos";
+  if (v === "cuartos") return "cuartos";
 
   return v;
 }
@@ -73,7 +92,7 @@ function labelContextoPartido(partido: PartidoAgrupado) {
   const competicion = String(partido.competicion || "liga") as CompeticionValue;
 
   if (competicion === "copa_clasificatoria") return `Grupo ${partido.grupo || "-"}`;
-  if (competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones") return partido.fase || "Fase";
+  if (competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones" || competicion === "playoffs") return partido.fase || "Fase";
 
   return partido.division || "División";
 }
@@ -92,7 +111,7 @@ export default function EstadisticasPage() {
   const [loading, setLoading] = useState(true);
 
   const contextoActual = labelContexto(competicion, division, grupo, fase);
-  const fasesDisponibles = competicion === "copa_campeones" ? fasesCampeones : fasesEliminacion;
+  const fasesDisponibles = competicion === "copa_campeones" ? fasesCampeones : competicion === "playoffs" ? fasesPlayoffs : fasesEliminacion;
 
   useEffect(() => {
     setFecha("Todas");
@@ -100,6 +119,10 @@ export default function EstadisticasPage() {
 
   useEffect(() => {
     if (competicion === "copa_campeones" && !fasesCampeones.includes(fase)) {
+      setFase("Semifinal");
+    }
+
+    if (competicion === "playoffs" && !fasesPlayoffs.includes(fase)) {
       setFase("Semifinal");
     }
   }, [competicion, fase]);
@@ -124,8 +147,8 @@ export default function EstadisticasPage() {
         partidosQuery = partidosQuery.eq("grupo", grupo);
       }
 
-      if (competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones") {
-        partidosQuery = partidosQuery.eq("fase", fase);
+      if (competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones" || competicion === "playoffs") {
+        partidosQuery = partidosQuery.eq("fase", faseDb(fase));
       }
 
       if (fecha !== "Todas") {
@@ -305,16 +328,26 @@ export default function EstadisticasPage() {
           <div className="absolute inset-0 ring-1 ring-inset ring-white/10" />
 
           <div className="relative z-10 flex min-h-[330px] items-center p-7 md:min-h-[390px] md:p-10">
-            <p className="text-xs font-black uppercase tracking-[0.45em] text-sky-400">APA PSO ARGENTINA</p>
+            <div className="max-w-3xl">
+              <p className="text-xs font-black uppercase tracking-[0.45em] text-sky-400">
+                APA PSO ARGENTINA
+              </p>
 
-            <h1 className="mt-4 text-5xl font-black uppercase italic leading-none md:text-7xl">
-              <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">MATCH</span>
-              <span className="block text-sky-400 drop-shadow-[0_0_18px_rgba(56,189,248,.65)]">CENTER</span>
-            </h1>
+              <h1 className="mt-4 text-5xl font-black uppercase italic leading-none md:text-7xl">
+                <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
+                  MATCH
+                </span>
 
-            <p className="mt-5 max-w-2xl text-sm text-zinc-400 md:text-base">
-              Explorá estadísticas completas, resultados y rendimiento de cada partido de APA PSO Argentina UE5.
-            </p>
+                <span className="block text-sky-400 drop-shadow-[0_0_18px_rgba(56,189,248,.65)]">
+                  CENTER
+                </span>
+              </h1>
+
+              <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-300 md:text-base md:leading-8">
+                Explorá estadísticas completas, resultados y rendimiento de cada
+                partido de APA PSO Argentina UE5.
+              </p>
+            </div>
           </div>
         </div>
 

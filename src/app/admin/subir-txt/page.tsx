@@ -5,7 +5,12 @@ import { supabase } from "@/lib/supabase";
 import PermissionGuard from "@/components/PermissionGuard";
 
 type Competicion =
-  "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones";
+  | "liga"
+  | "copa_clasificatoria"
+  | "copa_argentina"
+  | "copa_apa"
+  | "copa_campeones"
+  | "playoffs";
 
 type OrdenTxt = "normal" | "invertido";
 
@@ -40,12 +45,14 @@ const COMPETICIONES: { value: Competicion; label: string }[] = [
   { value: "copa_argentina", label: "Copa Argentina" },
   { value: "copa_apa", label: "Copa APA" },
   { value: "copa_campeones", label: "Copa de Campeones" },
+  { value: "playoffs", label: "Playoffs de Ascenso" },
 ];
 
 const DIVISIONES = ["Primera", "Segunda"];
 const GRUPOS = ["A", "B", "C", "D"];
 const FASES_COPA = ["Octavos", "Cuartos", "Semifinal", "Final"];
 const FASES_CAMPEONES = ["Semifinal", "Final"];
+const FASES_PLAYOFFS = ["Semifinal", "Final Ascenso", "Promoción"];
 
 export default function SubirTxtPage() {
   const [archivo, setArchivo] = useState<File | null>(null);
@@ -129,13 +136,24 @@ export default function SubirTxtPage() {
       return "copa_argentina";
     if (v === "copa apa" || v === "copa_apa") return "copa_apa";
     if (v === "copa campeones" || v === "copa de campeones" || v === "copa_campeones") return "copa_campeones";
+    if (v === "playoffs" || v === "playoffs de ascenso" || v === "promocion" || v === "promoción") return "playoffs";
 
     return v;
   }
 
   function faseDb() {
     if (competicion === "copa_clasificatoria") return "grupos";
-    return normalizarTexto(fase).replace(/\s+/g, "_");
+
+    const f = normalizarTexto(fase);
+
+    if (f === "semifinal" || f === "semis") return "semifinal";
+    if (f === "final") return "final";
+    if (f === "final ascenso" || f === "final_ascenso") return "final_ascenso";
+    if (f === "promocion" || f === "promoción") return "promocion";
+    if (f === "octavos") return "octavos";
+    if (f === "cuartos") return "cuartos";
+
+    return f.replace(/\s+/g, "_");
   }
 
   function grupoDb() {
@@ -161,7 +179,7 @@ export default function SubirTxtPage() {
       partidosQuery = partidosQuery.eq("fase", "grupos").eq("grupo", grupoDb());
     }
 
-    if (competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones") {
+    if (competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones" || competicion === "playoffs") {
       partidosQuery = partidosQuery.eq("fase", faseDb());
     }
 
@@ -978,13 +996,19 @@ export default function SubirTxtPage() {
 
                 {(competicion === "copa_argentina" ||
                   competicion === "copa_apa" ||
-                  competicion === "copa_campeones") && (
+                  competicion === "copa_campeones" ||
+                  competicion === "playoffs") && (
                   <select
                     className="input"
                     value={fase}
                     onChange={(e) => setFase(e.target.value)}
                   >
-                    {(competicion === "copa_campeones" ? FASES_CAMPEONES : FASES_COPA).map((f) => (
+                    {(competicion === "copa_campeones"
+                      ? FASES_CAMPEONES
+                      : competicion === "playoffs"
+                        ? FASES_PLAYOFFS
+                        : FASES_COPA
+                    ).map((f) => (
                       <option key={f}>{f}</option>
                     ))}
                   </select>

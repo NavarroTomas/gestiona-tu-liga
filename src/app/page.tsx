@@ -18,7 +18,12 @@ import QuickAccessGrid from "@/components/home/QuickAccessGrid";
 
 const temporadas = ["Temporada 4"];
 
-type ContextoCompetencia = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones";
+type ContextoCompetencia =
+  | "liga"
+  | "copa_clasificatoria"
+  | "copa_argentina"
+  | "copa_apa"
+  | "copa_campeones";
 
 type ContextoHome = {
   nombre: string;
@@ -32,6 +37,8 @@ type ContextoHome = {
   badge: string;
 };
 
+// Home simplificado: solo accesos principales, no una card por cada fase/grupo.
+// Las páginas específicas de Fixture/Stats siguen teniendo los filtros completos.
 const contextosHome: ContextoHome[] = [
   {
     nombre: "liga-primera",
@@ -52,120 +59,33 @@ const contextosHome: ContextoHome[] = [
     badge: "Segunda",
   },
   {
-    nombre: "copas-grupo-a",
-    label: "Clasificación · Grupo A",
-    icon: "A",
+    nombre: "clasificacion",
+    label: "Clasificación a Copas",
+    icon: "CL",
     competicion: "copa_clasificatoria",
-    grupo: "A",
     fase: "grupos",
-    badge: "Grupo A",
+    badge: "Grupos A-D",
   },
   {
-    nombre: "copas-grupo-b",
-    label: "Clasificación · Grupo B",
-    icon: "B",
-    competicion: "copa_clasificatoria",
-    grupo: "B",
-    fase: "grupos",
-    badge: "Grupo B",
-  },
-  {
-    nombre: "copas-grupo-c",
-    label: "Clasificación · Grupo C",
-    icon: "C",
-    competicion: "copa_clasificatoria",
-    grupo: "C",
-    fase: "grupos",
-    badge: "Grupo C",
-  },
-  {
-    nombre: "copas-grupo-d",
-    label: "Clasificación · Grupo D",
-    icon: "D",
-    competicion: "copa_clasificatoria",
-    grupo: "D",
-    fase: "grupos",
-    badge: "Grupo D",
-  },
-  {
-    nombre: "copa-argentina-octavos",
-    label: "Copa Argentina · Octavos",
+    nombre: "copa-argentina",
+    label: "Copa Argentina",
     icon: "CA",
     competicion: "copa_argentina",
-    fase: "octavos",
-    badge: "Octavos",
+    badge: "Eliminatoria",
   },
   {
-    nombre: "copa-argentina-cuartos",
-    label: "Copa Argentina · Cuartos",
-    icon: "CA",
-    competicion: "copa_argentina",
-    fase: "cuartos",
-    badge: "Cuartos",
-  },
-  {
-    nombre: "copa-argentina-semis",
-    label: "Copa Argentina · Semis",
-    icon: "CA",
-    competicion: "copa_argentina",
-    fase: "semifinal",
-    badge: "Semifinal",
-  },
-  {
-    nombre: "copa-argentina-final",
-    label: "Copa Argentina · Final",
-    icon: "CA",
-    competicion: "copa_argentina",
-    fase: "final",
-    badge: "Final",
-  },
-  {
-    nombre: "copa-apa-octavos",
-    label: "Copa APA · Octavos",
+    nombre: "copa-apa",
+    label: "Copa APA",
     icon: "APA",
     competicion: "copa_apa",
-    fase: "octavos",
-    badge: "Octavos",
+    badge: "Eliminatoria",
   },
   {
-    nombre: "copa-apa-cuartos",
-    label: "Copa APA · Cuartos",
-    icon: "APA",
-    competicion: "copa_apa",
-    fase: "cuartos",
-    badge: "Cuartos",
-  },
-  {
-    nombre: "copa-apa-semis",
-    label: "Copa APA · Semis",
-    icon: "APA",
-    competicion: "copa_apa",
-    fase: "semifinal",
-    badge: "Semifinal",
-  },
-  {
-    nombre: "copa-apa-final",
-    label: "Copa APA · Final",
-    icon: "APA",
-    competicion: "copa_apa",
-    fase: "final",
-    badge: "Final",
-  },
-  {
-    nombre: "copa-campeones-semis",
-    label: "Copa de Campeones · Semifinal",
+    nombre: "copa-campeones",
+    label: "Copa de Campeones",
     icon: "CC",
     competicion: "copa_campeones",
-    fase: "semifinal",
-    badge: "Semifinal",
-  },
-  {
-    nombre: "copa-campeones-final",
-    label: "Copa de Campeones · Final",
-    icon: "CC",
-    competicion: "copa_campeones",
-    fase: "final",
-    badge: "Final",
+    badge: "Semifinal / Final",
   },
 ];
 
@@ -238,32 +158,6 @@ function normalizarTexto(value?: string | null) {
   return String(value || "").toLowerCase().trim();
 }
 
-function getContextoPartido(p: any) {
-  const competicion = p?.competicion || "liga";
-
-  if (competicion === "liga") {
-    return p?.division || "Liga";
-  }
-
-  if (competicion === "copa_clasificatoria") {
-    return p?.grupo ? `Grupo ${p.grupo}` : "Clasificación";
-  }
-
-  if (competicion === "copa_argentina") {
-    return p?.fase ? `Copa Argentina · ${p.fase}` : "Copa Argentina";
-  }
-
-  if (competicion === "copa_apa") {
-    return p?.fase ? `Copa APA · ${p.fase}` : "Copa APA";
-  }
-
-  if (competicion === "copa_campeones") {
-    return p?.fase ? `Copa de Campeones · ${p.fase}` : "Copa de Campeones";
-  }
-
-  return competicion;
-}
-
 function ordenarPartidos(a: any, b: any) {
   const fechaA = Number(a?.fecha || 999);
   const fechaB = Number(b?.fecha || 999);
@@ -324,7 +218,8 @@ export default function Home() {
     }
 
     if (contextoActual.competicion === "copa_clasificatoria") {
-      query = query.eq("fase", "grupos").eq("grupo", contextoActual.grupo);
+      query = query.eq("fase", "grupos");
+      if (contextoActual.grupo) query = query.eq("grupo", contextoActual.grupo);
     }
 
     if (
@@ -332,7 +227,7 @@ export default function Home() {
       contextoActual.competicion === "copa_apa" ||
       contextoActual.competicion === "copa_campeones"
     ) {
-      query = query.eq("fase", contextoActual.fase);
+      if (contextoActual.fase) query = query.eq("fase", contextoActual.fase);
     }
 
     return query;
@@ -424,14 +319,6 @@ export default function Home() {
     (acc, j) => acc + Number(j.goles || j.goals || 0),
     0,
   );
-  const asistenciasTotales = jugadores.reduce(
-    (acc, j) => acc + Number(j.asistencias || j.assists || 0),
-    0,
-  );
-  const mvpTotales = jugadores.reduce(
-    (acc, j) => acc + Number(j.mvp || j.mvps || 0),
-    0,
-  );
 
   const partidosOrdenados = useMemo(
     () => [...partidos].sort(ordenarPartidos),
@@ -451,38 +338,6 @@ export default function Home() {
     .slice(-4)
     .reverse();
 
-  const rankings = useMemo(() => {
-    const mapa: Record<string, any> = {};
-
-    jugadores.forEach((j: any) => {
-      const nombre = j.nombre || j.jugador || "Sin Nombre";
-      const key = j.playerId || nombre;
-
-      if (!mapa[key]) {
-        mapa[key] = {
-          nombre,
-          equipo: j.equipo || "Sin Club",
-          goles: 0,
-          asistencias: 0,
-          mvps: 0,
-        };
-      }
-
-      mapa[key].goles += Number(j.goles || j.goals || 0);
-      mapa[key].asistencias += Number(j.asistencias || j.assists || 0);
-      mapa[key].mvps += Number(j.mvp || j.mvps || 0);
-      if (j.equipo) mapa[key].equipo = j.equipo;
-    });
-
-    const lista = Object.values(mapa);
-
-    return {
-      goleador: [...lista].sort((a, b) => b.goles - a.goles)[0],
-      asistidor: [...lista].sort((a, b) => b.asistencias - a.asistencias)[0],
-      mvp: [...lista].sort((a, b) => b.mvps - a.mvps)[0],
-    };
-  }, [jugadores]);
-
   const nombreCompetencia =
     contextoActual.competicion === "liga"
       ? "Liga"
@@ -490,16 +345,11 @@ export default function Home() {
         ? "Clasificación a Copas"
         : contextoActual.competicion === "copa_argentina"
           ? "Copa Argentina"
-          : contextoActual.competicion === "copa_campeones"
-            ? "Copa de Campeones"
-            : "Copa APA";
+          : contextoActual.competicion === "copa_apa"
+            ? "Copa APA"
+            : "Copa de Campeones";
 
-  const detalleCompetencia =
-    contextoActual.competicion === "liga"
-      ? contextoActual.badge
-      : contextoActual.competicion === "copa_clasificatoria"
-        ? `Grupo ${contextoActual.grupo || ""}`.trim()
-        : contextoActual.badge || contextoActual.fase || "Fase";
+  const detalleCompetencia = contextoActual.badge || "Competencia";
 
   const statsHome = [
     {
@@ -531,11 +381,6 @@ export default function Home() {
       color: "text-orange-200",
     },
   ];
-
-  const noticiaDestacada = noticias.find((n) => n.destacada) || noticias[0];
-  const noticiasSecundarias = noticias
-    .filter((n) => n.id !== noticiaDestacada?.id)
-    .slice(0, 3);
 
   const accesos = [
     {

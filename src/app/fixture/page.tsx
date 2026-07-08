@@ -66,7 +66,35 @@ const competencias = [
         href: "/fixture/grupo-d?temporada=Temporada%204",
       },
     ],
-  },,
+  },
+  {
+    eyebrow: "Ascenso y promoción",
+    titulo: "Playoffs de Ascenso",
+    descripcion:
+      "2° al 5° de Segunda juegan por el ascenso. El ganador define la promoción contra el anteúltimo de Primera.",
+    image: "/images/fixture/playoffs.png",
+    color: "border-orange-400/35",
+    accent: "text-orange-300",
+    glow: "hover:shadow-[0_0_42px_rgba(251,146,60,.18)]",
+    badge: "Temporada 4",
+    items: [
+      {
+        titulo: "Semifinales",
+        texto: "Ver cruces",
+        href: "/fixture/playoffs?temporada=Temporada%204&fase=Semifinal",
+      },
+      {
+        titulo: "Final Ascenso",
+        texto: "Ver final",
+        href: "/fixture/playoffs?temporada=Temporada%204&fase=Final%20Ascenso",
+      },
+      {
+        titulo: "Promoción",
+        texto: "Ver promoción",
+        href: "/fixture/playoffs?temporada=Temporada%204&fase=Promoción",
+      },
+    ],
+  },
   {
     eyebrow: "Máxima final",
     titulo: "Copa de Campeones",
@@ -89,7 +117,8 @@ const competencias = [
         href: "/fixture/copa-campeones?temporada=Temporada%204&fase=Final",
       },
     ],
-  },];
+  },
+];
 
 const pasos = [
   {
@@ -144,7 +173,7 @@ export default function FixturePage() {
               </h1>
 
               <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-200 drop-shadow-[0_4px_16px_rgba(0,0,0,.9)] md:text-lg md:leading-8">
-                Calendario oficial de Liga, Clasificación a Copas y Copa de Campeones. Elegí la temporada, la competencia y después la categoría, grupo o fase.
+                Calendario oficial de Liga, Clasificación a Copas, Copa de Campeones y Playoffs de Ascenso. Elegí la temporada, la competencia y después la categoría, grupo o fase.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">

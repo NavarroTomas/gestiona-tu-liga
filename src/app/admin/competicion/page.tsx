@@ -33,6 +33,7 @@ const GRUPOS = ["A", "B", "C", "D"];
 
 const COMPETICION_GRUPOS = "copa_clasificatoria";
 const COMPETICION_CAMPEONES = "copa_campeones";
+const COMPETICION_PLAYOFFS = "playoffs";
 const DIVISION_COPA = "copa";
 
 function normalizar(texto?: string | null) {
@@ -137,6 +138,7 @@ export default function AdminCopasPage() {
   const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [partidos, setPartidos] = useState<PartidoCopa[]>([]);
   const [partidosCampeones, setPartidosCampeones] = useState<PartidoCopa[]>([]);
+  const [partidosPlayoffs, setPartidosPlayoffs] = useState<PartidoCopa[]>([]);
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -164,6 +166,18 @@ export default function AdminCopasPage() {
   const [diaFinalCampeones, setDiaFinalCampeones] = useState("");
   const [horaFinalCampeones, setHoraFinalCampeones] = useState("");
 
+  const [segundoSegunda, setSegundoSegunda] = useState("");
+  const [terceroSegunda, setTerceroSegunda] = useState("");
+  const [cuartoSegunda, setCuartoSegunda] = useState("");
+  const [quintoSegunda, setQuintoSegunda] = useState("");
+  const [anteultimoPrimera, setAnteultimoPrimera] = useState("");
+  const [diaSemisPlayoffs, setDiaSemisPlayoffs] = useState("");
+  const [horaSemisPlayoffs, setHoraSemisPlayoffs] = useState("");
+  const [diaFinalPlayoffs, setDiaFinalPlayoffs] = useState("");
+  const [horaFinalPlayoffs, setHoraFinalPlayoffs] = useState("");
+  const [diaPromocion, setDiaPromocion] = useState("");
+  const [horaPromocion, setHoraPromocion] = useState("");
+
   useEffect(() => {
     cargarTodo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -173,7 +187,7 @@ export default function AdminCopasPage() {
     setLoading(true);
     setMensaje("");
 
-    const [equiposRes, partidosRes, campeonesRes] = await Promise.all([
+    const [equiposRes, partidosRes, campeonesRes, playoffsRes] = await Promise.all([
       supabase
         .from("v_clubes_temporada_public")
         .select("*")
@@ -197,6 +211,14 @@ export default function AdminCopasPage() {
         .eq("competicion", COMPETICION_CAMPEONES)
         .order("fecha", { ascending: true })
         .order("ronda", { ascending: true }),
+
+      supabase
+        .from("partidos")
+        .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora, competicion, grupo, fase, ronda")
+        .eq("temporada", temporada)
+        .eq("competicion", COMPETICION_PLAYOFFS)
+        .order("fecha", { ascending: true })
+        .order("ronda", { ascending: true }),
     ]);
 
     if (equiposRes.error) {
@@ -214,6 +236,11 @@ export default function AdminCopasPage() {
       setMensaje("Error cargando Copa de Campeones.");
     }
 
+    if (playoffsRes.error) {
+      console.log(playoffsRes.error);
+      setMensaje("Error cargando Playoffs.");
+    }
+
     setEquipos(
       ((equiposRes.data || []) as any[]).map((e) => ({
         id: e.club_id,
@@ -225,6 +252,7 @@ export default function AdminCopasPage() {
 
     setPartidos((partidosRes.data || []) as PartidoCopa[]);
     setPartidosCampeones((campeonesRes.data || []) as PartidoCopa[]);
+    setPartidosPlayoffs((playoffsRes.data || []) as PartidoCopa[]);
     setLoading(false);
   }
 
@@ -588,6 +616,165 @@ export default function AdminCopasPage() {
     await cargarTodo();
   }
 
+  async function generarPlayoffs() {
+    setMensaje("");
+
+    if (!segundoSegunda || !terceroSegunda || !cuartoSegunda || !quintoSegunda || !anteultimoPrimera) {
+      setMensaje("Elegí 2°, 3°, 4° y 5° de Segunda, más el anteúltimo de Primera.");
+      return;
+    }
+
+    const participantes = [
+      segundoSegunda,
+      terceroSegunda,
+      cuartoSegunda,
+      quintoSegunda,
+      anteultimoPrimera,
+    ];
+
+    if (new Set(participantes).size !== participantes.length) {
+      setMensaje("No puede haber equipos repetidos en Playoffs.");
+      return;
+    }
+
+    if (partidosPlayoffs.length > 0) {
+      const confirmar = window.confirm(
+        `Ya existen ${partidosPlayoffs.length} partidos de Playoffs para ${temporada}.\n\n¿Querés borrarlos y generarlos nuevamente?`,
+      );
+
+      if (!confirmar) return;
+
+      const { error: deleteError } = await supabase
+        .from("partidos")
+        .delete()
+        .eq("temporada", temporada)
+        .eq("competicion", COMPETICION_PLAYOFFS);
+
+      if (deleteError) {
+        console.log(deleteError);
+        setMensaje("No pude borrar los Playoffs anteriores.");
+        return;
+      }
+    }
+
+    const payload = [
+      {
+        local: segundoSegunda,
+        visitante: quintoSegunda,
+        resultado: null,
+        fecha: "1",
+        temporada,
+        division: DIVISION_COPA,
+        dia: diaSemisPlayoffs || null,
+        hora: horaSemisPlayoffs || null,
+        partido_id: null,
+        competicion: COMPETICION_PLAYOFFS,
+        grupo: null,
+        fase: "semifinal",
+        ronda: "Playoffs Ascenso · Semifinal 1",
+      },
+      {
+        local: terceroSegunda,
+        visitante: cuartoSegunda,
+        resultado: null,
+        fecha: "1",
+        temporada,
+        division: DIVISION_COPA,
+        dia: diaSemisPlayoffs || null,
+        hora: horaSemisPlayoffs || null,
+        partido_id: null,
+        competicion: COMPETICION_PLAYOFFS,
+        grupo: null,
+        fase: "semifinal",
+        ronda: "Playoffs Ascenso · Semifinal 2",
+      },
+      {
+        local: "Ganador SF1",
+        visitante: "Ganador SF2",
+        resultado: null,
+        fecha: "2",
+        temporada,
+        division: DIVISION_COPA,
+        dia: diaFinalPlayoffs || null,
+        hora: horaFinalPlayoffs || null,
+        partido_id: null,
+        competicion: COMPETICION_PLAYOFFS,
+        grupo: null,
+        fase: "final_ascenso",
+        ronda: "Playoffs Ascenso · Final",
+      },
+      {
+        local: "Ganador Final Ascenso",
+        visitante: anteultimoPrimera,
+        resultado: null,
+        fecha: "3",
+        temporada,
+        division: DIVISION_COPA,
+        dia: diaPromocion || null,
+        hora: horaPromocion || null,
+        partido_id: null,
+        competicion: COMPETICION_PLAYOFFS,
+        grupo: null,
+        fase: "promocion",
+        ronda: "Promoción · Ascenso/Descenso",
+      },
+    ];
+
+    const { error } = await supabase.from("partidos").insert(payload);
+
+    if (error) {
+      console.log(error);
+      setMensaje("Error generando Playoffs.");
+      return;
+    }
+
+    setMensaje("Playoffs generados: 2 semifinales, 1 final de ascenso y 1 promoción.");
+    await cargarTodo();
+  }
+
+  async function eliminarPlayoffs() {
+    if (partidosPlayoffs.length === 0) {
+      setMensaje("No hay partidos de Playoffs para eliminar.");
+      return;
+    }
+
+    const confirmar = window.confirm(
+      `Vas a eliminar ${partidosPlayoffs.length} partidos de Playoffs. ¿Continuar?`,
+    );
+
+    if (!confirmar) return;
+
+    const { error } = await supabase
+      .from("partidos")
+      .delete()
+      .eq("temporada", temporada)
+      .eq("competicion", COMPETICION_PLAYOFFS);
+
+    if (error) {
+      console.log(error);
+      setMensaje("Error eliminando Playoffs.");
+      return;
+    }
+
+    setMensaje("Playoffs eliminados.");
+    await cargarTodo();
+  }
+
+  async function eliminarPartidoPlayoff(id: string) {
+    const confirmar = window.confirm("¿Eliminar este partido de Playoffs?");
+    if (!confirmar) return;
+
+    const { error } = await supabase.from("partidos").delete().eq("id", id);
+
+    if (error) {
+      console.log(error);
+      setMensaje("Error eliminando partido de Playoffs.");
+      return;
+    }
+
+    setPartidosPlayoffs((prev) => prev.filter((p) => p.id !== id));
+  }
+
   return (
     <PermissionGuard permission="competitions.manage">
       <main className="min-h-screen bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] px-4 py-8 text-white md:px-8">
@@ -612,7 +799,7 @@ export default function AdminCopasPage() {
                 </h1>
 
                 <p className="mt-6 max-w-3xl text-lg leading-8 text-zinc-300">
-                  Cargá los cuatro grupos de la competencia. Los dos primeros pasan a Copa Argentina y los dos últimos a Copa APA.
+                  Cargá grupos, Copa de Campeones y Playoffs de Ascenso desde el mismo panel competitivo.
                 </p>
               </div>
 
@@ -1115,6 +1302,290 @@ export default function AdminCopasPage() {
                               <option value={p.visitante}>{p.visitante}</option>
                               {equipos.map((e) => (
                                 <option key={`champ-vis-${p.id}-${e.nombre}`} value={e.nombre}>
+                                  {e.nombre}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {p.partido_id && (
+                            <p className="mt-3 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-300">
+                              🔒 Resultado bloqueado porque este partido ya tiene TXT cargado.
+                            </p>
+                          )}
+
+                          <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+                            <input
+                              value={String(p.fecha || "")}
+                              onChange={(e) =>
+                                actualizarPartido(p.id, {
+                                  fecha: e.target.value,
+                                })
+                              }
+                              placeholder="Fecha"
+                              className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
+                            />
+
+                            <input
+                              value={p.dia || ""}
+                              onChange={(e) =>
+                                actualizarPartido(p.id, {
+                                  dia: e.target.value,
+                                })
+                              }
+                              placeholder="Día"
+                              className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
+                            />
+
+                            <input
+                              value={p.hora || ""}
+                              onChange={(e) =>
+                                actualizarPartido(p.id, {
+                                  hora: e.target.value,
+                                })
+                              }
+                              placeholder="Hora"
+                              className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
+                            />
+                          </div>
+                        </article>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              <section className="rounded-[34px] border border-orange-400/25 bg-[#020714]/95 p-6">
+                <div className="mb-5 flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.35em] text-orange-300">
+                      Playoffs de Ascenso
+                    </p>
+                    <h2 className="mt-2 text-3xl font-black uppercase">
+                      Segunda → Primera
+                    </h2>
+                  </div>
+
+                  <span className="text-xs font-black uppercase text-zinc-500">
+                    {partidosPlayoffs.length} partidos
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 gap-5 xl:grid-cols-[420px_1fr]">
+                  <div className="rounded-[28px] border border-orange-400/20 bg-orange-400/5 p-5">
+                    <p className="text-xs font-black uppercase tracking-[0.28em] text-orange-300">
+                      Crear playoffs
+                    </p>
+
+                    <p className="mt-3 text-sm leading-6 text-zinc-400">
+                      Formato: 2° vs 5°, 3° vs 4°, final entre ganadores y promoción contra el anteúltimo de Primera.
+                    </p>
+
+                    <div className="mt-5 space-y-3">
+                      <select
+                        value={segundoSegunda}
+                        onChange={(e) => setSegundoSegunda(e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
+                      >
+                        <option value="">2° Segunda</option>
+                        {equipos.map((e) => (
+                          <option key={`playoff-2-${e.nombre}`} value={e.nombre}>
+                            {e.nombre}
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        value={terceroSegunda}
+                        onChange={(e) => setTerceroSegunda(e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
+                      >
+                        <option value="">3° Segunda</option>
+                        {equipos.map((e) => (
+                          <option key={`playoff-3-${e.nombre}`} value={e.nombre}>
+                            {e.nombre}
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        value={cuartoSegunda}
+                        onChange={(e) => setCuartoSegunda(e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
+                      >
+                        <option value="">4° Segunda</option>
+                        {equipos.map((e) => (
+                          <option key={`playoff-4-${e.nombre}`} value={e.nombre}>
+                            {e.nombre}
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        value={quintoSegunda}
+                        onChange={(e) => setQuintoSegunda(e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
+                      >
+                        <option value="">5° Segunda</option>
+                        {equipos.map((e) => (
+                          <option key={`playoff-5-${e.nombre}`} value={e.nombre}>
+                            {e.nombre}
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        value={anteultimoPrimera}
+                        onChange={(e) => setAnteultimoPrimera(e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
+                      >
+                        <option value="">Anteúltimo Primera</option>
+                        {equipos.map((e) => (
+                          <option key={`playoff-promocion-${e.nombre}`} value={e.nombre}>
+                            {e.nombre}
+                          </option>
+                        ))}
+                      </select>
+
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <input
+                          value={diaSemisPlayoffs}
+                          onChange={(e) => setDiaSemisPlayoffs(e.target.value)}
+                          placeholder="Día semifinales"
+                          className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
+                        />
+
+                        <input
+                          value={horaSemisPlayoffs}
+                          onChange={(e) => setHoraSemisPlayoffs(e.target.value)}
+                          placeholder="Hora semifinales"
+                          className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
+                        />
+
+                        <input
+                          value={diaFinalPlayoffs}
+                          onChange={(e) => setDiaFinalPlayoffs(e.target.value)}
+                          placeholder="Día final ascenso"
+                          className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
+                        />
+
+                        <input
+                          value={horaFinalPlayoffs}
+                          onChange={(e) => setHoraFinalPlayoffs(e.target.value)}
+                          placeholder="Hora final ascenso"
+                          className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
+                        />
+
+                        <input
+                          value={diaPromocion}
+                          onChange={(e) => setDiaPromocion(e.target.value)}
+                          placeholder="Día promoción"
+                          className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
+                        />
+
+                        <input
+                          value={horaPromocion}
+                          onChange={(e) => setHoraPromocion(e.target.value)}
+                          placeholder="Hora promoción"
+                          className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
+                        />
+                      </div>
+
+                      <button
+                        onClick={generarPlayoffs}
+                        className="w-full rounded-2xl border border-orange-300/30 bg-orange-300 px-5 py-4 text-sm font-black uppercase text-black transition hover:bg-white"
+                      >
+                        Generar Playoffs
+                      </button>
+
+                      <button
+                        onClick={eliminarPlayoffs}
+                        className="w-full rounded-2xl border border-red-400/25 bg-red-400/10 px-5 py-4 text-sm font-black uppercase text-red-300 transition hover:bg-red-400 hover:text-black"
+                      >
+                        Eliminar Playoffs
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {partidosPlayoffs.length === 0 ? (
+                      <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
+                        Todavía no hay Playoffs cargados.
+                      </p>
+                    ) : (
+                      partidosPlayoffs.map((p) => (
+                        <article
+                          key={p.id}
+                          className="rounded-2xl border border-orange-400/15 bg-[#020714] p-4"
+                        >
+                          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                            <span className="rounded-full border border-orange-400/25 bg-orange-400/10 px-3 py-1 text-[10px] font-black uppercase text-orange-300">
+                              {p.ronda || p.fase} · Fecha {p.fecha}
+                            </span>
+
+                            <button
+                              onClick={() => eliminarPartidoPlayoff(p.id)}
+                              className="rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-1 text-[10px] font-black uppercase text-red-300 transition hover:bg-red-400 hover:text-black"
+                            >
+                              Eliminar
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_120px_minmax(0,1fr)] xl:items-center">
+                            <select
+                              value={p.local}
+                              onChange={(e) =>
+                                actualizarPartido(p.id, {
+                                  local: e.target.value,
+                                })
+                              }
+                              disabled={Boolean(p.partido_id)}
+                              className="min-w-0 rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              <option value={p.local}>{p.local}</option>
+                              {equipos.map((e) => (
+                                <option key={`play-local-${p.id}-${e.nombre}`} value={e.nombre}>
+                                  {e.nombre}
+                                </option>
+                              ))}
+                            </select>
+
+                            <div className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-3 py-3 text-center">
+                              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-yellow-300/70">
+                                Resultado
+                              </p>
+
+                              {p.partido_id ? (
+                                <p className="mt-1 text-xl font-black text-yellow-300">
+                                  {p.resultado || "VS"}
+                                </p>
+                              ) : (
+                                <input
+                                  value={p.resultado || ""}
+                                  onChange={(e) =>
+                                    actualizarPartido(p.id, {
+                                      resultado: e.target.value || null,
+                                    })
+                                  }
+                                  placeholder="VS"
+                                  className="mt-1 w-full rounded-xl border border-yellow-400/20 bg-black/35 px-2 py-2 text-center text-lg font-black uppercase text-yellow-300 outline-none placeholder:text-yellow-300"
+                                />
+                              )}
+                            </div>
+
+                            <select
+                              value={p.visitante}
+                              onChange={(e) =>
+                                actualizarPartido(p.id, {
+                                  visitante: e.target.value,
+                                })
+                              }
+                              disabled={Boolean(p.partido_id)}
+                              className="min-w-0 rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              <option value={p.visitante}>{p.visitante}</option>
+                              {equipos.map((e) => (
+                                <option key={`play-vis-${p.id}-${e.nombre}`} value={e.nombre}>
                                   {e.nombre}
                                 </option>
                               ))}

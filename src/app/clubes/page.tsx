@@ -111,11 +111,15 @@ export default function ClubesPage() {
     <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] text-white">
       <section className="mx-auto max-w-[1500px] space-y-8 px-4 py-8 md:px-8">
         <section className="relative overflow-hidden rounded-[40px] border border-sky-500/30 bg-[#020714] p-7 shadow-[0_0_55px_rgba(0,120,255,.22)] md:p-10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.20),transparent_42%)]" />
-          <div className="absolute -right-24 top-0 h-80 w-80 rounded-full bg-sky-500/10 blur-3xl" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/82 to-black/30" />
+          <img
+            src="/images/clubes/hero.png"
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover object-center opacity-30"
+          />
 
-          <div className="relative z-10 grid gap-8 lg:grid-cols-[1fr_340px] lg:items-center">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#020714] via-[#020714]/82 to-[#020714]/35" />
+
+          <div className="relative z-10">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.45em] text-sky-400">
                 Clubes APA · Instituciones oficiales
@@ -152,25 +156,6 @@ export default function ClubesPage() {
               </div>
             </div>
 
-            <div className="hidden lg:block">
-              <div className="relative rounded-[34px] border border-sky-400/25 bg-black/35 p-6 shadow-[0_0_38px_rgba(56,189,248,.18)]">
-                <div className="absolute -inset-5 rounded-full bg-sky-400/10 blur-3xl" />
-
-                <div className="relative z-10 text-center">
-                  <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-[32px] border border-sky-400/30 bg-sky-400/10 text-6xl">
-                    🏟️
-                  </div>
-
-                  <p className="mt-5 text-xs font-bold uppercase tracking-[0.14em] text-sky-300">
-                    Galería oficial
-                  </p>
-
-                  <h2 className="mt-2 text-3xl font-black uppercase">
-                    Club Hub
-                  </h2>
-                </div>
-              </div>
-            </div>
           </div>
         </section>
 

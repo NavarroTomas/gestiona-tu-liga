@@ -57,6 +57,7 @@ const nombresDivision: Record<string, string> = {
   "grupo-c": "Grupo C",
   "grupo-d": "Grupo D",
   "copa-campeones": "Copa de Campeones",
+  playoffs: "Playoffs de Ascenso",
 };
 
 const gruposCopa: Record<string, string> = {
@@ -67,7 +68,7 @@ const gruposCopa: Record<string, string> = {
 };
 
 function normalizarDivisionUrl(value: string) {
-  const permitido = ["primera", "segunda", "grupo-a", "grupo-b", "grupo-c", "grupo-d", "copa-campeones"];
+  const permitido = ["primera", "segunda", "grupo-a", "grupo-b", "grupo-c", "grupo-d", "copa-campeones", "playoffs"];
   return permitido.includes(value) ? value : "primera";
 }
 
@@ -78,12 +79,14 @@ export default function FixtureDivisionPage() {
 
   const esCopaGrupos = Boolean(gruposCopa[division]);
   const esCopaCampeones = division === "copa-campeones";
+  const esPlayoffs = division === "playoffs";
   const grupoCopa = gruposCopa[division];
   const divisionDb = division === "primera" ? "primera" : "segunda";
 
   const searchParams = useSearchParams();
   const temporada = searchParams.get("temporada") || "Temporada 4";
   const faseCopaCampeones = searchParams.get("fase") || "";
+  const fasePlayoffs = searchParams.get("fase") || "";
 
   const [partidos, setPartidos] = useState<any[]>([]);
   const [clubesInfo, setClubesInfo] = useState<any[]>([]);
@@ -102,6 +105,16 @@ export default function FixtureDivisionPage() {
     return v;
   }
 
+
+  function fasePlayoffsDb(value: string) {
+    const v = String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+    if (v === "semifinal" || v === "semifinales") return "semifinal";
+    if (v === "final ascenso" || v === "final_ascenso") return "final_ascenso";
+    if (v === "promocion" || v === "promoción") return "promocion";
+
+    return "";
+  }
   async function cargarPartidos() {
     let query = supabase
       .from("partidos")
@@ -118,7 +131,15 @@ export default function FixtureDivisionPage() {
       query = query.eq("competicion", "copa_campeones");
 
       if (faseCopaCampeones) {
-        query = query.eq("fase", faseCopaCampeones);
+        const faseNormalizada = faseCopaCampeones.toLowerCase().includes("final") ? "final" : "semifinal";
+        query = query.eq("fase", faseNormalizada);
+      }
+    } else if (esPlayoffs) {
+      query = query.eq("competicion", "playoffs");
+
+      const faseNormalizada = fasePlayoffsDb(fasePlayoffs);
+      if (faseNormalizada) {
+        query = query.eq("fase", faseNormalizada);
       }
     } else {
       query = query
@@ -157,7 +178,7 @@ export default function FixtureDivisionPage() {
       }
 
       setClubesInfo(
-        esCopaGrupos || esCopaCampeones
+        esCopaGrupos || esCopaCampeones || esPlayoffs
           ? (clubesData || [])
           : (clubesData || []).filter(
               (club: any) =>

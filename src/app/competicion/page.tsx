@@ -77,6 +77,19 @@ const torneos: Torneo[] = [
     estado: "Próximamente",
   },
   {
+    eyebrow: "Ascenso y promoción",
+    titulo: "Playoffs de Ascenso",
+    descripcion:
+      "Los equipos ubicados del 2° al 5° de Segunda juegan por el ascenso. El ganador disputa una promoción contra el anteúltimo de Primera.",
+    href: "/competicion/playoffs",
+    image: "/images/competicion/playoffs.png",
+    color: "border-orange-400/35 from-orange-500/15 to-red-950/20",
+    glow: "group-hover:shadow-[0_0_45px_rgba(251,146,60,.18)]",
+    accent: "text-orange-300 border-orange-400/35 bg-orange-400/10",
+    preview: ["2° vs 5°", "3° vs 4°", "Final", "Promoción"],
+    estado: "Próximamente",
+  },
+  {
     eyebrow: "Torneo de campeones",
     titulo: "Copa de Campeones",
     descripcion:
@@ -88,7 +101,8 @@ const torneos: Torneo[] = [
     accent: "text-cyan-200 border-cyan-300/35 bg-cyan-300/10",
     preview: ["Campeón 1ª", "Campeón 2ª", "Copa ARG", "Copa APA"],
     estado: "Próximamente",
-  },];
+  },
+];
 
 const accesos: Acceso[] = [
   {

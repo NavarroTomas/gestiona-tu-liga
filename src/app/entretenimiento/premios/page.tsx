@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
-type Competicion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones";
+type Competicion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones" | "playoffs";
 
 type ContextoCompetencia = {
   id: string;
@@ -166,6 +166,57 @@ const contextos: ContextoCompetencia[] = [
     fase: "final",
     badge: "Final",
   },
+  {
+    id: "playoffs-semis",
+    label: "Playoffs · Semifinal",
+    competicion: "playoffs",
+    fase: "semifinal",
+    badge: "Semifinal",
+  },
+  {
+    id: "playoffs-final-ascenso",
+    label: "Playoffs · Final Ascenso",
+    competicion: "playoffs",
+    fase: "final_ascenso",
+    badge: "Final Ascenso",
+  },
+  {
+    id: "playoffs-promocion",
+    label: "Playoffs · Promoción",
+    competicion: "playoffs",
+    fase: "promocion",
+    badge: "Promoción",
+  },
+];
+
+const gruposContextosPremios = [
+  {
+    titulo: "Liga",
+    items: contextos.filter((item) => item.competicion === "liga"),
+  },
+  {
+    titulo: "Clasificación",
+    items: contextos.filter((item) => item.competicion === "copa_clasificatoria"),
+  },
+  {
+    titulo: "Copas",
+    items: contextos.filter((item) => item.competicion === "copa_argentina" || item.competicion === "copa_apa"),
+  },
+  {
+    titulo: "Finales",
+    items: contextos.filter((item) => item.competicion === "copa_campeones" || item.competicion === "playoffs"),
+  },
+];
+
+
+
+const competicionesPrincipalesPremios: { value: Competicion; label: string }[] = [
+  { value: "liga", label: "Liga" },
+  { value: "copa_clasificatoria", label: "Clasificación" },
+  { value: "copa_argentina", label: "Copa Argentina" },
+  { value: "copa_apa", label: "Copa APA" },
+  { value: "copa_campeones", label: "Copa Campeones" },
+  { value: "playoffs", label: "Playoffs" },
 ];
 
 function valorGKSave(r: any) {
@@ -231,6 +282,7 @@ function getNombreCompeticion(contexto: ContextoCompetencia) {
   if (contexto.competicion === "copa_clasificatoria") return "Clasificación a Copas";
   if (contexto.competicion === "copa_argentina") return "Copa Argentina";
   if (contexto.competicion === "copa_campeones") return "Copa de Campeones";
+  if (contexto.competicion === "playoffs") return "Playoffs de Ascenso";
   return "Copa APA";
 }
 
@@ -267,7 +319,8 @@ export default function PremiosPage() {
     if (
       contexto.competicion === "copa_argentina" ||
       contexto.competicion === "copa_apa" ||
-      contexto.competicion === "copa_campeones"
+      contexto.competicion === "copa_campeones" ||
+      contexto.competicion === "playoffs"
     ) {
       query = query.eq("fase", contexto.fase);
     }
@@ -619,23 +672,56 @@ export default function PremiosPage() {
                 Competencia
               </p>
 
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-4">
-                {contextos.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setContextoId(item.id);
-                      setFecha("1");
-                    }}
-                    className={`rounded-2xl border px-4 py-4 text-sm font-black uppercase transition-all ${
-                      contextoId === item.id
-                        ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
-                        : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
+                {competicionesPrincipalesPremios.map((item) => {
+                  const activo = contexto.competicion === item.value;
+                  const primerContexto = contextos.find((ctx) => ctx.competicion === item.value);
+
+                  return (
+                    <button
+                      key={item.value}
+                      onClick={() => {
+                        if (!primerContexto) return;
+                        setContextoId(primerContexto.id);
+                        setFecha("1");
+                      }}
+                      className={`rounded-2xl border px-3 py-3 text-xs font-black uppercase transition-all sm:px-4 sm:py-4 sm:text-sm ${
+                        activo
+                          ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
+                          : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
+                Subcategoría
+              </p>
+
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-5">
+                {contextos
+                  .filter((item) => item.competicion === contexto.competicion)
+                  .map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setContextoId(item.id);
+                        setFecha("1");
+                      }}
+                      className={`rounded-2xl border px-3 py-3 text-xs font-black uppercase transition-all sm:px-4 sm:py-4 sm:text-sm ${
+                        contextoId === item.id
+                          ? "border-green-300 bg-gradient-to-r from-green-400 to-emerald-600 text-black shadow-[0_0_20px_rgba(74,222,128,.35)]"
+                          : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
+                      }`}
+                    >
+                      {item.badge}
+                    </button>
+                  ))}
               </div>
             </div>
 
