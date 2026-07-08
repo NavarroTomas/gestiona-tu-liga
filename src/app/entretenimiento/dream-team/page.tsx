@@ -1001,7 +1001,7 @@ export default function DreamTeamPage() {
               </div>
             )}
 
-            {(competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones") && (
+            {(competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones" || competicion === "playoffs") && (
               <div>
                 <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
                   Fase
