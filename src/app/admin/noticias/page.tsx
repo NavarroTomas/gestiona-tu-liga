@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import PermissionGuard from "@/components/PermissionGuard";
 
 type Noticia = {
   id: string;
@@ -41,6 +42,8 @@ export default function AdminNoticiasPage() {
   const [temporada, setTemporada] = useState("Temporada 4");
   const [categoria, setCategoria] = useState("General");
   const [imagenUrl, setImagenUrl] = useState("");
+  const [imagenArchivo, setImagenArchivo] = useState<File | null>(null);
+  const [subiendoImagen, setSubiendoImagen] = useState(false);
   const [autor, setAutor] = useState("");
   const [publicada, setPublicada] = useState(true);
   const [destacada, setDestacada] = useState(false);
@@ -77,6 +80,7 @@ export default function AdminNoticiasPage() {
     setTemporada("Temporada 4");
     setCategoria("General");
     setImagenUrl("");
+    setImagenArchivo(null);
     setAutor("");
     setPublicada(true);
     setDestacada(false);
@@ -151,6 +155,66 @@ export default function AdminNoticiasPage() {
     }
   }
 
+  function validarImagen(file: File) {
+    const formatos = ["image/jpeg", "image/png", "image/webp"];
+    const maxMb = 5;
+
+    if (!formatos.includes(file.type)) {
+      return "Formato inválido. Usá JPG, PNG o WEBP.";
+    }
+
+    if (file.size > maxMb * 1024 * 1024) {
+      return `La imagen no puede superar ${maxMb} MB.`;
+    }
+
+    return null;
+  }
+
+  function extensionArchivo(file: File) {
+    const ext = file.name.split(".").pop()?.toLowerCase();
+
+    if (ext === "jpg" || ext === "jpeg" || ext === "png" || ext === "webp") {
+      return ext;
+    }
+
+    if (file.type === "image/png") return "png";
+    if (file.type === "image/webp") return "webp";
+    return "jpg";
+  }
+
+  async function subirImagenNoticia() {
+    if (!imagenArchivo) return imagenUrl.trim() || null;
+
+    const errorValidacion = validarImagen(imagenArchivo);
+
+    if (errorValidacion) {
+      throw new Error(errorValidacion);
+    }
+
+    setSubiendoImagen(true);
+
+    const nombreSeguro = `${Date.now()}-${crypto.randomUUID()}.${extensionArchivo(imagenArchivo)}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("noticias")
+      .upload(nombreSeguro, imagenArchivo, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from("noticias")
+      .getPublicUrl(nombreSeguro);
+
+    setSubiendoImagen(false);
+
+    return data.publicUrl;
+  }
+
   async function guardarNoticia(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setMensaje("");
@@ -170,12 +234,24 @@ export default function AdminNoticiasPage() {
 
     setGuardando(true);
 
+    let imagenFinal = imagenUrl.trim() || null;
+
+    try {
+      imagenFinal = await subirImagenNoticia();
+    } catch (error: any) {
+      console.log(error);
+      setGuardando(false);
+      setSubiendoImagen(false);
+      setMensaje("Error subiendo imagen: " + (error?.message || "revisá el bucket noticias."));
+      return;
+    }
+
     const payload = {
       titulo: tituloLimpio,
       descripcion: descripcionLimpia,
       temporada: temporada || null,
       categoria: categoria || "General",
-      imagen_url: imagenUrl.trim() || null,
+      imagen_url: imagenFinal,
       autor: autor.trim() || null,
       publicada,
       destacada,
@@ -258,6 +334,7 @@ export default function AdminNoticiasPage() {
   }
 
   return (
+    <PermissionGuard permission="news.manage">
     <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] text-white">
       <section className="mx-auto max-w-[1500px] space-y-6 px-3 py-5 sm:px-4 md:space-y-8 md:px-8 md:py-8">
         <section className="relative overflow-hidden rounded-[28px] border border-sky-500/30 bg-[#020714] p-5 shadow-[0_0_55px_rgba(0,120,255,.18)] sm:rounded-[38px] md:p-10">
@@ -351,14 +428,58 @@ export default function AdminNoticiasPage() {
 
               <div>
                 <label className="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-zinc-500">
-                  Imagen URL opcional
+                  Imagen de portada
                 </label>
-                <input
-                  value={imagenUrl}
-                  onChange={(e) => setImagenUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4 text-white outline-none placeholder:text-zinc-700 focus:border-sky-400/60"
-                />
+
+                <div className="space-y-3 rounded-2xl border border-sky-500/20 bg-black/25 p-4">
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setImagenArchivo(file);
+                      if (file) setImagenUrl("");
+                    }}
+                    className="w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm text-zinc-300 file:mr-4 file:rounded-xl file:border-0 file:bg-sky-400 file:px-4 file:py-2 file:font-black file:text-black"
+                  />
+
+                  <input
+                    value={imagenUrl}
+                    onChange={(e) => {
+                      setImagenUrl(e.target.value);
+                      if (e.target.value.trim()) setImagenArchivo(null);
+                    }}
+                    placeholder="O pegá una URL externa https://..."
+                    className="w-full rounded-xl border border-sky-500/20 bg-black/35 px-4 py-3 text-white outline-none placeholder:text-zinc-700 focus:border-sky-400/60"
+                  />
+
+                  <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                    {imagenArchivo || imagenUrl ? (
+                      <div className="flex justify-center">
+                        <img
+                          src={imagenArchivo ? URL.createObjectURL(imagenArchivo) : imagenUrl}
+                          alt="Preview"
+                          className="h-auto max-h-[500px] w-auto max-w-full rounded-xl object-contain shadow-2xl"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex h-52 items-center justify-center rounded-xl border border-dashed border-zinc-700 text-sm text-zinc-500">
+                        Vista previa de la imagen
+                      </div>
+                    )}
+                  </div>
+
+                  {imagenArchivo && (
+                    <p className="text-xs font-bold text-emerald-400">
+                      ✓ {imagenArchivo.name}
+                    </p>
+                  )}
+
+                  <p className="text-xs leading-5 text-zinc-500">
+                    Recomendado: JPG/PNG/WEBP, máximo 5 MB. Si subís desde PC,
+                    se guarda en Supabase Storage.
+                  </p>
+                </div>
               </div>
 
               <div>
@@ -476,7 +597,17 @@ export default function AdminNoticiasPage() {
                     className="rounded-[24px] border border-white/10 bg-black/35 p-4"
                   >
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                      <div className="min-w-0">
+                      {noticia.imagen_url && (
+                        <div className="shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-black/35 md:w-44">
+                          <img
+                            src={noticia.imagen_url}
+                            alt={noticia.titulo}
+                            className="h-auto max-h-36 w-full object-contain"
+                          />
+                        </div>
+                      )}
+
+                      <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap gap-2">
                           <span className="rounded-xl border border-sky-400/20 bg-sky-400/10 px-3 py-1 text-[10px] font-black uppercase text-sky-300">
                             {noticia.categoria || "General"}
@@ -560,5 +691,6 @@ export default function AdminNoticiasPage() {
         </section>
       </section>
     </main>
+    </PermissionGuard>
   );
 }
