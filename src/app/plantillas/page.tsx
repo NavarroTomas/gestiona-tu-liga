@@ -231,62 +231,73 @@ export default function PlantillasPage() {
   return (
     <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
       <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-8 space-y-8">
-        <section className="relative overflow-hidden rounded-[38px] border border-sky-500/30 bg-[#020714] p-7 md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_42%)]" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/20" />
+        <section className="relative min-h-[430px] overflow-hidden rounded-[38px] border border-sky-500/30 bg-[#020714] p-7 shadow-[0_0_55px_rgba(0,120,255,.22)] md:p-10">
+          <img
+            src="/images/jugadores/hero.png"
+            alt=""
+            className="pointer-events-none absolute inset-y-0 right-0 hidden h-full w-[68%] object-cover object-center opacity-68 select-none lg:block"
+          />
 
-          <div className="relative z-10">
-            <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black">
-              APA PSO ARGENTINA
-            </p>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#020714] via-[#020714]/92 to-[#020714]/35" />
+          <div className="absolute inset-y-0 right-0 hidden w-[58%] bg-gradient-to-r from-[#020714] via-[#020714]/15 to-transparent lg:block" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#020714]/85 to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.18),transparent_44%)]" />
+          <div className="absolute inset-0 ring-1 ring-inset ring-white/10" />
 
-            <h1 className="mt-4 text-5xl md:text-7xl font-black uppercase italic leading-none">
-              <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
-                Plantillas
-              </span>
-            </h1>
+          <div className="relative z-10 flex min-h-[360px] items-center">
+            <div className="max-w-3xl">
+              <p className="text-xs font-black uppercase tracking-[0.45em] text-sky-400">
+                APA PSO ARGENTINA
+              </p>
 
-            <p className="mt-5 max-w-2xl text-zinc-400">
-              Consultá los jugadores registrados por club, temporada y división.
-              Cada jugador con Player ID enlaza directamente a su perfil
-              histórico.
-            </p>
+              <h1 className="mt-4 text-5xl font-black uppercase italic leading-none md:text-7xl">
+                <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
+                  Plantillas
+                </span>
+              </h1>
 
-            <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="rounded-2xl border border-sky-500/20 bg-black/35 p-4">
-                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
-                  Temporada
-                </p>
-                <p className="mt-2 text-2xl font-black text-sky-300">
-                  {temporada.replace("Temporada ", "T")}
-                </p>
-              </div>
+              <p className="mt-5 max-w-2xl text-zinc-300">
+                Consultá los jugadores registrados por club, temporada y división.
+                Cada jugador con Player ID enlaza directamente a su perfil
+                histórico.
+              </p>
 
-              <div className="rounded-2xl border border-yellow-500/20 bg-black/35 p-4">
-                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
-                  División
-                </p>
-                <p className="mt-2 text-2xl font-black text-yellow-300">
-                  {division}
-                </p>
-              </div>
+              <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+                <div className="rounded-2xl border border-sky-500/20 bg-black/45 p-4 backdrop-blur-sm">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
+                    Temporada
+                  </p>
+                  <p className="mt-2 text-2xl font-black text-sky-300">
+                    {temporada.replace("Temporada ", "T")}
+                  </p>
+                </div>
 
-              <div className="rounded-2xl border border-purple-500/20 bg-black/35 p-4">
-                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
-                  Club
-                </p>
-                <p className="mt-2 text-2xl font-black text-purple-300 truncate">
-                  {equipoSeleccionado}
-                </p>
-              </div>
+                <div className="rounded-2xl border border-yellow-500/20 bg-black/45 p-4 backdrop-blur-sm">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
+                    División
+                  </p>
+                  <p className="mt-2 text-2xl font-black text-yellow-300">
+                    {division}
+                  </p>
+                </div>
 
-              <div className="rounded-2xl border border-green-500/20 bg-black/35 p-4">
-                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
-                  Jugadores
-                </p>
-                <p className="mt-2 text-2xl font-black text-green-400">
-                  {plantillas.length}
-                </p>
+                <div className="rounded-2xl border border-purple-500/20 bg-black/45 p-4 backdrop-blur-sm">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
+                    Club
+                  </p>
+                  <p className="mt-2 truncate text-2xl font-black text-purple-300">
+                    {equipoSeleccionado}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-green-500/20 bg-black/45 p-4 backdrop-blur-sm">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
+                    Jugadores
+                  </p>
+                  <p className="mt-2 text-2xl font-black text-green-400">
+                    {plantillas.length}
+                  </p>
+                </div>
               </div>
             </div>
           </div>

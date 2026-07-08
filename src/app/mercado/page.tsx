@@ -307,13 +307,22 @@ export default function MercadoPage() {
   return (
     <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
       <div className="mx-auto max-w-[1500px] px-3 py-5 sm:px-4 md:px-8 md:py-8 space-y-6 md:space-y-8">
-        <section className="relative overflow-hidden rounded-[28px] border border-sky-500/30 bg-[#020714] p-5 sm:rounded-[38px] md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_42%)]" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/20" />
+        <section className="relative min-h-[430px] overflow-hidden rounded-[28px] border border-sky-500/30 bg-[#020714] p-5 shadow-[0_0_55px_rgba(0,120,255,.22)] sm:rounded-[38px] md:p-10">
+          <img
+            src="/images/mercado/hero.png"
+            alt=""
+            className="pointer-events-none absolute inset-y-0 right-0 hidden h-full w-[68%] object-cover object-center opacity-70 select-none lg:block"
+          />
 
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-            <div>
-              <p className="text-[10px] sm:text-xs uppercase tracking-[0.25em] sm:tracking-[0.45em] font-black text-sky-400">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#020714] via-[#020714]/92 to-[#020714]/35" />
+          <div className="absolute inset-y-0 right-0 hidden w-[58%] bg-gradient-to-r from-[#020714] via-[#020714]/15 to-transparent lg:block" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#020714]/85 to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.18),transparent_44%)]" />
+          <div className="absolute inset-0 ring-1 ring-inset ring-white/10" />
+
+          <div className="relative z-10 flex min-h-[360px] items-center">
+            <div className="max-w-3xl">
+              <p className="text-[10px] font-black uppercase tracking-[0.25em] text-sky-400 sm:text-xs sm:tracking-[0.45em]">
                 APA PSO ARGENTINA
               </p>
 
@@ -327,14 +336,14 @@ export default function MercadoPage() {
                 </span>
               </h1>
 
-              <p className="mt-5 max-w-2xl text-zinc-400">
+              <p className="mt-5 max-w-2xl text-zinc-300">
                 Fichajes, salidas, préstamos y jugadores libres de APA PSO
                 Argentina UE5. Seguimiento oficial por temporada y división.
               </p>
 
               <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-                <div className="rounded-2xl border border-emerald-500/20 bg-black/35 p-4">
-                  <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
+                <div className="rounded-2xl border border-emerald-500/20 bg-black/45 p-4 backdrop-blur-sm">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
                     Fichajes
                   </p>
                   <p className="mt-2 text-3xl font-black text-emerald-400">
@@ -342,8 +351,8 @@ export default function MercadoPage() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-red-500/20 bg-black/35 p-4">
-                  <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
+                <div className="rounded-2xl border border-red-500/20 bg-black/45 p-4 backdrop-blur-sm">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
                     Salidas
                   </p>
                   <p className="mt-2 text-3xl font-black text-red-300">
@@ -351,8 +360,8 @@ export default function MercadoPage() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-yellow-500/20 bg-black/35 p-4">
-                  <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
+                <div className="rounded-2xl border border-yellow-500/20 bg-black/45 p-4 backdrop-blur-sm">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
                     Préstamos
                   </p>
                   <p className="mt-2 text-3xl font-black text-yellow-300">
@@ -360,8 +369,8 @@ export default function MercadoPage() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-sky-500/20 bg-black/35 p-4">
-                  <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
+                <div className="rounded-2xl border border-sky-500/20 bg-black/45 p-4 backdrop-blur-sm">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
                     Libres
                   </p>
                   <p className="mt-2 text-3xl font-black text-sky-300">
@@ -369,10 +378,6 @@ export default function MercadoPage() {
                   </p>
                 </div>
               </div>
-            </div>
-
-            <div className="hidden lg:flex h-32 w-32 xl:h-40 xl:w-40 items-center justify-center rounded-full border border-sky-400/40 bg-black/40 shadow-[0_0_35px_rgba(0,120,255,.45)]">
-              <span className="text-6xl">🔁</span>
             </div>
           </div>
         </section>

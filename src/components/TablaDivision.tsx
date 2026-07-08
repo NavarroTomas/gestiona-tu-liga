@@ -43,7 +43,9 @@ export default function TablaDivision({
   async function cargarTabla() {
     const { data, error } = await supabase
       .from("partidos")
-      .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora")
+      .select(
+        "id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora",
+      )
       .eq("temporada", temporada)
       .eq("division", division);
 
@@ -205,6 +207,92 @@ export default function TablaDivision({
     return "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,.65)]";
   }
 
+  function zonaEquipo(index: number) {
+    const puesto = index + 1;
+    const esPrimera = normalizarDivision(division) === "primera";
+    const esSegunda = normalizarDivision(division) === "segunda";
+
+    if (esPrimera) {
+      if (puesto === 1) {
+        return {
+          barra: "bg-yellow-400 shadow-[0_0_12px_rgba(250,204,21,.85)]",
+          punto: "bg-yellow-400 shadow-[0_0_12px_rgba(250,204,21,.85)]",
+          fila: "bg-gradient-to-r from-[#2b2306] via-[#101827] to-[#030b18] ring-1 ring-yellow-300/40 shadow-[0_0_28px_rgba(250,204,21,.16)]",
+          movimiento: "text-yellow-300",
+          simbolo: "★",
+          etiqueta: "Campeón",
+        };
+      }
+
+      if (puesto === tabla.length - 1) {
+        return {
+          barra: "bg-orange-400 shadow-[0_0_12px_rgba(251,146,60,.75)]",
+          punto: "bg-orange-400 shadow-[0_0_12px_rgba(251,146,60,.75)]",
+          fila: "bg-gradient-to-r from-[#2b1606] via-[#111827] to-[#030b18] ring-1 ring-orange-400/30",
+          movimiento: "text-orange-300",
+          simbolo: "◆",
+          etiqueta: "Promoción",
+        };
+      }
+
+      if (puesto === tabla.length) {
+        return {
+          barra: "bg-red-500 shadow-[0_0_12px_rgba(239,68,68,.75)]",
+          punto: "bg-red-500 shadow-[0_0_12px_rgba(239,68,68,.75)]",
+          fila: "bg-gradient-to-r from-[#2b0710] via-[#111827] to-[#030b18] ring-1 ring-red-500/30",
+          movimiento: "text-red-400",
+          simbolo: "▼",
+          etiqueta: "Descenso",
+        };
+      }
+    }
+
+    if (esSegunda) {
+      if (puesto === 1) {
+        return {
+          barra: "bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.8)]",
+          punto: "bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.8)]",
+          fila: "bg-gradient-to-r from-[#062b1b] via-[#071c36] to-[#030b18] ring-1 ring-emerald-400/35 shadow-[0_0_28px_rgba(52,211,153,.14)]",
+          movimiento: "text-emerald-300",
+          simbolo: "▲",
+          etiqueta: "Ascenso",
+        };
+      }
+
+      if (puesto >= 2 && puesto <= 5) {
+        return {
+          barra: "bg-sky-400 shadow-[0_0_12px_rgba(56,189,248,.75)]",
+          punto: "bg-sky-400 shadow-[0_0_12px_rgba(56,189,248,.75)]",
+          fila: "bg-gradient-to-r from-[#06233d] via-[#071a33] to-[#030b18] ring-1 ring-sky-400/20",
+          movimiento: "text-sky-300",
+          simbolo: "●",
+          etiqueta: "Playoffs",
+        };
+      }
+    }
+
+    return {
+      barra: "bg-zinc-600/60",
+      punto: "bg-zinc-400 shadow-[0_0_8px_rgba(161,161,170,.45)]",
+      fila: "bg-gradient-to-r from-[#06152c] via-[#071a33] to-[#030b18]",
+      movimiento: "text-zinc-500",
+      simbolo: "▬",
+      etiqueta: "Normal",
+    };
+  }
+
+  function textoReglamento() {
+    if (normalizarDivision(division) === "primera") {
+      return "★ 1° CAMPEÓN · 7° PROMOCIÓN · 8° DESCENSO DIRECTO ★";
+    }
+
+    if (normalizarDivision(division) === "segunda") {
+      return "★ 1° ASCENSO DIRECTO · 2° AL 5° PLAYOFFS DE ASCENSO ★";
+    }
+
+    return "★ Torneo de Liga APA ★";
+  }
+
   return (
     <section className="relative overflow-hidden rounded-2xl border border-sky-500/30 bg-[#020814] shadow-[0_0_35px_rgba(0,120,255,.22)]">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(56,189,248,.13),transparent_58%)]" />
@@ -236,27 +324,17 @@ export default function TablaDivision({
               </tr>
             ) : (
               tabla.map((equipo, index) => {
-                const top = index < 4;
-                const descenso = index >= tabla.length - 2;
+                const zona = zonaEquipo(index);
 
                 return (
                   <tr
                     key={equipo.nombre}
-                    className={`group relative text-[12px] font-black uppercase transition-all duration-300 hover:scale-[1.008] hover:shadow-[0_0_22px_rgba(56,189,248,.16)] ${
-                      index === 0
-                        ? "bg-gradient-to-r from-[#0a2850] via-[#071c36] to-[#030b18] ring-1 ring-sky-400/35 shadow-[0_0_28px_rgba(56,189,248,.18)]"
-                        : "bg-gradient-to-r from-[#06152c] via-[#071a33] to-[#030b18]"
-                    }`}
+                    title={zona.etiqueta}
+                    className={`group relative text-[12px] font-black uppercase transition-all duration-300 hover:scale-[1.008] hover:shadow-[0_0_22px_rgba(56,189,248,.16)] ${zona.fila}`}
                   >
                     <td className="relative rounded-l-xl py-3 text-center overflow-hidden">
                       <div
-                        className={`absolute left-0 top-0 h-full w-[3px] ${
-                          top
-                            ? "bg-green-400 shadow-[0_0_10px_rgba(74,222,128,.7)]"
-                            : descenso
-                              ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,.7)]"
-                              : "bg-sky-500/45"
-                        }`}
+                        className={`absolute left-0 top-0 h-full w-[3px] ${zona.barra}`}
                       />
 
                       <div className="grid grid-cols-[22px_16px] items-center justify-center gap-1">
@@ -265,26 +343,16 @@ export default function TablaDivision({
                         </span>
 
                         <span
-                          className={`flex h-[16px] w-[16px] items-center justify-center text-[9px] font-black leading-none ${colorMovimiento(
-                            index,
-                          )}`}
+                          className={`flex h-[16px] w-[16px] items-center justify-center text-[9px] font-black leading-none ${zona.movimiento}`}
                         >
-                          {movimiento(index)}
+                          {zona.simbolo}
                         </span>
                       </div>
                     </td>
 
                     <td className="py-3">
                       <div className="flex items-center gap-3">
-                        <div
-                          className={`h-3 w-3 rounded-full ${
-                            top
-                              ? "bg-green-400 shadow-[0_0_10px_rgba(74,222,128,.75)]"
-                              : descenso
-                                ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,.75)]"
-                                : "bg-sky-500 shadow-[0_0_10px_rgba(56,189,248,.45)]"
-                          }`}
-                        />
+                        <div className={`h-3 w-3 rounded-full ${zona.punto}`} />
 
                         <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-sky-400/40 bg-black">
                           {logos[equipo.nombre] ? (
@@ -370,7 +438,7 @@ export default function TablaDivision({
       </div>
 
       <div className="relative border-t border-sky-500/20 px-4 py-3 text-center text-[11px] font-black uppercase tracking-[0.25em] text-sky-300">
-        ★ Los 4 primeros clasifican a playoffs ★
+        {textoReglamento()}
       </div>
     </section>
   );

@@ -280,31 +280,51 @@ export default function DivisionesPage() {
                 Zonas del torneo
               </h3>
 
-              <div className="space-y-3 text-sm font-black uppercase">
-                <div className="flex items-center justify-between rounded-xl border border-white/5 bg-black/30 px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <span className="w-9 h-3 rounded bg-green-500 shadow-[0_0_10px_rgba(74,222,128,.65)]" />
-                    <span>Playoffs</span>
+              {division === "Primera" ? (
+                <div className="space-y-3 text-sm font-black uppercase">
+                  <div className="flex items-center justify-between rounded-xl border border-white/5 bg-black/30 px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <span className="h-3 w-9 rounded bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,.65)]" />
+                      <span>Campeón</span>
+                    </div>
+                    <span className="text-zinc-500 text-[10px]">1°</span>
                   </div>
-                  <span className="text-zinc-500 text-[10px]">TOP 4</span>
-                </div>
 
-                <div className="flex items-center justify-between rounded-xl border border-white/5 bg-black/30 px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <span className="w-9 h-3 rounded bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,.55)]" />
-                    <span>Play-In</span>
+                  <div className="flex items-center justify-between rounded-xl border border-white/5 bg-black/30 px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <span className="h-3 w-9 rounded bg-orange-400 shadow-[0_0_10px_rgba(251,146,60,.6)]" />
+                      <span>Promoción</span>
+                    </div>
+                    <span className="text-zinc-500 text-[10px]">7°</span>
                   </div>
-                  <span className="text-zinc-500 text-[10px]">TOP 6</span>
-                </div>
 
-                <div className="flex items-center justify-between rounded-xl border border-white/5 bg-black/30 px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <span className="w-9 h-3 rounded bg-red-600 shadow-[0_0_10px_rgba(239,68,68,.55)]" />
-                    <span>Descenso</span>
+                  <div className="flex items-center justify-between rounded-xl border border-white/5 bg-black/30 px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <span className="h-3 w-9 rounded bg-red-600 shadow-[0_0_10px_rgba(239,68,68,.55)]" />
+                      <span>Descenso</span>
+                    </div>
+                    <span className="text-zinc-500 text-[10px]">8°</span>
                   </div>
-                  <span className="text-zinc-500 text-[10px]">ÚLTIMOS</span>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-3 text-sm font-black uppercase">
+                  <div className="flex items-center justify-between rounded-xl border border-white/5 bg-black/30 px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <span className="h-3 w-9 rounded bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,.65)]" />
+                      <span>Ascenso directo</span>
+                    </div>
+                    <span className="text-zinc-500 text-[10px]">1°</span>
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-xl border border-white/5 bg-black/30 px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <span className="h-3 w-9 rounded bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,.65)]" />
+                      <span>Playoffs</span>
+                    </div>
+                    <span className="text-zinc-500 text-[10px]">2°-5°</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="rounded-[26px] border border-sky-500/40 bg-[#020714] p-5 shadow-[0_0_30px_rgba(0,120,255,.18)]">
