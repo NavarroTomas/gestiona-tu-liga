@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import BienvenidaAPA from "../components/BienvenidaAPA";
 import IntroAPA from "../components/IntroAPA";
 import { Orbitron } from "next/font/google";
+import Script from "next/script";
 
 const orbitron = Orbitron({
   subsets: ["latin"],
@@ -34,6 +35,33 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
+      <head>
+        {/* Google Analytics */}
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-EMHDZV5ZPW"
+          strategy="afterInteractive"
+        />
+
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-EMHDZV5ZPW');
+      `}
+        </Script>
+
+        {/* Google AdSense */}
+        <Script
+          async
+          strategy="afterInteractive"
+          crossOrigin="anonymous"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9012377872796123"
+        />
+      </head>
+
       <body className={`${orbitron.className} text-white overflow-x-hidden`}>
         <IntroAPA />
         <BienvenidaAPA />
