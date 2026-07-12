@@ -14,6 +14,29 @@ export type ParsedMatchSegment = {
   visitorPlayers: any[];
 };
 
+
+export type ConsolidatedPlayer = {
+  nombre: string;
+  playerId: string;
+  posicion: string;
+  equipo: string;
+  passes: number;
+  keyPasses: number;
+  assists: number;
+  shots: number;
+  shotsOnTarget: number;
+  goals: number;
+  tackles: number;
+  keyTackles: number;
+  interceptions: number;
+  keyInterceptions: number;
+  possessionsLost: number;
+  gKSaves: number;
+  gKCatches: number;
+  score: number;
+  overallRating: number;
+};
+
 export type PlayerResolution = {
   rawKey: string;
   rawPlayerId: string;
@@ -332,8 +355,8 @@ export function combinePlayerStats({
   resolutions: Record<string, PlayerResolution>;
   localTeam: string;
   visitorTeam: string;
-}) {
-  type Aggregated = Record<string, any> & {
+}): ConsolidatedPlayer[] {
+  type Aggregated = Omit<ConsolidatedPlayer, "overallRating"> & {
     _ratingValues: { value: number; weight: number }[];
   };
 
@@ -363,15 +386,27 @@ export function combinePlayerStats({
       : `${team}__name:${normalizeText(canonicalName)}`;
 
     if (!map.has(aggregationKey)) {
-      const initial: Aggregated = {
+      map.set(aggregationKey, {
         nombre: canonicalName,
         playerId: canonicalPlayerId,
         posicion: cleanText(player?.postion || player?.position),
         equipo: team,
+        passes: 0,
+        keyPasses: 0,
+        assists: 0,
+        shots: 0,
+        shotsOnTarget: 0,
+        goals: 0,
+        tackles: 0,
+        keyTackles: 0,
+        interceptions: 0,
+        keyInterceptions: 0,
+        possessionsLost: 0,
+        gKSaves: 0,
+        gKCatches: 0,
+        score: 0,
         _ratingValues: [],
-      };
-      for (const field of PLAYER_SUM_FIELDS) initial[field] = 0;
-      map.set(aggregationKey, initial);
+      });
     }
 
     const current = map.get(aggregationKey)!;
@@ -399,12 +434,29 @@ export function combinePlayerStats({
     );
   }
 
-  return Array.from(map.values()).map((player) => {
+  return Array.from(map.values()).map((player): ConsolidatedPlayer => {
     const overallRating = weightedAverage(player._ratingValues);
-    const { _ratingValues, ...cleanPlayer } = player;
     return {
-      ...cleanPlayer,
+      nombre: player.nombre,
+      playerId: player.playerId,
+      posicion: player.posicion,
+      equipo: player.equipo,
+      passes: player.passes,
+      keyPasses: player.keyPasses,
+      assists: player.assists,
+      shots: player.shots,
+      shotsOnTarget: player.shotsOnTarget,
+      goals: player.goals,
+      tackles: player.tackles,
+      keyTackles: player.keyTackles,
+      interceptions: player.interceptions,
+      keyInterceptions: player.keyInterceptions,
+      possessionsLost: player.possessionsLost,
+      gKSaves: player.gKSaves,
+      gKCatches: player.gKCatches,
+      score: player.score,
       overallRating: Math.round(overallRating * 100) / 100,
     };
   });
 }
+
