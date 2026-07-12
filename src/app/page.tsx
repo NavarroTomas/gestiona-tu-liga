@@ -155,7 +155,9 @@ function MuralFrame({
 }
 
 function normalizarTexto(value?: string | null) {
-  return String(value || "").toLowerCase().trim();
+  return String(value || "")
+    .toLowerCase()
+    .trim();
 }
 
 function ordenarPartidos(a: any, b: any) {
@@ -211,10 +213,15 @@ export default function Home() {
   }
 
   function aplicarFiltroContexto(query: any) {
-    query = query.eq("temporada", temporada).eq("competicion", contextoActual.competicion);
+    query = query
+      .eq("temporada", temporada)
+      .eq("competicion", contextoActual.competicion);
 
     if (contextoActual.competicion === "liga") {
-      query = query.in("division", [contextoActual.division, contextoActual.divisionDb].filter(Boolean));
+      query = query.in(
+        "division",
+        [contextoActual.division, contextoActual.divisionDb].filter(Boolean),
+      );
     }
 
     if (contextoActual.competicion === "copa_clasificatoria") {
@@ -254,9 +261,6 @@ export default function Home() {
       return;
     }
 
-    // Las estadísticas actuales se guardan en estadisticas_jugadores y no
-    // incluyen competicion/fase/grupo. Se vinculan al contexto mediante los
-    // partido_id de los partidos que ya fueron filtrados arriba.
     const partidoIds = Array.from(
       new Set(
         (partidosData || [])
@@ -328,28 +332,15 @@ export default function Home() {
   ).size;
   const jugadoresCantidad = new Set(
     jugadores
-      .map((j) => {
-        const playerId = String(j.playerId || "").trim();
-        if (playerId) return `id:${playerId}`;
-
-        const nombre = normalizarTexto(j.nombre);
-        const equipo = normalizarTexto(j.equipo);
-        return nombre ? `nombre:${nombre}|equipo:${equipo}` : "";
-      })
+      .map((j) => String(j.playerId || j.nombre || "").trim())
       .filter(Boolean),
   ).size;
 
-  // Los goles globales deben salir del resultado oficial del partido.
-  // Así se actualizan incluso cuando todavía no se cargó el TXT con las
-  // estadísticas individuales de los jugadores.
   const golesTotales = partidos.reduce((total, partido) => {
-    const resultado = String(partido.resultado || "").match(
-      /^\s*(\d+)\s*-\s*(\d+)\s*$/,
-    );
-
-    if (!resultado) return total;
-
-    return total + Number(resultado[1]) + Number(resultado[2]);
+    const resultado = String(partido.resultado || "").trim();
+    const match = resultado.match(/^(\d+)\s*[-:]\s*(\d+)$/);
+    if (!match) return total;
+    return total + Number(match[1]) + Number(match[2]);
   }, 0);
 
   const partidosOrdenados = useMemo(
@@ -359,12 +350,12 @@ export default function Home() {
 
   const partidoDestacado =
     partidosOrdenados.find((p) => !p.resultado) ||
-    partidosOrdenados
-      .filter((p) => p.resultado)
-      .slice(-1)[0] ||
+    partidosOrdenados.filter((p) => p.resultado).slice(-1)[0] ||
     partidosOrdenados[0];
 
-  const proximosPartidos = partidosOrdenados.filter((p) => !p.resultado).slice(0, 4);
+  const proximosPartidos = partidosOrdenados
+    .filter((p) => !p.resultado)
+    .slice(0, 4);
   const ultimosResultados = partidosOrdenados
     .filter((p) => p.resultado)
     .slice(-4)

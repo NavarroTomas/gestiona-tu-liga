@@ -3,6 +3,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PermissionGuard from "@/components/PermissionGuard";
+import {
+  buildRawPlayerKey,
+  cleanText,
+  collectRawPlayers,
+  combinePlayerStats,
+  combineTeamStats,
+  detectSegmentMinutes,
+  numberValue,
+  parseSegmentPayload,
+  sha256,
+  type OrdenTxt,
+  type ParsedMatchSegment,
+  type PlayerResolution,
+} from "@/lib/matchStatsUpload";
 
 type Competicion =
   | "liga"
@@ -12,10 +26,10 @@ type Competicion =
   | "copa_campeones"
   | "playoffs";
 
-type OrdenTxt = "normal" | "invertido";
+type ModoCarga = "reemplazar" | "agregar";
 
 type PartidoProgramado = {
-  id: string;
+  id: string | number;
   partido_id?: string | null;
   local: string;
   visitante: string;
@@ -30,11 +44,31 @@ type PartidoProgramado = {
   hora?: string | null;
 };
 
-type Equipo = {
-  id?: string;
-  nombre: string;
-  temporada?: string;
-  division?: string;
+type Plantilla = {
+  jugador: string | null;
+  playerid: string | null;
+  equipo: string | null;
+  posicion?: string | null;
+  estado?: string | null;
+};
+
+type AliasCuenta = {
+  alias_player_id: string;
+  canonical_player_id: string;
+  canonical_name?: string | null;
+};
+
+type SegmentoDb = {
+  id: string;
+  partido_id: string;
+  archivo_nombre: string;
+  archivo_hash: string;
+  orden_txt: OrdenTxt;
+  duracion_minutos: number | null;
+  goles_local: number | null;
+  goles_visitante: number | null;
+  payload: any;
+  created_at?: string | null;
 };
 
 const TEMPORADAS = ["Temporada 4"];
@@ -54,8 +88,20 @@ const FASES_COPA = ["Octavos", "Cuartos", "Semifinal", "Final"];
 const FASES_CAMPEONES = ["Semifinal", "Final"];
 const FASES_PLAYOFFS = ["Semifinal", "Final Ascenso", "Promoción"];
 
+function isMissingTableError(error: any) {
+  return (
+    error?.code === "42P01" ||
+    String(error?.message || "")
+      .toLowerCase()
+      .includes("does not exist") ||
+    String(error?.message || "")
+      .toLowerCase()
+      .includes("schema cache")
+  );
+}
+
 export default function SubirTxtPage() {
-  const [archivo, setArchivo] = useState<File | null>(null);
+  const [archivos, setArchivos] = useState<File[]>([]);
   const [temporada, setTemporada] = useState("Temporada 4");
   const [competicion, setCompeticion] = useState<Competicion>("liga");
   const [division, setDivision] = useState("Primera");
@@ -63,23 +109,35 @@ export default function SubirTxtPage() {
   const [fase, setFase] = useState("Octavos");
   const [fecha, setFecha] = useState("1");
   const [fechasDisponibles, setFechasDisponibles] = useState<string[]>([]);
-
-  const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [partidosProgramados, setPartidosProgramados] = useState<
     PartidoProgramado[]
   >([]);
   const [partidoSeleccionadoId, setPartidoSeleccionadoId] = useState("");
   const [ordenTxt, setOrdenTxt] = useState<OrdenTxt>("normal");
+  const [modoCarga, setModoCarga] = useState<ModoCarga>("reemplazar");
+
+  const [segmentosExistentes, setSegmentosExistentes] = useState<SegmentoDb[]>(
+    [],
+  );
+  const [segmentosAnalizados, setSegmentosAnalizados] = useState<
+    ParsedMatchSegment[]
+  >([]);
+  const [resoluciones, setResoluciones] = useState<
+    Record<string, PlayerResolution>
+  >({});
+  const [plantillas, setPlantillas] = useState<Plantilla[]>([]);
+  const [analisisListo, setAnalisisListo] = useState(false);
+  const [advertenciaMigracion, setAdvertenciaMigracion] = useState("");
 
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const competicionLabel = useMemo(() => {
-    return (
+  const competicionLabel = useMemo(
+    () =>
       COMPETICIONES.find((item) => item.value === competicion)?.label ||
-      "Competencia"
-    );
-  }, [competicion]);
+      "Competencia",
+    [competicion],
+  );
 
   const contextoLabel = useMemo(() => {
     if (competicion === "liga") return division;
@@ -87,29 +145,26 @@ export default function SubirTxtPage() {
     return fase;
   }, [competicion, division, grupo, fase]);
 
-  const divisionContexto = useMemo(() => {
-    if (competicion === "liga") return division;
-    if (competicion === "copa_clasificatoria") return `Grupo ${grupo}`;
-    return fase;
-  }, [competicion, division, grupo, fase]);
+  const divisionContexto = contextoLabel;
+
+  const partidoSeleccionado = partidosProgramados.find(
+    (p) => String(p.id) === String(partidoSeleccionadoId),
+  );
 
   useEffect(() => {
     cargarContexto();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [temporada, competicion, division, grupo, fase, fecha]);
 
-  function normalizarDivisionFiltro(value: string) {
-    const v = String(value || "")
-      .toLowerCase()
-      .trim();
-
-    if (v === "primera" || v === "primera division" || v === "primera división")
-      return "primera";
-    if (v === "segunda" || v === "segunda division" || v === "segunda división")
-      return "segunda";
-
-    return v;
-  }
+  useEffect(() => {
+    setAnalisisListo(false);
+    setSegmentosAnalizados([]);
+    setResoluciones({});
+    setArchivos([]);
+    if (partidoSeleccionado) cargarSegmentosExistentes(partidoSeleccionado);
+    else setSegmentosExistentes([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partidoSeleccionadoId]);
 
   function normalizarTexto(value: string) {
     return String(value || "")
@@ -119,40 +174,21 @@ export default function SubirTxtPage() {
       .trim();
   }
 
-  function normalizarCompeticionFiltro(value: string) {
-    const v = normalizarTexto(value);
-
-    if (v === "liga" || v === "torneo de liga" || v === "torneo_liga")
-      return "liga";
-    if (
-      v === "copa_clasificatoria" ||
-      v === "clasificacion" ||
-      v === "clasificacion a copas" ||
-      v === "clasificacion_a_copas"
-    ) {
-      return "copa_clasificatoria";
-    }
-    if (v === "copa argentina" || v === "copa_argentina")
-      return "copa_argentina";
-    if (v === "copa apa" || v === "copa_apa") return "copa_apa";
-    if (v === "copa campeones" || v === "copa de campeones" || v === "copa_campeones") return "copa_campeones";
-    if (v === "playoffs" || v === "playoffs de ascenso" || v === "promocion" || v === "promoción") return "playoffs";
-
-    return v;
+  function slug(value: string) {
+    return normalizarTexto(value)
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
   }
 
   function faseDb() {
     if (competicion === "copa_clasificatoria") return "grupos";
-
     const f = normalizarTexto(fase);
-
     if (f === "semifinal" || f === "semis") return "semifinal";
     if (f === "final") return "final";
     if (f === "final ascenso" || f === "final_ascenso") return "final_ascenso";
-    if (f === "promocion" || f === "promoción") return "promocion";
+    if (f === "promocion") return "promocion";
     if (f === "octavos") return "octavos";
     if (f === "cuartos") return "cuartos";
-
     return f.replace(/\s+/g, "_");
   }
 
@@ -160,128 +196,18 @@ export default function SubirTxtPage() {
     return grupo.toUpperCase();
   }
 
-  async function cargarContexto() {
-    setMensaje("");
+  function stablePartidoId(partido: PartidoProgramado) {
+    return `apa-${slug(temporada)}-partido-${String(partido.id)}`;
+  }
 
-    let partidosQuery = supabase
-      .from("partidos")
-      .select("*")
-      .eq("temporada", temporada)
-      .eq("competicion", competicion)
-      .order("fecha", { ascending: true })
-      .order("local", { ascending: true });
-
-    if (competicion === "liga") {
-      partidosQuery = partidosQuery.eq("division", division);
-    }
-
-    if (competicion === "copa_clasificatoria") {
-      partidosQuery = partidosQuery.eq("fase", "grupos").eq("grupo", grupoDb());
-    }
-
-    if (competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones" || competicion === "playoffs") {
-      partidosQuery = partidosQuery.eq("fase", faseDb());
-    }
-
-    const equiposQuery = supabase
-      .from("v_clubes_temporada_public")
-      .select("*")
-      .eq("temporada", temporada)
-      .eq("activo", true)
-      .order("nombre", { ascending: true });
-
-    const [equiposRes, partidosRes] = await Promise.all([
-      equiposQuery,
-      partidosQuery,
-    ]);
-
-    if (equiposRes.error) {
-      console.log(equiposRes.error);
-    }
-
-    if (partidosRes.error) {
-      console.log(partidosRes.error);
-      setFechasDisponibles([]);
-      setPartidosProgramados([]);
-      setPartidoSeleccionadoId("");
-      return;
-    }
-
-    const equiposData = ((equiposRes.data || []) as any[])
-      .filter((equipo) => {
-        if (competicion !== "liga") return true;
-        return (
-          normalizarDivisionFiltro(equipo.division) ===
-          normalizarDivisionFiltro(division)
-        );
-      })
-      .map((equipo) => ({
-        id: equipo.club_id || equipo.id || equipo.nombre,
-        nombre: equipo.nombre,
-        temporada: equipo.temporada,
-        division: equipo.division,
-      })) as Equipo[];
-
-    const todosLosPartidos = (partidosRes.data || []) as PartidoProgramado[];
-
-    const fechas = Array.from(
+  function idsPartido(partido: PartidoProgramado) {
+    return Array.from(
       new Set(
-        todosLosPartidos
-          .map((p) => String(p.fecha || "").trim())
-          .filter(Boolean),
+        [stablePartidoId(partido), cleanText(partido.partido_id)].filter(
+          Boolean,
+        ),
       ),
-    ).sort((a, b) => Number(a) - Number(b));
-
-    const fechaActiva =
-      fechas.length > 0 && !fechas.includes(String(fecha))
-        ? fechas[0]
-        : String(fecha);
-
-    if (fechaActiva !== String(fecha)) {
-      setFecha(fechaActiva);
-    }
-
-    const partidosData = todosLosPartidos.filter(
-      (p) => String(p.fecha || "").trim() === fechaActiva,
     );
-
-    setEquipos(equiposData);
-    setFechasDisponibles(fechas);
-    setPartidosProgramados(partidosData);
-
-    setPartidoSeleccionadoId((actual) => {
-      const existeSeleccion = partidosData.some(
-        (p) => String(p.id) === String(actual),
-      );
-      return existeSeleccion
-        ? String(actual)
-        : String(partidosData[0]?.id || "");
-    });
-  }
-
-  function n(valor: any) {
-    return Number(valor || 0);
-  }
-
-  function limpiar(txt: string) {
-    return (txt || "").trim();
-  }
-
-  function slug(value: string) {
-    return normalizarTexto(value)
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-  }
-
-  function partidoId(local: string, visitante: string, resultado: string) {
-    const contexto =
-      competicion === "liga"
-        ? division
-        : competicion === "copa_clasificatoria"
-          ? `grupo-${grupo}`
-          : fase;
-
-    return `${slug(temporada)}-${competicion}-${slug(contexto)}-fecha-${slug(fecha)}-${slug(local)}-${resultado}-${slug(visitante)}`;
   }
 
   function datosCompeticionExtra() {
@@ -292,625 +218,828 @@ export default function SubirTxtPage() {
     };
   }
 
-  function normalizarEquipo(
-    stats: any,
-    idPartido: string,
-    equipoOficial: string,
-  ) {
-    return {
-      partido_id: idPartido,
-      equipo: equipoOficial,
-      temporada,
-      division: divisionContexto,
-      fecha,
+  async function cargarContexto() {
+    setMensaje("");
 
-      passes: n(stats.passes),
-      keyPasses: n(stats.keyPasses),
-      assists: n(stats.assists),
-      shots: n(stats.shots),
-      shotsOnTarget: n(stats.shotsOnTarget),
-      goals: n(stats.goals),
-      tackles: n(stats.tackles),
-      keyTackles: n(stats.keyTackles),
-      interceptions: n(stats.interceptions),
-      keyInterceptions: n(stats.keyInterceptions),
-      possession: n(stats.possession),
-      possessionsLost: n(stats.possessionsLost),
-      fouls: n(stats.fouls),
-      offsides: n(stats.offsides),
-      handballs: n(stats.handballs),
-      setPieceTimeouts: n(stats.setPieceTimeouts),
-      freeKicks: n(stats.freeKicks),
-      penalties: n(stats.penalties),
-      goalKicks: n(stats.goalKicks),
-      cornerKicks: n(stats.cornerKicks),
-      throwIns: n(stats.throwIns),
-      yellowCards: n(stats.yellowCards),
-      redCards: n(stats.redCards),
-    };
-  }
+    let query = supabase
+      .from("partidos")
+      .select("*")
+      .eq("temporada", temporada)
+      .eq("competicion", competicion)
+      .order("fecha", { ascending: true })
+      .order("local", { ascending: true });
 
-  function calcularRatingAPA(j: any) {
-    const goles = n(j.goals);
-    const asistencias = n(j.assists);
-    const pasesClave = n(j.keyPasses);
-    const tirosAlArco = n(j.shotsOnTarget);
-    const tackles = n(j.tackles);
-    const intercepciones = n(j.interceptions);
-    const perdidas = n(j.possessionsLost);
-    const amarillas = n(j.yellowCards);
-    const rojas = n(j.redCards);
-
-    const atajadas = n(j.gKSaves);
-    const atrapadas = n(j.gKCatches);
-
-    const esArquero =
-      atajadas > 0 ||
-      atrapadas > 0 ||
-      String(j.position || j.postion || "")
-        .toUpperCase()
-        .includes("GK");
-
-    let rating = 6;
-
-    if (esArquero) {
-      rating += atajadas * 0.35;
-      rating += atrapadas * 0.2;
-    } else {
-      rating += goles * 1.2;
-      rating += asistencias * 0.9;
-      rating += pasesClave * 0.18;
-      rating += tirosAlArco * 0.12;
-      rating += tackles * 0.1;
-      rating += intercepciones * 0.1;
+    if (competicion === "liga") query = query.eq("division", division);
+    if (competicion === "copa_clasificatoria") {
+      query = query.eq("fase", "grupos").eq("grupo", grupoDb());
+    }
+    if (
+      ["copa_argentina", "copa_apa", "copa_campeones", "playoffs"].includes(
+        competicion,
+      )
+    ) {
+      query = query.eq("fase", faseDb());
     }
 
-    rating -= perdidas * 0.05;
-    rating -= amarillas * 0.2;
-    rating -= rojas * 1;
+    const { data, error } = await query;
 
-    rating = Math.max(1, Math.min(10, rating));
+    if (error) {
+      console.error(error);
+      setFechasDisponibles([]);
+      setPartidosProgramados([]);
+      setPartidoSeleccionadoId("");
+      return;
+    }
 
-    return Math.round(rating * 100) / 100;
+    const todos = (data || []) as PartidoProgramado[];
+    const fechas = Array.from(
+      new Set(todos.map((p) => cleanText(p.fecha)).filter(Boolean)),
+    ).sort((a, b) => Number(a) - Number(b));
+
+    const fechaActiva =
+      fechas.length > 0 && !fechas.includes(String(fecha))
+        ? fechas[0]
+        : String(fecha);
+    if (fechaActiva !== String(fecha)) setFecha(fechaActiva);
+
+    const partidosFecha = todos.filter(
+      (p) => cleanText(p.fecha) === fechaActiva,
+    );
+    setFechasDisponibles(fechas);
+    setPartidosProgramados(partidosFecha);
+    setPartidoSeleccionadoId((actual) =>
+      partidosFecha.some((p) => String(p.id) === String(actual))
+        ? String(actual)
+        : String(partidosFecha[0]?.id || ""),
+    );
   }
 
-  function normalizarJugador(
-    j: any,
-    idPartido: string,
-    esMvp: boolean,
-    equipoOficial: string,
-  ) {
-    return {
-      partido_id: idPartido,
-      nombre: limpiar(j.playerName),
-      playerId: j.playerId || "",
-      posicion: j.postion || j.position || "",
-      equipo: equipoOficial,
-      temporada,
-      division: divisionContexto,
-      fecha,
+  async function cargarSegmentosExistentes(partido: PartidoProgramado) {
+    const { data, error } = await supabase
+      .from("partido_txt_segmentos")
+      .select(
+        "id,partido_id,archivo_nombre,archivo_hash,orden_txt,duracion_minutos,goles_local,goles_visitante,payload,created_at",
+      )
+      .in("partido_id", idsPartido(partido))
+      .order("created_at", { ascending: true });
 
-      passes: n(j.passes),
-      keyPasses: n(j.keyPasses),
-      assists: n(j.assists),
-      shots: n(j.shots),
-      shotsOnTarget: n(j.shotsOnTarget),
-      goals: n(j.goals),
-      tackles: n(j.tackles),
-      keyTackles: n(j.keyTackles),
-      interceptions: n(j.interceptions),
-      keyInterceptions: n(j.keyInterceptions),
-      possessionsLost: n(j.possessionsLost),
-      gKSaves: n(j.gKSaves),
-      gKCatches: n(j.gKCatches),
-      overallRating: n(j.overallRating),
-      rating_apa: calcularRatingAPA(j),
-      score: n(j.score),
-      mvp: esMvp ? 1 : 0,
-    };
+    if (error) {
+      if (isMissingTableError(error)) {
+        setAdvertenciaMigracion(
+          "Falta ejecutar la migración SQL incluida para habilitar múltiples TXT y cuentas alternativas.",
+        );
+      } else {
+        console.error(error);
+      }
+      setSegmentosExistentes([]);
+      return;
+    }
+
+    setAdvertenciaMigracion("");
+    setSegmentosExistentes((data || []) as SegmentoDb[]);
   }
 
-  const partidoSeleccionado = partidosProgramados.find(
-    (p) => String(p.id) === String(partidoSeleccionadoId),
-  );
+  function resetAnalisis() {
+    setAnalisisListo(false);
+    setSegmentosAnalizados([]);
+    setResoluciones({});
+  }
 
-  async function subirTxt() {
+  async function analizarArchivos() {
     try {
       setMensaje("");
-
-      if (!archivo) {
-        alert("Elegí un archivo TXT primero");
+      if (!partidoSeleccionado) {
+        alert("Elegí un partido programado.");
         return;
       }
-
-      if (!partidoSeleccionado) {
-        alert("Elegí un partido programado antes de cargar el TXT");
+      if (archivos.length === 0) {
+        alert("Elegí al menos un TXT o JSON.");
         return;
       }
 
       setLoading(true);
 
-      const texto = await archivo.text();
-      const data = JSON.parse(texto);
+      if (
+        modoCarga === "agregar" &&
+        segmentosExistentes.length === 0 &&
+        partidoSeleccionado.resultado &&
+        partidoSeleccionado.partido_id
+      ) {
+        throw new Error(
+          "Este partido fue cargado con el sistema anterior y no conserva el TXT original. Para combinar tramos, elegí todos los TXT del partido y usá ‘Reemplazar carga completa’.",
+        );
+      }
 
-      const team1 = data.team1Stats;
-      const team2 = data.team2Stats;
+      const nuevos: ParsedMatchSegment[] = [];
+      const hashes = new Set<string>();
 
-      if (!team1 || !team2) {
-        alert("El TXT no tiene team1Stats o team2Stats");
-        setLoading(false);
+      for (const archivo of archivos) {
+        const text = await archivo.text();
+        const hash = await sha256(text);
+        if (hashes.has(hash))
+          throw new Error(`El archivo ${archivo.name} está repetido.`);
+        hashes.add(hash);
+
+        let payload: any;
+        try {
+          payload = JSON.parse(text);
+        } catch {
+          throw new Error(`${archivo.name}: el contenido no es JSON válido.`);
+        }
+
+        nuevos.push(
+          parseSegmentPayload({
+            payload,
+            fileName: archivo.name,
+            fileHash: hash,
+            order: ordenTxt,
+            minutes: detectSegmentMinutes(payload),
+            source: "new",
+          }),
+        );
+      }
+
+      const existentes =
+        modoCarga === "agregar"
+          ? segmentosExistentes.map((segmento) =>
+              parseSegmentPayload({
+                payload: segmento.payload,
+                fileName: segmento.archivo_nombre,
+                fileHash: segmento.archivo_hash,
+                order: segmento.orden_txt,
+                minutes: Number(segmento.duracion_minutos || 0),
+                source: "existing",
+                dbId: segmento.id,
+              }),
+            )
+          : [];
+
+      const todosSegmentos = [...existentes, ...nuevos];
+      const hashesTotales = new Set<string>();
+      for (const segmento of todosSegmentos) {
+        if (hashesTotales.has(segmento.fileHash)) {
+          throw new Error(
+            `El TXT ${segmento.fileName} ya forma parte de este partido.`,
+          );
+        }
+        hashesTotales.add(segmento.fileHash);
+      }
+
+      const { data: plantillasData, error: plantillasError } = await supabase
+        .from("plantillas")
+        .select("jugador,playerid,equipo,posicion,estado")
+        .eq("temporada", temporada)
+        .in("equipo", [
+          partidoSeleccionado.local,
+          partidoSeleccionado.visitante,
+        ]);
+
+      if (plantillasError) console.error(plantillasError);
+      const roster = (
+        (plantillasData || []) as (Plantilla & { estado?: string | null })[]
+      ).filter(
+        (p) =>
+          cleanText(p.playerid) &&
+          normalizarTexto(p.estado || "activo") !== "inactivo",
+      );
+      setPlantillas(roster);
+
+      const rawPlayers = collectRawPlayers(
+        todosSegmentos,
+        partidoSeleccionado.local,
+        partidoSeleccionado.visitante,
+      );
+      const rawIds = rawPlayers.map((p) => p.rawPlayerId).filter(Boolean);
+
+      let aliasRows: AliasCuenta[] = [];
+      if (rawIds.length > 0) {
+        const { data: aliasesData, error: aliasesError } = await supabase
+          .from("player_account_aliases")
+          .select("alias_player_id,canonical_player_id,canonical_name")
+          .in("alias_player_id", rawIds);
+
+        if (aliasesError) {
+          if (isMissingTableError(aliasesError)) {
+            setAdvertenciaMigracion(
+              "Falta ejecutar la migración SQL incluida para habilitar múltiples TXT y cuentas alternativas.",
+            );
+          } else {
+            console.error(aliasesError);
+          }
+        } else {
+          aliasRows = (aliasesData || []) as AliasCuenta[];
+        }
+      }
+
+      const nextResolutions: Record<string, PlayerResolution> = {};
+
+      for (const raw of rawPlayers) {
+        const exact = roster.find(
+          (p) =>
+            cleanText(p.playerid) === raw.rawPlayerId &&
+            normalizarTexto(p.equipo || "") === normalizarTexto(raw.team),
+        );
+        const alias = aliasRows.find(
+          (a) => a.alias_player_id === raw.rawPlayerId,
+        );
+        const canonicalRoster = alias
+          ? roster.find(
+              (p) => cleanText(p.playerid) === alias.canonical_player_id,
+            )
+          : undefined;
+
+        if (exact) {
+          nextResolutions[raw.rawKey] = {
+            rawKey: raw.rawKey,
+            rawPlayerId: raw.rawPlayerId,
+            rawName: raw.rawName,
+            team: raw.team,
+            action: "map",
+            canonicalPlayerId: cleanText(exact.playerid),
+            canonicalName: cleanText(exact.jugador) || raw.rawName,
+            saveAlias: false,
+            source: "roster",
+          };
+        } else if (alias) {
+          nextResolutions[raw.rawKey] = {
+            rawKey: raw.rawKey,
+            rawPlayerId: raw.rawPlayerId,
+            rawName: raw.rawName,
+            team: raw.team,
+            action: "map",
+            canonicalPlayerId: alias.canonical_player_id,
+            canonicalName:
+              cleanText(canonicalRoster?.jugador) ||
+              cleanText(alias.canonical_name) ||
+              raw.rawName,
+            saveAlias: false,
+            source: "alias",
+          };
+        } else {
+          nextResolutions[raw.rawKey] = {
+            rawKey: raw.rawKey,
+            rawPlayerId: raw.rawPlayerId,
+            rawName: raw.rawName,
+            team: raw.team,
+            action: "new",
+            canonicalPlayerId: raw.rawPlayerId,
+            canonicalName: raw.rawName,
+            saveAlias: false,
+            source: "new",
+          };
+        }
+      }
+
+      setSegmentosAnalizados(todosSegmentos);
+      setResoluciones(nextResolutions);
+      setAnalisisListo(true);
+      setLoading(false);
+    } catch (error: any) {
+      console.error(error);
+      setLoading(false);
+      alert(error?.message || "No pude analizar los archivos.");
+    }
+  }
+
+  function cambiarMinutos(index: number, value: string) {
+    setSegmentosAnalizados((actual) =>
+      actual.map((segmento, i) =>
+        i === index
+          ? { ...segmento, minutes: Math.max(0, Number(value || 0)) }
+          : segmento,
+      ),
+    );
+  }
+
+  function cambiarResolucion(rawKey: string, value: string) {
+    const actual = resoluciones[rawKey];
+    if (!actual) return;
+
+    if (value === "__ignore") {
+      setResoluciones((prev) => ({
+        ...prev,
+        [rawKey]: {
+          ...actual,
+          action: "ignore",
+          saveAlias: false,
+          source: "manual",
+        },
+      }));
+      return;
+    }
+
+    if (value === "__new") {
+      setResoluciones((prev) => ({
+        ...prev,
+        [rawKey]: {
+          ...actual,
+          action: "new",
+          canonicalPlayerId: actual.rawPlayerId,
+          canonicalName: actual.rawName,
+          saveAlias: false,
+          source: "new",
+        },
+      }));
+      return;
+    }
+
+    const roster = plantillas.find((p) => cleanText(p.playerid) === value);
+    if (!roster) return;
+
+    setResoluciones((prev) => ({
+      ...prev,
+      [rawKey]: {
+        ...actual,
+        action: "map",
+        canonicalPlayerId: cleanText(roster.playerid),
+        canonicalName: cleanText(roster.jugador) || actual.rawName,
+        saveAlias: Boolean(
+          actual.rawPlayerId &&
+            actual.rawPlayerId !== cleanText(roster.playerid),
+        ),
+        source: "manual",
+      },
+    }));
+  }
+
+  function calcularRatingAPA(j: any) {
+    const esArquero =
+      numberValue(j.gKSaves) > 0 ||
+      numberValue(j.gKCatches) > 0 ||
+      cleanText(j.posicion).toUpperCase().includes("GK");
+
+    let rating = 6;
+    if (esArquero) {
+      rating += numberValue(j.gKSaves) * 0.35;
+      rating += numberValue(j.gKCatches) * 0.2;
+    } else {
+      rating += numberValue(j.goals) * 1.2;
+      rating += numberValue(j.assists) * 0.9;
+      rating += numberValue(j.keyPasses) * 0.18;
+      rating += numberValue(j.shotsOnTarget) * 0.12;
+      rating += numberValue(j.tackles) * 0.1;
+      rating += numberValue(j.interceptions) * 0.1;
+    }
+    rating -= numberValue(j.possessionsLost) * 0.05;
+    return Math.round(Math.max(1, Math.min(10, rating)) * 100) / 100;
+  }
+
+  function normalizarEquipo(stats: any, idPartido: string, equipo: string) {
+    return {
+      partido_id: idPartido,
+      equipo,
+      temporada,
+      division: divisionContexto,
+      fecha,
+      passes: numberValue(stats.passes),
+      keyPasses: numberValue(stats.keyPasses),
+      assists: numberValue(stats.assists),
+      shots: numberValue(stats.shots),
+      shotsOnTarget: numberValue(stats.shotsOnTarget),
+      goals: numberValue(stats.goals),
+      tackles: numberValue(stats.tackles),
+      keyTackles: numberValue(stats.keyTackles),
+      interceptions: numberValue(stats.interceptions),
+      keyInterceptions: numberValue(stats.keyInterceptions),
+      possession: numberValue(stats.possession),
+      possessionsLost: numberValue(stats.possessionsLost),
+      fouls: numberValue(stats.fouls),
+      offsides: numberValue(stats.offsides),
+      handballs: numberValue(stats.handballs),
+      setPieceTimeouts: numberValue(stats.setPieceTimeouts),
+      freeKicks: numberValue(stats.freeKicks),
+      penalties: numberValue(stats.penalties),
+      goalKicks: numberValue(stats.goalKicks),
+      cornerKicks: numberValue(stats.cornerKicks),
+      throwIns: numberValue(stats.throwIns),
+      yellowCards: numberValue(stats.yellowCards),
+      redCards: numberValue(stats.redCards),
+    };
+  }
+
+  async function recalcularRanking(playerIds: string[]) {
+    const ids = Array.from(new Set(playerIds.map(cleanText).filter(Boolean)));
+    if (ids.length === 0) return;
+
+    const { data: historial, error: historialError } = await supabase
+      .from("estadisticas_jugadores")
+      .select("nombre,playerId,equipo,goals,assists,mvp")
+      .eq("temporada", temporada)
+      .eq("division", divisionContexto)
+      .in("playerId", ids);
+
+    if (historialError) throw historialError;
+
+    const { error: deleteError } = await supabase
+      .from("jugadores")
+      .delete()
+      .eq("temporada", temporada)
+      .eq("division", divisionContexto)
+      .in("playerId", ids);
+
+    if (deleteError) throw deleteError;
+
+    const map = new Map<string, any>();
+    for (const row of historial || []) {
+      const playerId = cleanText((row as any).playerId);
+      const equipo = cleanText((row as any).equipo) || "Sin Club";
+      if (!playerId) continue;
+      const key = `${playerId}__${equipo}`;
+      if (!map.has(key)) {
+        map.set(key, {
+          nombre: cleanText((row as any).nombre) || "Sin Nombre",
+          playerId,
+          equipo,
+          goles: 0,
+          asistencias: 0,
+          mvps: 0,
+          temporada,
+          division: divisionContexto,
+        });
+      }
+      const item = map.get(key);
+      item.goles += numberValue((row as any).goals);
+      item.asistencias += numberValue((row as any).assists);
+      item.mvps += numberValue((row as any).mvp);
+      if ((row as any).nombre) item.nombre = (row as any).nombre;
+    }
+
+    const resumen = Array.from(map.values());
+    if (resumen.length > 0) {
+      const { error } = await supabase.from("jugadores").upsert(resumen, {
+        onConflict: "playerId,temporada,division,equipo",
+      });
+      if (error) throw error;
+    }
+  }
+
+  async function guardarAliases() {
+    const aliases = Object.values(resoluciones)
+      .filter(
+        (r) =>
+          r.action === "map" &&
+          r.saveAlias &&
+          r.rawPlayerId &&
+          r.canonicalPlayerId &&
+          r.rawPlayerId !== r.canonicalPlayerId,
+      )
+      .map((r) => ({
+        alias_player_id: r.rawPlayerId,
+        canonical_player_id: r.canonicalPlayerId,
+        canonical_name: r.canonicalName,
+        source_player_name: r.rawName,
+        equipo: r.team,
+      }));
+
+    if (aliases.length === 0) return;
+
+    const { error } = await supabase
+      .from("player_account_aliases")
+      .upsert(aliases, {
+        onConflict: "alias_player_id",
+      });
+    if (error) throw error;
+  }
+
+  async function guardarPlantillasNuevas() {
+    if (!partidoSeleccionado) return 0;
+
+    const nuevos = Object.values(resoluciones)
+      .filter((r) => r.action === "new" && r.canonicalPlayerId)
+      .map((r) => ({
+        jugador: r.canonicalName || r.rawName,
+        playerid: r.canonicalPlayerId,
+        equipo: r.team,
+        posicion: "N/D",
+        temporada,
+        division: divisionContexto,
+        estado: "activo",
+      }));
+
+    const unicos = Array.from(
+      new Map(
+        nuevos.map((item) => [`${item.equipo}__${item.playerid}`, item]),
+      ).values(),
+    );
+    if (unicos.length === 0) return 0;
+
+    const ids = unicos.map((item) => item.playerid);
+    const { data: existentes, error } = await supabase
+      .from("plantillas")
+      .select("playerid,equipo")
+      .eq("temporada", temporada)
+      .in("playerid", ids);
+    if (error) throw error;
+
+    const keys = new Set(
+      (existentes || []).map(
+        (p: any) => `${cleanText(p.equipo)}__${cleanText(p.playerid)}`,
+      ),
+    );
+    const insertar = unicos.filter(
+      (item) => !keys.has(`${item.equipo}__${item.playerid}`),
+    );
+    if (insertar.length === 0) return 0;
+
+    const { error: insertError } = await supabase
+      .from("plantillas")
+      .insert(insertar);
+    if (insertError) throw insertError;
+    return insertar.length;
+  }
+
+  async function procesarCarga() {
+    try {
+      if (
+        !partidoSeleccionado ||
+        !analisisListo ||
+        segmentosAnalizados.length === 0
+      ) {
+        alert("Primero analizá los TXT.");
         return;
       }
 
-      const localOficial = partidoSeleccionado.local;
-      const visitanteOficial = partidoSeleccionado.visitante;
+      const unresolved = Object.values(resoluciones).filter(
+        (r) => r.action !== "ignore" && !r.canonicalName,
+      );
+      if (unresolved.length > 0) {
+        alert("Hay jugadores sin resolver en la revisión.");
+        return;
+      }
 
-      const statsLocal = ordenTxt === "normal" ? team1 : team2;
-      const statsVisitante = ordenTxt === "normal" ? team2 : team1;
-
-      const jugadoresLocalRaw =
-        ordenTxt === "normal"
-          ? data.team1PlayerStats || []
-          : data.team2PlayerStats || [];
-      const jugadoresVisitanteRaw =
-        ordenTxt === "normal"
-          ? data.team2PlayerStats || []
-          : data.team1PlayerStats || [];
-
-      const golesLocal = n(statsLocal.goals);
-      const golesVisitante = n(statsVisitante.goals);
-
+      const localStats = combineTeamStats(segmentosAnalizados, "local");
+      const visitorStats = combineTeamStats(segmentosAnalizados, "visitor");
+      const golesLocal = numberValue(localStats.goals);
+      const golesVisitante = numberValue(visitorStats.goals);
       const resultado = `${golesLocal}-${golesVisitante}`;
-      const idPartido = partidoId(localOficial, visitanteOficial, resultado);
+      const nuevos = Object.values(resoluciones).filter(
+        (r) => r.action === "new",
+      ).length;
+      const aliases = Object.values(resoluciones).filter(
+        (r) => r.action === "map" && r.rawPlayerId !== r.canonicalPlayerId,
+      ).length;
 
       const confirmar = window.confirm(
-        `Vas a cargar el TXT para:\n\n${competicionLabel} · ${contextoLabel} · Fecha ${fecha}\n${localOficial} ${resultado} ${visitanteOficial}\n\nOrden TXT: ${
-          ordenTxt === "normal"
-            ? "team1 = local / team2 = visitante"
-            : "team1 = visitante / team2 = local"
-        }\n\n¿Confirmar carga?`,
+        `Vas a consolidar ${segmentosAnalizados.length} TXT en un solo partido.\n\n${competicionLabel} · ${contextoLabel} · Fecha ${fecha}\n${partidoSeleccionado.local} ${resultado} ${partidoSeleccionado.visitante}\n\nCuentas alternativas vinculadas: ${aliases}\nJugadores nuevos confirmados: ${nuevos}\n\n¿Confirmar carga?`,
       );
+      if (!confirmar) return;
 
-      if (!confirmar) {
-        setLoading(false);
-        return;
-      }
+      setLoading(true);
+      setMensaje("");
 
-      const { data: partidoYaCargado } = await supabase
-        .from("partidos")
-        .select("id")
-        .eq("partido_id", idPartido);
+      const idEstable = stablePartidoId(partidoSeleccionado);
+      const oldIds = idsPartido(partidoSeleccionado);
 
-      if (
-        partidoYaCargado &&
-        partidoYaCargado.length > 0 &&
-        partidoYaCargado[0].id !== partidoSeleccionado.id
-      ) {
-        alert("Este partido ya existe con otro registro.");
-        setLoading(false);
-        return;
+      const { data: anteriores, error: anterioresError } = await supabase
+        .from("estadisticas_jugadores")
+        .select("playerId")
+        .in("partido_id", oldIds);
+      if (anterioresError) throw anterioresError;
+
+      const jugadoresConsolidados = combinePlayerStats({
+        segments: segmentosAnalizados,
+        resolutions: resoluciones,
+        localTeam: partidoSeleccionado.local,
+        visitorTeam: partidoSeleccionado.visitante,
+      });
+
+      const mejorJugador = [...jugadoresConsolidados].sort(
+        (a, b) => numberValue(b.score) - numberValue(a.score),
+      )[0];
+
+      const jugadoresStats = jugadoresConsolidados.map((j) => ({
+        partido_id: idEstable,
+        nombre: j.nombre,
+        playerId: j.playerId,
+        posicion: j.posicion || "",
+        equipo: j.equipo,
+        temporada,
+        division: divisionContexto,
+        fecha,
+        passes: numberValue(j.passes),
+        keyPasses: numberValue(j.keyPasses),
+        assists: numberValue(j.assists),
+        shots: numberValue(j.shots),
+        shotsOnTarget: numberValue(j.shotsOnTarget),
+        goals: numberValue(j.goals),
+        tackles: numberValue(j.tackles),
+        keyTackles: numberValue(j.keyTackles),
+        interceptions: numberValue(j.interceptions),
+        keyInterceptions: numberValue(j.keyInterceptions),
+        possessionsLost: numberValue(j.possessionsLost),
+        gKSaves: numberValue(j.gKSaves),
+        gKCatches: numberValue(j.gKCatches),
+        overallRating: numberValue(j.overallRating),
+        rating_apa: calcularRatingAPA(j),
+        score: numberValue(j.score),
+        mvp:
+          mejorJugador &&
+          `${j.equipo}__${j.playerId || j.nombre}` ===
+            `${mejorJugador.equipo}__${mejorJugador.playerId || mejorJugador.nombre}`
+            ? 1
+            : 0,
+      }));
+
+      const equiposStats = [
+        normalizarEquipo(localStats, idEstable, partidoSeleccionado.local),
+        normalizarEquipo(
+          visitorStats,
+          idEstable,
+          partidoSeleccionado.visitante,
+        ),
+      ];
+
+      const segmentosRows = segmentosAnalizados.map((segmento) => ({
+        partido_id: idEstable,
+        partido_row_id: String(partidoSeleccionado.id),
+        archivo_nombre: segmento.fileName,
+        archivo_hash: segmento.fileHash,
+        orden_txt: segmento.order,
+        duracion_minutos: segmento.minutes || null,
+        goles_local: numberValue(segmento.localStats?.goals),
+        goles_visitante: numberValue(segmento.visitorStats?.goals),
+        payload: segmento.payload,
+      }));
+
+      const backupSegmentos = [...segmentosExistentes];
+      const { error: deleteSegmentsError } = await supabase
+        .from("partido_txt_segmentos")
+        .delete()
+        .in("partido_id", oldIds);
+      if (deleteSegmentsError) throw deleteSegmentsError;
+
+      const { error: insertSegmentsError } = await supabase
+        .from("partido_txt_segmentos")
+        .insert(segmentosRows);
+      if (insertSegmentsError) {
+        if (backupSegmentos.length > 0) {
+          await supabase.from("partido_txt_segmentos").insert(
+            backupSegmentos.map((s) => ({
+              partido_id: s.partido_id,
+              partido_row_id: String(partidoSeleccionado.id),
+              archivo_nombre: s.archivo_nombre,
+              archivo_hash: s.archivo_hash,
+              orden_txt: s.orden_txt,
+              duracion_minutos: s.duracion_minutos,
+              goles_local: s.goles_local,
+              goles_visitante: s.goles_visitante,
+              payload: s.payload,
+            })),
+          );
+        }
+        throw insertSegmentsError;
       }
 
       const { error: updatePartidoError } = await supabase
         .from("partidos")
         .update({
-          local: localOficial,
-          visitante: visitanteOficial,
+          local: partidoSeleccionado.local,
+          visitante: partidoSeleccionado.visitante,
           resultado,
           fecha,
           temporada,
           division: competicion === "liga" ? division : divisionContexto,
-          partido_id: idPartido,
+          partido_id: idEstable,
           ...datosCompeticionExtra(),
         })
         .eq("id", partidoSeleccionado.id);
+      if (updatePartidoError) throw updatePartidoError;
 
-      if (updatePartidoError) {
-        console.log(updatePartidoError);
-        alert("Error actualizando el partido programado");
-        setLoading(false);
-        return;
-      }
-
-      await supabase
+      const { error: deleteEquiposError } = await supabase
         .from("estadisticas_equipos")
         .delete()
-        .eq("partido_id", idPartido);
-      await supabase
+        .in("partido_id", oldIds);
+      if (deleteEquiposError) throw deleteEquiposError;
+
+      const { error: deleteJugadoresError } = await supabase
         .from("estadisticas_jugadores")
         .delete()
-        .eq("partido_id", idPartido);
-
-      const equiposStats = [
-        normalizarEquipo(statsLocal, idPartido, localOficial),
-        normalizarEquipo(statsVisitante, idPartido, visitanteOficial),
-      ];
+        .in("partido_id", oldIds);
+      if (deleteJugadoresError) throw deleteJugadoresError;
 
       const { error: equiposError } = await supabase
         .from("estadisticas_equipos")
         .insert(equiposStats);
+      if (equiposError) throw equiposError;
 
-      if (equiposError) {
-        console.log(equiposError);
-        alert(
-          "Partido actualizado, pero error guardando estadísticas de equipos",
-        );
-        setLoading(false);
-        return;
-      }
-
-      const jugadoresRawConEquipo = [
-        ...jugadoresLocalRaw.map((j: any) => ({
-          ...j,
-          equipoOficial: localOficial,
-        })),
-        ...jugadoresVisitanteRaw.map((j: any) => ({
-          ...j,
-          equipoOficial: visitanteOficial,
-        })),
-      ];
-
-      const mejorJugador = jugadoresRawConEquipo
-        .filter((j: any) => limpiar(j.playerName))
-        .sort((a: any, b: any) => n(b.score) - n(a.score))[0];
-
-      const jugadoresDetallados = jugadoresRawConEquipo
-        .filter((j: any) => limpiar(j.playerName))
-        .map((j: any) =>
-          normalizarJugador(
-            j,
-            idPartido,
-            mejorJugador?.playerId === j.playerId,
-            j.equipoOficial,
-          ),
-        );
-
-      const { error: jugadoresDetalleError } = await supabase
-        .from("estadisticas_jugadores")
-        .insert(jugadoresDetallados);
-
-      if (jugadoresDetalleError) {
-        console.log(jugadoresDetalleError);
-        alert(
-          "Error guardando estadísticas detalladas de jugadores: " +
-            jugadoresDetalleError.message,
-        );
-        setLoading(false);
-        return;
-      }
-
-      const jugadoresUnicos = Array.from(
-        new Set(jugadoresDetallados.map((j) => j.playerId).filter(Boolean)),
-      );
-      const jugadoresResumen = [];
-
-      for (const playerId of jugadoresUnicos) {
-        const jugadorBase = jugadoresDetallados.find(
-          (j) => j.playerId === playerId,
-        );
-
-        if (!jugadorBase) continue;
-
-        const { data: historialJugador, error: historialError } = await supabase
+      if (jugadoresStats.length > 0) {
+        const { error: jugadoresError } = await supabase
           .from("estadisticas_jugadores")
-          .select("goals,assists,mvp")
-          .eq("playerId", playerId)
-          .eq("temporada", temporada)
-          .eq("division", divisionContexto)
-          .eq("equipo", jugadorBase.equipo);
-
-        if (historialError) {
-          console.log(historialError);
-          continue;
-        }
-
-        const totalGoles = (historialJugador || []).reduce(
-          (acc: number, j: any) => acc + Number(j.goals || 0),
-          0,
-        );
-        const totalAsistencias = (historialJugador || []).reduce(
-          (acc: number, j: any) => acc + Number(j.assists || 0),
-          0,
-        );
-        const totalMvps = (historialJugador || []).reduce(
-          (acc: number, j: any) => acc + Number(j.mvp || 0),
-          0,
-        );
-
-        jugadoresResumen.push({
-          nombre: jugadorBase.nombre,
-          playerId,
-          equipo: jugadorBase.equipo,
-          goles: totalGoles,
-          asistencias: totalAsistencias,
-          mvps: totalMvps,
-          temporada,
-          division: divisionContexto,
-        });
+          .insert(jugadoresStats);
+        if (jugadoresError) throw jugadoresError;
       }
 
-      const { error: jugadoresError } = await supabase
-        .from("jugadores")
-        .upsert(jugadoresResumen, {
-          onConflict: "playerId,temporada,division,equipo",
-        });
+      await guardarAliases();
+      const nuevosPlantilla = await guardarPlantillasNuevas();
 
-      if (jugadoresError) {
-        console.log(jugadoresError);
-        alert(
-          "Stats detalladas cargadas, pero error cargando ranking de jugadores",
-        );
-        setLoading(false);
-        return;
-      }
-
-      const jugadoresParaPlantilla = jugadoresDetallados
-        .filter((j) => j.playerId)
-        .reduce((acc: any[], jugadorActual: any) => {
-          const yaExiste = acc.some(
-            (j) => j.playerid === jugadorActual.playerId,
-          );
-
-          if (!yaExiste) {
-            acc.push({
-              jugador: jugadorActual.nombre,
-              playerid: jugadorActual.playerId,
-              equipo: jugadorActual.equipo,
-              posicion: jugadorActual.posicion || "N/D",
-              temporada,
-              division: divisionContexto,
-              estado: "activo",
-            });
-          }
-
-          return acc;
-        }, []);
-
-      let jugadoresNuevosPlantilla = 0;
-
-      if (jugadoresParaPlantilla.length > 0) {
-        const playerIdsTxt = jugadoresParaPlantilla.map((j) => j.playerid);
-
-        const { data: plantillasExistentes, error: plantillasExistentesError } =
-          await supabase
-            .from("plantillas")
-            .select("playerid")
-            .eq("temporada", temporada)
-            .eq("division", divisionContexto)
-            .in("playerid", playerIdsTxt);
-
-        if (plantillasExistentesError) {
-          console.log(plantillasExistentesError);
-        } else {
-          const playerIdsExistentes = new Set(
-            (plantillasExistentes || []).map((p: any) => p.playerid),
-          );
-          const plantillasNuevas = jugadoresParaPlantilla.filter(
-            (j) => !playerIdsExistentes.has(j.playerid),
-          );
-
-          jugadoresNuevosPlantilla = plantillasNuevas.length;
-
-          if (plantillasNuevas.length > 0) {
-            const { error: plantillasError } = await supabase
-              .from("plantillas")
-              .insert(plantillasNuevas);
-
-            if (plantillasError) {
-              console.log(plantillasError);
-              alert(
-                "Stats cargadas, pero hubo un error agregando jugadores nuevos a plantillas.",
-              );
-              setLoading(false);
-              return;
-            }
-          }
-        }
-      }
+      const afectados = [
+        ...(anteriores || []).map((j: any) => cleanText(j.playerId)),
+        ...jugadoresStats.map((j) => cleanText(j.playerId)),
+      ];
+      await recalcularRanking(afectados);
 
       setMensaje(
-        `Cargado perfecto: ${localOficial} ${resultado} ${visitanteOficial}. Competencia: ${competicionLabel}. Contexto: ${contextoLabel}. Jugadores: ${jugadoresDetallados.length}. Nuevos en plantilla: ${jugadoresNuevosPlantilla}. MVP por score: ${
-          mejorJugador?.playerName || "Sin MVP"
-        }`,
+        `Carga consolidada: ${partidoSeleccionado.local} ${resultado} ${partidoSeleccionado.visitante}. TXT: ${segmentosAnalizados.length}. Jugadores: ${jugadoresStats.length}. Nuevos en plantilla: ${nuevosPlantilla}. MVP: ${mejorJugador?.nombre || "Sin MVP"}.`,
       );
 
-      setArchivo(null);
+      setArchivos([]);
+      resetAnalisis();
       await cargarContexto();
+      await cargarSegmentosExistentes({
+        ...partidoSeleccionado,
+        partido_id: idEstable,
+        resultado,
+      });
       setLoading(false);
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      console.error(error);
       setLoading(false);
       alert(
-        "No pude leer el TXT. Tiene que ser el formato JSON del MatchStats.",
+        `No pude guardar la carga: ${error?.message || "error desconocido"}`,
       );
     }
   }
 
   async function anularCargaTxt() {
     try {
-      setMensaje("");
-
-      if (!partidoSeleccionado) {
-        alert("Elegí un partido antes de anular una carga TXT");
-        return;
-      }
-
-      const idPartido = partidoSeleccionado.partido_id;
-
-      if (!idPartido || !partidoSeleccionado.resultado) {
-        alert("Este partido no tiene un TXT cargado para anular.");
+      if (!partidoSeleccionado) return;
+      if (!partidoSeleccionado.partido_id && !partidoSeleccionado.resultado) {
+        alert("Este partido no tiene una carga para anular.");
         return;
       }
 
       const confirmar = window.confirm(
-        `Vas a ANULAR la carga TXT de:\n\n${competicionLabel} · ${contextoLabel} · Fecha ${fecha}\n${partidoSeleccionado.local} ${partidoSeleccionado.resultado} ${partidoSeleccionado.visitante}\n\nEsto borrará las estadísticas del partido, limpiará el resultado y recalculará el ranking de los jugadores afectados.\n\n¿Confirmar anulación?`,
+        `Vas a anular toda la carga de ${partidoSeleccionado.local} vs ${partidoSeleccionado.visitante}. Se borrarán todos sus TXT, estadísticas y resultado. ¿Confirmar?`,
       );
-
       if (!confirmar) return;
 
       setLoading(true);
+      const ids = idsPartido(partidoSeleccionado);
+      const { data: jugadoresAntes, error: jugadoresError } = await supabase
+        .from("estadisticas_jugadores")
+        .select("playerId")
+        .in("partido_id", ids);
+      if (jugadoresError) throw jugadoresError;
 
-      const { data: jugadoresAntes, error: jugadoresAntesError } =
-        await supabase
-          .from("estadisticas_jugadores")
-          .select("playerId")
-          .eq("partido_id", idPartido);
+      const { error: segmentosError } = await supabase
+        .from("partido_txt_segmentos")
+        .delete()
+        .in("partido_id", ids);
+      if (segmentosError && !isMissingTableError(segmentosError))
+        throw segmentosError;
 
-      if (jugadoresAntesError) {
-        console.log(jugadoresAntesError);
-        alert("No pude leer los jugadores del partido antes de anular.");
-        setLoading(false);
-        return;
-      }
-
-      const playerIdsAfectados = Array.from(
-        new Set(
-          (jugadoresAntes || [])
-            .map((j: any) => String(j.playerId || "").trim())
-            .filter(Boolean),
-        ),
-      );
-
-      const { error: equiposDeleteError } = await supabase
+      const { error: equiposError } = await supabase
         .from("estadisticas_equipos")
         .delete()
-        .eq("partido_id", idPartido);
+        .in("partido_id", ids);
+      if (equiposError) throw equiposError;
 
-      if (equiposDeleteError) {
-        console.log(equiposDeleteError);
-        alert("No pude borrar las estadísticas de equipos.");
-        setLoading(false);
-        return;
-      }
-
-      const { error: jugadoresDeleteError } = await supabase
+      const { error: detallesError } = await supabase
         .from("estadisticas_jugadores")
         .delete()
-        .eq("partido_id", idPartido);
+        .in("partido_id", ids);
+      if (detallesError) throw detallesError;
 
-      if (jugadoresDeleteError) {
-        console.log(jugadoresDeleteError);
-        alert("No pude borrar las estadísticas de jugadores.");
-        setLoading(false);
-        return;
-      }
-
-      const { error: partidoUpdateError } = await supabase
+      const { error: partidoError } = await supabase
         .from("partidos")
-        .update({
-          resultado: null,
-          partido_id: null,
-        })
+        .update({ resultado: null, partido_id: null })
         .eq("id", partidoSeleccionado.id);
+      if (partidoError) throw partidoError;
 
-      if (partidoUpdateError) {
-        console.log(partidoUpdateError);
-        alert(
-          "Se borraron estadísticas, pero no pude limpiar el resultado del partido.",
-        );
-        setLoading(false);
-        return;
-      }
-
-      if (playerIdsAfectados.length > 0) {
-        const { data: historialRestante, error: historialRestanteError } =
-          await supabase
-            .from("estadisticas_jugadores")
-            .select("nombre,playerId,equipo,goals,assists,mvp")
-            .eq("temporada", temporada)
-            .eq("division", divisionContexto)
-            .in("playerId", playerIdsAfectados);
-
-        if (historialRestanteError) {
-          console.log(historialRestanteError);
-          alert(
-            "Partido anulado, pero no pude recalcular el ranking de jugadores.",
-          );
-          setLoading(false);
-          await cargarContexto();
-          return;
-        }
-
-        const { error: jugadoresResumenDeleteError } = await supabase
-          .from("jugadores")
-          .delete()
-          .eq("temporada", temporada)
-          .eq("division", divisionContexto)
-          .in("playerId", playerIdsAfectados);
-
-        if (jugadoresResumenDeleteError) {
-          console.log(jugadoresResumenDeleteError);
-          alert(
-            "Partido anulado, pero no pude limpiar el ranking anterior de jugadores.",
-          );
-          setLoading(false);
-          await cargarContexto();
-          return;
-        }
-
-        const resumenMap = new Map<string, any>();
-
-        (historialRestante || []).forEach((j: any) => {
-          const playerId = String(j.playerId || "").trim();
-          if (!playerId) return;
-
-          const equipo = j.equipo || "Sin Club";
-          const key = `${playerId}__${equipo}`;
-
-          if (!resumenMap.has(key)) {
-            resumenMap.set(key, {
-              nombre: j.nombre || "Sin Nombre",
-              playerId,
-              equipo,
-              goles: 0,
-              asistencias: 0,
-              mvps: 0,
-              temporada,
-              division: divisionContexto,
-            });
-          }
-
-          const actual = resumenMap.get(key);
-          actual.goles += Number(j.goals || 0);
-          actual.asistencias += Number(j.assists || 0);
-          actual.mvps += Number(j.mvp || 0);
-          if (j.nombre) actual.nombre = j.nombre;
-        });
-
-        const resumenRecalculado = Array.from(resumenMap.values());
-
-        if (resumenRecalculado.length > 0) {
-          const { error: jugadoresResumenInsertError } = await supabase
-            .from("jugadores")
-            .upsert(resumenRecalculado, {
-              onConflict: "playerId,temporada,division,equipo",
-            });
-
-          if (jugadoresResumenInsertError) {
-            console.log(jugadoresResumenInsertError);
-            alert(
-              "Partido anulado, pero no pude reinsertar el ranking recalculado.",
-            );
-            setLoading(false);
-            await cargarContexto();
-            return;
-          }
-        }
-      }
-
-      setMensaje(
-        `Carga TXT anulada: ${partidoSeleccionado.local} vs ${partidoSeleccionado.visitante}. Ranking recalculado para ${playerIdsAfectados.length} jugadores afectados.`,
+      await recalcularRanking(
+        (jugadoresAntes || []).map((j: any) => cleanText(j.playerId)),
       );
-
-      setArchivo(null);
+      setMensaje(
+        `Carga anulada: ${partidoSeleccionado.local} vs ${partidoSeleccionado.visitante}.`,
+      );
+      setArchivos([]);
+      resetAnalisis();
       await cargarContexto();
+      setSegmentosExistentes([]);
       setLoading(false);
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      console.error(error);
       setLoading(false);
-      alert("No pude anular la carga TXT.");
+      alert(
+        `No pude anular la carga: ${error?.message || "error desconocido"}`,
+      );
     }
   }
+
+  const rawPlayers =
+    analisisListo && partidoSeleccionado
+      ? collectRawPlayers(
+          segmentosAnalizados,
+          partidoSeleccionado.local,
+          partidoSeleccionado.visitante,
+        )
+      : [];
+
+  const resultadoAnalizado = analisisListo
+    ? `${numberValue(combineTeamStats(segmentosAnalizados, "local").goals)}-${numberValue(
+        combineTeamStats(segmentosAnalizados, "visitor").goals,
+      )}`
+    : "";
 
   return (
     <PermissionGuard permission="matches.upload_txt">
@@ -919,29 +1048,32 @@ export default function SubirTxtPage() {
           <section className="relative overflow-hidden rounded-[38px] border border-sky-500/30 bg-[#020714] p-7 shadow-[0_0_55px_rgba(0,120,255,.22)] md:p-10">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.18),transparent_42%)]" />
             <div className="absolute inset-0 bg-gradient-to-r from-black via-black/82 to-black/30" />
-
             <div className="relative z-10">
               <p className="text-xs font-black uppercase tracking-[0.45em] text-sky-400">
                 Admin APA PSO
               </p>
-
               <h1 className="mt-4 text-5xl font-black uppercase italic leading-none md:text-6xl">
                 Subir TXT
               </h1>
-
               <p className="mt-5 max-w-3xl text-zinc-300">
-                Primero elegí el partido programado. El TXT carga estadísticas,
-                pero los equipos oficiales salen del fixture creado en Admin.
+                El flujo normal sigue siendo un solo TXT. Cuando el juego corta
+                un partido, podés agregar varios tramos y consolidarlos sin
+                duplicar jugadores ni perder estadísticas.
               </p>
             </div>
           </section>
 
-          <section className="space-y-6 rounded-[34px] border border-sky-500/25 bg-[#020714] p-6 shadow-[0_0_35px_rgba(0,120,255,.12)] md:p-8">
+          {advertenciaMigracion && (
+            <section className="rounded-2xl border border-red-400/35 bg-red-500/10 p-5 text-sm font-bold text-red-100">
+              {advertenciaMigracion}
+            </section>
+          )}
+
+          <section className="space-y-7 rounded-[34px] border border-sky-500/25 bg-[#020714] p-6 shadow-[0_0_35px_rgba(0,120,255,.12)] md:p-8">
             <div>
               <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-sky-300">
-                1. Contexto del partido
+                1. Contexto
               </p>
-
               <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                 <select
                   className="input"
@@ -952,14 +1084,12 @@ export default function SubirTxtPage() {
                     <option key={temp}>{temp}</option>
                   ))}
                 </select>
-
                 <select
                   className="input"
                   value={competicion}
-                  onChange={(e) => {
-                    const value = e.target.value as Competicion;
-                    setCompeticion(value);
-                  }}
+                  onChange={(e) =>
+                    setCompeticion(e.target.value as Competicion)
+                  }
                 >
                   {COMPETICIONES.map((item) => (
                     <option key={item.value} value={item.value}>
@@ -967,37 +1097,36 @@ export default function SubirTxtPage() {
                     </option>
                   ))}
                 </select>
-
                 {competicion === "liga" && (
                   <select
                     className="input"
                     value={division}
                     onChange={(e) => setDivision(e.target.value)}
                   >
-                    {DIVISIONES.map((div) => (
-                      <option key={div}>{div}</option>
+                    {DIVISIONES.map((item) => (
+                      <option key={item}>{item}</option>
                     ))}
                   </select>
                 )}
-
                 {competicion === "copa_clasificatoria" && (
                   <select
                     className="input"
                     value={grupo}
                     onChange={(e) => setGrupo(e.target.value)}
                   >
-                    {GRUPOS.map((g) => (
-                      <option key={g} value={g}>
-                        Grupo {g}
+                    {GRUPOS.map((item) => (
+                      <option key={item} value={item}>
+                        Grupo {item}
                       </option>
                     ))}
                   </select>
                 )}
-
-                {(competicion === "copa_argentina" ||
-                  competicion === "copa_apa" ||
-                  competicion === "copa_campeones" ||
-                  competicion === "playoffs") && (
+                {[
+                  "copa_argentina",
+                  "copa_apa",
+                  "copa_campeones",
+                  "playoffs",
+                ].includes(competicion) && (
                   <select
                     className="input"
                     value={fase}
@@ -1008,12 +1137,11 @@ export default function SubirTxtPage() {
                       : competicion === "playoffs"
                         ? FASES_PLAYOFFS
                         : FASES_COPA
-                    ).map((f) => (
-                      <option key={f}>{f}</option>
+                    ).map((item) => (
+                      <option key={item}>{item}</option>
                     ))}
                   </select>
                 )}
-
                 <select
                   className="input"
                   value={fecha}
@@ -1022,25 +1150,13 @@ export default function SubirTxtPage() {
                   {fechasDisponibles.length === 0 ? (
                     <option value={fecha}>Fecha {fecha}</option>
                   ) : (
-                    fechasDisponibles.map((f) => (
-                      <option key={f} value={f}>
-                        Fecha {f}
+                    fechasDisponibles.map((item) => (
+                      <option key={item} value={item}>
+                        Fecha {item}
                       </option>
                     ))
                   )}
                 </select>
-              </div>
-
-              <div className="mt-4 flex flex-wrap gap-3 text-xs font-black uppercase tracking-[0.16em]">
-                <span className="rounded-xl border border-sky-400/25 bg-sky-400/10 px-3 py-2 text-sky-300">
-                  {competicionLabel}
-                </span>
-                <span className="rounded-xl border border-yellow-400/25 bg-yellow-400/10 px-3 py-2 text-yellow-300">
-                  {contextoLabel}
-                </span>
-                <span className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-zinc-400">
-                  Fecha {fecha}
-                </span>
               </div>
             </div>
 
@@ -1048,11 +1164,9 @@ export default function SubirTxtPage() {
               <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-sky-300">
                 2. Partido programado
               </p>
-
               {partidosProgramados.length === 0 ? (
                 <div className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 p-5 text-yellow-300">
-                  No hay partidos programados para este contexto. Primero crealo
-                  en <b>/admin/fixture</b>.
+                  No hay partidos programados para este contexto.
                 </div>
               ) : (
                 <select
@@ -1071,22 +1185,16 @@ export default function SubirTxtPage() {
 
               {partidoSeleccionado && (
                 <div className="mt-5 rounded-[28px] border border-sky-500/25 bg-black/35 p-5">
-                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-300">
-                    Partido seleccionado
-                  </p>
-
-                  <div className="mt-4 grid grid-cols-1 items-center gap-4 md:grid-cols-[1fr_90px_1fr]">
+                  <div className="grid grid-cols-1 items-center gap-4 md:grid-cols-[1fr_110px_1fr]">
                     <div className="rounded-2xl border border-white/10 bg-black/35 p-4 text-center">
                       <p className="text-xs uppercase text-zinc-500">Local</p>
                       <p className="mt-2 text-xl font-black uppercase">
                         {partidoSeleccionado.local}
                       </p>
                     </div>
-
                     <div className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 p-4 text-center text-2xl font-black text-yellow-300">
-                      VS
+                      {partidoSeleccionado.resultado || "VS"}
                     </div>
-
                     <div className="rounded-2xl border border-white/10 bg-black/35 p-4 text-center">
                       <p className="text-xs uppercase text-zinc-500">
                         Visitante
@@ -1096,26 +1204,15 @@ export default function SubirTxtPage() {
                       </p>
                     </div>
                   </div>
-
-                  <div className="mt-4 flex flex-wrap gap-3 text-sm font-black uppercase">
+                  <div className="mt-4 flex flex-wrap gap-3 text-xs font-black uppercase tracking-[0.12em]">
                     <span className="rounded-xl border border-sky-400/25 bg-sky-400/10 px-3 py-2 text-sky-300">
                       {competicionLabel}
                     </span>
-
                     <span className="rounded-xl border border-yellow-400/25 bg-yellow-400/10 px-3 py-2 text-yellow-300">
                       {contextoLabel}
                     </span>
-
-                    <span className="rounded-xl border border-sky-400/25 bg-sky-400/10 px-3 py-2 text-sky-300">
-                      Fecha {partidoSeleccionado.fecha || fecha}
-                    </span>
-
-                    <span className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-zinc-400">
-                      {partidoSeleccionado.dia || "Sin día"}
-                    </span>
-
-                    <span className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-zinc-400">
-                      {partidoSeleccionado.hora || "Sin hora"}
+                    <span className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-zinc-300">
+                      TXT guardados: {segmentosExistentes.length}
                     </span>
                   </div>
                 </div>
@@ -1124,77 +1221,301 @@ export default function SubirTxtPage() {
 
             <div>
               <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-sky-300">
-                3. Orden del TXT
+                3. Tipo de carga
               </p>
-
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <button
-                  onClick={() => setOrdenTxt("normal")}
-                  className={`rounded-2xl border px-5 py-4 text-sm font-black uppercase transition ${
-                    ordenTxt === "normal"
-                      ? "border-sky-300 bg-sky-400 text-black"
-                      : "border-white/10 bg-black/35 text-zinc-400 hover:border-sky-400/30 hover:text-white"
-                  }`}
+                  type="button"
+                  onClick={() => {
+                    setModoCarga("reemplazar");
+                    resetAnalisis();
+                  }}
+                  className={`rounded-2xl border px-5 py-4 text-sm font-black uppercase transition ${modoCarga === "reemplazar" ? "border-sky-300 bg-sky-400 text-black" : "border-white/10 bg-black/35 text-zinc-400"}`}
                 >
-                  team1 = local / team2 = visitante
+                  Carga normal / reemplazar
                 </button>
-
                 <button
-                  onClick={() => setOrdenTxt("invertido")}
-                  className={`rounded-2xl border px-5 py-4 text-sm font-black uppercase transition ${
-                    ordenTxt === "invertido"
-                      ? "border-yellow-300 bg-yellow-400 text-black"
-                      : "border-white/10 bg-black/35 text-zinc-400 hover:border-yellow-400/30 hover:text-white"
-                  }`}
+                  type="button"
+                  onClick={() => {
+                    setModoCarga("agregar");
+                    resetAnalisis();
+                  }}
+                  className={`rounded-2xl border px-5 py-4 text-sm font-black uppercase transition ${modoCarga === "agregar" ? "border-yellow-300 bg-yellow-400 text-black" : "border-white/10 bg-black/35 text-zinc-400"}`}
                 >
-                  team1 = visitante / team2 = local
+                  Agregar tramo al mismo partido
+                </button>
+              </div>
+              <p className="mt-3 text-sm text-zinc-400">
+                Usá “Agregar tramo” únicamente cuando el partido continuó en
+                otra sala y generó otro TXT.
+              </p>
+            </div>
+
+            <div>
+              <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-sky-300">
+                4. Orden del TXT
+              </p>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOrdenTxt("normal");
+                    resetAnalisis();
+                  }}
+                  className={`rounded-2xl border px-5 py-4 text-sm font-black uppercase ${ordenTxt === "normal" ? "border-sky-300 bg-sky-400 text-black" : "border-white/10 bg-black/35 text-zinc-400"}`}
+                >
+                  team1 = local
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOrdenTxt("invertido");
+                    resetAnalisis();
+                  }}
+                  className={`rounded-2xl border px-5 py-4 text-sm font-black uppercase ${ordenTxt === "invertido" ? "border-yellow-300 bg-yellow-400 text-black" : "border-white/10 bg-black/35 text-zinc-400"}`}
+                >
+                  team1 = visitante
                 </button>
               </div>
             </div>
 
             <div>
               <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-sky-300">
-                4. Archivo MatchStats
+                5. Archivos MatchStats
               </p>
-
               <input
                 className="input"
                 type="file"
                 accept=".txt,.json"
-                onChange={(e) => setArchivo(e.target.files?.[0] || null)}
+                multiple
+                onChange={(e) => {
+                  setArchivos(Array.from(e.target.files || []));
+                  resetAnalisis();
+                }}
               />
-            </div>
-
-            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              {archivos.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {archivos.map((archivo) => (
+                    <span
+                      key={`${archivo.name}-${archivo.size}`}
+                      className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-zinc-300"
+                    >
+                      {archivo.name}
+                    </span>
+                  ))}
+                </div>
+              )}
               <button
-                onClick={subirTxt}
-                disabled={loading}
-                className="btn disabled:cursor-not-allowed disabled:opacity-50"
+                type="button"
+                onClick={analizarArchivos}
+                disabled={loading || archivos.length === 0}
+                className="btn mt-4 disabled:opacity-50"
               >
-                {loading ? "Cargando..." : "Cargar TXT al partido seleccionado"}
+                {loading ? "Analizando..." : "Analizar TXT antes de guardar"}
               </button>
+            </div>
+          </section>
 
+          {analisisListo && partidoSeleccionado && (
+            <section className="space-y-7 rounded-[34px] border border-yellow-400/25 bg-[#020714] p-6 md:p-8">
+              <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-300">
+                    Revisión previa
+                  </p>
+                  <h2 className="mt-2 text-3xl font-black uppercase">
+                    Resultado consolidado: {resultadoAnalizado}
+                  </h2>
+                </div>
+                <span className="rounded-xl border border-yellow-400/25 bg-yellow-400/10 px-4 py-3 text-sm font-black text-yellow-200">
+                  {segmentosAnalizados.length} TXT en un partido
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {segmentosAnalizados.map((segmento, index) => (
+                  <div
+                    key={`${segmento.fileHash}-${index}`}
+                    className="rounded-2xl border border-white/10 bg-black/35 p-5"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-black text-white">
+                          {segmento.fileName}
+                        </p>
+                        <p className="mt-1 text-xs uppercase tracking-[0.14em] text-zinc-500">
+                          {segmento.source === "existing"
+                            ? "Ya guardado"
+                            : "Nuevo"}{" "}
+                          ·{" "}
+                          {segmento.order === "normal"
+                            ? "team1 local"
+                            : "team1 visitante"}
+                        </p>
+                      </div>
+                      <span className="rounded-lg bg-yellow-400 px-3 py-2 font-black text-black">
+                        {numberValue(segmento.localStats?.goals)}-
+                        {numberValue(segmento.visitorStats?.goals)}
+                      </span>
+                    </div>
+                    <label className="mt-4 block">
+                      <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                        Duración del tramo en minutos
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={segmento.minutes || ""}
+                        onChange={(e) => cambiarMinutos(index, e.target.value)}
+                        className="input"
+                        placeholder="Ejemplo: 6 o 18"
+                      />
+                    </label>
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-yellow-300">
+                  Revisión de cuentas de jugadores
+                </p>
+                <div className="space-y-3">
+                  {rawPlayers.map((raw) => {
+                    const resolution = resoluciones[raw.rawKey];
+                    const rosterOptions = plantillas.filter(
+                      (p) =>
+                        normalizarTexto(p.equipo || "") ===
+                        normalizarTexto(raw.team),
+                    );
+                    const selectValue =
+                      resolution?.action === "ignore"
+                        ? "__ignore"
+                        : resolution?.action === "new"
+                          ? "__new"
+                          : resolution?.canonicalPlayerId || "__new";
+
+                    return (
+                      <div
+                        key={raw.rawKey}
+                        className="grid grid-cols-1 gap-4 rounded-2xl border border-white/10 bg-black/35 p-4 md:grid-cols-[1.1fr_1fr_1.5fr] md:items-center"
+                      >
+                        <div>
+                          <p className="font-black text-white">{raw.rawName}</p>
+                          <p className="mt-1 break-all text-xs text-zinc-500">
+                            Cuenta TXT: {raw.rawPlayerId || "Sin ID"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-[0.14em] text-sky-300">
+                            {raw.team}
+                          </p>
+                          <p className="mt-1 text-xs text-zinc-500">
+                            Aparece en {raw.appearances} tramo(s)
+                          </p>
+                        </div>
+                        <select
+                          className="input"
+                          value={selectValue}
+                          onChange={(e) =>
+                            cambiarResolucion(raw.rawKey, e.target.value)
+                          }
+                        >
+                          <option value="__new">
+                            Confirmar como jugador/cuenta nueva
+                          </option>
+                          <option value="__ignore">
+                            Ignorar esta cuenta en estadísticas individuales
+                          </option>
+                          {rosterOptions.map((p) => (
+                            <option
+                              key={`${p.equipo}-${p.playerid}`}
+                              value={cleanText(p.playerid)}
+                            >
+                              Vincular con {p.jugador || p.playerid} ·{" "}
+                              {p.playerid}
+                            </option>
+                          ))}
+                        </select>
+                        {resolution?.source === "alias" && (
+                          <p className="md:col-span-3 text-xs font-bold text-emerald-300">
+                            Alias reconocido automáticamente: se acumulará en{" "}
+                            {resolution.canonicalName}.
+                          </p>
+                        )}
+                        {resolution?.saveAlias && (
+                          <p className="md:col-span-3 text-xs font-bold text-yellow-300">
+                            La relación quedará guardada para futuras cargas.
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 md:flex-row">
+                <button
+                  type="button"
+                  onClick={procesarCarga}
+                  disabled={loading}
+                  className="btn disabled:opacity-50"
+                >
+                  {loading
+                    ? "Guardando..."
+                    : "Confirmar y guardar partido consolidado"}
+                </button>
+                <button
+                  type="button"
+                  onClick={resetAnalisis}
+                  disabled={loading}
+                  className="rounded-2xl border border-white/15 bg-white/[0.04] px-5 py-4 text-sm font-black uppercase text-zinc-300"
+                >
+                  Cancelar revisión
+                </button>
+              </div>
+            </section>
+          )}
+
+          <section className="rounded-[28px] border border-white/10 bg-[#020714] p-5">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.25em] text-red-300">
+                  Corrección total
+                </p>
+                <p className="mt-2 text-sm text-zinc-400">
+                  Anula el resultado, todos los segmentos TXT y las estadísticas
+                  consolidadas del partido seleccionado.
+                </p>
+              </div>
               <button
+                type="button"
                 onClick={anularCargaTxt}
                 disabled={
                   loading ||
                   !partidoSeleccionado ||
-                  !partidoSeleccionado.partido_id ||
-                  !partidoSeleccionado.resultado
+                  (!partidoSeleccionado.partido_id &&
+                    !partidoSeleccionado.resultado)
                 }
-                className="rounded-2xl border border-red-400/35 bg-red-500/10 px-5 py-4 text-sm font-black uppercase text-red-200 transition hover:border-red-300 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-2xl border border-red-400/35 bg-red-500/10 px-5 py-4 text-sm font-black uppercase text-red-200 disabled:opacity-40"
               >
-                Anular carga TXT
+                Anular carga completa
               </button>
             </div>
-
-            {mensaje && <p className="font-bold text-emerald-400">{mensaje}</p>}
           </section>
 
+          {mensaje && (
+            <p className="rounded-2xl border border-emerald-400/25 bg-emerald-400/10 p-5 font-bold text-emerald-300">
+              {mensaje}
+            </p>
+          )}
+
           <section className="rounded-[28px] border border-yellow-400/20 bg-yellow-400/10 p-5 text-sm leading-7 text-yellow-100">
-            <b>Importante:</b> el nombre del equipo ya no depende del TXT. El
-            TXT solo aporta estadísticas. Los equipos oficiales salen del
-            partido seleccionado en el fixture.
+            <b>Funcionamiento:</b> un TXT sigue siendo el caso normal. Si el
+            juego corta el partido, cargá el primer tramo normalmente y luego
+            elegí “Agregar tramo al mismo partido” para sumar el segundo. Las
+            cuentas alternativas pueden vincularse al PSO ID oficial antes de
+            guardar.
           </section>
         </div>
       </main>
