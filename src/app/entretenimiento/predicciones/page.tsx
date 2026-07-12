@@ -465,49 +465,129 @@ export default function PrediccionesPage() {
   async function votar(partido: Partido, prediccionManual?: "local" | "empate" | "visitante") {
     setMensaje("");
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError) {
+      console.error("Error verificando sesión:", authError);
+      setMensaje("No pude verificar tu sesión. Volvé a iniciar sesión.");
+      return;
+    }
+
     if (!user) {
       setMensaje("Tenés que iniciar sesión para hacer una predicción.");
       return;
     }
 
     const key = partidoKey(partido);
-    const yaVoto = predicciones.some((p) => p.partido_id === key && p.usuario === user.id);
-    if (yaVoto) {
-      setMensaje("Ya realizaste una predicción para este partido y no puede modificarse.");
+
+    // Se consulta primero la base de datos. No se borra ni se reemplaza
+    // ninguna predicción existente.
+    const { data: prediccionExistente, error: existingError } = await supabase
+      .from("predicciones")
+      .select("id, partido_id, usuario, prediccion, goles_local, goles_visitante")
+      .eq("partido_id", key)
+      .eq("usuario", user.id)
+      .maybeSingle();
+
+    if (existingError) {
+      console.error("Error comprobando predicción existente:", existingError);
+      setMensaje(`No pude comprobar tu predicción: ${existingError.message}`);
+      return;
+    }
+
+    if (prediccionExistente) {
+      setMensaje("Tu predicción ya estaba guardada y fue conservada.");
+      await cargarDatos();
       return;
     }
 
     const marcador = marcadores[key] || { local: "", visitante: "" };
-    const tieneMarcador = marcador.local !== "" && marcador.visitante !== "" && !Number.isNaN(Number(marcador.local)) && !Number.isNaN(Number(marcador.visitante));
+
+    const tieneMarcador =
+      marcador.local !== "" &&
+      marcador.visitante !== "" &&
+      !Number.isNaN(Number(marcador.local)) &&
+      !Number.isNaN(Number(marcador.visitante));
+
     const golesLocal = tieneMarcador ? Number(marcador.local) : null;
     const golesVisitante = tieneMarcador ? Number(marcador.visitante) : null;
-    const prediccion = tieneMarcador && golesLocal !== null && golesVisitante !== null ? prediccionPorMarcador(golesLocal, golesVisitante) : prediccionManual;
+
+    if (
+      (golesLocal !== null && golesLocal < 0) ||
+      (golesVisitante !== null && golesVisitante < 0)
+    ) {
+      setMensaje("El marcador no puede tener goles negativos.");
+      return;
+    }
+
+    const prediccion =
+      tieneMarcador && golesLocal !== null && golesVisitante !== null
+        ? prediccionPorMarcador(golesLocal, golesVisitante)
+        : prediccionManual;
 
     if (!prediccion) {
       setMensaje("Elegí ganador o cargá un marcador exacto.");
       return;
     }
 
-    const { error } = await supabase.from("predicciones").insert([
-      {
-        partido_id: key,
-        temporada,
-        division: divisionParaGuardar(contexto),
-        local: partido.local,
-        visitante: partido.visitante,
-        prediccion,
-        usuario: user.id,
-        goles_local: golesLocal,
-        goles_visitante: golesVisitante,
-      },
-    ]);
+    const payload = {
+      partido_id: key,
+      temporada,
+      division: divisionParaGuardar(contexto),
+      local: partido.local,
+      visitante: partido.visitante,
+      prediccion,
+      usuario: user.id,
+      goles_local: golesLocal,
+      goles_visitante: golesVisitante,
+    };
+
+    const { data: prediccionGuardada, error } = await supabase
+      .from("predicciones")
+      .insert([payload])
+      .select(
+        "id, partido_id, temporada, division, local, visitante, prediccion, usuario, goles_local, goles_visitante",
+      )
+      .single();
 
     if (error) {
-      console.log(error);
-      setMensaje("Error guardando predicción.");
+      console.error("Error guardando predicción:", error);
+
+      if (error.code === "23505") {
+        setMensaje("Tu predicción ya estaba guardada y fue conservada.");
+        await cargarDatos();
+        return;
+      }
+
+      if (
+        error.code === "42501" ||
+        error.message.toLowerCase().includes("row-level security")
+      ) {
+        setMensaje(
+          "No tenés permiso para guardar la predicción. Hay que corregir la política de seguridad sin borrar las predicciones existentes.",
+        );
+        return;
+      }
+
+      setMensaje(`Error guardando predicción: ${error.message}`);
       return;
     }
+
+    if (prediccionGuardada) {
+      setPredicciones((prev) => [
+        ...prev,
+        prediccionGuardada as unknown as Prediccion,
+      ]);
+    }
+
+    setMarcadores((prev) => {
+      const copia = { ...prev };
+      delete copia[key];
+      return copia;
+    });
 
     setMensaje("Predicción guardada correctamente.");
     await cargarDatos();

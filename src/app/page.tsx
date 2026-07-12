@@ -254,18 +254,32 @@ export default function Home() {
       return;
     }
 
-    let jugadoresQuery = supabase
-      .from("partido_jugadores")
-      .select(
-        "id, partido_id, nombre, jugador, playerId, equipo, temporada, division, competicion, fase, grupo, fecha, goles, goals, asistencias, assists, mvp, mvps",
-      );
+    // Las estadísticas actuales se guardan en estadisticas_jugadores y no
+    // incluyen competicion/fase/grupo. Se vinculan al contexto mediante los
+    // partido_id de los partidos que ya fueron filtrados arriba.
+    const partidoIds = Array.from(
+      new Set(
+        (partidosData || [])
+          .map((partido: any) => String(partido.partido_id || "").trim())
+          .filter(Boolean),
+      ),
+    );
 
-    jugadoresQuery = aplicarFiltroContexto(jugadoresQuery);
+    let jugadoresData: any[] = [];
 
-    const { data: jugadoresData, error: jugadoresError } = await jugadoresQuery;
+    if (partidoIds.length > 0) {
+      const { data, error: jugadoresError } = await supabase
+        .from("estadisticas_jugadores")
+        .select(
+          "id, partido_id, nombre, playerId, equipo, temporada, division, fecha, goals, assists, mvp",
+        )
+        .in("partido_id", partidoIds);
 
-    if (jugadoresError) {
-      console.log(jugadoresError);
+      if (jugadoresError) {
+        console.log(jugadoresError);
+      } else {
+        jugadoresData = data || [];
+      }
     }
 
     const nombresClubes = Array.from(
@@ -313,12 +327,30 @@ export default function Home() {
     partidos.flatMap((p) => [p.local, p.visitante]).filter(Boolean),
   ).size;
   const jugadoresCantidad = new Set(
-    jugadores.map((j) => j.nombre || j.jugador).filter(Boolean),
+    jugadores
+      .map((j) => {
+        const playerId = String(j.playerId || "").trim();
+        if (playerId) return `id:${playerId}`;
+
+        const nombre = normalizarTexto(j.nombre);
+        const equipo = normalizarTexto(j.equipo);
+        return nombre ? `nombre:${nombre}|equipo:${equipo}` : "";
+      })
+      .filter(Boolean),
   ).size;
-  const golesTotales = jugadores.reduce(
-    (acc, j) => acc + Number(j.goles || j.goals || 0),
-    0,
-  );
+
+  // Los goles globales deben salir del resultado oficial del partido.
+  // Así se actualizan incluso cuando todavía no se cargó el TXT con las
+  // estadísticas individuales de los jugadores.
+  const golesTotales = partidos.reduce((total, partido) => {
+    const resultado = String(partido.resultado || "").match(
+      /^\s*(\d+)\s*-\s*(\d+)\s*$/,
+    );
+
+    if (!resultado) return total;
+
+    return total + Number(resultado[1]) + Number(resultado[2]);
+  }, 0);
 
   const partidosOrdenados = useMemo(
     () => [...partidos].sort(ordenarPartidos),
