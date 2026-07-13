@@ -171,20 +171,56 @@ function normalizePlayerRecord(player: Record<string, unknown>) {
   return normalized;
 }
 
+function playerStatFieldCount(record: Record<string, unknown>) {
+  return PLAYER_DETECTION_FIELDS.reduce(
+    (count, field) => count + (field in record ? 1 : 0),
+    0,
+  );
+}
+
+function hasPlayerIdentity(record: Record<string, unknown>) {
+  return Boolean(
+    firstTextValue(record, PLAYER_NAME_KEYS) ||
+      firstTextValue(record, PLAYER_ID_KEYS),
+  );
+}
+
 function looksLikePlayerStats(value: unknown): value is Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
 
   const record = value as Record<string, unknown>;
-  const playerName = firstTextValue(record, PLAYER_NAME_KEYS);
-  const playerId = firstTextValue(record, PLAYER_ID_KEYS);
-  if (!playerName && !playerId) return false;
+  return hasPlayerIdentity(record) && playerStatFieldCount(record) >= 2;
+}
 
-  const statFields = PLAYER_DETECTION_FIELDS.reduce(
-    (count, field) => count + (field in record ? 1 : 0),
-    0,
-  );
+// Algunos TXT de PSO separan al mismo jugador en dos objetos consecutivos:
+// uno contiene las estadísticas y el siguiente playerName/playerId/posición/equipo.
+// Ejemplo real:
+// { passes: 11, goals: 1, score: 315 },
+// { playerName: "17", playerId: "...", postion: "LCM", team: "Blue" }
+function looksLikeStatFragment(value: unknown): value is Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const record = value as Record<string, unknown>;
+  return !hasPlayerIdentity(record) && playerStatFieldCount(record) >= 3;
+}
 
-  return statFields >= 2;
+function looksLikeIdentityFragment(
+  value: unknown,
+): value is Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const record = value as Record<string, unknown>;
+  return hasPlayerIdentity(record) && playerStatFieldCount(record) < 2;
+}
+
+function joinPlayerFragments(first: unknown, second: unknown) {
+  if (looksLikeStatFragment(first) && looksLikeIdentityFragment(second)) {
+    return normalizePlayerRecord({ ...first, ...second });
+  }
+
+  if (looksLikeIdentityFragment(first) && looksLikeStatFragment(second)) {
+    return normalizePlayerRecord({ ...second, ...first });
+  }
+
+  return null;
 }
 
 function pathSide(path: string[]): TxtSide | null {
@@ -358,6 +394,22 @@ function extractPlayersFromPayload(payload: any) {
     }
 
     if (Array.isArray(value)) {
+      // Caso excepcional de PSO: estadísticas e identidad vienen separadas
+      // en objetos vecinos. Se unen antes de recorrer cada elemento.
+      for (let index = 0; index < value.length - 1; index += 1) {
+        const first = value[index];
+        const second = value[index + 1];
+        const joined = joinPlayerFragments(first, second);
+
+        if (joined) {
+          candidates.push({
+            player: joined,
+            path: [...path, String(index)],
+          });
+          index += 1;
+        }
+      }
+
       value.forEach((item, index) => walk(item, [...path, String(index)]));
       return;
     }
