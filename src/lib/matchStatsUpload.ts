@@ -108,6 +108,283 @@ export function normalizeText(value: unknown) {
     .trim();
 }
 
+
+type TxtSide = "team1" | "team2";
+
+const PLAYER_DETECTION_FIELDS = [
+  ...PLAYER_SUM_FIELDS,
+  "overallRating",
+  "yellowCards",
+  "redCards",
+  "minutesPlayed",
+  "timePlayed",
+  "playTime",
+  "secondsPlayed",
+] as const;
+
+const PLAYER_NAME_KEYS = ["playerName", "player_name", "name"] as const;
+const PLAYER_ID_KEYS = [
+  "playerId",
+  "playerID",
+  "player_id",
+  "steamId",
+  "steamID",
+] as const;
+const PLAYER_TEAM_KEYS = [
+  "team",
+  "Team",
+  "teamName",
+  "team_name",
+  "teamColor",
+  "teamColour",
+  "side",
+  "color",
+  "colour",
+] as const;
+
+function firstTextValue(
+  value: Record<string, unknown>,
+  keys: readonly string[],
+) {
+  for (const key of keys) {
+    const text = cleanText(value[key]);
+    if (text) return text;
+  }
+  return "";
+}
+
+function normalizePlayerRecord(player: Record<string, unknown>) {
+  const normalized: Record<string, unknown> = { ...player };
+
+  const playerName = firstTextValue(player, PLAYER_NAME_KEYS);
+  const playerId = firstTextValue(player, PLAYER_ID_KEYS);
+  const team = firstTextValue(player, PLAYER_TEAM_KEYS);
+  const position = cleanText(
+    player.postion ?? player.position ?? player.playerPosition,
+  );
+
+  if (playerName) normalized.playerName = playerName;
+  if (playerId) normalized.playerId = playerId;
+  if (team) normalized.team = team;
+  if (position) normalized.position = position;
+
+  return normalized;
+}
+
+function looksLikePlayerStats(value: unknown): value is Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+
+  const record = value as Record<string, unknown>;
+  const playerName = firstTextValue(record, PLAYER_NAME_KEYS);
+  const playerId = firstTextValue(record, PLAYER_ID_KEYS);
+  if (!playerName && !playerId) return false;
+
+  const statFields = PLAYER_DETECTION_FIELDS.reduce(
+    (count, field) => count + (field in record ? 1 : 0),
+    0,
+  );
+
+  return statFields >= 2;
+}
+
+function pathSide(path: string[]): TxtSide | null {
+  const normalized = normalizeText(path.join("."));
+
+  if (
+    /(^|[._-])(team1|team_1|blue|local|home)([._-]|$)/.test(normalized)
+  ) {
+    return "team1";
+  }
+  if (
+    /(^|[._-])(team2|team_2|red|visitante|visitor|away)([._-]|$)/.test(
+      normalized,
+    )
+  ) {
+    return "team2";
+  }
+
+  return null;
+}
+
+function addTeamAlias(
+  aliases: Map<string, TxtSide>,
+  value: unknown,
+  side: TxtSide,
+) {
+  const normalized = normalizeText(value);
+  if (!normalized) return;
+
+  const current = aliases.get(normalized);
+  if (!current || current === side) aliases.set(normalized, side);
+}
+
+function buildTeamAliases(payload: any) {
+  const aliases = new Map<string, TxtSide>();
+  const team1Players = Array.isArray(payload?.team1PlayerStats)
+    ? payload.team1PlayerStats
+    : [];
+  const team2Players = Array.isArray(payload?.team2PlayerStats)
+    ? payload.team2PlayerStats
+    : [];
+
+  const addFromRecord = (record: any, side: TxtSide) => {
+    if (!record || typeof record !== "object") return;
+    for (const key of PLAYER_TEAM_KEYS) addTeamAlias(aliases, record[key], side);
+  };
+
+  addFromRecord(payload?.team1Stats, "team1");
+  addFromRecord(payload?.team2Stats, "team2");
+  team1Players.forEach((player: any) => addFromRecord(player, "team1"));
+  team2Players.forEach((player: any) => addFromRecord(player, "team2"));
+
+  // Fallback habitual de MatchStats. Si el TXT informa otra relación,
+  // las etiquetas detectadas arriba prevalecen.
+  if (!aliases.has("blue")) aliases.set("blue", "team1");
+  if (!aliases.has("red")) aliases.set("red", "team2");
+
+  return aliases;
+}
+
+function playerIdentity(player: any) {
+  const playerId = cleanText(player?.playerId);
+  if (playerId) return `id:${playerId}`;
+  return `name:${normalizeText(player?.playerName)}`;
+}
+
+function snapshotStrength(player: any) {
+  return PLAYER_SUM_FIELDS.reduce(
+    (total, field) => total + Math.max(0, numberValue(player?.[field])),
+    0,
+  );
+}
+
+function mergePlayerSnapshot(current: any, candidate: any) {
+  const currentValues = PLAYER_SUM_FIELDS.map((field) =>
+    numberValue(current?.[field]),
+  );
+  const candidateValues = PLAYER_SUM_FIELDS.map((field) =>
+    numberValue(candidate?.[field]),
+  );
+
+  const equal = currentValues.every(
+    (value, index) => value === candidateValues[index],
+  );
+  const currentDominates = currentValues.every(
+    (value, index) => value >= candidateValues[index],
+  );
+  const candidateDominates = candidateValues.every(
+    (value, index) => value >= currentValues[index],
+  );
+
+  // Copias idénticas o snapshots acumulativos: conservar solo la versión más
+  // completa evita duplicar a quienes también aparecen en listas históricas.
+  if (equal || currentDominates || candidateDominates) {
+    const currentStrength = snapshotStrength(current);
+    const candidateStrength = snapshotStrength(candidate);
+    return candidateStrength >= currentStrength
+      ? { ...current, ...candidate }
+      : { ...candidate, ...current };
+  }
+
+  // Si ninguno domina al otro, se consideran tramos distintos del mismo
+  // jugador (por ejemplo, salió y volvió a entrar con contadores reiniciados).
+  const currentStrength = Math.max(1, snapshotStrength(current));
+  const candidateStrength = Math.max(1, snapshotStrength(candidate));
+  const merged: Record<string, unknown> = { ...current, ...candidate };
+
+  for (const field of PLAYER_SUM_FIELDS) {
+    merged[field] =
+      numberValue(current?.[field]) + numberValue(candidate?.[field]);
+  }
+
+  merged.overallRating =
+    (numberValue(current?.overallRating) * currentStrength +
+      numberValue(candidate?.overallRating) * candidateStrength) /
+    (currentStrength + candidateStrength);
+
+  if (!cleanText(merged.playerName)) {
+    merged.playerName = cleanText(current?.playerName || candidate?.playerName);
+  }
+  if (!cleanText(merged.playerId)) {
+    merged.playerId = cleanText(current?.playerId || candidate?.playerId);
+  }
+
+  return merged;
+}
+
+function extractPlayersFromPayload(payload: any) {
+  const aliases = buildTeamAliases(payload);
+  const bySide: Record<TxtSide, Map<string, any>> = {
+    team1: new Map<string, any>(),
+    team2: new Map<string, any>(),
+  };
+  const knownIdentitySide = new Map<string, TxtSide>();
+
+  const add = (rawPlayer: any, side: TxtSide) => {
+    const player = normalizePlayerRecord(rawPlayer);
+    const identity = playerIdentity(player);
+    if (identity === "name:") return;
+
+    knownIdentitySide.set(identity, side);
+    const current = bySide[side].get(identity);
+    bySide[side].set(
+      identity,
+      current ? mergePlayerSnapshot(current, player) : player,
+    );
+  };
+
+  const canonicalTeam1 = Array.isArray(payload?.team1PlayerStats)
+    ? payload.team1PlayerStats
+    : [];
+  const canonicalTeam2 = Array.isArray(payload?.team2PlayerStats)
+    ? payload.team2PlayerStats
+    : [];
+  canonicalTeam1.forEach((player: any) => add(player, "team1"));
+  canonicalTeam2.forEach((player: any) => add(player, "team2"));
+
+  const candidates: { player: Record<string, unknown>; path: string[] }[] = [];
+  const visited = new Set<object>();
+
+  const walk = (value: unknown, path: string[]) => {
+    if (!value || typeof value !== "object") return;
+    if (visited.has(value as object)) return;
+    visited.add(value as object);
+
+    if (looksLikePlayerStats(value)) {
+      candidates.push({
+        player: normalizePlayerRecord(value),
+        path,
+      });
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach((item, index) => walk(item, [...path, String(index)]));
+      return;
+    }
+
+    for (const [key, child] of Object.entries(value)) {
+      walk(child, [...path, key]);
+    }
+  };
+
+  walk(payload, []);
+
+  for (const candidate of candidates) {
+    const explicitTeam = firstTextValue(candidate.player, PLAYER_TEAM_KEYS);
+    const sideFromTeam = aliases.get(normalizeText(explicitTeam));
+    const sideFromPath = pathSide(candidate.path);
+    const identity = playerIdentity(candidate.player);
+    const side = sideFromTeam || sideFromPath || knownIdentitySide.get(identity);
+
+    if (side) add(candidate.player, side);
+  }
+
+  return {
+    team1Players: Array.from(bySide.team1.values()),
+    team2Players: Array.from(bySide.team2.values()),
+  };
+}
+
 export function buildRawPlayerKey(
   playerId: unknown,
   name: unknown,
@@ -232,14 +509,16 @@ export function parseSegmentPayload({
     order === "normal" ? payload.team1Stats : payload.team2Stats;
   const visitorStats =
     order === "normal" ? payload.team2Stats : payload.team1Stats;
+
+  const extractedPlayers = extractPlayersFromPayload(payload);
   const localPlayers =
     order === "normal"
-      ? payload.team1PlayerStats || []
-      : payload.team2PlayerStats || [];
+      ? extractedPlayers.team1Players
+      : extractedPlayers.team2Players;
   const visitorPlayers =
     order === "normal"
-      ? payload.team2PlayerStats || []
-      : payload.team1PlayerStats || [];
+      ? extractedPlayers.team2Players
+      : extractedPlayers.team1Players;
 
   return {
     source,
