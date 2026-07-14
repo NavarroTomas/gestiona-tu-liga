@@ -1009,7 +1009,7 @@ export default function SubirTxtPage() {
         const jugadores = aplicarCorreccionesIndividuales(
           combinePlayerStats({
             segments: segmentos,
-            resolutions,
+            resolutions: resoluciones,
             localTeam: partidoSeleccionado.local,
             visitorTeam: partidoSeleccionado.visitante,
           }),
@@ -1336,7 +1336,7 @@ export default function SubirTxtPage() {
       ? aplicarCorreccionesIndividuales(
           combinePlayerStats({
             segments: segmentosValidos,
-            resolutions,
+            resolutions: resoluciones,
             localTeam: partidoSeleccionado.local,
             visitorTeam: partidoSeleccionado.visitante,
           }),
