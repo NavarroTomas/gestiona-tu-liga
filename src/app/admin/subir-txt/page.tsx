@@ -136,6 +136,7 @@ export default function SubirTxtPage() {
   const [correccionesStats, setCorreccionesStats] = useState<
     Record<string, { goals: number; assists: number }>
   >({});
+  const [permitirDiferencias, setPermitirDiferencias] = useState(false);
 
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
@@ -312,6 +313,7 @@ export default function SubirTxtPage() {
     setResoluciones({});
     setJugadoresExcluidos({});
     setCorreccionesStats({});
+    setPermitirDiferencias(false);
   }
 
   async function analizarArchivos() {
@@ -525,6 +527,7 @@ export default function SubirTxtPage() {
       setResoluciones(nextResolutions);
       setJugadoresExcluidos(sospechosos);
       setCorreccionesStats({});
+      setPermitirDiferencias(false);
       setAnalisisListo(true);
       setLoading(false);
     } catch (error: any) {
@@ -1043,6 +1046,7 @@ export default function SubirTxtPage() {
       })();
 
       if (
+        !permitirDiferencias &&
         resumenActual.some(
           (item) =>
             item.golesEquipo !== item.golesJugadores ||
@@ -1050,7 +1054,7 @@ export default function SubirTxtPage() {
         )
       ) {
         alert(
-          "Todavía hay diferencias entre los goles/asistencias del equipo y los asignados a jugadores. Corregilas en la conciliación antes de guardar.",
+          "Todavía hay diferencias entre los goles/asistencias del equipo y los asignados a jugadores. Corregilas o marcá la opción para guardar el TXT manteniendo esas estadísticas sin asignar.",
         );
         return;
       }
@@ -1976,9 +1980,24 @@ export default function SubirTxtPage() {
                 </div>
 
                 {hayInconsistencias && (
-                  <p className="mt-3 rounded-xl border border-orange-400/25 bg-orange-400/10 p-3 text-sm font-bold text-orange-200">
-                    No se puede guardar hasta que los totales individuales coincidan con los totales del equipo.
-                  </p>
+                  <div className="mt-3 rounded-xl border border-orange-400/25 bg-orange-400/10 p-4">
+                    <p className="text-sm font-bold text-orange-200">
+                      Hay goles o asistencias del equipo que no pudieron asignarse a un jugador.
+                    </p>
+                    <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-black/25 p-3">
+                      <input
+                        type="checkbox"
+                        checked={permitirDiferencias}
+                        onChange={(e) => setPermitirDiferencias(e.target.checked)}
+                        className="mt-1 h-4 w-4"
+                      />
+                      <span className="text-sm text-zinc-200">
+                        Guardar igualmente y dejar esas estadísticas sin asignar.
+                        El resultado y los totales del equipo se conservarán, pero
+                        no se sumarán a ningún jugador.
+                      </span>
+                    </label>
+                  </div>
                 )}
               </div>
 
@@ -2065,7 +2084,9 @@ export default function SubirTxtPage() {
                   type="button"
                   onClick={procesarCarga}
                   disabled={
-                    loading || jugadoresSinEquipo.length > 0 || hayInconsistencias
+                    loading ||
+                    jugadoresSinEquipo.length > 0 ||
+                    (hayInconsistencias && !permitirDiferencias)
                   }
                   className="btn disabled:opacity-50"
                 >
