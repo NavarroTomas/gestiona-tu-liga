@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PermissionGuard from "@/components/PermissionGuard";
 import {
+  assignNeutralPlayersToTeams,
   buildRawPlayerKey,
   cleanText,
   collectRawPlayers,
@@ -17,6 +18,7 @@ import {
   type ParsedMatchSegment,
   type PlayerResolution,
 } from "@/lib/matchStatsUpload";
+import { matchFitsContext, normalizeRound } from "@/lib/competitionData";
 
 type Competicion =
   | "liga"
@@ -218,112 +220,52 @@ export default function SubirTxtPage() {
     };
   }
 
-  function normalizarFechaPartido(value: unknown) {
-    const raw = cleanText(value);
-    const match = raw.match(/\d+/);
-    return match ? String(Number(match[0])) : raw;
-  }
-
-  function coincideCompeticion(partido: PartidoProgramado) {
-    const valor = normalizarTexto(partido.competicion || "")
-      .replace(/[^a-z0-9]+/g, "_")
-      .replace(/^_+|_+$/g, "");
-    const divisionPartido = normalizarTexto(partido.division || "");
-
-    if (competicion === "liga") {
-      const esLiga =
-        !valor ||
-        valor === "liga" ||
-        valor === "torneo_liga" ||
-        valor === "liga_primera" ||
-        valor === "liga_segunda" ||
-        valor.includes("liga");
-      return (
-        esLiga &&
-        divisionPartido === normalizarTexto(division)
-      );
-    }
-
-    const alias: Record<Exclude<Competicion, "liga">, string[]> = {
-      copa_clasificatoria: [
-        "copa_clasificatoria",
-        "clasificacion_a_copas",
-        "clasificacion_copas",
-        "clasificatoria",
-      ],
-      copa_argentina: ["copa_argentina"],
-      copa_apa: ["copa_apa"],
-      copa_campeones: ["copa_campeones", "copa_de_campeones"],
-      playoffs: ["playoffs", "playoffs_ascenso", "playoff"],
-    };
-
-    if (!alias[competicion].includes(valor)) return false;
-
-    if (competicion === "copa_clasificatoria") {
-      const fasePartido = normalizarTexto(partido.fase || "");
-      const grupoPartido = cleanText(partido.grupo).toUpperCase();
-      return (
-        (!fasePartido || fasePartido === "grupos" || fasePartido === "grupo") &&
-        grupoPartido === grupoDb()
-      );
-    }
-
-    const fasePartido = normalizarTexto(partido.fase || "").replace(
-      /\s+/g,
-      "_",
-    );
-    return fasePartido === faseDb();
-  }
-
   async function cargarContexto() {
     setMensaje("");
 
-    // Se consulta la temporada completa y se normalizan los valores en el
-    // cliente. En la tabla existen registros creados por versiones distintas
-    // del panel ("Liga", "liga", "liga_primera", etc.), por lo que un
-    // filtro exacto de Supabase dejaba fechas válidas afuera.
     const { data, error } = await supabase
       .from("partidos")
       .select("*")
-      .eq("temporada", temporada)
       .order("fecha", { ascending: true })
       .order("local", { ascending: true });
 
     if (error) {
-      console.error(error);
+      console.error("Error cargando partidos programados:", error);
+      setMensaje(`No se pudieron cargar los partidos: ${error.message}`);
       setFechasDisponibles([]);
       setPartidosProgramados([]);
       setPartidoSeleccionadoId("");
-      setMensaje(`No se pudieron cargar los partidos: ${error.message}`);
       return;
     }
 
-    const todos = ((data || []) as PartidoProgramado[]).filter(
-      coincideCompeticion,
+    const context = {
+      temporada,
+      competicion,
+      division: competicion === "liga" ? division : undefined,
+      grupo: competicion === "copa_clasificatoria" ? grupoDb() : undefined,
+      fase:
+        ["copa_argentina", "copa_apa", "copa_campeones", "playoffs"].includes(competicion)
+          ? faseDb()
+          : undefined,
+    };
+
+    const todos = ((data || []) as PartidoProgramado[]).filter((partido) =>
+      matchFitsContext(partido, context),
     );
 
     const fechas = Array.from(
-      new Set(
-        todos
-          .map((p) => normalizarFechaPartido(p.fecha))
-          .filter(Boolean),
-      ),
+      new Set(todos.map((p) => normalizeRound(p.fecha)).filter(Boolean)),
     ).sort((a, b) => Number(a) - Number(b));
 
-    const fechaActualNormalizada = normalizarFechaPartido(fecha);
     const fechaActiva =
-      fechas.length > 0 && !fechas.includes(fechaActualNormalizada)
+      fechas.length > 0 && !fechas.includes(normalizeRound(fecha))
         ? fechas[0]
-        : fechaActualNormalizada;
-
-    if (fechaActiva && fechaActiva !== fechaActualNormalizada) {
-      setFecha(fechaActiva);
-    }
+        : normalizeRound(fecha);
+    if (fechaActiva !== normalizeRound(fecha)) setFecha(fechaActiva);
 
     const partidosFecha = todos.filter(
-      (p) => normalizarFechaPartido(p.fecha) === fechaActiva,
+      (p) => normalizeRound(p.fecha) === fechaActiva,
     );
-
     setFechasDisponibles(fechas);
     setPartidosProgramados(partidosFecha);
     setPartidoSeleccionadoId((actual) =>
@@ -463,8 +405,15 @@ export default function SubirTxtPage() {
       );
       setPlantillas(roster);
 
+      const segmentosConEquiposResueltos = assignNeutralPlayersToTeams({
+        segments: todosSegmentos,
+        roster,
+        localTeam: partidoSeleccionado.local,
+        visitorTeam: partidoSeleccionado.visitante,
+      });
+
       const rawPlayers = collectRawPlayers(
-        todosSegmentos,
+        segmentosConEquiposResueltos,
         partidoSeleccionado.local,
         partidoSeleccionado.visitante,
       );
@@ -549,7 +498,7 @@ export default function SubirTxtPage() {
         }
       }
 
-      setSegmentosAnalizados(todosSegmentos);
+      setSegmentosAnalizados(segmentosConEquiposResueltos);
       setResoluciones(nextResolutions);
       setAnalisisListo(true);
       setLoading(false);

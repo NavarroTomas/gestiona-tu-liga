@@ -4,6 +4,15 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import {
+  matchIds,
+  normalizeCompetition,
+  normalizeDivision,
+  normalizeGroup,
+  normalizePhase,
+  normalizeSeason,
+  parseScore,
+} from "@/lib/competitionData";
 
 interface Partido {
   id: string;
@@ -16,6 +25,9 @@ interface Partido {
   hora?: string | null;
   temporada?: string | null;
   division?: string | null;
+  competicion?: string | null;
+  fase?: string | null;
+  grupo?: string | null;
 }
 
 interface EstadisticasJugador {
@@ -24,6 +36,23 @@ interface EstadisticasJugador {
   goles: number;
   asistencias: number;
   mvps: number;
+}
+
+
+interface ResumenCompeticion {
+  key: string;
+  nombre: string;
+  contexto: string;
+  estado: "En curso" | "Finalizada" | "Pendiente";
+  detalle: string;
+  pj: number;
+  pg: number;
+  pe: number;
+  pp: number;
+  gf: number;
+  gc: number;
+  puntos?: number;
+  posicion?: number | null;
 }
 
 interface ClubVisual {
@@ -74,6 +103,7 @@ export default function PaginaEquipo() {
   const [nombreRealEquipo, setNombreRealEquipo] = useState(nombreEquipoUrl);
   const [posicionLiga, setPosicionLiga] = useState<number | null>(null);
   const [titulos, setTitulos] = useState<any[]>([]);
+  const [resumenCompeticiones, setResumenCompeticiones] = useState<ResumenCompeticion[]>([]);
 
   const [stats, setStats] = useState({
     pj: 0,
@@ -239,6 +269,147 @@ export default function PaginaEquipo() {
     };
   }
 
+  function nombreCompeticion(partido: Partido) {
+    const key = normalizeCompetition(partido.competicion, partido.division);
+    if (key === "liga") return `Liga ${divisionBonita(partido.division)}`;
+    if (key === "copa_clasificatoria") return "Clasificación a Copas";
+    if (key === "copa_argentina") return "Copa Argentina";
+    if (key === "copa_apa") return "Copa APA";
+    if (key === "copa_campeones") return "Copa de Campeones";
+    if (key === "playoffs") return "Playoffs de Ascenso";
+    return partido.competicion || "Competición";
+  }
+
+  function contextoCompeticion(partido: Partido) {
+    const key = normalizeCompetition(partido.competicion, partido.division);
+    if (key === "liga") return divisionBonita(partido.division);
+    if (key === "copa_clasificatoria") {
+      const grupo = normalizeGroup(partido.grupo);
+      return grupo ? `Grupo ${grupo}` : "Fase de grupos";
+    }
+    const fase = normalizePhase(partido.fase);
+    const labels: Record<string, string> = {
+      octavos: "Octavos de final",
+      cuartos: "Cuartos de final",
+      semifinal: "Semifinal",
+      final: "Final",
+      final_ascenso: "Final de Ascenso",
+      promocion: "Promoción",
+    };
+    return labels[fase] || partido.fase || "Sin fase";
+  }
+
+  function construirResumenCompeticiones(
+    nombreClub: string,
+    todosPartidos: Partido[],
+    clubesTemporada: any[],
+  ): ResumenCompeticion[] {
+    const clubNorm = normalizar(nombreClub);
+    const partidosClub = todosPartidos.filter(
+      (p) => normalizar(p.local) === clubNorm || normalizar(p.visitante) === clubNorm,
+    );
+    const grupos = new Map<string, Partido[]>();
+
+    for (const partido of partidosClub) {
+      const competition = normalizeCompetition(partido.competicion, partido.division);
+      const context =
+        competition === "liga"
+          ? normalizeDivision(partido.division)
+          : competition === "copa_clasificatoria"
+            ? normalizeGroup(partido.grupo)
+            : normalizePhase(partido.fase);
+      const key = `${competition}__${context || "general"}`;
+      if (!grupos.has(key)) grupos.set(key, []);
+      grupos.get(key)!.push(partido);
+    }
+
+    return Array.from(grupos.entries())
+      .map(([key, lista]) => {
+        const referencia = lista[0];
+        const competition = normalizeCompetition(referencia.competicion, referencia.division);
+        const calculadas = calcularStatsEquipo(nombreClub, lista);
+        const finalizados = lista.filter((p) => parseScore(p.resultado)).length;
+        const pendientes = lista.length - finalizados;
+        const estado: ResumenCompeticion["estado"] =
+          finalizados === 0 ? "Pendiente" : pendientes > 0 ? "En curso" : "Finalizada";
+
+        let posicion: number | null = null;
+        let detalle = contextoCompeticion(referencia);
+
+        if (competition === "liga" || competition === "copa_clasificatoria") {
+          const mismos = todosPartidos.filter((p) => {
+            if (normalizeCompetition(p.competicion, p.division) !== competition) return false;
+            if (competition === "liga") {
+              return normalizeDivision(p.division) === normalizeDivision(referencia.division);
+            }
+            return normalizeGroup(p.grupo) === normalizeGroup(referencia.grupo);
+          });
+          const equipos = new Set<string>();
+          mismos.forEach((p) => {
+            if (p.local) equipos.add(p.local);
+            if (p.visitante) equipos.add(p.visitante);
+          });
+          clubesTemporada.forEach((c: any) => {
+            if (
+              competition === "liga" &&
+              normalizeDivision(c.division) === normalizeDivision(referencia.division)
+            ) equipos.add(c.nombre);
+          });
+          const tabla = Array.from(equipos)
+            .map((equipo) => {
+              const st = calcularStatsEquipo(equipo, mismos);
+              return { equipo, ...st, dg: st.gf - st.gc };
+            })
+            .sort((a, b) =>
+              b.puntos - a.puntos || b.dg - a.dg || b.gf - a.gf || a.equipo.localeCompare(b.equipo),
+            );
+          const idx = tabla.findIndex((x) => normalizar(x.equipo) === clubNorm);
+          posicion = idx >= 0 ? idx + 1 : null;
+          detalle = `${contextoCompeticion(referencia)}${posicion ? ` · ${posicion}° puesto` : ""}`;
+        } else {
+          const ordenFases = ["octavos", "cuartos", "semifinal", "final", "final_ascenso", "promocion"];
+          const fasesJugadas = partidosClub
+            .filter((p) => normalizeCompetition(p.competicion, p.division) === competition)
+            .map((p) => normalizePhase(p.fase))
+            .filter(Boolean);
+          const faseMax = fasesJugadas.sort(
+            (a, b) => ordenFases.indexOf(b) - ordenFases.indexOf(a),
+          )[0];
+          if (faseMax) {
+            const labels: Record<string, string> = {
+              octavos: "Octavos de final",
+              cuartos: "Cuartos de final",
+              semifinal: "Semifinal",
+              final: "Final",
+              final_ascenso: "Final de Ascenso",
+              promocion: "Promoción",
+            };
+            detalle = `Instancia alcanzada: ${labels[faseMax] || faseMax}`;
+          }
+        }
+
+        return {
+          key,
+          nombre: nombreCompeticion(referencia),
+          contexto: contextoCompeticion(referencia),
+          estado,
+          detalle,
+          pj: calculadas.pj,
+          pg: calculadas.pg,
+          pe: calculadas.pe,
+          pp: calculadas.pp,
+          gf: calculadas.gf,
+          gc: calculadas.gc,
+          puntos: competition === "liga" || competition === "copa_clasificatoria" ? calculadas.puntos : undefined,
+          posicion,
+        };
+      })
+      .sort((a, b) => {
+        const orden = ["Liga", "Clasificación", "Copa Argentina", "Copa APA", "Copa de Campeones", "Playoffs"];
+        return orden.findIndex((x) => a.nombre.startsWith(x)) - orden.findIndex((x) => b.nombre.startsWith(x));
+      });
+  }
+
   async function fetchDatosEquipo() {
     try {
       setLoading(true);
@@ -254,6 +425,7 @@ export default function PaginaEquipo() {
         setLideresHistoricos([]);
         setTitulos([]);
         setPosicionLiga(null);
+        setResumenCompeticiones([]);
         setStats({
           pj: 0,
           pg: 0,
@@ -299,19 +471,24 @@ export default function PaginaEquipo() {
       const { data: partidosData, error: partidosError } = await supabase
         .from("partidos")
         .select(
-          "id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora",
+          "id, partido_id, local, visitante, resultado, fecha, temporada, division, competicion, fase, grupo, dia, hora",
         )
-        .eq("temporada", temporadaActual)
-        .in("division", divisionesPartidos)
-        .limit(1000);
+        .limit(3000);
 
       if (partidosError) {
         console.error("ERROR CARGANDO PARTIDOS:", partidosError);
       }
 
-      const partidosDeDivision = (partidosData || []) as Partido[];
+      const partidosTemporada = ((partidosData || []) as Partido[]).filter(
+        (p) => normalizeSeason(p.temporada) === normalizeSeason(temporadaActual),
+      );
+      const partidosDeDivision = partidosTemporada.filter(
+        (p) =>
+          normalizeCompetition(p.competicion, p.division) === "liga" &&
+          normalizeDivision(p.division) === normalizeDivision(divisionActual),
+      );
 
-      const partidosDelEquipo = partidosDeDivision.filter(
+      const partidosDelEquipo = partidosTemporada.filter(
         (p: any) =>
           normalizar(p.local) === normalizar(nombreExacto) ||
           normalizar(p.visitante) === normalizar(nombreExacto),
@@ -352,6 +529,9 @@ export default function PaginaEquipo() {
       );
 
       setPosicionLiga(posicion >= 0 ? posicion + 1 : null);
+      setResumenCompeticiones(
+        construirResumenCompeticiones(nombreExacto, partidosTemporada, clubesDivision || []),
+      );
 
       const { data: titulosData } = await supabase
         .from("titulos")
@@ -366,9 +546,7 @@ export default function PaginaEquipo() {
         .select(
           "id, nombre, playerId, posicion, equipo, goals, assists, mvp, temporada, division",
         )
-        .eq("temporada", temporadaActual)
-        .in("division", divisionesPartidos)
-        .limit(3000);
+        .limit(5000);
 
       const { data: plantillasData } = await supabase
         .from("plantillas")
@@ -376,8 +554,6 @@ export default function PaginaEquipo() {
           "id, jugador, playerid, steam_id, profile_id, equipo, posicion, temporada, division, estado",
         )
         .eq("equipo", nombreExacto)
-        .eq("temporada", temporadaActual)
-        .in("division", divisionesPartidos)
         .neq("estado", "baja")
         .limit(200);
 
@@ -386,7 +562,9 @@ export default function PaginaEquipo() {
       );
 
       const estadisticasDelClub = (estadisticasJugadoresData || []).filter(
-        (j: any) => normalizar(j.equipo) === normalizar(nombreExacto),
+        (j: any) =>
+          normalizar(j.equipo) === normalizar(nombreExacto) &&
+          normalizeSeason(j.temporada) === normalizeSeason(temporadaActual),
       );
 
       // Historial del club: no depende de la plantilla actual.
@@ -747,6 +925,71 @@ export default function PaginaEquipo() {
               </div>
             </div>
           </div>
+        </section>
+
+        <section className="rounded-[34px] border border-sky-500/25 bg-[#020714] p-6 shadow-[0_0_35px_rgba(0,120,255,.10)] md:p-7">
+          <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-300">
+                Temporada completa
+              </p>
+              <h2 className="mt-2 text-3xl font-black uppercase">
+                Rendimiento por competición
+              </h2>
+            </div>
+            <span className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-xs font-black uppercase text-zinc-400">
+              Liga, copas y playoffs separados
+            </span>
+          </div>
+
+          {resumenCompeticiones.length === 0 ? (
+            <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
+              El club todavía no tiene partidos registrados en esta temporada.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {resumenCompeticiones.map((item) => (
+                <article key={item.key} className="rounded-[26px] border border-white/10 bg-black/35 p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-lg font-black uppercase text-white">{item.nombre}</p>
+                      <p className="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-zinc-500">
+                        {item.detalle}
+                      </p>
+                    </div>
+                    <span className={`rounded-xl border px-3 py-2 text-[10px] font-black uppercase ${
+                      item.estado === "Finalizada"
+                        ? "border-zinc-400/25 bg-zinc-400/10 text-zinc-300"
+                        : item.estado === "En curso"
+                          ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300"
+                          : "border-yellow-400/25 bg-yellow-400/10 text-yellow-300"
+                    }`}>
+                      {item.estado}
+                    </span>
+                  </div>
+                  <div className="mt-5 grid grid-cols-4 gap-2">
+                    {[
+                      ["PJ", item.pj],
+                      ["PG", item.pg],
+                      ["GF", item.gf],
+                      ["GC", item.gc],
+                    ].map(([label, value]) => (
+                      <div key={String(label)} className="rounded-xl border border-white/10 bg-white/[0.04] p-3 text-center">
+                        <p className="text-[9px] font-black uppercase text-zinc-500">{label}</p>
+                        <p className="mt-1 text-xl font-black text-white">{value}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {(item.puntos !== undefined || item.posicion) && (
+                    <div className="mt-3 flex items-center justify-between rounded-xl border border-sky-400/20 bg-sky-400/10 px-4 py-3 text-xs font-black uppercase text-sky-200">
+                      <span>{item.puntos !== undefined ? `${item.puntos} puntos` : item.contexto}</span>
+                      <span>{item.posicion ? `${item.posicion}° puesto` : "Sin posición"}</span>
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="rounded-[34px] border border-yellow-500/25 bg-[#020714] p-6 shadow-[0_0_35px_rgba(250,204,21,.08)]">

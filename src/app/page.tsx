@@ -15,6 +15,7 @@ import StatsGrid from "@/components/home/StatsGrid";
 import FeaturedMatch from "@/components/home/FeaturedMatch";
 import FixturesResultsGrid from "@/components/home/FixturesResultsGrid";
 import QuickAccessGrid from "@/components/home/QuickAccessGrid";
+import { matchFitsContext, matchIds } from "@/lib/competitionData";
 
 const temporadas = ["Temporada 4"];
 
@@ -212,87 +213,54 @@ export default function Home() {
     setNoticias((data || []) as unknown as NoticiaHome[]);
   }
 
-  function aplicarFiltroContexto(query: any) {
-    query = query
-      .eq("temporada", temporada)
-      .eq("competicion", contextoActual.competicion);
-
-    if (contextoActual.competicion === "liga") {
-      query = query.in(
-        "division",
-        [contextoActual.division, contextoActual.divisionDb].filter(Boolean),
-      );
-    }
-
-    if (contextoActual.competicion === "copa_clasificatoria") {
-      query = query.eq("fase", "grupos");
-      if (contextoActual.grupo) query = query.eq("grupo", contextoActual.grupo);
-    }
-
-    if (
-      contextoActual.competicion === "copa_argentina" ||
-      contextoActual.competicion === "copa_apa" ||
-      contextoActual.competicion === "copa_campeones"
-    ) {
-      if (contextoActual.fase) query = query.eq("fase", contextoActual.fase);
-    }
-
-    return query;
+  function contextoFiltro() {
+    return {
+      temporada,
+      competicion: contextoActual.competicion,
+      division: contextoActual.divisionDb || contextoActual.division,
+      grupo: contextoActual.grupo,
+      fase: contextoActual.fase,
+    };
   }
 
   async function cargarDatos() {
-    let partidosQuery = supabase
+    const { data: allPartidos, error: partidosError } = await supabase
       .from("partidos")
-      .select(
-        "id, partido_id, local, visitante, resultado, fecha, temporada, division, competicion, fase, grupo, dia, hora",
-      )
+      .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, competicion, fase, grupo, dia, hora")
       .order("fecha", { ascending: true })
       .order("hora", { ascending: true });
 
-    partidosQuery = aplicarFiltroContexto(partidosQuery);
-
-    const { data: partidosData, error: partidosError } = await partidosQuery;
-
     if (partidosError) {
-      console.log(partidosError);
+      console.error("Error cargando portada:", partidosError);
       setPartidos([]);
       setJugadores([]);
       setClubesInfo([]);
       return;
     }
 
+    const partidosData = (allPartidos || []).filter((partido: any) =>
+      matchFitsContext(partido, contextoFiltro()),
+    );
+
     const partidoIds = Array.from(
-      new Set(
-        (partidosData || [])
-          .map((partido: any) => String(partido.partido_id || "").trim())
-          .filter(Boolean),
-      ),
+      new Set(partidosData.flatMap((partido: any) => matchIds(partido))),
     );
 
     let jugadoresData: any[] = [];
-
     if (partidoIds.length > 0) {
       const { data, error: jugadoresError } = await supabase
         .from("estadisticas_jugadores")
-        .select(
-          "id, partido_id, nombre, playerId, equipo, temporada, division, fecha, goals, assists, mvp",
-        )
+        .select("id, partido_id, nombre, playerId, equipo, temporada, division, fecha, goals, assists, mvp")
         .in("partido_id", partidoIds);
-
-      if (jugadoresError) {
-        console.log(jugadoresError);
-      } else {
-        jugadoresData = data || [];
-      }
+      if (jugadoresError) console.error("Error cargando stats de portada:", jugadoresError);
+      else jugadoresData = data || [];
     }
 
     const nombresClubes = Array.from(
-      new Set(
-        [
-          ...(partidosData || []).flatMap((p: any) => [p.local, p.visitante]),
-          ...(jugadoresData || []).map((j: any) => j.equipo),
-        ].filter(Boolean),
-      ),
+      new Set([
+        ...partidosData.flatMap((p: any) => [p.local, p.visitante]),
+        ...jugadoresData.map((j: any) => j.equipo),
+      ].filter(Boolean)),
     );
 
     if (nombresClubes.length > 0) {
@@ -300,15 +268,12 @@ export default function Home() {
         .from("clubes_info")
         .select("nombre, logo_url")
         .in("nombre", nombresClubes);
-
-      if (clubesError) console.log(clubesError);
+      if (clubesError) console.error(clubesError);
       setClubesInfo(clubesData || []);
-    } else {
-      setClubesInfo([]);
-    }
+    } else setClubesInfo([]);
 
-    setPartidos([...(partidosData || [])].sort(ordenarPartidos));
-    setJugadores(jugadoresData || []);
+    setPartidos([...partidosData].sort(ordenarPartidos));
+    setJugadores(jugadoresData);
   }
 
   const divisionActual = {

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../../lib/supabase";
+import { matchFitsContext, normalizeDivision, normalizeRound, parseScore, stableMatchId } from "../../../lib/competitionData";
 
 function Escudo({
   nombre,
@@ -94,7 +95,7 @@ export default function FixtureDivisionPage() {
 
   useEffect(() => {
     cargarPartidos();
-  }, [division, divisionDb, grupoCopa, temporada, faseCopaCampeones]);
+  }, [division, divisionDb, grupoCopa, temporada, faseCopaCampeones, fasePlayoffs]);
 
   function normalizarDivisionFiltro(value: string) {
     const v = String(value || "").toLowerCase().trim();
@@ -116,53 +117,34 @@ export default function FixtureDivisionPage() {
     return "";
   }
   async function cargarPartidos() {
-    let query = supabase
+    const { data, error } = await supabase
       .from("partidos")
       .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora, competicion, grupo, fase, ronda")
-      .eq("temporada", temporada)
       .order("fecha", { ascending: true });
 
-    if (esCopaGrupos) {
-      query = query
-        .eq("competicion", "copa_clasificatoria")
-        .eq("fase", "grupos")
-        .eq("grupo", grupoCopa);
-    } else if (esCopaCampeones) {
-      query = query.eq("competicion", "copa_campeones");
-
-      if (faseCopaCampeones) {
-        const faseNormalizada = faseCopaCampeones.toLowerCase().includes("final") ? "final" : "semifinal";
-        query = query.eq("fase", faseNormalizada);
-      }
-    } else if (esPlayoffs) {
-      query = query.eq("competicion", "playoffs");
-
-      const faseNormalizada = fasePlayoffsDb(fasePlayoffs);
-      if (faseNormalizada) {
-        query = query.eq("fase", faseNormalizada);
-      }
-    } else {
-      query = query
-        .eq("competicion", "liga")
-        .eq("division", normalizarDivisionFiltro(divisionDb));
-    }
-
-    const { data, error } = await query;
-
     if (error) {
-      console.log(error);
+      console.error("Error cargando fixture:", error);
+      setPartidos([]);
+      setClubesInfo([]);
       return;
     }
 
-    const partidosLimpios = data || [];
+    const context = esCopaGrupos
+      ? { temporada, competicion: "copa_clasificatoria", grupo: grupoCopa }
+      : esCopaCampeones
+        ? { temporada, competicion: "copa_campeones", fase: faseCopaCampeones || undefined }
+        : esPlayoffs
+          ? { temporada, competicion: "playoffs", fase: fasePlayoffs || undefined }
+          : { temporada, competicion: "liga", division: divisionDb };
+
+    const partidosLimpios = (data || []).filter((partido: any) =>
+      matchFitsContext(partido, context),
+    );
+
     setPartidos(partidosLimpios);
 
     const nombresEquipos = Array.from(
-      new Set(
-        partidosLimpios
-          .flatMap((p: any) => [p.local, p.visitante])
-          .filter(Boolean),
-      ),
+      new Set(partidosLimpios.flatMap((p: any) => [p.local, p.visitante]).filter(Boolean)),
     );
 
     if (nombresEquipos.length > 0) {
@@ -173,33 +155,32 @@ export default function FixtureDivisionPage() {
         .eq("activo", true)
         .in("nombre", nombresEquipos);
 
-      if (clubesError) {
-        console.log(clubesError);
-      }
+      if (clubesError) console.error("Error cargando clubes:", clubesError);
 
       setClubesInfo(
         esCopaGrupos || esCopaCampeones || esPlayoffs
           ? (clubesData || [])
           : (clubesData || []).filter(
-              (club: any) =>
-                normalizarDivisionFiltro(club.division) ===
-                normalizarDivisionFiltro(division),
+              (club: any) => normalizeDivision(club.division) === normalizeDivision(division),
             ),
       );
     } else {
       setClubesInfo([]);
     }
 
-    const primeraFecha = partidosLimpios[0]?.fecha;
-    if (primeraFecha) setFechaActiva(String(primeraFecha));
+    const primeraFecha = partidosLimpios
+      .map((partido: any) => normalizeRound(partido.fecha))
+      .filter(Boolean)
+      .sort((a: string, b: string) => Number(a) - Number(b))[0];
+    if (primeraFecha) setFechaActiva(primeraFecha);
   }
 
   const fechas = Array.from(
-    new Set(partidos.map((p) => String(p.fecha || "1"))),
+    new Set(partidos.map((p) => normalizeRound(p.fecha || "1"))),
   ).sort((a, b) => Number(a) - Number(b));
 
   const partidosFecha = partidos.filter(
-    (p) => String(p.fecha || "1") === fechaActiva,
+    (p) => normalizeRound(p.fecha || "1") === fechaActiva,
   );
 
   const indiceFecha = fechas.indexOf(fechaActiva);
@@ -293,13 +274,9 @@ export default function FixtureDivisionPage() {
       asegurar(p.local);
       asegurar(p.visitante);
 
-      if (!p.resultado || !p.resultado.includes("-")) return;
-
-      const [glRaw, gvRaw] = String(p.resultado).split("-");
-      const gl = Number(glRaw?.trim());
-      const gv = Number(gvRaw?.trim());
-
-      if (Number.isNaN(gl) || Number.isNaN(gv)) return;
+      const score = parseScore(p.resultado);
+      if (!score) return;
+      const [gl, gv] = score;
 
       mapa[p.local].pj += 1;
       mapa[p.visitante].pj += 1;
@@ -671,7 +648,7 @@ export default function FixtureDivisionPage() {
                         )}
                       </div>
 
-                      {p.partido_id ? (
+                      {(p.partido_id || p.id) ? (
                         <span className="text-xs font-black uppercase tracking-[0.18em] text-sky-300 transition group-hover:text-white">
                           Ver estadísticas →
                         </span>
@@ -684,10 +661,10 @@ export default function FixtureDivisionPage() {
                   </div>
                 );
 
-                return p.partido_id ? (
+                return (p.partido_id || p.id) ? (
                   <Link
                     key={p.id || index}
-                    href={`/estadisticas/${encodeURIComponent(p.partido_id)}`}
+                    href={`/estadisticas/${encodeURIComponent(p.partido_id || stableMatchId(p.temporada, p.id))}`}
                   >
                     {contenido}
                   </Link>

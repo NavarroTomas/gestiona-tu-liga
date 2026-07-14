@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { matchIds } from "@/lib/competitionData";
 
 type EquipoStats = {
   id: number;
@@ -80,6 +81,30 @@ export default function PartidoEstadisticasPage() {
       setLoading(true);
       setErrorMsg(null);
 
+      let idsConsulta = [partidoId];
+      const numericId = /^\d+$/.test(partidoId) ? Number(partidoId) : null;
+      let partidoRelacionado: any = null;
+
+      if (numericId !== null) {
+        const { data } = await supabase
+          .from("partidos")
+          .select("id,partido_id,temporada")
+          .eq("id", numericId)
+          .maybeSingle();
+        partidoRelacionado = data;
+      } else {
+        const { data } = await supabase
+          .from("partidos")
+          .select("id,partido_id,temporada")
+          .eq("partido_id", partidoId)
+          .maybeSingle();
+        partidoRelacionado = data;
+      }
+
+      if (partidoRelacionado) {
+        idsConsulta = Array.from(new Set([partidoId, ...matchIds(partidoRelacionado)]));
+      }
+
       const equiposQuery = supabase
         .from("estadisticas_equipos")
         .select(
@@ -106,7 +131,7 @@ export default function PartidoEstadisticasPage() {
           cornerKicks
         `,
         )
-        .eq("partido_id", partidoId);
+        .in("partido_id", idsConsulta);
 
       const jugadoresQuery = supabase
         .from("estadisticas_jugadores")
@@ -140,7 +165,7 @@ export default function PartidoEstadisticasPage() {
           rating_apa
         `,
         )
-        .eq("partido_id", partidoId)
+        .in("partido_id", idsConsulta)
         .order("score", { ascending: false });
 
       const [

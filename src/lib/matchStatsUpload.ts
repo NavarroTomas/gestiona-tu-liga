@@ -12,6 +12,7 @@ export type ParsedMatchSegment = {
   visitorStats: any;
   localPlayers: any[];
   visitorPlayers: any[];
+  neutralPlayers: any[];
 };
 
 
@@ -355,6 +356,7 @@ function extractPlayersFromPayload(payload: any) {
     team2: new Map<string, any>(),
   };
   const knownIdentitySide = new Map<string, TxtSide>();
+  const neutralPlayers = new Map<string, any>();
 
   const add = (rawPlayer: any, side: TxtSide) => {
     const player = normalizePlayerRecord(rawPlayer);
@@ -428,12 +430,25 @@ function extractPlayersFromPayload(payload: any) {
     const identity = playerIdentity(candidate.player);
     const side = sideFromTeam || sideFromPath || knownIdentitySide.get(identity);
 
-    if (side) add(candidate.player, side);
+    if (side) {
+      add(candidate.player, side);
+    } else {
+      const normalized = normalizePlayerRecord(candidate.player);
+      const identity = playerIdentity(normalized);
+      if (identity !== "name:") {
+        const current = neutralPlayers.get(identity);
+        neutralPlayers.set(
+          identity,
+          current ? mergePlayerSnapshot(current, normalized) : normalized,
+        );
+      }
+    }
   }
 
   return {
     team1Players: Array.from(bySide.team1.values()),
     team2Players: Array.from(bySide.team2.values()),
+    neutralPlayers: Array.from(neutralPlayers.values()),
   };
 }
 
@@ -584,7 +599,89 @@ export function parseSegmentPayload({
     visitorStats,
     localPlayers: Array.isArray(localPlayers) ? localPlayers : [],
     visitorPlayers: Array.isArray(visitorPlayers) ? visitorPlayers : [],
+    neutralPlayers: Array.isArray(extractedPlayers.neutralPlayers)
+      ? extractedPlayers.neutralPlayers
+      : [],
   };
+}
+
+
+export function assignNeutralPlayersToTeams({
+  segments,
+  roster,
+  localTeam,
+  visitorTeam,
+}: {
+  segments: ParsedMatchSegment[];
+  roster: {
+    jugador?: string | null;
+    playerid?: string | null;
+    equipo?: string | null;
+    estado?: string | null;
+  }[];
+  localTeam: string;
+  visitorTeam: string;
+}) {
+  const localNormalized = normalizeText(localTeam);
+  const visitorNormalized = normalizeText(visitorTeam);
+
+  const findRosterTeam = (player: any) => {
+    const playerId = cleanText(player?.playerId);
+    const playerName = normalizeText(player?.playerName);
+
+    const row = roster.find((item) => {
+      const sameId =
+        playerId &&
+        cleanText(item.playerid) &&
+        cleanText(item.playerid) === playerId;
+      const sameName =
+        !playerId &&
+        playerName &&
+        normalizeText(item.jugador) === playerName;
+      return sameId || sameName;
+    });
+
+    const team = normalizeText(row?.equipo);
+    if (team === localNormalized) return "local" as const;
+    if (team === visitorNormalized) return "visitor" as const;
+    return null;
+  };
+
+  const mergeInto = (players: any[], candidate: any) => {
+    const identity = playerIdentity(candidate);
+    const index = players.findIndex(
+      (player) => playerIdentity(player) === identity,
+    );
+    if (index === -1) return [...players, candidate];
+
+    const next = [...players];
+    next[index] = mergePlayerSnapshot(next[index], candidate);
+    return next;
+  };
+
+  return segments.map((segment) => {
+    let localPlayers = [...segment.localPlayers];
+    let visitorPlayers = [...segment.visitorPlayers];
+    const unresolved: any[] = [];
+
+    for (const player of segment.neutralPlayers || []) {
+      const side = findRosterTeam(player);
+      if (side === "local") {
+        localPlayers = mergeInto(localPlayers, player);
+      } else if (side === "visitor") {
+        visitorPlayers = mergeInto(visitorPlayers, player);
+      } else {
+        unresolved.push(player);
+      }
+    }
+
+    return {
+      ...segment,
+      localPlayers,
+      visitorPlayers,
+      neutralPlayers: unresolved,
+    };
+  });
 }
 
 function weightedAverage(values: { value: number; weight: number }[]) {
