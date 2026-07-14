@@ -218,53 +218,112 @@ export default function SubirTxtPage() {
     };
   }
 
+  function normalizarFechaPartido(value: unknown) {
+    const raw = cleanText(value);
+    const match = raw.match(/\d+/);
+    return match ? String(Number(match[0])) : raw;
+  }
+
+  function coincideCompeticion(partido: PartidoProgramado) {
+    const valor = normalizarTexto(partido.competicion || "")
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+    const divisionPartido = normalizarTexto(partido.division || "");
+
+    if (competicion === "liga") {
+      const esLiga =
+        !valor ||
+        valor === "liga" ||
+        valor === "torneo_liga" ||
+        valor === "liga_primera" ||
+        valor === "liga_segunda" ||
+        valor.includes("liga");
+      return (
+        esLiga &&
+        divisionPartido === normalizarTexto(division)
+      );
+    }
+
+    const alias: Record<Exclude<Competicion, "liga">, string[]> = {
+      copa_clasificatoria: [
+        "copa_clasificatoria",
+        "clasificacion_a_copas",
+        "clasificacion_copas",
+        "clasificatoria",
+      ],
+      copa_argentina: ["copa_argentina"],
+      copa_apa: ["copa_apa"],
+      copa_campeones: ["copa_campeones", "copa_de_campeones"],
+      playoffs: ["playoffs", "playoffs_ascenso", "playoff"],
+    };
+
+    if (!alias[competicion].includes(valor)) return false;
+
+    if (competicion === "copa_clasificatoria") {
+      const fasePartido = normalizarTexto(partido.fase || "");
+      const grupoPartido = cleanText(partido.grupo).toUpperCase();
+      return (
+        (!fasePartido || fasePartido === "grupos" || fasePartido === "grupo") &&
+        grupoPartido === grupoDb()
+      );
+    }
+
+    const fasePartido = normalizarTexto(partido.fase || "").replace(
+      /\s+/g,
+      "_",
+    );
+    return fasePartido === faseDb();
+  }
+
   async function cargarContexto() {
     setMensaje("");
 
-    let query = supabase
+    // Se consulta la temporada completa y se normalizan los valores en el
+    // cliente. En la tabla existen registros creados por versiones distintas
+    // del panel ("Liga", "liga", "liga_primera", etc.), por lo que un
+    // filtro exacto de Supabase dejaba fechas válidas afuera.
+    const { data, error } = await supabase
       .from("partidos")
       .select("*")
       .eq("temporada", temporada)
-      .eq("competicion", competicion)
       .order("fecha", { ascending: true })
       .order("local", { ascending: true });
-
-    if (competicion === "liga") query = query.eq("division", division);
-    if (competicion === "copa_clasificatoria") {
-      query = query.eq("fase", "grupos").eq("grupo", grupoDb());
-    }
-    if (
-      ["copa_argentina", "copa_apa", "copa_campeones", "playoffs"].includes(
-        competicion,
-      )
-    ) {
-      query = query.eq("fase", faseDb());
-    }
-
-    const { data, error } = await query;
 
     if (error) {
       console.error(error);
       setFechasDisponibles([]);
       setPartidosProgramados([]);
       setPartidoSeleccionadoId("");
+      setMensaje(`No se pudieron cargar los partidos: ${error.message}`);
       return;
     }
 
-    const todos = (data || []) as PartidoProgramado[];
+    const todos = ((data || []) as PartidoProgramado[]).filter(
+      coincideCompeticion,
+    );
+
     const fechas = Array.from(
-      new Set(todos.map((p) => cleanText(p.fecha)).filter(Boolean)),
+      new Set(
+        todos
+          .map((p) => normalizarFechaPartido(p.fecha))
+          .filter(Boolean),
+      ),
     ).sort((a, b) => Number(a) - Number(b));
 
+    const fechaActualNormalizada = normalizarFechaPartido(fecha);
     const fechaActiva =
-      fechas.length > 0 && !fechas.includes(String(fecha))
+      fechas.length > 0 && !fechas.includes(fechaActualNormalizada)
         ? fechas[0]
-        : String(fecha);
-    if (fechaActiva !== String(fecha)) setFecha(fechaActiva);
+        : fechaActualNormalizada;
+
+    if (fechaActiva && fechaActiva !== fechaActualNormalizada) {
+      setFecha(fechaActiva);
+    }
 
     const partidosFecha = todos.filter(
-      (p) => cleanText(p.fecha) === fechaActiva,
+      (p) => normalizarFechaPartido(p.fecha) === fechaActiva,
     );
+
     setFechasDisponibles(fechas);
     setPartidosProgramados(partidosFecha);
     setPartidoSeleccionadoId((actual) =>
