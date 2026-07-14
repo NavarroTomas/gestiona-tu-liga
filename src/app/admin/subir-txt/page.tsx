@@ -130,6 +130,12 @@ export default function SubirTxtPage() {
   const [plantillas, setPlantillas] = useState<Plantilla[]>([]);
   const [analisisListo, setAnalisisListo] = useState(false);
   const [advertenciaMigracion, setAdvertenciaMigracion] = useState("");
+  const [jugadoresExcluidos, setJugadoresExcluidos] = useState<
+    Record<string, boolean>
+  >({});
+  const [correccionesStats, setCorreccionesStats] = useState<
+    Record<string, { goals: number; assists: number }>
+  >({});
 
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
@@ -304,6 +310,8 @@ export default function SubirTxtPage() {
     setAnalisisListo(false);
     setSegmentosAnalizados([]);
     setResoluciones({});
+    setJugadoresExcluidos({});
+    setCorreccionesStats({});
   }
 
   async function analizarArchivos() {
@@ -498,8 +506,25 @@ export default function SubirTxtPage() {
         }
       }
 
+      const sospechosos: Record<string, boolean> = {};
+      for (const segmento of segmentosConEquiposResueltos) {
+        for (const player of segmento.localPlayers) {
+          const key = rawPlayerKeyFromPlayer(player, partidoSeleccionado.local);
+          if (estadisticasEnCero(player)) sospechosos[key] = true;
+        }
+        for (const player of segmento.visitorPlayers) {
+          const key = rawPlayerKeyFromPlayer(
+            player,
+            partidoSeleccionado.visitante,
+          );
+          if (estadisticasEnCero(player)) sospechosos[key] = true;
+        }
+      }
+
       setSegmentosAnalizados(segmentosConEquiposResueltos);
       setResoluciones(nextResolutions);
+      setJugadoresExcluidos(sospechosos);
+      setCorreccionesStats({});
       setAnalisisListo(true);
       setLoading(false);
     } catch (error: any) {
@@ -565,6 +590,203 @@ export default function SubirTxtPage() {
           actual.rawPlayerId &&
             actual.rawPlayerId !== cleanText(roster.playerid),
         ),
+        source: "manual",
+      },
+    }));
+  }
+
+
+  function rawPlayerKeyFromPlayer(player: any, team: string) {
+    return buildRawPlayerKey(
+      cleanText(player?.playerId),
+      cleanText(player?.playerName),
+      team,
+    );
+  }
+
+  function estadisticasEnCero(player: any) {
+    const campos = [
+      "passes",
+      "keyPasses",
+      "assists",
+      "shots",
+      "shotsOnTarget",
+      "goals",
+      "tackles",
+      "keyTackles",
+      "interceptions",
+      "keyInterceptions",
+      "possessionsLost",
+      "gKSaves",
+      "gKCatches",
+      "score",
+    ];
+    return campos.every((campo) => numberValue(player?.[campo]) === 0);
+  }
+
+  function segmentosParaGuardar() {
+    if (!partidoSeleccionado) return segmentosAnalizados;
+
+    return segmentosAnalizados.map((segmento) => ({
+      ...segmento,
+      localPlayers: segmento.localPlayers.filter(
+        (player) =>
+          !jugadoresExcluidos[
+            rawPlayerKeyFromPlayer(player, partidoSeleccionado.local)
+          ],
+      ),
+      visitorPlayers: segmento.visitorPlayers.filter(
+        (player) =>
+          !jugadoresExcluidos[
+            rawPlayerKeyFromPlayer(player, partidoSeleccionado.visitante)
+          ],
+      ),
+    }));
+  }
+
+  function claveJugadorConsolidado(player: {
+    equipo: string;
+    playerId: string;
+    nombre: string;
+  }) {
+    return `${normalizarTexto(player.equipo)}__${
+      cleanText(player.playerId)
+        ? `id:${cleanText(player.playerId)}`
+        : `name:${normalizarTexto(player.nombre)}`
+    }`;
+  }
+
+  function aplicarCorreccionesIndividuales(jugadores: any[]) {
+    return jugadores.map((jugador) => {
+      const correccion = correccionesStats[claveJugadorConsolidado(jugador)];
+      if (!correccion) return jugador;
+      return {
+        ...jugador,
+        goals: Math.max(0, numberValue(correccion.goals)),
+        assists: Math.max(0, numberValue(correccion.assists)),
+      };
+    });
+  }
+
+  function cambiarCorreccionStat(
+    jugador: { equipo: string; playerId: string; nombre: string; goals: number; assists: number },
+    campo: "goals" | "assists",
+    value: string,
+  ) {
+    const key = claveJugadorConsolidado(jugador);
+    setCorreccionesStats((actual) => {
+      const base = actual[key] || {
+        goals: numberValue(jugador.goals),
+        assists: numberValue(jugador.assists),
+      };
+      return {
+        ...actual,
+        [key]: {
+          ...base,
+          [campo]: Math.max(0, Number(value || 0)),
+        },
+      };
+    });
+  }
+
+
+  const jugadoresSinEquipo = useMemo(() => {
+    const map = new Map<
+      string,
+      { playerId: string; nombre: string; apariciones: number }
+    >();
+
+    for (const segmento of segmentosAnalizados) {
+      for (const player of segmento.neutralPlayers || []) {
+        const playerId = cleanText(player?.playerId);
+        const nombre = cleanText(player?.playerName) || "Sin nombre";
+        const key = playerId
+          ? `id:${playerId}`
+          : `name:${normalizarTexto(nombre)}`;
+        const actual = map.get(key);
+        if (actual) actual.apariciones += 1;
+        else map.set(key, { playerId, nombre, apariciones: 1 });
+      }
+    }
+
+    return Array.from(map.entries()).map(([key, value]) => ({ key, ...value }));
+  }, [segmentosAnalizados]);
+
+  function resolverJugadorSinEquipo(
+    playerKey: string,
+    playerId: string,
+    nombre: string,
+    destino: "local" | "visitor" | "ignore",
+  ) {
+    if (!partidoSeleccionado) return;
+
+    const coincide = (player: any) => {
+      const id = cleanText(player?.playerId);
+      if (playerId) return id === playerId;
+      return normalizarTexto(player?.playerName || "") === normalizarTexto(nombre);
+    };
+
+    if (destino === "ignore") {
+      const posibleLocal = buildRawPlayerKey(playerId, nombre, partidoSeleccionado.local);
+      const posibleVisitante = buildRawPlayerKey(
+        playerId,
+        nombre,
+        partidoSeleccionado.visitante,
+      );
+      setJugadoresExcluidos((actual) => ({
+        ...actual,
+        [posibleLocal]: true,
+        [posibleVisitante]: true,
+      }));
+      setSegmentosAnalizados((actual) =>
+        actual.map((segmento) => ({
+          ...segmento,
+          neutralPlayers: (segmento.neutralPlayers || []).filter(
+            (player) => !coincide(player),
+          ),
+        })),
+      );
+      return;
+    }
+
+    const equipo =
+      destino === "local"
+        ? partidoSeleccionado.local
+        : partidoSeleccionado.visitante;
+
+    const rosterTemporal: Plantilla[] = [
+      ...plantillas,
+      {
+        jugador: nombre,
+        playerid: playerId || null,
+        equipo,
+        posicion: null,
+        estado: "activo",
+      },
+    ];
+
+    setSegmentosAnalizados((actual) =>
+      assignNeutralPlayersToTeams({
+        segments: actual,
+        roster: rosterTemporal,
+        localTeam: partidoSeleccionado.local,
+        visitorTeam: partidoSeleccionado.visitante,
+      }),
+    );
+
+    const rawKey = buildRawPlayerKey(playerId, nombre, equipo);
+    setJugadoresExcluidos((actual) => ({ ...actual, [rawKey]: false }));
+    setResoluciones((actual) => ({
+      ...actual,
+      [rawKey]: {
+        rawKey,
+        rawPlayerId: playerId,
+        rawName: nombre,
+        team: equipo,
+        action: "new",
+        canonicalPlayerId: playerId,
+        canonicalName: nombre,
+        saveAlias: false,
         source: "manual",
       },
     }));
@@ -775,6 +997,64 @@ export default function SubirTxtPage() {
         return;
       }
 
+      if (jugadoresSinEquipo.length > 0) {
+        alert(
+          "Hay jugadores sin club/equipo detectado. Asignalos al local, al visitante o ignoralos antes de guardar.",
+        );
+        return;
+      }
+
+      const resumenActual = (() => {
+        const segmentos = segmentosParaGuardar();
+        const jugadores = aplicarCorreccionesIndividuales(
+          combinePlayerStats({
+            segments: segmentos,
+            resolutions,
+            localTeam: partidoSeleccionado.local,
+            visitorTeam: partidoSeleccionado.visitante,
+          }),
+        );
+        const localEquipo = combineTeamStats(segmentos, "local");
+        const visitanteEquipo = combineTeamStats(segmentos, "visitor");
+        return [
+          {
+            equipo: partidoSeleccionado.local,
+            golesEquipo: numberValue(localEquipo.goals),
+            golesJugadores: jugadores
+              .filter((j) => j.equipo === partidoSeleccionado.local)
+              .reduce((a, j) => a + numberValue(j.goals), 0),
+            asistenciasEquipo: numberValue(localEquipo.assists),
+            asistenciasJugadores: jugadores
+              .filter((j) => j.equipo === partidoSeleccionado.local)
+              .reduce((a, j) => a + numberValue(j.assists), 0),
+          },
+          {
+            equipo: partidoSeleccionado.visitante,
+            golesEquipo: numberValue(visitanteEquipo.goals),
+            golesJugadores: jugadores
+              .filter((j) => j.equipo === partidoSeleccionado.visitante)
+              .reduce((a, j) => a + numberValue(j.goals), 0),
+            asistenciasEquipo: numberValue(visitanteEquipo.assists),
+            asistenciasJugadores: jugadores
+              .filter((j) => j.equipo === partidoSeleccionado.visitante)
+              .reduce((a, j) => a + numberValue(j.assists), 0),
+          },
+        ];
+      })();
+
+      if (
+        resumenActual.some(
+          (item) =>
+            item.golesEquipo !== item.golesJugadores ||
+            item.asistenciasEquipo !== item.asistenciasJugadores,
+        )
+      ) {
+        alert(
+          "Todavía hay diferencias entre los goles/asistencias del equipo y los asignados a jugadores. Corregilas en la conciliación antes de guardar.",
+        );
+        return;
+      }
+
       const localStats = combineTeamStats(segmentosAnalizados, "local");
       const visitorStats = combineTeamStats(segmentosAnalizados, "visitor");
       const golesLocal = numberValue(localStats.goals);
@@ -938,7 +1218,6 @@ export default function SubirTxtPage() {
       }
 
       await guardarAliases();
-      const nuevosPlantilla = await guardarPlantillasNuevas();
 
       const afectados = [
         ...(anteriores || []).map((j: any) => cleanText(j.playerId)),
@@ -947,7 +1226,7 @@ export default function SubirTxtPage() {
       await recalcularRanking(afectados);
 
       setMensaje(
-        `Carga consolidada: ${partidoSeleccionado.local} ${resultado} ${partidoSeleccionado.visitante}. TXT: ${segmentosAnalizados.length}. Jugadores: ${jugadoresStats.length}. Nuevos en plantilla: ${nuevosPlantilla}. MVP: ${mejorJugador?.nombre || "Sin MVP"}.`,
+        `Carga consolidada: ${partidoSeleccionado.local} ${resultado} ${partidoSeleccionado.visitante}. TXT: ${segmentosAnalizados.length}. Jugadores: ${jugadoresStats.length}. Jugadores no vinculados guardados solo en estadísticas. MVP: ${mejorJugador?.nombre || "Sin MVP"}.`,
       );
 
       setArchivos([]);
@@ -1048,6 +1327,58 @@ export default function SubirTxtPage() {
         combineTeamStats(segmentosAnalizados, "visitor").goals,
       )}`
     : "";
+
+  const segmentosValidos =
+    analisisListo && partidoSeleccionado ? segmentosParaGuardar() : [];
+
+  const jugadoresVistaPrevia =
+    analisisListo && partidoSeleccionado
+      ? aplicarCorreccionesIndividuales(
+          combinePlayerStats({
+            segments: segmentosValidos,
+            resolutions,
+            localTeam: partidoSeleccionado.local,
+            visitorTeam: partidoSeleccionado.visitante,
+          }),
+        )
+      : [];
+
+  const resumenConciliacion = (() => {
+    if (!analisisListo || !partidoSeleccionado) return [];
+    const localStats = combineTeamStats(segmentosValidos, "local");
+    const visitorStats = combineTeamStats(segmentosValidos, "visitor");
+
+    return [
+      {
+        equipo: partidoSeleccionado.local,
+        golesEquipo: numberValue(localStats.goals),
+        golesJugadores: jugadoresVistaPrevia
+          .filter((j) => j.equipo === partidoSeleccionado.local)
+          .reduce((acc, j) => acc + numberValue(j.goals), 0),
+        asistenciasEquipo: numberValue(localStats.assists),
+        asistenciasJugadores: jugadoresVistaPrevia
+          .filter((j) => j.equipo === partidoSeleccionado.local)
+          .reduce((acc, j) => acc + numberValue(j.assists), 0),
+      },
+      {
+        equipo: partidoSeleccionado.visitante,
+        golesEquipo: numberValue(visitorStats.goals),
+        golesJugadores: jugadoresVistaPrevia
+          .filter((j) => j.equipo === partidoSeleccionado.visitante)
+          .reduce((acc, j) => acc + numberValue(j.goals), 0),
+        asistenciasEquipo: numberValue(visitorStats.assists),
+        asistenciasJugadores: jugadoresVistaPrevia
+          .filter((j) => j.equipo === partidoSeleccionado.visitante)
+          .reduce((acc, j) => acc + numberValue(j.assists), 0),
+      },
+    ];
+  })();
+
+  const hayInconsistencias = resumenConciliacion.some(
+    (item) =>
+      item.golesEquipo !== item.golesJugadores ||
+      item.asistenciasEquipo !== item.asistenciasJugadores,
+  );
 
   return (
     <PermissionGuard permission="matches.upload_txt">
@@ -1384,6 +1715,273 @@ export default function SubirTxtPage() {
                 ))}
               </div>
 
+              {jugadoresSinEquipo.length > 0 && (
+                <div>
+                  <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-orange-300">
+                    Jugadores sin club detectado en el TXT
+                  </p>
+                  <div className="space-y-3">
+                    {jugadoresSinEquipo.map((player) => (
+                      <div
+                        key={player.key}
+                        className="grid grid-cols-1 gap-4 rounded-2xl border border-orange-400/25 bg-orange-400/10 p-4 md:grid-cols-[1.2fr_1fr] md:items-center"
+                      >
+                        <div>
+                          <p className="font-black text-white">{player.nombre}</p>
+                          <p className="mt-1 break-all text-xs text-zinc-400">
+                            PlayerId: {player.playerId || "Sin ID"} · aparece en {player.apariciones} tramo(s)
+                          </p>
+                          <p className="mt-2 text-xs text-orange-200">
+                            Elegí para qué equipo jugó. Sus estadísticas se guardarán, pero no se lo agregará automáticamente a la plantilla.
+                          </p>
+                        </div>
+                        <select
+                          className="input"
+                          defaultValue=""
+                          onChange={(e) => {
+                            const value = e.target.value as
+                              | "local"
+                              | "visitor"
+                              | "ignore"
+                              | "";
+                            if (!value) return;
+                            resolverJugadorSinEquipo(
+                              player.key,
+                              player.playerId,
+                              player.nombre,
+                              value,
+                            );
+                          }}
+                        >
+                          <option value="" disabled>
+                            Seleccionar dónde jugó
+                          </option>
+                          <option value="local">
+                            {partidoSeleccionado.local} (local)
+                          </option>
+                          <option value="visitor">
+                            {partidoSeleccionado.visitante} (visitante)
+                          </option>
+                          <option value="ignore">Ignorar: solo espectó</option>
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="rounded-[28px] border border-sky-400/25 bg-sky-400/10 p-5">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.3em] text-sky-300">
+                      Asistente de importación
+                    </p>
+                    <p className="mt-2 text-sm text-zinc-300">
+                      Revisá participantes, PlayerId y conciliación de goles/asistencias antes de guardar.
+                    </p>
+                  </div>
+                  <span
+                    className={`rounded-xl border px-4 py-2 text-xs font-black uppercase ${
+                      jugadoresSinEquipo.length > 0 || hayInconsistencias
+                        ? "border-orange-400/30 bg-orange-400/10 text-orange-200"
+                        : "border-emerald-400/30 bg-emerald-400/10 text-emerald-200"
+                    }`}
+                  >
+                    {jugadoresSinEquipo.length > 0 || hayInconsistencias
+                      ? "Requiere revisión"
+                      : "Validación correcta"}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-yellow-300">
+                  Participantes detectados
+                </p>
+                <div className="space-y-3">
+                  {rawPlayers.map((raw) => {
+                    const key = raw.rawKey;
+                    const excluded = Boolean(jugadoresExcluidos[key]);
+                    const statsPlayer = segmentosAnalizados
+                      .flatMap((segmento) => [
+                        ...segmento.localPlayers,
+                        ...segmento.visitorPlayers,
+                      ])
+                      .find(
+                        (player) =>
+                          cleanText(player?.playerId) === raw.rawPlayerId &&
+                          raw.rawPlayerId,
+                      );
+                    const zeroStats = statsPlayer
+                      ? estadisticasEnCero(statsPlayer)
+                      : false;
+
+                    return (
+                      <div
+                        key={`participacion-${key}`}
+                        className={`rounded-2xl border p-4 ${
+                          zeroStats
+                            ? "border-orange-400/25 bg-orange-400/10"
+                            : "border-white/10 bg-black/35"
+                        }`}
+                      >
+                        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                          <div>
+                            <p className="font-black text-white">{raw.rawName}</p>
+                            <p className="mt-1 text-xs text-zinc-400">
+                              {raw.team} · {raw.rawPlayerId || "Sin PlayerId"}
+                            </p>
+                            {zeroStats && (
+                              <p className="mt-2 text-xs text-orange-200">
+                                El TXT lo muestra con estadísticas en cero. Confirmá si jugó o si solamente estuvo como suplente/espectador.
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setJugadoresExcluidos((actual) => ({
+                                  ...actual,
+                                  [key]: false,
+                                }))
+                              }
+                              className={`rounded-xl border px-4 py-2 text-xs font-black uppercase ${
+                                !excluded
+                                  ? "border-emerald-300 bg-emerald-400 text-black"
+                                  : "border-white/10 bg-black/30 text-zinc-400"
+                              }`}
+                            >
+                              Sí jugó
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setJugadoresExcluidos((actual) => ({
+                                  ...actual,
+                                  [key]: true,
+                                }))
+                              }
+                              className={`rounded-xl border px-4 py-2 text-xs font-black uppercase ${
+                                excluded
+                                  ? "border-red-300 bg-red-400 text-black"
+                                  : "border-white/10 bg-black/30 text-zinc-400"
+                              }`}
+                            >
+                              No jugó
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-yellow-300">
+                  Conciliación de goles y asistencias
+                </p>
+
+                <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                  {resumenConciliacion.map((item) => {
+                    const okGoles = item.golesEquipo === item.golesJugadores;
+                    const okAsistencias =
+                      item.asistenciasEquipo === item.asistenciasJugadores;
+                    return (
+                      <div
+                        key={item.equipo}
+                        className="rounded-2xl border border-white/10 bg-black/35 p-4"
+                      >
+                        <p className="font-black text-white">{item.equipo}</p>
+                        <p
+                          className={`mt-2 text-sm font-bold ${
+                            okGoles ? "text-emerald-300" : "text-orange-300"
+                          }`}
+                        >
+                          Goles: equipo {item.golesEquipo} · jugadores{" "}
+                          {item.golesJugadores}
+                        </p>
+                        <p
+                          className={`mt-1 text-sm font-bold ${
+                            okAsistencias
+                              ? "text-emerald-300"
+                              : "text-orange-300"
+                          }`}
+                        >
+                          Asistencias: equipo {item.asistenciasEquipo} · jugadores{" "}
+                          {item.asistenciasJugadores}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="overflow-x-auto rounded-2xl border border-white/10">
+                  <table className="min-w-full text-left text-sm">
+                    <thead className="bg-white/[0.06] text-xs uppercase text-zinc-400">
+                      <tr>
+                        <th className="px-4 py-3">Jugador</th>
+                        <th className="px-4 py-3">Equipo</th>
+                        <th className="px-4 py-3">Goles</th>
+                        <th className="px-4 py-3">Asistencias</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {jugadoresVistaPrevia.map((jugador) => (
+                        <tr
+                          key={claveJugadorConsolidado(jugador)}
+                          className="border-t border-white/10"
+                        >
+                          <td className="px-4 py-3 font-bold text-white">
+                            {jugador.nombre}
+                          </td>
+                          <td className="px-4 py-3 text-zinc-400">
+                            {jugador.equipo}
+                          </td>
+                          <td className="px-4 py-3">
+                            <input
+                              type="number"
+                              min="0"
+                              value={numberValue(jugador.goals)}
+                              onChange={(e) =>
+                                cambiarCorreccionStat(
+                                  jugador,
+                                  "goals",
+                                  e.target.value,
+                                )
+                              }
+                              className="input min-w-[90px]"
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <input
+                              type="number"
+                              min="0"
+                              value={numberValue(jugador.assists)}
+                              onChange={(e) =>
+                                cambiarCorreccionStat(
+                                  jugador,
+                                  "assists",
+                                  e.target.value,
+                                )
+                              }
+                              className="input min-w-[90px]"
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {hayInconsistencias && (
+                  <p className="mt-3 rounded-xl border border-orange-400/25 bg-orange-400/10 p-3 text-sm font-bold text-orange-200">
+                    No se puede guardar hasta que los totales individuales coincidan con los totales del equipo.
+                  </p>
+                )}
+              </div>
+
               <div>
                 <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-yellow-300">
                   Revisión de cuentas de jugadores
@@ -1430,7 +2028,7 @@ export default function SubirTxtPage() {
                           }
                         >
                           <option value="__new">
-                            Confirmar como jugador/cuenta nueva
+                            Guardar estadísticas sin agregar a plantilla
                           </option>
                           <option value="__ignore">
                             Ignorar esta cuenta en estadísticas individuales
@@ -1466,7 +2064,9 @@ export default function SubirTxtPage() {
                 <button
                   type="button"
                   onClick={procesarCarga}
-                  disabled={loading}
+                  disabled={
+                    loading || jugadoresSinEquipo.length > 0 || hayInconsistencias
+                  }
                   className="btn disabled:opacity-50"
                 >
                   {loading
@@ -1519,11 +2119,11 @@ export default function SubirTxtPage() {
           )}
 
           <section className="rounded-[28px] border border-yellow-400/20 bg-yellow-400/10 p-5 text-sm leading-7 text-yellow-100">
-            <b>Funcionamiento:</b> un TXT sigue siendo el caso normal. Si el
-            juego corta el partido, cargá el primer tramo normalmente y luego
-            elegí “Agregar tramo al mismo partido” para sumar el segundo. Las
-            cuentas alternativas pueden vincularse al PSO ID oficial antes de
-            guardar.
+            <b>Funcionamiento:</b> el cargador analiza el TXT, permite resolver
+            jugadores que terminaron como espectadores, confirmar quién realmente
+            participó, vincular cuentas alternativas y corregir goles o asistencias
+            perdidos por el juego. El partido solo se guarda cuando todas las
+            validaciones quedan conciliadas.
           </section>
         </div>
       </main>
