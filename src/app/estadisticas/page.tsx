@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { matchFitsContext, matchIds, normalizeRound } from "@/lib/competitionData";
 
 type CompeticionValue = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones" | "playoffs";
 
@@ -134,16 +133,30 @@ export default function EstadisticasPage() {
     async function cargarDatos() {
       setLoading(true);
 
-      const { data: allPartidos, error: partidosBaseError } = await supabase
+      let partidosQuery = supabase
         .from("partidos")
         .select("id, partido_id, local, visitante, resultado, fecha, temporada, competicion, division, grupo, fase")
-        .limit(5000);
+        .eq("temporada", temporada)
+        .eq("competicion", competicion);
 
-      const partidosBase = (allPartidos || []).filter((partido: any) => {
-        if (!matchFitsContext(partido, { temporada, competicion, division, grupo, fase })) {
-          return false;
-        }
-        return fecha === "Todas" || normalizeRound(partido.fecha) === normalizeRound(fecha);
+      if (competicion === "liga") {
+        partidosQuery = partidosQuery.in("division", [division, normalizarDivision(division)]);
+      }
+
+      if (competicion === "copa_clasificatoria") {
+        partidosQuery = partidosQuery.eq("grupo", grupo);
+      }
+
+      if (competicion === "copa_argentina" || competicion === "copa_apa" || competicion === "copa_campeones" || competicion === "playoffs") {
+        partidosQuery = partidosQuery.eq("fase", faseDb(fase));
+      }
+
+      if (fecha !== "Todas") {
+        partidosQuery = partidosQuery.eq("fecha", fecha);
+      }
+
+      const { data: partidosBase, error: partidosBaseError } = await partidosQuery.order("fecha", {
+        ascending: false,
       });
 
       if (cancelado) return;
@@ -157,10 +170,10 @@ export default function EstadisticasPage() {
         return;
       }
 
-      const partidosBaseLimpios = (partidosBase as any[]).filter((p) => matchIds(p).length > 0);
+      const partidosBaseLimpios = ((partidosBase || []) as any[]).filter((p) => p.partido_id);
 
       const partidoIds = Array.from(
-        new Set(partidosBaseLimpios.flatMap((p) => matchIds(p))),
+        new Set(partidosBaseLimpios.map((p) => String(p.partido_id)).filter(Boolean)),
       );
 
       if (partidoIds.length === 0) {
@@ -191,7 +204,7 @@ export default function EstadisticasPage() {
       const metaPorPartido = new Map<string, any>();
 
       partidosBaseLimpios.forEach((p: any) => {
-        matchIds(p).forEach((id) => metaPorPartido.set(String(id), p));
+        metaPorPartido.set(String(p.partido_id), p);
       });
 
       const filas = ((data || []) as any[]).map((item) => {
