@@ -1,59 +1,81 @@
 "use client";
 
-import Link from "next/link";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
-export default function Page() {
-  return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] px-4 py-8 text-white md:px-8">
-      <section className="mx-auto flex min-h-[70vh] max-w-[1100px] items-center justify-center">
-        <div className="w-full rounded-[40px] border border-purple-500/25 bg-[#020714]/95 p-8 text-center shadow-[0_0_55px_rgba(0,0,0,.35)] md:p-12">
-          <p className="text-purple-300 text-xs font-black uppercase tracking-[0.45em]">
-            Eliminatoria APA
+export default function CopaApaPage() {
+  const [temporada, setTemporada] = useState("Temporada 4");
+  const [activa, setActiva] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function verificarEstado() {
+      setLoading(true);
+
+      // Leemos si la Copa APA está activa para la temporada elegida
+      const { data, error } = await supabase
+        .from("configuracion_copas")
+        .select("copa_apa_activa")
+        .eq("temporada", temporada)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error al consultar el estado de la copa:", error);
+      }
+
+      // Si existe el registro y esta activa, setea true. Si no, false.
+      setActiva(data?.copa_apa_activa ?? false);
+      setLoading(false);
+    }
+
+    verificarEstado();
+  }, [temporada]);
+
+  // 1. Mientras carga la consulta
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-[#020714] flex items-center justify-center text-white">
+        <p className="text-sm font-black uppercase tracking-widest text-sky-400">
+          Cargando Copa APA...
+        </p>
+      </main>
+    );
+  }
+
+  // 2. Si la copa está EN MANTENIMIENTO (Desactivada desde el admin)
+  if (!activa) {
+    return (
+      <main className="min-h-screen bg-[#020714] px-4 py-16 text-white flex flex-col items-center justify-center">
+        <div className="max-w-xl w-full rounded-[34px] border border-yellow-500/25 bg-black/40 p-8 text-center shadow-[0_0_50px_rgba(250,204,21,.10)]">
+          <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-300">
+            {temporada}
           </p>
-
-          <h1 className="mt-6 text-5xl font-black uppercase italic leading-none md:text-7xl">
+          <h1 className="mt-3 text-4xl font-black uppercase italic text-yellow-300">
             Copa APA
           </h1>
-
-          <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-zinc-300">
-            La Copa APA se activará cuando finalice la clasificación a copas y estén definidos los equipos clasificados desde la fase de grupos.
+          <div className="my-6 h-px w-full bg-gradient-to-r from-transparent via-yellow-500/30 to-transparent" />
+          <p className="text-zinc-300 text-sm leading-relaxed">
+            Esta competición se encuentra actualmente en <strong className="text-yellow-300">mantenimiento</strong> o aún no ha comenzado para la temporada seleccionada.
           </p>
+        </div>
+      </main>
+    );
+  }
 
-          <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-              <p className="text-purple-300 text-2xl">🏆</p>
-              <h3 className="mt-3 text-xl font-black uppercase">Competencia</h3>
-              <p className="mt-2 text-sm text-zinc-500">Formato en preparación.</p>
-            </div>
-
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-              <p className="text-purple-300 text-2xl">📅</p>
-              <h3 className="mt-3 text-xl font-black uppercase">Fixture</h3>
-              <p className="mt-2 text-sm text-zinc-500">Cruces disponibles al activarse.</p>
-            </div>
-
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-              <p className="text-purple-300 text-2xl">📊</p>
-              <h3 className="mt-3 text-xl font-black uppercase">Datos</h3>
-              <p className="mt-2 text-sm text-zinc-500">Estadísticas y avance de fase.</p>
-            </div>
-          </div>
-
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link
-              href="/competicion"
-              className="rounded-2xl border border-sky-400/30 bg-sky-400 px-6 py-3 text-sm font-black uppercase text-black transition hover:bg-white"
-            >
-              Volver a competición
-            </Link>
-
-            <Link
-              href="/divisiones"
-              className="rounded-2xl border border-white/10 bg-black/35 px-6 py-3 text-sm font-black uppercase text-white transition hover:border-white/30"
-            >
-              Ver torneo de liga
-            </Link>
-          </div>
+  // 3. Si la copa ESTÁ ACTIVA (Aquí va el contenido normal de tu copa)
+  return (
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] px-4 py-8 text-white md:px-8">
+      <section className="mx-auto max-w-[1400px] space-y-8">
+        <div className="rounded-[40px] border border-sky-500/25 bg-[#020714] p-8 text-center">
+          <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
+            Competición
+          </p>
+          <h1 className="mt-2 text-5xl font-black uppercase italic text-white">
+            Copa APA
+          </h1>
+          <p className="mt-4 text-zinc-400 text-sm">
+            ¡La copa está activa! Aquí podés mostrar los cruces, tablas y fixtures de la Copa APA.
+          </p>
         </div>
       </section>
     </main>

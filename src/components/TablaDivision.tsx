@@ -41,32 +41,40 @@ export default function TablaDivision({
   }, [temporada, division]);
 
   async function cargarTabla() {
-    const { data, error } = await supabase
-      .from("partidos")
-      .select(
-        "id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora",
-      )
-      .eq("temporada", temporada)
-      .eq("division", division);
+    // 1. Cargar partidos, clubes y SANCIONES en paralelo
+    const [partidosRes, equiposRes, sancionesRes] = await Promise.all([
+      supabase
+        .from("partidos")
+        .select(
+          "id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora",
+        )
+        .eq("temporada", temporada)
+        .eq("division", division),
 
-    if (error) {
-      console.log(error);
+      supabase
+        .from("v_clubes_temporada_public")
+        .select("*")
+        .eq("temporada", temporada)
+        .eq("activo", true)
+        .order("nombre", { ascending: true }),
+
+      supabase
+        .from("sanciones_equipos")
+        .select("equipo, puntos_descontados")
+        .eq("temporada", temporada),
+    ]);
+
+    if (partidosRes.error) {
+      console.log(partidosRes.error);
       return;
     }
-    const divisionKey = normalizarDivision(division);
 
-    const { data: equiposData, error: equiposError } = await supabase
-      .from("v_clubes_temporada_public")
-      .select("*")
-      .eq("temporada", temporada)
-      .eq("activo", true)
-      .order("nombre", { ascending: true });
-
-    if (equiposError) {
-      console.log(equiposError);
+    if (equiposRes.error) {
+      console.log(equiposRes.error);
     }
 
-    const equiposFiltrados = (equiposData || []).filter(
+    const divisionKey = normalizarDivision(division);
+    const equiposFiltrados = (equiposRes.data || []).filter(
       (e: any) => normalizarDivision(e.division) === divisionKey,
     );
 
@@ -98,7 +106,8 @@ export default function TablaDivision({
       };
     });
 
-    data?.forEach((partido: any) => {
+    // 2. Procesar los partidos jugados
+    (partidosRes.data || []).forEach((partido: any) => {
       if (!partido.resultado || !partido.resultado.includes("-")) return;
 
       const local = partido.local;
@@ -174,6 +183,18 @@ export default function TablaDivision({
       }
     });
 
+    // 3. APLICAR SANCIONES (Descuento de puntos)
+    if (sancionesRes.data && sancionesRes.data.length > 0) {
+      sancionesRes.data.forEach((sancion) => {
+        if (equipos[sancion.equipo]) {
+          equipos[sancion.equipo].puntos -= Number(
+            sancion.puntos_descontados || 0
+          );
+        }
+      });
+    }
+
+    // 4. Calcular DG, forma reciente y ordenar la tabla por Puntos
     const tablaFinal = Object.values(equipos)
       .map((equipo) => ({
         ...equipo,

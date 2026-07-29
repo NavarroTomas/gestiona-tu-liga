@@ -28,8 +28,28 @@ type PartidoCopa = {
   ronda?: string | null;
 };
 
-const TEMPORADAS = ["Temporada 4"];
+const TEMPORADAS = [
+  "Temporada 1",
+  "Temporada 2",
+  "Temporada 3",
+  "Temporada 4",
+  "Temporada 5",
+  "Temporada 6",
+];
 const GRUPOS = ["A", "B", "C", "D"];
+
+const FASES_MANUALES = [
+  "Grupo A",
+  "Grupo B",
+  "Grupo C",
+  "Grupo D",
+  "Cuartos - Copa Argentina",
+  "Cuartos - Copa APA",
+  "Semifinal - Copa Argentina",
+  "Semifinal - Copa APA",
+  "Final - Copa Argentina",
+  "Final - Copa APA",
+];
 
 const COMPETICION_GRUPOS = "copa_clasificatoria";
 const DIVISION_COPA = "copa";
@@ -138,6 +158,11 @@ export default function AdminCopasPage() {
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ESTADO DE MANTENIMIENTO / ACTIVACIÓN DE COPAS
+  const [copaApaActiva, setCopaApaActiva] = useState(false);
+  const [copaArgentinaActiva, setCopaArgentinaActiva] = useState(false);
+  const [guardandoEstado, setGuardandoEstado] = useState(false);
+
   const [grupoSeleccionado, setGrupoSeleccionado] = useState("A");
   const [grupos, setGrupos] = useState<Record<string, string[]>>({
     A: ["", "", "", ""],
@@ -148,7 +173,7 @@ export default function AdminCopasPage() {
 
   const [localManual, setLocalManual] = useState("");
   const [visitanteManual, setVisitanteManual] = useState("");
-  const [grupoManual, setGrupoManual] = useState("A");
+  const [faseManual, setFaseManual] = useState("Grupo A");
   const [fechaManual, setFechaManual] = useState("1");
   const [diaManual, setDiaManual] = useState("");
   const [horaManual, setHoraManual] = useState("");
@@ -162,7 +187,7 @@ export default function AdminCopasPage() {
     setLoading(true);
     setMensaje("");
 
-    const [equiposRes, partidosRes] = await Promise.all([
+    const [equiposRes, partidosRes, configRes] = await Promise.all([
       supabase
         .from("v_clubes_temporada_public")
         .select("*")
@@ -174,10 +199,13 @@ export default function AdminCopasPage() {
         .from("partidos")
         .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora, competicion, grupo, fase, ronda")
         .eq("temporada", temporada)
-        .eq("competicion", COMPETICION_GRUPOS)
-        .eq("fase", "grupos")
-        .order("grupo", { ascending: true })
         .order("fecha", { ascending: true }),
+
+      supabase
+        .from("configuracion_copas")
+        .select("*")
+        .eq("temporada", temporada)
+        .maybeSingle(),
     ]);
 
     if (equiposRes.error) {
@@ -188,6 +216,14 @@ export default function AdminCopasPage() {
     if (partidosRes.error) {
       console.log(partidosRes.error);
       setMensaje("Error cargando partidos de copa.");
+    }
+
+    if (configRes.data) {
+      setCopaApaActiva(configRes.data.copa_apa_activa ?? false);
+      setCopaArgentinaActiva(configRes.data.copa_argentina_activa ?? false);
+    } else {
+      setCopaApaActiva(false);
+      setCopaArgentinaActiva(false);
     }
 
     setEquipos(
@@ -201,6 +237,30 @@ export default function AdminCopasPage() {
 
     setPartidos((partidosRes.data || []) as PartidoCopa[]);
     setLoading(false);
+  }
+
+  async function guardarEstadoCopas() {
+    setGuardandoEstado(true);
+    setMensaje("");
+
+    const { error } = await supabase.from("configuracion_copas").upsert(
+      {
+        temporada,
+        copa_apa_activa: copaApaActiva,
+        copa_argentina_activa: copaArgentinaActiva,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "temporada" }
+    );
+
+    if (error) {
+      console.log(error);
+      setMensaje("Error guardando el estado de las copas.");
+    } else {
+      setMensaje(`¡Estado de copas actualizado para ${temporada}!`);
+    }
+
+    setGuardandoEstado(false);
   }
 
   const equiposUsados = useMemo(() => {
@@ -231,6 +291,74 @@ export default function AdminCopasPage() {
 
     return { copaArgentina, copaApa };
   }, [tablasPorGrupo]);
+
+  // FUNCIÓN PARA GENERAR AUTOMÁTICAMENTE LOS CUARTOS DE FINAL DADO LOS POSICIONAMIENTOS
+  async function generarCuartosDeFinalAutomaticos() {
+    setMensaje("");
+
+    // Verificamos que los 4 grupos tengan 4 equipos definidos en la tabla
+    for (const g of GRUPOS) {
+      if ((tablasPorGrupo[g] || []).length < 4) {
+        setMensaje(`El Grupo ${g} aún no tiene los 4 equipos con tabla generada.`);
+        return;
+      }
+    }
+
+    const tA = tablasPorGrupo["A"];
+    const tB = tablasPorGrupo["B"];
+    const tC = tablasPorGrupo["C"];
+    const tD = tablasPorGrupo["D"];
+
+    // Cruces Copa Argentina (1° y 2°)
+    // 1°A vs 2°B, 1°B vs 2°A, 1°C vs 2°D, 1°D vs 2°C
+    const crucesArgentina = [
+      { local: tA[0].equipo, visitante: tB[1].equipo, comp: "copa_argentina" },
+      { local: tB[0].equipo, visitante: tA[1].equipo, comp: "copa_argentina" },
+      { local: tC[0].equipo, visitante: tD[1].equipo, comp: "copa_argentina" },
+      { local: tD[0].equipo, visitante: tC[1].equipo, comp: "copa_argentina" },
+    ];
+
+    // Cruces Copa APA (3° y 4°)
+    // 3°A vs 4°B, 3°B vs 4°A, 3°C vs 4°D, 3°D vs 4°C
+    const crucesApa = [
+      { local: tA[2].equipo, visitante: tB[3].equipo, comp: "copa_apa" },
+      { local: tB[2].equipo, visitante: tA[3].equipo, comp: "copa_apa" },
+      { local: tC[2].equipo, visitante: tD[3].equipo, comp: "copa_apa" },
+      { local: tD[2].equipo, visitante: tC[3].equipo, comp: "copa_apa" },
+    ];
+
+    const confirmacion = window.confirm(
+      "Se van a generar los 8 cruces de Cuartos de Final (4 de Copa Argentina y 4 de Copa APA) según las posiciones de la tabla. ¿Continuar?"
+    );
+    if (!confirmacion) return;
+
+    const payload = [...crucesArgentina, ...crucesApa].map((c) => ({
+      local: c.local,
+      visitante: c.visitante,
+      resultado: null,
+      fecha: "Cuartos",
+      temporada,
+      division: DIVISION_COPA,
+      dia: null,
+      hora: null,
+      partido_id: null,
+      competicion: c.comp,
+      grupo: null,
+      fase: "cuartos",
+      ronda: `Cuartos de Final`,
+    }));
+
+    const { error } = await supabase.from("partidos").insert(payload);
+
+    if (error) {
+      console.log(error);
+      setMensaje("Error al generar cruces de Cuartos de Final.");
+      return;
+    }
+
+    setMensaje("¡Cruces de Cuartos de Final generados con éxito!");
+    await cargarTodo();
+  }
 
   function cambiarEquipoGrupo(grupo: string, index: number, equipo: string) {
     setGrupos((prev) => {
@@ -332,6 +460,20 @@ export default function AdminCopasPage() {
       return;
     }
 
+    let esGrupo = faseManual.startsWith("Grupo");
+    let grupoAsignado = esGrupo ? faseManual.replace("Grupo ", "").trim() : null;
+    let competicionAsignada = COMPETICION_GRUPOS;
+    let faseNombre = "grupos";
+
+    if (!esGrupo) {
+      if (faseManual.includes("Copa Argentina")) competicionAsignada = "copa_argentina";
+      if (faseManual.includes("Copa APA")) competicionAsignada = "copa_apa";
+      
+      if (faseManual.startsWith("Cuartos")) faseNombre = "cuartos";
+      else if (faseManual.startsWith("Semifinal")) faseNombre = "semifinal";
+      else if (faseManual.startsWith("Final")) faseNombre = "final";
+    }
+
     const { error } = await supabase.from("partidos").insert({
       local: localManual,
       visitante: visitanteManual,
@@ -342,10 +484,10 @@ export default function AdminCopasPage() {
       dia: diaManual || null,
       hora: horaManual || null,
       partido_id: null,
-      competicion: COMPETICION_GRUPOS,
-      grupo: grupoManual,
-      fase: "grupos",
-      ronda: `Grupo ${grupoManual} · Fecha ${fechaManual}`,
+      competicion: competicionAsignada,
+      grupo: grupoAsignado,
+      fase: faseNombre,
+      ronda: `${faseManual} · Fecha ${fechaManual}`,
     });
 
     if (error) {
@@ -516,6 +658,49 @@ export default function AdminCopasPage() {
                 </div>
               </section>
 
+              {/* ESTADO DE COPAS */}
+              <section className="rounded-[34px] border border-emerald-500/25 bg-[#020714]/95 p-6">
+                <p className="text-xs font-black uppercase tracking-[0.35em] text-emerald-300">
+                  Estado de Copas
+                </p>
+                <h2 className="mt-2 text-2xl font-black uppercase">
+                  Visibilidad ({temporada})
+                </h2>
+                <p className="mt-1 text-xs text-zinc-400">
+                  Activa o poné en mantenimiento las vistas públicas para esta temporada.
+                </p>
+
+                <div className="mt-5 space-y-4">
+                  <label className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/35 px-4 py-3 cursor-pointer">
+                    <span className="text-sm font-black uppercase text-white">Copa APA</span>
+                    <input
+                      type="checkbox"
+                      checked={copaApaActiva}
+                      onChange={(e) => setCopaApaActiva(e.target.checked)}
+                      className="h-5 w-5 accent-emerald-400 cursor-pointer"
+                    />
+                  </label>
+
+                  <label className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/35 px-4 py-3 cursor-pointer">
+                    <span className="text-sm font-black uppercase text-white">Copa Argentina</span>
+                    <input
+                      type="checkbox"
+                      checked={copaArgentinaActiva}
+                      onChange={(e) => setCopaArgentinaActiva(e.target.checked)}
+                      className="h-5 w-5 accent-emerald-400 cursor-pointer"
+                    />
+                  </label>
+
+                  <button
+                    onClick={guardarEstadoCopas}
+                    disabled={guardandoEstado}
+                    className="w-full rounded-2xl border border-emerald-400/30 bg-emerald-400 px-5 py-3 text-sm font-black uppercase text-black transition hover:bg-white disabled:opacity-50"
+                  >
+                    {guardandoEstado ? "Guardando..." : "Guardar Estado"}
+                  </button>
+                </div>
+              </section>
+
               <section className="rounded-[34px] border border-yellow-500/25 bg-[#020714]/95 p-6">
                 <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-300">
                   Configurar grupos
@@ -573,6 +758,7 @@ export default function AdminCopasPage() {
                 </button>
               </section>
 
+              {/* MANUAL / AÑADIR CRUCE */}
               <section className="rounded-[34px] border border-emerald-500/25 bg-[#020714]/95 p-6">
                 <p className="text-xs font-black uppercase tracking-[0.35em] text-emerald-300">
                   Manual
@@ -582,13 +768,13 @@ export default function AdminCopasPage() {
 
                 <div className="mt-5 space-y-3">
                   <select
-                    value={grupoManual}
-                    onChange={(e) => setGrupoManual(e.target.value)}
+                    value={faseManual}
+                    onChange={(e) => setFaseManual(e.target.value)}
                     className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
                   >
-                    {GRUPOS.map((grupo) => (
-                      <option key={grupo} value={grupo}>
-                        Grupo {grupo}
+                    {FASES_MANUALES.map((fase) => (
+                      <option key={fase} value={fase}>
+                        {fase}
                       </option>
                     ))}
                   </select>
@@ -622,7 +808,7 @@ export default function AdminCopasPage() {
                   <input
                     value={fechaManual}
                     onChange={(e) => setFechaManual(e.target.value)}
-                    placeholder="Fecha"
+                    placeholder="Fecha / Ronda"
                     className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
                   />
 
@@ -761,11 +947,25 @@ export default function AdminCopasPage() {
                 </section>
               </section>
 
+              {/* BOTÓN PARA GENERAR CUARTOS AUTOMÁTICOS */}
+              <section className="rounded-[34px] border border-yellow-500/25 bg-[#020714]/95 p-6 text-center">
+                <h3 className="text-xl font-black uppercase text-yellow-300">Generar Cuartos de Final Automáticos</h3>
+                <p className="mt-2 text-xs text-zinc-400">
+                  Cruzará automáticamente los 1° vs 2° para la Copa Argentina y los 3° vs 4° para la Copa APA.
+                </p>
+                <button
+                  onClick={generarCuartosDeFinalAutomaticos}
+                  className="mt-4 rounded-2xl border border-yellow-400/30 bg-yellow-400 px-6 py-3 text-sm font-black uppercase text-black transition hover:bg-white"
+                >
+                  ⚡ Generar Cruces de Cuartos de Final
+                </button>
+              </section>
+
               <section className="rounded-[34px] border border-yellow-500/25 bg-[#020714]/95 p-6">
                 <div className="mb-5 flex items-end justify-between gap-4">
                   <div>
                     <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-300">
-                      Partidos de grupos
+                      Partidos de grupos y copas
                     </p>
                     <h2 className="mt-2 text-3xl font-black uppercase">
                       Calendario
@@ -794,7 +994,7 @@ export default function AdminCopasPage() {
                       >
                         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                           <span className="rounded-full border border-yellow-400/25 bg-yellow-400/10 px-3 py-1 text-[10px] font-black uppercase text-yellow-300">
-                            Grupo {p.grupo} · Fecha {p.fecha}
+                            {p.ronda || (p.grupo ? `Grupo ${p.grupo} · Fecha ${p.fecha}` : p.competicion)}
                           </span>
 
                           <button
@@ -850,7 +1050,6 @@ export default function AdminCopasPage() {
                             onChange={(e) =>
                               actualizarPartido(p.id, {
                                 fecha: e.target.value,
-                                ronda: `Grupo ${p.grupo || ""} · Fecha ${e.target.value}`,
                               })
                             }
                             placeholder="Fecha"
