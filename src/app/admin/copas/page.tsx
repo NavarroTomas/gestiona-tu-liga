@@ -28,6 +28,14 @@ type PartidoCopa = {
   ronda?: string | null;
 };
 
+type Sancion = {
+  id: string;
+  temporada: string;
+  equipo: string;
+  puntos_descontados: number;
+  motivo?: string | null;
+};
+
 const TEMPORADAS = [
   "Temporada 1",
   "Temporada 2",
@@ -83,7 +91,11 @@ function generarPartidosGrupo(equipos: string[], grupo: string) {
   }));
 }
 
-function calcularTablaGrupo(partidos: PartidoCopa[], grupo: string) {
+function calcularTablaGrupo(
+  partidos: PartidoCopa[],
+  grupo: string,
+  sanciones: Sancion[] = []
+) {
   const mapa: Record<string, any> = {};
 
   function asegurar(nombre: string) {
@@ -99,6 +111,7 @@ function calcularTablaGrupo(partidos: PartidoCopa[], grupo: string) {
         gf: 0,
         gc: 0,
         dg: 0,
+        sancion_pts: 0,
       };
     }
   }
@@ -141,6 +154,20 @@ function calcularTablaGrupo(partidos: PartidoCopa[], grupo: string) {
       }
     });
 
+  // Aplicar sanciones / descuento de puntos
+  Object.keys(mapa).forEach((nombreEquipo) => {
+    const sancionesEquipo = sanciones.filter(
+      (s) => normalizar(s.equipo) === normalizar(nombreEquipo)
+    );
+    const totalDescuento = sancionesEquipo.reduce(
+      (acc, s) => acc + Number(s.puntos_descontados),
+      0
+    );
+
+    mapa[nombreEquipo].sancion_pts = totalDescuento;
+    mapa[nombreEquipo].pts = mapa[nombreEquipo].pts - totalDescuento;
+  });
+
   return Object.values(mapa)
     .map((e: any) => ({ ...e, dg: e.gf - e.gc }))
     .sort((a: any, b: any) => {
@@ -155,8 +182,15 @@ export default function AdminCopasPage() {
   const [temporada, setTemporada] = useState("Temporada 4");
   const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [partidos, setPartidos] = useState<PartidoCopa[]>([]);
+  const [sanciones, setSanciones] = useState<Sancion[]>([]);
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // ESTADOS DE SANCIONES / DESCUENTO DE PUNTOS
+  const [equipoSancionar, setEquipoSancionar] = useState("");
+  const [puntosRestar, setPuntosRestar] = useState(1);
+  const [motivoSancion, setMotivoSancion] = useState("No presentación (W.O.)");
+  const [guardandoSancion, setGuardandoSancion] = useState(false);
 
   // ESTADO DE MANTENIMIENTO / ACTIVACIÓN DE COPAS
   const [copaApaActiva, setCopaApaActiva] = useState(false);
@@ -187,7 +221,7 @@ export default function AdminCopasPage() {
     setLoading(true);
     setMensaje("");
 
-    const [equiposRes, partidosRes, configRes] = await Promise.all([
+    const [equiposRes, partidosRes, configRes, sancionesRes] = await Promise.all([
       supabase
         .from("v_clubes_temporada_public")
         .select("*")
@@ -197,7 +231,9 @@ export default function AdminCopasPage() {
 
       supabase
         .from("partidos")
-        .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora, competicion, grupo, fase, ronda")
+        .select(
+          "id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora, competicion, grupo, fase, ronda"
+        )
         .eq("temporada", temporada)
         .order("fecha", { ascending: true }),
 
@@ -206,6 +242,12 @@ export default function AdminCopasPage() {
         .select("*")
         .eq("temporada", temporada)
         .maybeSingle(),
+
+      supabase
+        .from("sanciones_equipos")
+        .select("*")
+        .eq("temporada", temporada)
+        .order("created_at", { ascending: false }),
     ]);
 
     if (equiposRes.error) {
@@ -226,13 +268,19 @@ export default function AdminCopasPage() {
       setCopaArgentinaActiva(false);
     }
 
+    if (sancionesRes.data) {
+      setSanciones(sancionesRes.data as Sancion[]);
+    } else {
+      setSanciones([]);
+    }
+
     setEquipos(
       ((equiposRes.data || []) as any[]).map((e) => ({
         id: e.club_id,
         nombre: e.nombre,
         slug: e.slug,
         logo_url: e.logo_url,
-      })),
+      }))
     );
 
     setPartidos((partidosRes.data || []) as PartidoCopa[]);
@@ -263,15 +311,60 @@ export default function AdminCopasPage() {
     setGuardandoEstado(false);
   }
 
+  async function aplicarSancion(e: React.FormEvent) {
+    e.preventDefault();
+    setGuardandoSancion(true);
+    setMensaje("");
+
+    if (!equipoSancionar) {
+      setMensaje("Seleccioná un equipo para sancionar.");
+      setGuardandoSancion(false);
+      return;
+    }
+
+    const { error } = await supabase.from("sanciones_equipos").insert({
+      temporada,
+      equipo: equipoSancionar,
+      puntos_descontados: Number(puntosRestar),
+      motivo: motivoSancion,
+    });
+
+    if (error) {
+      console.log(error);
+      setMensaje("Error al aplicar la sanción.");
+    } else {
+      setMensaje(`Sanción aplicada a ${equipoSancionar}.`);
+      setEquipoSancionar("");
+      await cargarTodo();
+    }
+
+    setGuardandoSancion(false);
+  }
+
+  async function eliminarSancion(id: string) {
+    const confirmar = window.confirm("¿Eliminar esta sanción?");
+    if (!confirmar) return;
+
+    const { error } = await supabase.from("sanciones_equipos").delete().eq("id", id);
+
+    if (error) {
+      console.log(error);
+      setMensaje("Error eliminando sanción.");
+    } else {
+      setMensaje("Sanción eliminada.");
+      await cargarTodo();
+    }
+  }
+
   const equiposUsados = useMemo(() => {
     return new Set(Object.values(grupos).flat().filter(Boolean));
   }, [grupos]);
 
   const tablasPorGrupo = useMemo(() => {
     return Object.fromEntries(
-      GRUPOS.map((grupo) => [grupo, calcularTablaGrupo(partidos, grupo)]),
+      GRUPOS.map((grupo) => [grupo, calcularTablaGrupo(partidos, grupo, sanciones)])
     ) as Record<string, any[]>;
-  }, [partidos]);
+  }, [partidos, sanciones]);
 
   const clasificados = useMemo(() => {
     const copaArgentina: any[] = [];
@@ -292,11 +385,9 @@ export default function AdminCopasPage() {
     return { copaArgentina, copaApa };
   }, [tablasPorGrupo]);
 
-  // FUNCIÓN PARA GENERAR AUTOMÁTICAMENTE LOS CUARTOS DE FINAL DADO LOS POSICIONAMIENTOS
   async function generarCuartosDeFinalAutomaticos() {
     setMensaje("");
 
-    // Verificamos que los 4 grupos tengan 4 equipos definidos en la tabla
     for (const g of GRUPOS) {
       if ((tablasPorGrupo[g] || []).length < 4) {
         setMensaje(`El Grupo ${g} aún no tiene los 4 equipos con tabla generada.`);
@@ -309,8 +400,6 @@ export default function AdminCopasPage() {
     const tC = tablasPorGrupo["C"];
     const tD = tablasPorGrupo["D"];
 
-    // Cruces Copa Argentina (1° y 2°)
-    // 1°A vs 2°B, 1°B vs 2°A, 1°C vs 2°D, 1°D vs 2°C
     const crucesArgentina = [
       { local: tA[0].equipo, visitante: tB[1].equipo, comp: "copa_argentina" },
       { local: tB[0].equipo, visitante: tA[1].equipo, comp: "copa_argentina" },
@@ -318,8 +407,6 @@ export default function AdminCopasPage() {
       { local: tD[0].equipo, visitante: tC[1].equipo, comp: "copa_argentina" },
     ];
 
-    // Cruces Copa APA (3° y 4°)
-    // 3°A vs 4°B, 3°B vs 4°A, 3°C vs 4°D, 3°D vs 4°C
     const crucesApa = [
       { local: tA[2].equipo, visitante: tB[3].equipo, comp: "copa_apa" },
       { local: tB[2].equipo, visitante: tA[3].equipo, comp: "copa_apa" },
@@ -398,7 +485,7 @@ export default function AdminCopasPage() {
 
     if (existentes.length > 0) {
       const confirmar = window.confirm(
-        `Ya existen ${existentes.length} partidos de fase de grupos.\n\n¿Borrar y regenerar?`,
+        `Ya existen ${existentes.length} partidos de fase de grupos.\n\n¿Borrar y regenerar?`
       );
 
       if (!confirmar) return;
@@ -468,7 +555,7 @@ export default function AdminCopasPage() {
     if (!esGrupo) {
       if (faseManual.includes("Copa Argentina")) competicionAsignada = "copa_argentina";
       if (faseManual.includes("Copa APA")) competicionAsignada = "copa_apa";
-      
+
       if (faseManual.startsWith("Cuartos")) faseNombre = "cuartos";
       else if (faseManual.startsWith("Semifinal")) faseNombre = "semifinal";
       else if (faseManual.startsWith("Final")) faseNombre = "final";
@@ -547,7 +634,7 @@ export default function AdminCopasPage() {
     }
 
     const confirmar = window.confirm(
-      `Vas a eliminar ${partidos.length} partidos de fase de grupos. ¿Continuar?`,
+      `Vas a eliminar ${partidos.length} partidos de fase de grupos. ¿Continuar?`
     );
 
     if (!confirmar) return;
@@ -621,7 +708,9 @@ export default function AdminCopasPage() {
 
                   <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
                     <p className="text-[10px] font-black uppercase text-zinc-500">Equipos</p>
-                    <p className="mt-2 text-3xl font-black text-sky-300">{Object.values(grupos).flat().filter(Boolean).length}/16</p>
+                    <p className="mt-2 text-3xl font-black text-sky-300">
+                      {Object.values(grupos).flat().filter(Boolean).length}/16
+                    </p>
                   </div>
                 </div>
               </div>
@@ -655,6 +744,112 @@ export default function AdminCopasPage() {
                       {t}
                     </button>
                   ))}
+                </div>
+              </section>
+
+              {/* MÓDULO DE SANCIONES Y DESCUENTO DE PUNTOS */}
+              <section className="rounded-[34px] border border-red-500/25 bg-[#020714]/95 p-6 space-y-4">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.35em] text-red-400">
+                    Sanciones Copas
+                  </p>
+                  <h2 className="mt-1 text-2xl font-black uppercase">Quitar Puntos</h2>
+                  <p className="mt-1 text-xs text-zinc-400">
+                    Aplica descuentos de puntos a la tabla de posiciones de grupos por W.O. o incumplimientos.
+                  </p>
+                </div>
+
+                <form onSubmit={aplicarSancion} className="space-y-3">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-zinc-400 mb-1">
+                      Equipo
+                    </label>
+                    <select
+                      value={equipoSancionar}
+                      onChange={(e) => setEquipoSancionar(e.target.value)}
+                      className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-xs font-black uppercase text-white outline-none"
+                    >
+                      <option value="">Seleccionar equipo...</option>
+                      {equipos.map((eq) => (
+                        <option key={`sancion-${eq.nombre}`} value={eq.nombre}>
+                          {eq.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-zinc-400 mb-1">
+                        Puntos
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={puntosRestar}
+                        onChange={(e) => setPuntosRestar(Number(e.target.value))}
+                        className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-xs font-black text-white outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-zinc-400 mb-1">
+                        Motivo
+                      </label>
+                      <input
+                        type="text"
+                        value={motivoSancion}
+                        onChange={(e) => setMotivoSancion(e.target.value)}
+                        placeholder="W.O."
+                        className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-xs font-black uppercase text-white outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={guardandoSancion}
+                    className="w-full rounded-2xl border border-red-400/30 bg-red-500 px-5 py-3 text-xs font-black uppercase text-white transition hover:bg-red-600 disabled:opacity-50"
+                  >
+                    {guardandoSancion ? "Aplicando..." : "- Restar Puntos"}
+                  </button>
+                </form>
+
+                <div className="pt-3 border-t border-white/10">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-2">
+                    Sanciones en {temporada} ({sanciones.length})
+                  </p>
+
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {sanciones.map((s) => (
+                      <div
+                        key={s.id}
+                        className="flex items-center justify-between rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs"
+                      >
+                        <div>
+                          <p className="font-black uppercase text-white">{s.equipo}</p>
+                          <p className="text-[9px] text-zinc-400">{s.motivo}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-red-400">
+                            -{s.puntos_descontados} pts
+                          </span>
+                          <button
+                            onClick={() => eliminarSancion(s.id)}
+                            className="rounded-lg border border-red-400/20 bg-red-400/20 px-2 py-0.5 text-[9px] font-black text-red-300 hover:bg-red-500 hover:text-white"
+                          >
+                            X
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {sanciones.length === 0 && (
+                      <p className="text-[11px] text-zinc-500 italic text-center py-1">
+                        Sin sanciones aplicadas.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </section>
 
@@ -735,7 +930,10 @@ export default function AdminCopasPage() {
                       <option value="">Equipo {index + 1}</option>
 
                       {equiposDisponibles(equipoActual).map((equipo) => (
-                        <option key={`${grupoSeleccionado}-${index}-${equipo.nombre}`} value={equipo.nombre}>
+                        <option
+                          key={`${grupoSeleccionado}-${index}-${equipo.nombre}`}
+                          value={equipo.nombre}
+                        >
                           {equipo.nombre}
                         </option>
                       ))}
@@ -879,6 +1077,11 @@ export default function AdminCopasPage() {
                                 </td>
                                 <td className="py-3 text-center font-black text-yellow-300">
                                   {e.pts}
+                                  {e.sancion_pts > 0 && (
+                                    <span className="block text-[9px] font-bold text-red-400">
+                                      (-{e.sancion_pts} pts)
+                                    </span>
+                                  )}
                                 </td>
                                 <td className="rounded-r-xl py-3 text-center font-black text-sky-300">
                                   {e.dg > 0 ? `+${e.dg}` : e.dg}
@@ -949,7 +1152,9 @@ export default function AdminCopasPage() {
 
               {/* BOTÓN PARA GENERAR CUARTOS AUTOMÁTICOS */}
               <section className="rounded-[34px] border border-yellow-500/25 bg-[#020714]/95 p-6 text-center">
-                <h3 className="text-xl font-black uppercase text-yellow-300">Generar Cuartos de Final Automáticos</h3>
+                <h3 className="text-xl font-black uppercase text-yellow-300">
+                  Generar Cuartos de Final Automáticos
+                </h3>
                 <p className="mt-2 text-xs text-zinc-400">
                   Cruzará automáticamente los 1° vs 2° para la Copa Argentina y los 3° vs 4° para la Copa APA.
                 </p>
@@ -994,7 +1199,10 @@ export default function AdminCopasPage() {
                       >
                         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                           <span className="rounded-full border border-yellow-400/25 bg-yellow-400/10 px-3 py-1 text-[10px] font-black uppercase text-yellow-300">
-                            {p.ronda || (p.grupo ? `Grupo ${p.grupo} · Fecha ${p.fecha}` : p.competicion)}
+                            {p.ronda ||
+                              (p.grupo
+                                ? `Grupo ${p.grupo} · Fecha ${p.fecha}`
+                                : p.competicion)}
                           </span>
 
                           <button
