@@ -31,6 +31,7 @@ type PartidoCopa = {
 type Sancion = {
   id: string;
   temporada: string;
+  competicion?: string | null;
   equipo: string;
   puntos_descontados: number;
   motivo?: string | null;
@@ -154,7 +155,7 @@ function calcularTablaGrupo(
       }
     });
 
-  // Aplicar sanciones / descuento de puntos
+  // Aplicar sanciones / descuento de puntos de la copa
   Object.keys(mapa).forEach((nombreEquipo) => {
     const sancionesEquipo = sanciones.filter(
       (s) => normalizar(s.equipo) === normalizar(nombreEquipo)
@@ -243,10 +244,12 @@ export default function AdminCopasPage() {
         .eq("temporada", temporada)
         .maybeSingle(),
 
+      // Filtrar SANCIONES SOLO DE COPAS
       supabase
         .from("sanciones_equipos")
         .select("*")
         .eq("temporada", temporada)
+        .eq("competicion", "copa")
         .order("created_at", { ascending: false }),
     ]);
 
@@ -322,8 +325,10 @@ export default function AdminCopasPage() {
       return;
     }
 
+    // Insertar aclarando que es para 'copa'
     const { error } = await supabase.from("sanciones_equipos").insert({
       temporada,
+      competicion: "copa",
       equipo: equipoSancionar,
       puntos_descontados: Number(puntosRestar),
       motivo: motivoSancion,
@@ -333,7 +338,7 @@ export default function AdminCopasPage() {
       console.log(error);
       setMensaje("Error al aplicar la sanción.");
     } else {
-      setMensaje(`Sanción aplicada a ${equipoSancionar}.`);
+      setMensaje(`Sanción de Copa aplicada a ${equipoSancionar}.`);
       setEquipoSancionar("");
       await cargarTodo();
     }
@@ -342,7 +347,7 @@ export default function AdminCopasPage() {
   }
 
   async function eliminarSancion(id: string) {
-    const confirmar = window.confirm("¿Eliminar esta sanción?");
+    const confirmar = window.confirm("¿Eliminar esta sanción de copa?");
     if (!confirmar) return;
 
     const { error } = await supabase.from("sanciones_equipos").delete().eq("id", id);
@@ -747,7 +752,7 @@ export default function AdminCopasPage() {
                 </div>
               </section>
 
-              {/* MÓDULO DE SANCIONES Y DESCUENTO DE PUNTOS */}
+              {/* MÓDULO DE SANCIONES Y DESCUENTO DE PUNTOS EXCLUSIVO PARA COPAS */}
               <section className="rounded-[34px] border border-red-500/25 bg-[#020714]/95 p-6 space-y-4">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.35em] text-red-400">
@@ -755,7 +760,7 @@ export default function AdminCopasPage() {
                   </p>
                   <h2 className="mt-1 text-2xl font-black uppercase">Quitar Puntos</h2>
                   <p className="mt-1 text-xs text-zinc-400">
-                    Aplica descuentos de puntos a la tabla de posiciones de grupos por W.O. o incumplimientos.
+                    Aplica descuentos a los grupos de copas por W.O. (no afecta a la Liga).
                   </p>
                 </div>
 
@@ -811,13 +816,13 @@ export default function AdminCopasPage() {
                     disabled={guardandoSancion}
                     className="w-full rounded-2xl border border-red-400/30 bg-red-500 px-5 py-3 text-xs font-black uppercase text-white transition hover:bg-red-600 disabled:opacity-50"
                   >
-                    {guardandoSancion ? "Aplicando..." : "- Restar Puntos"}
+                    {guardandoSancion ? "Aplicando..." : "- Restar Puntos (Copa)"}
                   </button>
                 </form>
 
                 <div className="pt-3 border-t border-white/10">
                   <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-2">
-                    Sanciones en {temporada} ({sanciones.length})
+                    Sanciones de Copa en {temporada} ({sanciones.length})
                   </p>
 
                   <div className="space-y-2 max-h-40 overflow-y-auto">
@@ -846,7 +851,7 @@ export default function AdminCopasPage() {
 
                     {sanciones.length === 0 && (
                       <p className="text-[11px] text-zinc-500 italic text-center py-1">
-                        Sin sanciones aplicadas.
+                        Sin sanciones de copa aplicadas.
                       </p>
                     )}
                   </div>
