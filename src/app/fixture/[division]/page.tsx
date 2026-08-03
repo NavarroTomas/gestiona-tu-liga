@@ -57,6 +57,8 @@ const nombresDivision: Record<string, string> = {
   "grupo-b": "Grupo B",
   "grupo-c": "Grupo C",
   "grupo-d": "Grupo D",
+  "copa-argentina": "Copa Argentina",
+  "copa-apa": "Copa APA",
   "copa-campeones": "Copa de Campeones",
   playoffs: "Playoffs de Ascenso",
 };
@@ -69,7 +71,18 @@ const gruposCopa: Record<string, string> = {
 };
 
 function normalizarDivisionUrl(value: string) {
-  const permitido = ["primera", "segunda", "grupo-a", "grupo-b", "grupo-c", "grupo-d", "copa-campeones", "playoffs"];
+  const permitido = [
+    "primera",
+    "segunda",
+    "grupo-a",
+    "grupo-b",
+    "grupo-c",
+    "grupo-d",
+    "copa-argentina",
+    "copa-apa",
+    "copa-campeones",
+    "playoffs",
+  ];
   return permitido.includes(value) ? value : "primera";
 }
 
@@ -79,6 +92,8 @@ export default function FixtureDivisionPage() {
   const division = normalizarDivisionUrl(divisionParam);
 
   const esCopaGrupos = Boolean(gruposCopa[division]);
+  const esCopaArgentina = division === "copa-argentina";
+  const esCopaApa = division === "copa-apa";
   const esCopaCampeones = division === "copa-campeones";
   const esPlayoffs = division === "playoffs";
   const grupoCopa = gruposCopa[division];
@@ -97,25 +112,6 @@ export default function FixtureDivisionPage() {
     cargarPartidos();
   }, [division, divisionDb, grupoCopa, temporada, faseCopaCampeones, fasePlayoffs]);
 
-  function normalizarDivisionFiltro(value: string) {
-    const v = String(value || "").toLowerCase().trim();
-
-    if (v === "primera" || v === "primera division" || v === "primera división") return "primera";
-    if (v === "segunda" || v === "segunda division" || v === "segunda división") return "segunda";
-
-    return v;
-  }
-
-
-  function fasePlayoffsDb(value: string) {
-    const v = String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-
-    if (v === "semifinal" || v === "semifinales") return "semifinal";
-    if (v === "final ascenso" || v === "final_ascenso") return "final_ascenso";
-    if (v === "promocion" || v === "promoción") return "promocion";
-
-    return "";
-  }
   async function cargarPartidos() {
     const { data, error } = await supabase
       .from("partidos")
@@ -131,11 +127,15 @@ export default function FixtureDivisionPage() {
 
     const context = esCopaGrupos
       ? { temporada, competicion: "copa_clasificatoria", grupo: grupoCopa }
-      : esCopaCampeones
-        ? { temporada, competicion: "copa_campeones", fase: faseCopaCampeones || undefined }
-        : esPlayoffs
-          ? { temporada, competicion: "playoffs", fase: fasePlayoffs || undefined }
-          : { temporada, competicion: "liga", division: divisionDb };
+      : esCopaArgentina
+        ? { temporada, competicion: "copa_argentina" }
+        : esCopaApa
+          ? { temporada, competicion: "copa_apa" }
+          : esCopaCampeones
+            ? { temporada, competicion: "copa_campeones", fase: faseCopaCampeones || undefined }
+            : esPlayoffs
+              ? { temporada, competicion: "playoffs", fase: fasePlayoffs || undefined }
+              : { temporada, competicion: "liga", division: divisionDb };
 
     const partidosLimpios = (data || []).filter((partido: any) =>
       matchFitsContext(partido, context),
@@ -158,7 +158,7 @@ export default function FixtureDivisionPage() {
       if (clubesError) console.error("Error cargando clubes:", clubesError);
 
       setClubesInfo(
-        esCopaGrupos || esCopaCampeones || esPlayoffs
+        esCopaGrupos || esCopaArgentina || esCopaApa || esCopaCampeones || esPlayoffs
           ? (clubesData || [])
           : (clubesData || []).filter(
               (club: any) => normalizeDivision(club.division) === normalizeDivision(division),
@@ -169,18 +169,17 @@ export default function FixtureDivisionPage() {
     }
 
     const primeraFecha = partidosLimpios
-      .map((partido: any) => normalizeRound(partido.fecha))
-      .filter(Boolean)
-      .sort((a: string, b: string) => Number(a) - Number(b))[0];
+      .map((partido: any) => normalizeRound(partido.fecha || partido.fase || partido.ronda || "1"))
+      .filter(Boolean)[0];
     if (primeraFecha) setFechaActiva(primeraFecha);
   }
 
   const fechas = Array.from(
-    new Set(partidos.map((p) => normalizeRound(p.fecha || "1"))),
-  ).sort((a, b) => Number(a) - Number(b));
+    new Set(partidos.map((p) => normalizeRound(p.fecha || p.ronda || p.fase || "1"))),
+  );
 
   const partidosFecha = partidos.filter(
-    (p) => normalizeRound(p.fecha || "1") === fechaActiva,
+    (p) => normalizeRound(p.fecha || p.ronda || p.fase || "1") === fechaActiva,
   );
 
   const indiceFecha = fechas.indexOf(fechaActiva);
@@ -337,7 +336,13 @@ export default function FixtureDivisionPage() {
           <div className="relative z-10 grid gap-8 xl:grid-cols-[1fr_360px] xl:items-center">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.45em] text-sky-400">
-                {esCopaCampeones ? "Fixture Copa de Campeones" : esCopaGrupos ? "Fixture Clasificación a Copas" : "Fixture oficial"}
+                {esCopaArgentina || esCopaApa
+                  ? "Fixture Copas Oficiales"
+                  : esCopaCampeones
+                  ? "Fixture Copa de Campeones"
+                  : esCopaGrupos
+                  ? "Fixture Clasificación a Copas"
+                  : "Fixture oficial"}
               </p>
 
               <h1 className="mt-4 text-5xl font-black uppercase italic leading-none md:text-7xl">
@@ -350,20 +355,19 @@ export default function FixtureDivisionPage() {
               </h1>
 
               <p className="mt-6 max-w-3xl text-lg leading-8 text-zinc-300">
-                Centro de calendario, resultados, programación y tabla de
-                posiciones de {esCopaCampeones ? "la Copa de Campeones" : esCopaGrupos ? "la fase de grupos" : "la categoría seleccionada"}.
+                Centro de calendario, resultados y programación de {nombresDivision[division]}.
               </p>
             </div>
 
             <div className="rounded-[34px] border border-sky-400/25 bg-black/35 p-6">
               <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-300">
-                {esCopaCampeones ? "Resumen de copa" : esCopaGrupos ? "Resumen del grupo" : "Resumen competitivo"}
+                Resumen de competición
               </p>
 
               <div className="mt-5 grid grid-cols-2 gap-3">
                 {[
                   ["Equipos", equiposCantidad, "text-sky-300"],
-                  ["Fechas", fechas.length, "text-yellow-300"],
+                  ["Fases/Fechas", fechas.length, "text-yellow-300"],
                   ["Partidos", partidos.length, "text-white"],
                   ["Jugados", jugados, "text-emerald-300"],
                 ].map(([label, value, color]) => (
@@ -406,109 +410,111 @@ export default function FixtureDivisionPage() {
 
         <section className="grid grid-cols-1 gap-6 xl:grid-cols-[480px_1fr]">
           <aside className="space-y-6">
-            <section className="rounded-[34px] border border-yellow-500/25 bg-[#020714]/95 p-6 shadow-[0_0_35px_rgba(250,204,21,.08)]">
-              <div className="mb-5 flex items-end justify-between gap-4">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-300">
-                    {esCopaCampeones ? "Tabla de copa" : esCopaGrupos ? "Tabla del grupo" : "Tabla de posiciones"}
+            {!esCopaArgentina && !esCopaApa && (
+              <section className="rounded-[34px] border border-yellow-500/25 bg-[#020714]/95 p-6 shadow-[0_0_35px_rgba(250,204,21,.08)]">
+                <div className="mb-5 flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-300">
+                      Tabla de posiciones
+                    </p>
+
+                    <h2 className="mt-2 text-3xl font-black uppercase">
+                      Clasificación
+                    </h2>
+                  </div>
+
+                  {lider && (
+                    <span className="rounded-full border border-yellow-400/25 bg-yellow-400/10 px-3 py-2 text-[10px] font-black uppercase text-yellow-300">
+                      👑 Líder
+                    </span>
+                  )}
+                </div>
+
+                {tabla.length === 0 ? (
+                  <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
+                    La tabla aparecerá cuando haya resultados cargados.
                   </p>
-
-                  <h2 className="mt-2 text-3xl font-black uppercase">
-                    {esCopaCampeones ? "Copa de Campeones" : esCopaGrupos ? "Clasificación a copas" : "Clasificación"}
-                  </h2>
-                </div>
-
-                {lider && (
-                  <span className="rounded-full border border-yellow-400/25 bg-yellow-400/10 px-3 py-2 text-[10px] font-black uppercase text-yellow-300">
-                    👑 Líder
-                  </span>
-                )}
-              </div>
-
-              {tabla.length === 0 ? (
-                <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
-                  La tabla aparecerá cuando haya resultados cargados.
-                </p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[440px] border-separate border-spacing-y-2">
-                    <thead>
-                      <tr className="text-[9px] uppercase tracking-[0.18em] text-sky-300/80">
-                        <th className="py-2 text-left">#</th>
-                        <th className="py-2 text-left">Equipo</th>
-                        <th className="py-2 text-center">PTS</th>
-                        <th className="py-2 text-center">PJ</th>
-                        <th className="py-2 text-center">DG</th>
-                        <th className="py-2 text-center">Últ.</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {tabla.map((e, index) => (
-                        <tr
-                          key={e.equipo}
-                          className="bg-gradient-to-r from-[#06152c] via-[#071a33] to-[#030b18]"
-                        >
-                          <td className="rounded-l-xl px-3 py-3 text-sm font-black text-sky-300">
-                            {index + 1}
-                          </td>
-
-                          <td className="max-w-[170px] px-3 py-3">
-                            <div className="flex items-center gap-2">
-                              <MiniEscudo
-                                nombre={e.equipo}
-                                logo={logoEquipo(e.equipo)}
-                              />
-
-                              <span className="truncate text-sm font-black uppercase">
-                                {e.equipo}
-                              </span>
-                            </div>
-                          </td>
-
-                          <td className="py-3 text-center text-sm font-black text-yellow-300">
-                            {e.pts}
-                          </td>
-
-                          <td className="py-3 text-center text-sm font-black">
-                            {e.pj}
-                          </td>
-
-                          <td className="py-3 text-center text-sm font-black text-sky-300">
-                            {e.dg > 0 ? `+${e.dg}` : e.dg}
-                          </td>
-
-                          <td className="rounded-r-xl py-3 text-center">
-                            <div className="flex justify-center gap-1">
-                              {e.ultimos.length === 0 ? (
-                                <span className="text-xs text-zinc-600">-</span>
-                              ) : (
-                                e.ultimos.map((r, i) => (
-                                  <span
-                                    key={`${e.equipo}-${i}`}
-                                    className={`h-2.5 w-2.5 rounded-full ${
-                                      r === "G"
-                                        ? "bg-emerald-400"
-                                        : r === "E"
-                                        ? "bg-zinc-400"
-                                        : "bg-red-400"
-                                    }`}
-                                  />
-                                ))
-                              )}
-                            </div>
-                          </td>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[440px] border-separate border-spacing-y-2">
+                      <thead>
+                        <tr className="text-[9px] uppercase tracking-[0.18em] text-sky-300/80">
+                          <th className="py-2 text-left">#</th>
+                          <th className="py-2 text-left">Equipo</th>
+                          <th className="py-2 text-center">PTS</th>
+                          <th className="py-2 text-center">PJ</th>
+                          <th className="py-2 text-center">DG</th>
+                          <th className="py-2 text-center">Últ.</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </section>
+                      </thead>
+
+                      <tbody>
+                        {tabla.map((e, index) => (
+                          <tr
+                            key={e.equipo}
+                            className="bg-gradient-to-r from-[#06152c] via-[#071a33] to-[#030b18]"
+                          >
+                            <td className="rounded-l-xl px-3 py-3 text-sm font-black text-sky-300">
+                              {index + 1}
+                            </td>
+
+                            <td className="max-w-[170px] px-3 py-3">
+                              <div className="flex items-center gap-2">
+                                <MiniEscudo
+                                  nombre={e.equipo}
+                                  logo={logoEquipo(e.equipo)}
+                                />
+
+                                <span className="truncate text-sm font-black uppercase">
+                                  {e.equipo}
+                                </span>
+                              </div>
+                            </td>
+
+                            <td className="py-3 text-center text-sm font-black text-yellow-300">
+                              {e.pts}
+                            </td>
+
+                            <td className="py-3 text-center text-sm font-black">
+                              {e.pj}
+                            </td>
+
+                            <td className="py-3 text-center text-sm font-black text-sky-300">
+                              {e.dg > 0 ? `+${e.dg}` : e.dg}
+                            </td>
+
+                            <td className="rounded-r-xl py-3 text-center">
+                              <div className="flex justify-center gap-1">
+                                {e.ultimos.length === 0 ? (
+                                  <span className="text-xs text-zinc-600">-</span>
+                                ) : (
+                                  e.ultimos.map((r, i) => (
+                                    <span
+                                      key={`${e.equipo}-${i}`}
+                                      className={`h-2.5 w-2.5 rounded-full ${
+                                        r === "G"
+                                          ? "bg-emerald-400"
+                                          : r === "E"
+                                          ? "bg-zinc-400"
+                                          : "bg-red-400"
+                                      }`}
+                                    />
+                                  ))
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </section>
+            )}
 
             <section className="rounded-[34px] border border-sky-500/25 bg-[#020714]/95 p-6">
               <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
-                Fechas
+                {esCopaArgentina || esCopaApa ? "Fases Eliminatorias" : "Fechas"}
               </p>
 
               <h2 className="mt-2 text-3xl font-black uppercase">
@@ -518,7 +524,7 @@ export default function FixtureDivisionPage() {
               <div className="mt-5 grid max-h-[390px] grid-cols-2 gap-3 overflow-y-auto pr-1 md:grid-cols-3 xl:grid-cols-2">
                 {fechas.length === 0 ? (
                   <p className="col-span-2 rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
-                    No hay fechas cargadas.
+                    No hay fases cargadas.
                   </p>
                 ) : (
                   fechas.map((f) => (
@@ -531,7 +537,7 @@ export default function FixtureDivisionPage() {
                           : "border-white/10 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
                       }`}
                     >
-                      Fecha {f}
+                      {isNaN(Number(f)) ? f : `Fecha ${f}`}
                     </button>
                   ))
                 )}
@@ -544,11 +550,11 @@ export default function FixtureDivisionPage() {
               <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
-                    {esCopaCampeones ? "Fixture de copa" : esCopaGrupos ? "Fixture de grupo" : "Calendario"}
+                    Partidos
                   </p>
 
                   <h2 className="mt-2 text-4xl font-black uppercase text-blue-100">
-                    📅 {esCopaCampeones ? `${faseCopaCampeones || "Todas las fases"} · Fecha ${fechaActiva}` : esCopaGrupos ? `Grupo ${grupoCopa} · Fecha ${fechaActiva}` : `Fecha ${fechaActiva}`}
+                    📅 {isNaN(Number(fechaActiva)) ? fechaActiva : `Fecha ${fechaActiva}`}
                   </h2>
 
                   <p className="mt-2 text-zinc-400">
@@ -581,7 +587,7 @@ export default function FixtureDivisionPage() {
             <div className="space-y-4 p-5 md:p-6">
               {partidosFecha.length === 0 && (
                 <div className="rounded-2xl border border-white/10 bg-black/35 p-10 text-zinc-500">
-                  No hay partidos cargados para esta fecha.
+                  No hay partidos cargados para esta fase o fecha.
                 </div>
               )}
 
@@ -605,7 +611,7 @@ export default function FixtureDivisionPage() {
                         </span>
 
                         <span className="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
-                          {p.dia || "Sin día"} · {p.hora || "Sin hora"}
+                          {p.ronda || p.fase || "Partido"} · {p.dia || "Sin día"} · {p.hora || "Sin hora"}
                         </span>
                       </div>
                     </div>

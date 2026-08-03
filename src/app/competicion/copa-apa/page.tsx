@@ -20,261 +20,310 @@ type PartidoCopa = {
   ronda?: string | null;
 };
 
-const TEMPORADAS = [
-  "Temporada 1",
-  "Temporada 2",
-  "Temporada 3",
-  "Temporada 4",
-  "Temporada 5",
-  "Temporada 6",
-];
+type Club = {
+  nombre: string;
+  logo_url?: string | null;
+};
+
+const TEMPORADA_UNICA = "Temporada 4";
+
+function normalizar(texto?: string | null) {
+  return String(texto || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+function obtenerGanador(p?: PartidoCopa): string | null {
+  if (!p || !p.resultado || !p.resultado.includes("-")) return null;
+  const [gl, gv] = p.resultado.split("-").map((g) => Number(g.trim()));
+  if (Number.isNaN(gl) || Number.isNaN(gv)) return null;
+  if (gl > gv) return p.local;
+  if (gv > gl) return p.visitante;
+  return null;
+}
 
 export default function CopaApaPage() {
-  const [temporada, setTemporada] = useState("Temporada 4");
   const [activa, setActiva] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [partidos, setPartidos] = useState<PartidoCopa[]>([]);
+  const [clubesMap, setClubesMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function cargarCopa() {
       setLoading(true);
 
-      // 1. Verificamos si la Copa APA está activa
-      const { data: configData, error: configError } = await supabase
-        .from("configuracion_copas")
-        .select("copa_apa_activa")
-        .eq("temporada", temporada)
-        .maybeSingle();
+      const [configRes, partidosRes, clubesRes] = await Promise.all([
+        supabase
+          .from("configuracion_copas")
+          .select("copa_apa_activa")
+          .eq("temporada", TEMPORADA_UNICA)
+          .maybeSingle(),
 
-      if (configError) {
-        console.error("Error al consultar el estado de la copa:", configError);
-      }
+        supabase
+          .from("partidos")
+          .select("*")
+          .eq("temporada", TEMPORADA_UNICA)
+          .eq("competicion", "copa_apa")
+          .order("id", { ascending: true }),
 
-      const estaActiva = configData?.copa_apa_activa ?? false;
+        supabase.from("clubes_info").select("nombre, logo_url"),
+      ]);
+
+      const estaActiva = configRes.data?.copa_apa_activa ?? false;
       setActiva(estaActiva);
 
       if (estaActiva) {
-        // 2. Traemos todos los partidos pertenecientes a la Copa APA
-        const { data: partidosData, error: partidosError } = await supabase
-          .from("partidos")
-          .select("*")
-          .eq("temporada", temporada)
-          .eq("competicion", "copa_apa")
-          .order("id", { ascending: true });
+        setPartidos((partidosRes.data || []) as PartidoCopa[]);
 
-        if (partidosError) {
-          console.error("Error cargando partidos de Copa APA:", partidosError);
-        } else {
-          setPartidos((partidosData || []) as PartidoCopa[]);
-        }
+        const mapaEscudos: Record<string, string> = {};
+        (clubesRes.data || []).forEach((c: Club) => {
+          if (c.logo_url) {
+            mapaEscudos[normalizar(c.nombre)] = c.logo_url;
+          }
+        });
+        setClubesMap(mapaEscudos);
+      } else {
+        setPartidos([]);
       }
 
       setLoading(false);
     }
 
     cargarCopa();
-  }, [temporada]);
+  }, []);
 
-  // Separar los partidos por fase
-  const cuartos = partidos.filter(
-    (p) =>
-      p.fase?.toLowerCase() === "cuartos" ||
-      p.ronda?.toLowerCase().includes("cuartos")
-  );
-  const semifinales = partidos.filter(
-    (p) =>
-      p.fase?.toLowerCase() === "semifinal" ||
-      p.ronda?.toLowerCase().includes("semifinal")
-  );
-  const final = partidos.filter(
-    (p) =>
-      p.fase?.toLowerCase() === "final" ||
-      p.ronda?.toLowerCase().includes("final")
-  );
+  // Filtrado de fases
+  const cuartos = partidos.filter((p) => {
+    const f = (p.fase || p.ronda || "").toLowerCase();
+    return f.includes("cuartos");
+  });
 
-  // 1. Cargando
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-[#020714] flex items-center justify-center text-white">
-        <p className="text-sm font-black uppercase tracking-widest text-sky-400 animate-pulse">
-          Cargando Copa APA...
-        </p>
-      </main>
-    );
-  }
+  const semifinales = partidos.filter((p) => {
+    const f = (p.fase || p.ronda || "").toLowerCase();
+    return f.includes("semifinal") || f.includes("semi");
+  });
 
-  // 2. En mantenimiento
-  if (!activa) {
-    return (
-      <main className="min-h-screen bg-[#020714] px-4 py-16 text-white flex flex-col items-center justify-center">
-        <div className="max-w-xl w-full rounded-[34px] border border-yellow-500/25 bg-black/40 p-8 text-center shadow-[0_0_50px_rgba(250,204,21,.10)]">
-          <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-300">
-            {temporada}
-          </p>
-          <h1 className="mt-3 text-4xl font-black uppercase italic text-yellow-300">
-            Copa APA
-          </h1>
-          <div className="my-6 h-px w-full bg-gradient-to-r from-transparent via-yellow-500/30 to-transparent" />
-          <p className="text-zinc-300 text-sm leading-relaxed">
-            Esta competición se encuentra actualmente en{" "}
-            <strong className="text-yellow-300">mantenimiento</strong> o aún no
-            ha comenzado para la temporada seleccionada.
-          </p>
+  const final = partidos.filter((p) => {
+    const f = (p.fase || p.ronda || "").toLowerCase();
+    return f.includes("final") && !f.includes("cuartos") && !f.includes("semi") && !f.includes("tercer");
+  });
 
-          <div className="mt-8 flex justify-center gap-2 flex-wrap">
-            {TEMPORADAS.map((t) => (
-              <button
-                key={t}
-                onClick={() => setTemporada(t)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase border ${
-                  temporada === t
-                    ? "border-yellow-400 bg-yellow-400 text-black"
-                    : "border-white/10 bg-white/5 text-zinc-400"
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
+  const tercerPuesto = partidos.find((p) => {
+    const f = (p.fase || p.ronda || "").toLowerCase();
+    return f.includes("tercer") || f.includes("3") || f.includes("3er");
+  });
+
+  const cuartosIzquierda = cuartos.slice(0, 2);
+  const cuartosDerecha = cuartos.slice(2, 4);
+
+  const semiIzquierda = semifinales[0];
+  const semiDerecha = semifinales[1];
+  const partidoFinal = final[0];
+
+  const campeon = obtenerGanador(partidoFinal);
+  const logoCampeon = campeon ? clubesMap[normalizar(campeon)] : null;
+
+  const renderPartidoBracket = (p?: PartidoCopa, esFinal = false) => {
+    if (!p) {
+      return (
+        <div
+          className={`flex items-center justify-center rounded-2xl border border-dashed border-sky-500/20 bg-black/30 p-4 text-center ${
+            esFinal ? "h-32" : "h-24"
+          }`}
+        >
+          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600">
+            Por definir
+          </span>
         </div>
-      </main>
-    );
-  }
-
-  // 3. Render de Tarjeta de Partido
-  const renderTarjetaPartido = (p: PartidoCopa) => {
-    let gl: number | null = null;
-    let gv: number | null = null;
-
-    if (p.resultado && p.resultado.includes("-")) {
-      const [l, v] = p.resultado.split("-");
-      gl = Number(l?.trim());
-      gv = Number(v?.trim());
+      );
     }
 
+    const logoLocal = clubesMap[normalizar(p.local)];
+    const logoVisitante = clubesMap[normalizar(p.visitante)];
+
     return (
-      <article
-        key={p.id}
-        className="rounded-2xl border border-sky-500/20 bg-[#020714]/90 p-4 space-y-3 shadow-lg"
+      <div
+        className={`relative overflow-hidden rounded-2xl border transition-all duration-300 shadow-xl ${
+          esFinal
+            ? "border-sky-400 bg-gradient-to-b from-[#0a274c] via-[#041328] to-[#020714] p-4 ring-2 ring-sky-400/30"
+            : "border-sky-500/30 bg-gradient-to-b from-[#06152c] via-[#030c1a] to-[#020714] p-3 hover:border-sky-400/60"
+        }`}
       >
-        <div className="flex items-center justify-between text-[10px] font-black uppercase text-sky-400">
-          <span>{p.ronda || "Copa APA"}</span>
-          <span>
-            {p.dia || ""} {p.hora ? `· ${p.hora}` : ""}
+        {p.hora && (
+          <div className="mb-2 text-center">
+            <span className="rounded-full bg-sky-400/10 border border-sky-400/20 px-2 py-0.5 text-[9px] font-black uppercase text-sky-300">
+              {p.dia || ""} {p.hora}
+            </span>
+          </div>
+        )}
+
+        {/* Local */}
+        <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/50 p-1">
+              {logoLocal ? (
+                <img src={logoLocal} alt={p.local} className="h-full w-full object-contain" />
+              ) : (
+                <span className="text-[9px] font-black text-sky-400">
+                  {p.local.substring(0, 2).toUpperCase()}
+                </span>
+              )}
+            </div>
+            <span className="text-[11px] font-black uppercase leading-tight text-white break-words">
+              {p.local}
+            </span>
+          </div>
+          <span className="text-xs font-black text-sky-300 shrink-0 ml-1">
+            {p.resultado ? p.resultado.split("-")[0] : "-"}
           </span>
         </div>
 
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-          <div className="text-right">
-            <p className="text-xs font-black uppercase text-white truncate">
-              {p.local}
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-sky-400/30 bg-sky-400/10 px-3 py-1.5 min-w-[70px] text-center">
-            <span className="text-sm font-black text-sky-300">
-              {p.resultado || "VS"}
+        {/* Visitante */}
+        <div className="flex items-center justify-between gap-2 pt-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/50 p-1">
+              {logoVisitante ? (
+                <img src={logoVisitante} alt={p.visitante} className="h-full w-full object-contain" />
+              ) : (
+                <span className="text-[9px] font-black text-sky-400">
+                  {p.visitante.substring(0, 2).toUpperCase()}
+                </span>
+              )}
+            </div>
+            <span className="text-[11px] font-black uppercase leading-tight text-white break-words">
+              {p.visitante}
             </span>
           </div>
-
-          <div className="text-left">
-            <p className="text-xs font-black uppercase text-white truncate">
-              {p.visitante}
-            </p>
-          </div>
+          <span className="text-xs font-black text-sky-300 shrink-0 ml-1">
+            {p.resultado ? p.resultado.split("-")[1] : "-"}
+          </span>
         </div>
-      </article>
+      </div>
     );
   };
 
-  // 4. Vista pública activa
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] px-4 py-8 text-white md:px-8">
-      <section className="mx-auto max-w-[1400px] space-y-8">
-        {/* ENCABEZADO DE LA COPA */}
-        <div className="rounded-[40px] border border-sky-500/25 bg-[#020714] p-8 relative overflow-hidden">
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <section className="mx-auto max-w-[1600px] space-y-8">
+        
+        {/* Banner Fijado en Temporada 4 */}
+        <div className="rounded-[40px] border border-sky-500/25 bg-[#020714] p-8 shadow-[0_0_50px_rgba(56,189,248,0.1)]">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
                 Competición Oficial
               </p>
-              <h1 className="mt-2 text-5xl font-black uppercase italic text-white md:text-6xl">
+              <h1 className="mt-1 text-4xl font-black uppercase italic text-white md:text-6xl">
                 Copa APA
               </h1>
-              <p className="mt-2 text-zinc-400 text-sm">
-                Fase de eliminación directa entre los clasificados de la fase de grupos.
-              </p>
             </div>
-
-            {/* Selector de Temporadas */}
-            <div className="flex flex-wrap gap-2">
-              {TEMPORADAS.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTemporada(t)}
-                  className={`px-4 py-2 rounded-2xl text-xs font-black uppercase border transition ${
-                    temporada === t
-                      ? "border-sky-400 bg-sky-400 text-black shadow-[0_0_20px_rgba(56,189,248,0.3)]"
-                      : "border-white/10 bg-white/[0.04] text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
+            <div className="inline-flex items-center rounded-2xl border border-sky-400/30 bg-sky-400/10 px-5 py-2.5 text-xs font-black uppercase text-sky-300">
+              🏆 Temporada 4
             </div>
           </div>
         </div>
 
-        {/* CONTENIDO DE LOS PARTIDOS Y CUARTOS */}
-        {partidos.length === 0 ? (
-          <div className="rounded-[34px] border border-white/10 bg-[#020714]/80 p-12 text-center">
-            <p className="text-zinc-400 text-sm font-black uppercase tracking-wider">
-              Aún no se han publicado partidos para la Copa APA en esta temporada.
+        {/* MÓDULO CAMPEÓN SI YA SE JUGÓ LA FINAL */}
+        {campeon && (
+          <div className="rounded-[34px] border-2 border-sky-400 bg-gradient-to-r from-sky-500/20 via-sky-400/10 to-sky-500/20 p-6 md:p-8 text-center shadow-[0_0_50px_rgba(56,189,248,0.3)] animate-fade-in">
+            <span className="text-xs font-black uppercase tracking-[0.4em] text-sky-300">
+              👑 Campeón Copa APA
+            </span>
+            <div className="mt-4 flex flex-col items-center justify-center gap-3 md:flex-row">
+              {logoCampeon && (
+                <img src={logoCampeon} alt={campeon} className="h-16 w-16 object-contain drop-shadow-[0_0_15px_rgba(56,189,248,0.5)]" />
+              )}
+              <h2 className="text-3xl font-black uppercase italic text-sky-300 md:text-5xl drop-shadow-[0_0_10px_rgba(56,189,248,0.4)]">
+                {campeon}
+              </h2>
+            </div>
+          </div>
+        )}
+
+        {/* Estado Mantenimiento / Carga */}
+        {loading ? (
+          <div className="rounded-[34px] border border-sky-500/20 bg-[#020714]/80 p-12 text-center">
+            <p className="text-sm font-black uppercase tracking-widest text-sky-400 animate-pulse">
+              Cargando Cuadro de Copa APA...
+            </p>
+          </div>
+        ) : !activa ? (
+          <div className="rounded-[34px] border border-sky-500/25 bg-black/40 p-12 text-center shadow-2xl max-w-2xl mx-auto space-y-4">
+            <h2 className="text-3xl font-black uppercase italic text-sky-300">
+              Copa APA en Mantenimiento
+            </h2>
+            <p className="text-zinc-300 text-sm">
+              Esta competición aún no se encuentra activa en la Temporada 4.
             </p>
           </div>
         ) : (
-          <div className="space-y-10">
-            {/* CUARTOS DE FINAL */}
-            {cuartos.length > 0 && (
-              <section className="space-y-4">
-                <div className="border-b border-sky-500/20 pb-3">
-                  <h2 className="text-xl font-black uppercase tracking-wider text-sky-300">
-                    Cuartos de Final
-                  </h2>
+          /* CUADRO / BRACKET ESTILO TORNEO */
+          <div className="rounded-[34px] border border-sky-500/20 bg-[#020714]/90 p-6 md:p-8 shadow-2xl overflow-x-auto">
+            <div className="min-w-[1100px] grid grid-cols-5 items-center gap-4 md:gap-6">
+              
+              {/* LADO IZQUIERDO: CUARTOS */}
+              <div className="space-y-6">
+                <div className="text-center">
+                  <span className="text-xs font-black uppercase text-sky-400 tracking-wider">Cuartos</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {cuartos.map(renderTarjetaPartido)}
+                <div className="space-y-6">
+                  {cuartosIzquierda[0] ? renderPartidoBracket(cuartosIzquierda[0]) : renderPartidoBracket()}
+                  {cuartosIzquierda[1] ? renderPartidoBracket(cuartosIzquierda[1]) : renderPartidoBracket()}
                 </div>
-              </section>
-            )}
+              </div>
 
-            {/* SEMIFINALES */}
-            {semifinales.length > 0 && (
-              <section className="space-y-4">
-                <div className="border-b border-sky-500/20 pb-3">
-                  <h2 className="text-xl font-black uppercase tracking-wider text-sky-300">
-                    Semifinales
-                  </h2>
+              {/* LADO IZQUIERDO: SEMIFINAL */}
+              <div className="space-y-6">
+                <div className="text-center">
+                  <span className="text-xs font-black uppercase text-sky-400 tracking-wider">Semifinal</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {semifinales.map(renderTarjetaPartido)}
-                </div>
-              </section>
-            )}
+                <div>{renderPartidoBracket(semiIzquierda)}</div>
+              </div>
 
-            {/* FINAL */}
-            {final.length > 0 && (
-              <section className="space-y-4">
-                <div className="border-b border-yellow-500/30 pb-3">
-                  <h2 className="text-xl font-black uppercase tracking-wider text-yellow-300">
-                    Grand Final
-                  </h2>
+              {/* CENTRO: GRAN FINAL Y TERCER PUESTO */}
+              <div className="space-y-6 px-1">
+                <div>
+                  <div className="text-center mb-2">
+                    <span className="text-xs font-black uppercase tracking-widest text-sky-300 drop-shadow-[0_0_10px_rgba(56,189,248,0.5)]">
+                      🏆 Gran Final
+                    </span>
+                  </div>
+                  {renderPartidoBracket(partidoFinal, true)}
                 </div>
-                <div className="max-w-xl mx-auto">
-                  {final.map(renderTarjetaPartido)}
+
+                {/* TERCER Y CUARTO PUESTO */}
+                <div className="pt-2 border-t border-white/10">
+                  <div className="text-center mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">
+                      🥉 3.º y 4.º Puesto
+                    </span>
+                  </div>
+                  {renderPartidoBracket(tercerPuesto)}
                 </div>
-              </section>
-            )}
+              </div>
+
+              {/* LADO DERECHO: SEMIFINAL */}
+              <div className="space-y-6">
+                <div className="text-center">
+                  <span className="text-xs font-black uppercase text-sky-400 tracking-wider">Semifinal</span>
+                </div>
+                <div>{renderPartidoBracket(semiDerecha)}</div>
+              </div>
+
+              {/* LADO DERECHO: CUARTOS */}
+              <div className="space-y-6">
+                <div className="text-center">
+                  <span className="text-xs font-black uppercase text-sky-400 tracking-wider">Cuartos</span>
+                </div>
+                <div className="space-y-6">
+                  {cuartosDerecha[0] ? renderPartidoBracket(cuartosDerecha[0]) : renderPartidoBracket()}
+                  {cuartosDerecha[1] ? renderPartidoBracket(cuartosDerecha[1]) : renderPartidoBracket()}
+                </div>
+              </div>
+
+            </div>
           </div>
         )}
       </section>

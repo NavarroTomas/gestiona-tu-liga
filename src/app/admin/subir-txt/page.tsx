@@ -86,7 +86,7 @@ const COMPETICIONES: { value: Competicion; label: string }[] = [
 
 const DIVISIONES = ["Primera", "Segunda"];
 const GRUPOS = ["A", "B", "C", "D"];
-const FASES_COPA = ["Octavos", "Cuartos", "Semifinal", "Final"];
+const FASES_COPA = ["Octavos", "Cuartos", "Semifinal", "3er Puesto", "Final"];
 const FASES_CAMPEONES = ["Semifinal", "Final"];
 const FASES_PLAYOFFS = ["Semifinal", "Final Ascenso", "Promoción"];
 
@@ -193,6 +193,8 @@ export default function SubirTxtPage() {
     if (competicion === "copa_clasificatoria") return "grupos";
     const f = normalizarTexto(fase);
     if (f === "semifinal" || f === "semis") return "semifinal";
+    if (f === "3er puesto" || f === "tercer puesto" || f === "3º puesto" || f === "3er_puesto")
+      return "3er_puesto";
     if (f === "final") return "final";
     if (f === "final ascenso" || f === "final_ascenso") return "final_ascenso";
     if (f === "promocion") return "promocion";
@@ -598,7 +600,6 @@ export default function SubirTxtPage() {
     }));
   }
 
-
   function rawPlayerKeyFromPlayer(player: any, team: string) {
     return buildRawPlayerKey(
       cleanText(player?.playerId),
@@ -691,7 +692,6 @@ export default function SubirTxtPage() {
       };
     });
   }
-
 
   const jugadoresSinEquipo = useMemo(() => {
     const map = new Map<
@@ -932,53 +932,6 @@ export default function SubirTxtPage() {
         onConflict: "alias_player_id",
       });
     if (error) throw error;
-  }
-
-  async function guardarPlantillasNuevas() {
-    if (!partidoSeleccionado) return 0;
-
-    const nuevos = Object.values(resoluciones)
-      .filter((r) => r.action === "new" && r.canonicalPlayerId)
-      .map((r) => ({
-        jugador: r.canonicalName || r.rawName,
-        playerid: r.canonicalPlayerId,
-        equipo: r.team,
-        posicion: "N/D",
-        temporada,
-        division: divisionContexto,
-        estado: "activo",
-      }));
-
-    const unicos = Array.from(
-      new Map(
-        nuevos.map((item) => [`${item.equipo}__${item.playerid}`, item]),
-      ).values(),
-    );
-    if (unicos.length === 0) return 0;
-
-    const ids = unicos.map((item) => item.playerid);
-    const { data: existentes, error } = await supabase
-      .from("plantillas")
-      .select("playerid,equipo")
-      .eq("temporada", temporada)
-      .in("playerid", ids);
-    if (error) throw error;
-
-    const keys = new Set(
-      (existentes || []).map(
-        (p: any) => `${cleanText(p.equipo)}__${cleanText(p.playerid)}`,
-      ),
-    );
-    const insertar = unicos.filter(
-      (item) => !keys.has(`${item.equipo}__${item.playerid}`),
-    );
-    if (insertar.length === 0) return 0;
-
-    const { error: insertError } = await supabase
-      .from("plantillas")
-      .insert(insertar);
-    if (insertError) throw insertError;
-    return insertar.length;
   }
 
   async function procesarCarga() {

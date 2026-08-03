@@ -56,6 +56,8 @@ const FASES_MANUALES = [
   "Cuartos - Copa APA",
   "Semifinal - Copa Argentina",
   "Semifinal - Copa APA",
+  "3.º Puesto - Copa Argentina",
+  "3.º Puesto - Copa APA",
   "Final - Copa Argentina",
   "Final - Copa APA",
 ];
@@ -69,6 +71,26 @@ function normalizar(texto?: string | null) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .trim();
+}
+
+function obtenerGanadorYPerdedor(partido: PartidoCopa): {
+  ganador: string | null;
+  perdedor: string | null;
+} {
+  if (!partido.resultado || !partido.resultado.includes("-"))
+    return { ganador: null, perdedor: null };
+  const [glRaw, gvRaw] = partido.resultado.split("-");
+  const gl = Number(glRaw?.trim());
+  const gv = Number(gvRaw?.trim());
+  if (Number.isNaN(gl) || Number.isNaN(gv)) return { ganador: null, perdedor: null };
+
+  if (gl > gv) return { ganador: partido.local, perdedor: partido.visitante };
+  if (gv > gl) return { ganador: partido.visitante, perdedor: partido.local };
+  return { ganador: null, perdedor: null };
+}
+
+function obtenerGanador(partido: PartidoCopa): string | null {
+  return obtenerGanadorYPerdedor(partido).ganador;
 }
 
 function generarPartidosGrupo(equipos: string[], grupo: string) {
@@ -155,7 +177,6 @@ function calcularTablaGrupo(
       }
     });
 
-  // Aplicar sanciones / descuento de puntos de la copa
   Object.keys(mapa).forEach((nombreEquipo) => {
     const sancionesEquipo = sanciones.filter(
       (s) => normalizar(s.equipo) === normalizar(nombreEquipo)
@@ -187,18 +208,20 @@ export default function AdminCopasPage() {
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ESTADOS DE SANCIONES / DESCUENTO DE PUNTOS
+  // TAB DE FILTRO DE CALENDARIO
+  const [tabFiltroCompeticion, setTabFiltroCompeticion] = useState<
+    "todos" | "primera" | "segunda" | "grupos" | "copa_argentina" | "copa_apa"
+  >("copa_argentina");
+
   const [equipoSancionar, setEquipoSancionar] = useState("");
   const [puntosRestar, setPuntosRestar] = useState(1);
   const [motivoSancion, setMotivoSancion] = useState("No presentación (W.O.)");
   const [guardandoSancion, setGuardandoSancion] = useState(false);
 
-  // ESTADO DE MANTENIMIENTO / ACTIVACIÓN DE COPAS
   const [copaApaActiva, setCopaApaActiva] = useState(false);
   const [copaArgentinaActiva, setCopaArgentinaActiva] = useState(false);
   const [guardandoEstado, setGuardandoEstado] = useState(false);
 
-  const [grupoSeleccionado, setGrupoSeleccionado] = useState("A");
   const [grupos, setGrupos] = useState<Record<string, string[]>>({
     A: ["", "", "", ""],
     B: ["", "", "", ""],
@@ -208,14 +231,13 @@ export default function AdminCopasPage() {
 
   const [localManual, setLocalManual] = useState("");
   const [visitanteManual, setVisitanteManual] = useState("");
-  const [faseManual, setFaseManual] = useState("Grupo A");
+  const [faseManual, setFaseManual] = useState("3.º Puesto - Copa Argentina");
   const [fechaManual, setFechaManual] = useState("1");
   const [diaManual, setDiaManual] = useState("");
   const [horaManual, setHoraManual] = useState("");
 
   useEffect(() => {
     cargarTodo();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [temporada]);
 
   async function cargarTodo() {
@@ -235,8 +257,7 @@ export default function AdminCopasPage() {
         .select(
           "id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora, competicion, grupo, fase, ronda"
         )
-        .eq("temporada", temporada)
-        .order("fecha", { ascending: true }),
+        .eq("temporada", temporada),
 
       supabase
         .from("configuracion_copas")
@@ -244,7 +265,6 @@ export default function AdminCopasPage() {
         .eq("temporada", temporada)
         .maybeSingle(),
 
-      // Filtrar SANCIONES SOLO DE COPAS
       supabase
         .from("sanciones_equipos")
         .select("*")
@@ -252,16 +272,6 @@ export default function AdminCopasPage() {
         .eq("competicion", "copa")
         .order("created_at", { ascending: false }),
     ]);
-
-    if (equiposRes.error) {
-      console.log(equiposRes.error);
-      setMensaje("Error cargando clubes.");
-    }
-
-    if (partidosRes.error) {
-      console.log(partidosRes.error);
-      setMensaje("Error cargando partidos de copa.");
-    }
 
     if (configRes.data) {
       setCopaApaActiva(configRes.data.copa_apa_activa ?? false);
@@ -290,6 +300,128 @@ export default function AdminCopasPage() {
     setLoading(false);
   }
 
+  // GENERAR AUTOMÁTICAMENTE SEMIFINALES
+  async function generarSemifinalesAutomaticas(competicion: "copa_argentina" | "copa_apa") {
+    setMensaje("");
+
+    const cuartosComp = partidos.filter(
+      (p) =>
+        p.competicion === competicion &&
+        (p.fase?.toLowerCase() === "cuartos" || p.ronda?.toLowerCase().includes("cuartos"))
+    );
+
+    if (cuartosComp.length < 4) {
+      setMensaje(`Se necesitan 4 partidos de Cuartos de Final para generar las Semis.`);
+      return;
+    }
+
+    const ganadores = cuartosComp.map(obtenerGanador);
+    if (ganadores.some((g) => !g)) {
+      setMensaje(`Todos los partidos de Cuartos deben tener resultado cargado.`);
+      return;
+    }
+
+    const confirmacion = window.confirm(
+      `Se crearán los 2 cruces de Semifinales con los ganadores:\n- ${ganadores[0]} vs ${ganadores[1]}\n- ${ganadores[2]} vs ${ganadores[3]}\n\n¿Continuar?`
+    );
+    if (!confirmacion) return;
+
+    const payload = [
+      {
+        local: ganadores[0]!,
+        visitante: ganadores[1]!,
+        resultado: null,
+        fecha: "Semifinal",
+        temporada,
+        division: DIVISION_COPA,
+        competicion,
+        fase: "semifinal",
+        ronda: "Semifinal 1",
+      },
+      {
+        local: ganadores[2]!,
+        visitante: ganadores[3]!,
+        resultado: null,
+        fecha: "Semifinal",
+        temporada,
+        division: DIVISION_COPA,
+        competicion,
+        fase: "semifinal",
+        ronda: "Semifinal 2",
+      },
+    ];
+
+    const { error } = await supabase.from("partidos").insert(payload);
+    if (error) {
+      setMensaje("Error al generar Semifinales.");
+    } else {
+      setMensaje("¡Semifinales generadas con éxito!");
+      await cargarTodo();
+    }
+  }
+
+  // GENERAR AUTOMÁTICAMENTE LA GRAN FINAL Y EL 3.º PUESTO DESDE SEMIS
+  async function generarFinalY3erPuestoAutomatico(competicion: "copa_argentina" | "copa_apa") {
+    setMensaje("");
+
+    const semisComp = partidos.filter(
+      (p) =>
+        p.competicion === competicion &&
+        (p.fase?.toLowerCase().includes("semifinal") || p.ronda?.toLowerCase().includes("semifinal"))
+    );
+
+    if (semisComp.length < 2) {
+      setMensaje(`Se necesitan 2 semifinales jugadas para generar la Final y el 3.º Puesto.`);
+      return;
+    }
+
+    const resultadosSemis = semisComp.map(obtenerGanadorYPerdedor);
+    if (resultadosSemis.some((r) => !r.ganador || !r.perdedor)) {
+      setMensaje(`Las dos semifinales deben tener un resultado definido.`);
+      return;
+    }
+
+    const ganadores = [resultadosSemis[0].ganador!, resultadosSemis[1].ganador!];
+    const perdedores = [resultadosSemis[0].perdedor!, resultadosSemis[1].perdedor!];
+
+    const confirmacion = window.confirm(
+      `Se generarán los siguientes cruces:\n\n🏆 GRAN FINAL:\n${ganadores[0]} vs ${ganadores[1]}\n\n🥉 3.º Y 4.º PUESTO:\n${perdedores[0]} vs ${perdedores[1]}\n\n¿Continuar?`
+    );
+    if (!confirmacion) return;
+
+    const payload = [
+      {
+        local: ganadores[0],
+        visitante: ganadores[1],
+        resultado: null,
+        fecha: "Final",
+        temporada,
+        division: DIVISION_COPA,
+        competicion,
+        fase: "final",
+        ronda: "Gran Final",
+      },
+      {
+        local: perdedores[0],
+        visitante: perdedores[1],
+        resultado: null,
+        fecha: "3er Puesto",
+        temporada,
+        division: DIVISION_COPA,
+        competicion,
+        fase: "3er_puesto",
+        ronda: "3.º y 4.º Puesto",
+      },
+    ];
+
+    const { error } = await supabase.from("partidos").insert(payload);
+    if (error) setMensaje("Error al generar la Final y el 3.º Puesto.");
+    else {
+      setMensaje("¡Gran Final y 3.º Puesto generados con éxito!");
+      await cargarTodo();
+    }
+  }
+
   async function guardarEstadoCopas() {
     setGuardandoEstado(true);
     setMensaje("");
@@ -304,12 +436,8 @@ export default function AdminCopasPage() {
       { onConflict: "temporada" }
     );
 
-    if (error) {
-      console.log(error);
-      setMensaje("Error guardando el estado de las copas.");
-    } else {
-      setMensaje(`¡Estado de copas actualizado para ${temporada}!`);
-    }
+    if (error) setMensaje("Error guardando el estado de las copas.");
+    else setMensaje(`¡Estado de copas actualizado para ${temporada}!`);
 
     setGuardandoEstado(false);
   }
@@ -325,7 +453,6 @@ export default function AdminCopasPage() {
       return;
     }
 
-    // Insertar aclarando que es para 'copa'
     const { error } = await supabase.from("sanciones_equipos").insert({
       temporada,
       competicion: "copa",
@@ -334,10 +461,8 @@ export default function AdminCopasPage() {
       motivo: motivoSancion,
     });
 
-    if (error) {
-      console.log(error);
-      setMensaje("Error al aplicar la sanción.");
-    } else {
+    if (error) setMensaje("Error al aplicar la sanción.");
+    else {
       setMensaje(`Sanción de Copa aplicada a ${equipoSancionar}.`);
       setEquipoSancionar("");
       await cargarTodo();
@@ -347,23 +472,14 @@ export default function AdminCopasPage() {
   }
 
   async function eliminarSancion(id: string) {
-    const confirmar = window.confirm("¿Eliminar esta sanción de copa?");
-    if (!confirmar) return;
-
+    if (!window.confirm("¿Eliminar esta sanción de copa?")) return;
     const { error } = await supabase.from("sanciones_equipos").delete().eq("id", id);
-
-    if (error) {
-      console.log(error);
-      setMensaje("Error eliminando sanción.");
-    } else {
+    if (error) setMensaje("Error eliminando sanción.");
+    else {
       setMensaje("Sanción eliminada.");
       await cargarTodo();
     }
   }
-
-  const equiposUsados = useMemo(() => {
-    return new Set(Object.values(grupos).flat().filter(Boolean));
-  }, [grupos]);
 
   const tablasPorGrupo = useMemo(() => {
     return Object.fromEntries(
@@ -371,28 +487,9 @@ export default function AdminCopasPage() {
     ) as Record<string, any[]>;
   }, [partidos, sanciones]);
 
-  const clasificados = useMemo(() => {
-    const copaArgentina: any[] = [];
-    const copaApa: any[] = [];
-
-    GRUPOS.forEach((grupo) => {
-      const tabla = tablasPorGrupo[grupo] || [];
-
-      tabla.forEach((item, index) => {
-        if (index <= 1) {
-          copaArgentina.push({ ...item, posicion: index + 1 });
-        } else {
-          copaApa.push({ ...item, posicion: index + 1 });
-        }
-      });
-    });
-
-    return { copaArgentina, copaApa };
-  }, [tablasPorGrupo]);
-
+  // GENERAR CUARTOS: 1os vs 2os (Copa Argentina) y 3os vs 4os (Copa APA) sorteados sin repetir grupo
   async function generarCuartosDeFinalAutomaticos() {
     setMensaje("");
-
     for (const g of GRUPOS) {
       if ((tablasPorGrupo[g] || []).length < 4) {
         setMensaje(`El Grupo ${g} aún no tiene los 4 equipos con tabla generada.`);
@@ -400,29 +497,63 @@ export default function AdminCopasPage() {
       }
     }
 
-    const tA = tablasPorGrupo["A"];
-    const tB = tablasPorGrupo["B"];
-    const tC = tablasPorGrupo["C"];
-    const tD = tablasPorGrupo["D"];
+    const bombos: Record<number, { equipo: string; grupo: string }[]> = {
+      0: [], // 1ros
+      1: [], // 2dos
+      2: [], // 3ros
+      3: [], // 4tos
+    };
 
-    const crucesArgentina = [
-      { local: tA[0].equipo, visitante: tB[1].equipo, comp: "copa_argentina" },
-      { local: tB[0].equipo, visitante: tA[1].equipo, comp: "copa_argentina" },
-      { local: tC[0].equipo, visitante: tD[1].equipo, comp: "copa_argentina" },
-      { local: tD[0].equipo, visitante: tC[1].equipo, comp: "copa_argentina" },
-    ];
+    GRUPOS.forEach((g) => {
+      const tabla = tablasPorGrupo[g] || [];
+      tabla.forEach((item, index) => {
+        if (index <= 3) {
+          bombos[index].push({ equipo: item.equipo, grupo: g });
+        }
+      });
+    });
 
-    const crucesApa = [
-      { local: tA[2].equipo, visitante: tB[3].equipo, comp: "copa_apa" },
-      { local: tB[2].equipo, visitante: tA[3].equipo, comp: "copa_apa" },
-      { local: tC[2].equipo, visitante: tD[3].equipo, comp: "copa_apa" },
-      { local: tD[2].equipo, visitante: tC[3].equipo, comp: "copa_apa" },
-    ];
+    function sortearCruces(cabezasDeSerie: { equipo: string; grupo: string }[], bolillero: { equipo: string; grupo: string }[], comp: string) {
+      let intentos = 0;
+      while (intentos < 1000) {
+        intentos++;
+        const bolilleroShuffled = [...bolillero].sort(() => Math.random() - 0.5);
+        let valido = true;
+        const emparejamientos: { local: string; visitante: string; comp: string }[] = [];
 
-    const confirmacion = window.confirm(
-      "Se van a generar los 8 cruces de Cuartos de Final (4 de Copa Argentina y 4 de Copa APA) según las posiciones de la tabla. ¿Continuar?"
-    );
-    if (!confirmacion) return;
+        for (let i = 0; i < cabezasDeSerie.length; i++) {
+          const localObj = cabezasDeSerie[i];
+          const visitanteObj = bolilleroShuffled[i];
+
+          // REGLA: No pueden ser del mismo grupo
+          if (localObj.grupo === visitanteObj.grupo) {
+            valido = false;
+            break;
+          }
+
+          emparejamientos.push({
+            local: localObj.equipo,
+            visitante: visitanteObj.equipo,
+            comp,
+          });
+        }
+
+        if (valido) return emparejamientos;
+      }
+      return null;
+    }
+
+    // 1ros (bombo 0) vs 2dos (bombo 1) para Copa Argentina
+    const crucesArgentina = sortearCruces(bombos[0], bombos[1], "copa_argentina");
+    // 3ros (bombo 2) vs 4tos (bombo 3) para Copa APA
+    const crucesApa = sortearCruces(bombos[2], bombos[3], "copa_apa");
+
+    if (!crucesArgentina || !crucesApa) {
+      setMensaje("No se pudo encontrar una combinación válida sin repetir grupos. Intentá de nuevo.");
+      return;
+    }
+
+    if (!window.confirm("¿Generar los cruces de Cuartos de Final (1os vs 2os y 3os vs 4os aleatorios sin repetir grupo)?")) return;
 
     const payload = [...crucesArgentina, ...crucesApa].map((c) => ({
       local: c.local,
@@ -441,102 +572,11 @@ export default function AdminCopasPage() {
     }));
 
     const { error } = await supabase.from("partidos").insert(payload);
-
-    if (error) {
-      console.log(error);
-      setMensaje("Error al generar cruces de Cuartos de Final.");
-      return;
+    if (error) setMensaje("Error al generar cruces de Cuartos.");
+    else {
+      setMensaje("¡Cruces de Cuartos de Final sorteados con éxito (1os vs 2os / 3os vs 4os)!");
+      await cargarTodo();
     }
-
-    setMensaje("¡Cruces de Cuartos de Final generados con éxito!");
-    await cargarTodo();
-  }
-
-  function cambiarEquipoGrupo(grupo: string, index: number, equipo: string) {
-    setGrupos((prev) => {
-      const copia = { ...prev, [grupo]: [...prev[grupo]] };
-      copia[grupo][index] = equipo;
-      return copia;
-    });
-  }
-
-  async function generarFaseGrupos() {
-    setMensaje("");
-
-    for (const grupo of GRUPOS) {
-      const equiposGrupo = grupos[grupo].filter(Boolean);
-      const unicos = new Set(equiposGrupo);
-
-      if (equiposGrupo.length !== 4) {
-        setMensaje(`El grupo ${grupo} debe tener 4 equipos.`);
-        return;
-      }
-
-      if (unicos.size !== 4) {
-        setMensaje(`El grupo ${grupo} tiene equipos repetidos.`);
-        return;
-      }
-    }
-
-    const todos = Object.values(grupos).flat().filter(Boolean);
-    const todosUnicos = new Set(todos);
-
-    if (todos.length !== todosUnicos.size) {
-      setMensaje("Hay equipos repetidos entre distintos grupos.");
-      return;
-    }
-
-    const existentes = partidos.filter((p) => p.competicion === COMPETICION_GRUPOS);
-
-    if (existentes.length > 0) {
-      const confirmar = window.confirm(
-        `Ya existen ${existentes.length} partidos de fase de grupos.\n\n¿Borrar y regenerar?`
-      );
-
-      if (!confirmar) return;
-
-      const { error: deleteError } = await supabase
-        .from("partidos")
-        .delete()
-        .eq("temporada", temporada)
-        .eq("competicion", COMPETICION_GRUPOS)
-        .eq("fase", "grupos");
-
-      if (deleteError) {
-        console.log(deleteError);
-        setMensaje("No pude borrar la fase de grupos anterior.");
-        return;
-      }
-    }
-
-    const cruces = GRUPOS.flatMap((grupo) => generarPartidosGrupo(grupos[grupo], grupo));
-
-    const payload = cruces.map((p) => ({
-      local: p.local,
-      visitante: p.visitante,
-      resultado: null,
-      fecha: p.fecha,
-      temporada,
-      division: DIVISION_COPA,
-      dia: null,
-      hora: null,
-      partido_id: null,
-      competicion: COMPETICION_GRUPOS,
-      grupo: p.grupo,
-      fase: "grupos",
-      ronda: p.ronda,
-    }));
-
-    const { error } = await supabase.from("partidos").insert(payload);
-
-    if (error) {
-      console.log(error);
-      setMensaje("Error generando fase de grupos.");
-      return;
-    }
-
-    setMensaje(`Fase de grupos generada: ${payload.length} partidos.`);
-    await cargarTodo();
   }
 
   async function crearCruceManual() {
@@ -544,11 +584,6 @@ export default function AdminCopasPage() {
 
     if (!localManual || !visitanteManual) {
       setMensaje("Elegí local y visitante.");
-      return;
-    }
-
-    if (localManual === visitanteManual) {
-      setMensaje("Local y visitante no pueden ser el mismo equipo.");
       return;
     }
 
@@ -563,6 +598,7 @@ export default function AdminCopasPage() {
 
       if (faseManual.startsWith("Cuartos")) faseNombre = "cuartos";
       else if (faseManual.startsWith("Semifinal")) faseNombre = "semifinal";
+      else if (faseManual.startsWith("3.º Puesto")) faseNombre = "3er_puesto";
       else if (faseManual.startsWith("Final")) faseNombre = "final";
     }
 
@@ -582,144 +618,82 @@ export default function AdminCopasPage() {
       ronda: `${faseManual} · Fecha ${fechaManual}`,
     });
 
-    if (error) {
-      console.log(error);
-      setMensaje("Error creando cruce manual.");
-      return;
+    if (error) setMensaje("Error creando cruce manual.");
+    else {
+      setMensaje("Cruce manual creado.");
+      setLocalManual("");
+      setVisitanteManual("");
+      await cargarTodo();
     }
-
-    setMensaje("Cruce manual creado.");
-    setLocalManual("");
-    setVisitanteManual("");
-    await cargarTodo();
   }
 
   async function actualizarPartido(id: string, cambios: Partial<PartidoCopa>) {
     if (typeof cambios.resultado === "string" && cambios.resultado.trim()) {
       const resultadoLimpio = cambios.resultado.trim();
-
       if (!/^\d+\s*-\s*\d+$/.test(resultadoLimpio)) {
         setMensaje("El resultado debe tener formato 1-0, 2-2, 3-1, etc.");
         return;
       }
-
       cambios.resultado = resultadoLimpio.replace(/\s+/g, "");
     }
 
     const { error } = await supabase.from("partidos").update(cambios).eq("id", id);
-
-    if (error) {
-      console.log(error);
-      setMensaje("Error actualizando partido.");
-      return;
-    }
-
-    setPartidos((prev) => prev.map((p) => (p.id === id ? { ...p, ...cambios } : p)));
+    if (error) setMensaje("Error actualizando partido.");
+    else setPartidos((prev) => prev.map((p) => (p.id === id ? { ...p, ...cambios } : p)));
   }
 
   async function eliminarPartido(id: string) {
-    const confirmar = window.confirm("¿Eliminar este cruce de copa?");
-    if (!confirmar) return;
-
+    if (!window.confirm("¿Eliminar este cruce?")) return;
     const { error } = await supabase.from("partidos").delete().eq("id", id);
-
-    if (error) {
-      console.log(error);
-      setMensaje("Error eliminando cruce.");
-      return;
-    }
-
-    setPartidos((prev) => prev.filter((p) => p.id !== id));
+    if (error) setMensaje("Error eliminando cruce.");
+    else setPartidos((prev) => prev.filter((p) => p.id !== id));
   }
 
-  async function eliminarFaseGrupos() {
-    if (partidos.length === 0) {
-      setMensaje("No hay partidos de grupos para eliminar.");
-      return;
+  // FILTRAR Y ORDENAR NUMÉRICAMENTE POR FECHA
+  const partidosFiltrados = useMemo(() => {
+    let lista = [...partidos];
+
+    if (tabFiltroCompeticion === "primera") {
+      lista = lista.filter(
+        (p) =>
+          p.division === "primera" ||
+          p.competicion === "liga" ||
+          (p.fase === "grupos" && p.division === "primera")
+      );
+    } else if (tabFiltroCompeticion === "segunda") {
+      lista = lista.filter(
+        (p) =>
+          p.division === "segunda" ||
+          (p.fase === "grupos" && p.division === "segunda")
+      );
+    } else if (tabFiltroCompeticion === "grupos") {
+      lista = lista.filter(
+        (p) => p.competicion === COMPETICION_GRUPOS || Boolean(p.grupo)
+      );
+    } else if (tabFiltroCompeticion === "copa_argentina") {
+      lista = lista.filter((p) => p.competicion === "copa_argentina");
+    } else if (tabFiltroCompeticion === "copa_apa") {
+      lista = lista.filter((p) => p.competicion === "copa_apa");
     }
 
-    const confirmar = window.confirm(
-      `Vas a eliminar ${partidos.length} partidos de fase de grupos. ¿Continuar?`
-    );
-
-    if (!confirmar) return;
-
-    const { error } = await supabase
-      .from("partidos")
-      .delete()
-      .eq("temporada", temporada)
-      .eq("competicion", COMPETICION_GRUPOS)
-      .eq("fase", "grupos");
-
-    if (error) {
-      console.log(error);
-      setMensaje("Error eliminando fase de grupos.");
-      return;
-    }
-
-    setMensaje("Fase de grupos eliminada.");
-    await cargarTodo();
-  }
-
-  function equiposDisponibles(valorActual = "") {
-    return equipos.filter((equipo) => {
-      if (equipo.nombre === valorActual) return true;
-      return !equiposUsados.has(equipo.nombre);
+    return lista.sort((a, b) => {
+      const numA = parseInt(String(a.fecha || "0").replace(/\D/g, ""), 10) || 0;
+      const numB = parseInt(String(b.fecha || "0").replace(/\D/g, ""), 10) || 0;
+      return numA - numB;
     });
-  }
+  }, [partidos, tabFiltroCompeticion]);
 
   return (
     <PermissionGuard permission="competitions.manage">
       <main className="min-h-screen bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] px-4 py-8 text-white md:px-8">
         <section className="mx-auto max-w-[1700px] space-y-8">
           <section className="relative overflow-hidden rounded-[40px] border border-yellow-500/25 bg-[#020714] p-7 shadow-[0_0_55px_rgba(250,204,21,.12)] md:p-10">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,.16),transparent_42%)]" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/84 to-black/30" />
-
-            <div className="relative z-10 grid gap-8 lg:grid-cols-[1fr_380px] lg:items-center">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.45em] text-yellow-300">
-                  Admin · Copas APA
-                </p>
-
-                <h1 className="mt-5 text-5xl font-black uppercase italic leading-none md:text-7xl">
-                  <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
-                    Copa
-                  </span>
-                  <span className="block text-yellow-300 drop-shadow-[0_0_22px_rgba(250,204,21,.40)]">
-                    Grupos
-                  </span>
-                </h1>
-
-                <p className="mt-6 max-w-3xl text-lg leading-8 text-zinc-300">
-                  Cargá los cuatro grupos de la competencia. Los dos primeros pasan a Copa Argentina y los dos últimos a Copa APA.
-                </p>
-              </div>
-
-              <div className="rounded-[34px] border border-yellow-400/25 bg-black/35 p-6">
-                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-yellow-300">
-                  Resumen
-                </p>
-
-                <h2 className="mt-3 text-3xl font-black uppercase">
-                  {temporada}
-                </h2>
-
-                <div className="mt-5 grid grid-cols-2 gap-3">
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                    <p className="text-[10px] font-black uppercase text-zinc-500">Partidos</p>
-                    <p className="mt-2 text-3xl font-black text-yellow-300">{partidos.length}</p>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                    <p className="text-[10px] font-black uppercase text-zinc-500">Equipos</p>
-                    <p className="mt-2 text-3xl font-black text-sky-300">
-                      {Object.values(grupos).flat().filter(Boolean).length}/16
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <h1 className="text-5xl font-black uppercase italic text-yellow-300">
+              Admin Copas & Liga APA
+            </h1>
+            <p className="mt-2 text-zinc-300">
+              Gestión de Grupos, Liga, Cuartos, Semifinales, 3.º Puesto, Finales y Horarios.
+            </p>
           </section>
 
           {mensaje && (
@@ -728,148 +702,79 @@ export default function AdminCopasPage() {
             </div>
           )}
 
+          {/* AVANCE AUTOMÁTICO A SEMIFINALES, FINALES Y 3º PUESTO */}
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-[34px] border border-yellow-500/25 bg-[#020714]/95 p-6">
+            <div className="space-y-3 border-r border-white/10 pr-4">
+              <h3 className="text-lg font-black uppercase text-yellow-300">
+                🇦🇷 Copa Argentina
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => generarSemifinalesAutomaticas("copa_argentina")}
+                  className="rounded-xl border border-yellow-400/30 bg-yellow-400 px-4 py-2 text-xs font-black uppercase text-black hover:bg-white"
+                >
+                  ⚡ Avanzar Ganadores a Semis
+                </button>
+                <button
+                  onClick={() => generarFinalY3erPuestoAutomatico("copa_argentina")}
+                  className="rounded-xl border border-yellow-400/30 bg-yellow-400 px-4 py-2 text-xs font-black uppercase text-black hover:bg-white"
+                >
+                  🏆 Generar Gran Final & 3.º Puesto
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-lg font-black uppercase text-sky-300">
+                🏆 Copa APA
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => generarSemifinalesAutomaticas("copa_apa")}
+                  className="rounded-xl border border-sky-400/30 bg-sky-400 px-4 py-2 text-xs font-black uppercase text-black hover:bg-white"
+                >
+                  ⚡ Avanzar Ganadores a Semis
+                </button>
+                <button
+                  onClick={() => generarFinalY3erPuestoAutomatico("copa_apa")}
+                  className="rounded-xl border border-sky-400/30 bg-sky-400 px-4 py-2 text-xs font-black uppercase text-black hover:bg-white"
+                >
+                  🏆 Generar Gran Final & 3.º Puesto
+                </button>
+              </div>
+            </div>
+          </section>
+
           <section className="grid grid-cols-1 gap-6 xl:grid-cols-[430px_1fr]">
             <aside className="space-y-6">
-              <section className="rounded-[34px] border border-sky-500/25 bg-[#020714]/95 p-6">
-                <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
-                  Temporada
-                </p>
-
-                <div className="mt-5 grid grid-cols-2 gap-3">
-                  {TEMPORADAS.map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => setTemporada(t)}
-                      className={`rounded-2xl border px-4 py-3 text-xs font-black uppercase transition ${
-                        temporada === t
-                          ? "border-sky-300 bg-sky-400 text-black"
-                          : "border-white/10 bg-white/[0.04] text-zinc-400 hover:border-sky-400/30 hover:text-white"
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </section>
-
-              {/* MÓDULO DE SANCIONES Y DESCUENTO DE PUNTOS EXCLUSIVO PARA COPAS */}
+              {/* SANCIONES */}
               <section className="rounded-[34px] border border-red-500/25 bg-[#020714]/95 p-6 space-y-4">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.35em] text-red-400">
-                    Sanciones Copas
-                  </p>
-                  <h2 className="mt-1 text-2xl font-black uppercase">Quitar Puntos</h2>
-                  <p className="mt-1 text-xs text-zinc-400">
-                    Aplica descuentos a los grupos de copas por W.O. (no afecta a la Liga).
-                  </p>
-                </div>
-
+                <h2 className="text-2xl font-black uppercase text-red-400">Quitar Puntos (Copa)</h2>
                 <form onSubmit={aplicarSancion} className="space-y-3">
-                  <div>
-                    <label className="block text-[10px] font-black uppercase text-zinc-400 mb-1">
-                      Equipo
-                    </label>
-                    <select
-                      value={equipoSancionar}
-                      onChange={(e) => setEquipoSancionar(e.target.value)}
-                      className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-xs font-black uppercase text-white outline-none"
-                    >
-                      <option value="">Seleccionar equipo...</option>
-                      {equipos.map((eq) => (
-                        <option key={`sancion-${eq.nombre}`} value={eq.nombre}>
-                          {eq.nombre}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[10px] font-black uppercase text-zinc-400 mb-1">
-                        Puntos
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={puntosRestar}
-                        onChange={(e) => setPuntosRestar(Number(e.target.value))}
-                        className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-xs font-black text-white outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-black uppercase text-zinc-400 mb-1">
-                        Motivo
-                      </label>
-                      <input
-                        type="text"
-                        value={motivoSancion}
-                        onChange={(e) => setMotivoSancion(e.target.value)}
-                        placeholder="W.O."
-                        className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-xs font-black uppercase text-white outline-none"
-                      />
-                    </div>
-                  </div>
-
+                  <select
+                    value={equipoSancionar}
+                    onChange={(e) => setEquipoSancionar(e.target.value)}
+                    className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-xs font-black uppercase text-white outline-none"
+                  >
+                    <option value="">Seleccionar equipo...</option>
+                    {equipos.map((eq) => (
+                      <option key={`sancion-${eq.nombre}`} value={eq.nombre}>
+                        {eq.nombre}
+                      </option>
+                    ))}
+                  </select>
                   <button
                     type="submit"
-                    disabled={guardandoSancion}
-                    className="w-full rounded-2xl border border-red-400/30 bg-red-500 px-5 py-3 text-xs font-black uppercase text-white transition hover:bg-red-600 disabled:opacity-50"
+                    className="w-full rounded-2xl border border-red-400/30 bg-red-500 px-5 py-3 text-xs font-black uppercase text-white hover:bg-red-600"
                   >
-                    {guardandoSancion ? "Aplicando..." : "- Restar Puntos (Copa)"}
+                    - Restar Puntos
                   </button>
                 </form>
-
-                <div className="pt-3 border-t border-white/10">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 mb-2">
-                    Sanciones de Copa en {temporada} ({sanciones.length})
-                  </p>
-
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {sanciones.map((s) => (
-                      <div
-                        key={s.id}
-                        className="flex items-center justify-between rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs"
-                      >
-                        <div>
-                          <p className="font-black uppercase text-white">{s.equipo}</p>
-                          <p className="text-[9px] text-zinc-400">{s.motivo}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-black text-red-400">
-                            -{s.puntos_descontados} pts
-                          </span>
-                          <button
-                            onClick={() => eliminarSancion(s.id)}
-                            className="rounded-lg border border-red-400/20 bg-red-400/20 px-2 py-0.5 text-[9px] font-black text-red-300 hover:bg-red-500 hover:text-white"
-                          >
-                            X
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-
-                    {sanciones.length === 0 && (
-                      <p className="text-[11px] text-zinc-500 italic text-center py-1">
-                        Sin sanciones de copa aplicadas.
-                      </p>
-                    )}
-                  </div>
-                </div>
               </section>
 
-              {/* ESTADO DE COPAS */}
+              {/* VISIBILIDAD */}
               <section className="rounded-[34px] border border-emerald-500/25 bg-[#020714]/95 p-6">
-                <p className="text-xs font-black uppercase tracking-[0.35em] text-emerald-300">
-                  Estado de Copas
-                </p>
-                <h2 className="mt-2 text-2xl font-black uppercase">
-                  Visibilidad ({temporada})
-                </h2>
-                <p className="mt-1 text-xs text-zinc-400">
-                  Activa o poné en mantenimiento las vistas públicas para esta temporada.
-                </p>
-
+                <h2 className="text-2xl font-black uppercase text-emerald-300">Visibilidad Copas</h2>
                 <div className="mt-5 space-y-4">
                   <label className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/35 px-4 py-3 cursor-pointer">
                     <span className="text-sm font-black uppercase text-white">Copa APA</span>
@@ -877,98 +782,30 @@ export default function AdminCopasPage() {
                       type="checkbox"
                       checked={copaApaActiva}
                       onChange={(e) => setCopaApaActiva(e.target.checked)}
-                      className="h-5 w-5 accent-emerald-400 cursor-pointer"
+                      className="h-5 w-5 accent-emerald-400"
                     />
                   </label>
-
                   <label className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/35 px-4 py-3 cursor-pointer">
                     <span className="text-sm font-black uppercase text-white">Copa Argentina</span>
                     <input
                       type="checkbox"
                       checked={copaArgentinaActiva}
                       onChange={(e) => setCopaArgentinaActiva(e.target.checked)}
-                      className="h-5 w-5 accent-emerald-400 cursor-pointer"
+                      className="h-5 w-5 accent-emerald-400"
                     />
                   </label>
-
                   <button
                     onClick={guardarEstadoCopas}
-                    disabled={guardandoEstado}
-                    className="w-full rounded-2xl border border-emerald-400/30 bg-emerald-400 px-5 py-3 text-sm font-black uppercase text-black transition hover:bg-white disabled:opacity-50"
+                    className="w-full rounded-2xl border border-emerald-400/30 bg-emerald-400 px-5 py-3 text-sm font-black uppercase text-black hover:bg-white"
                   >
-                    {guardandoEstado ? "Guardando..." : "Guardar Estado"}
+                    Guardar Estado
                   </button>
                 </div>
               </section>
 
-              <section className="rounded-[34px] border border-yellow-500/25 bg-[#020714]/95 p-6">
-                <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-300">
-                  Configurar grupos
-                </p>
-
-                <div className="mt-5 grid grid-cols-4 gap-2">
-                  {GRUPOS.map((grupo) => (
-                    <button
-                      key={grupo}
-                      onClick={() => setGrupoSeleccionado(grupo)}
-                      className={`rounded-2xl border px-4 py-3 text-sm font-black uppercase transition ${
-                        grupoSeleccionado === grupo
-                          ? "border-yellow-300 bg-yellow-400 text-black"
-                          : "border-white/10 bg-white/[0.04] text-zinc-400 hover:border-yellow-400/30 hover:text-white"
-                      }`}
-                    >
-                      {grupo}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="mt-5 space-y-3">
-                  {grupos[grupoSeleccionado].map((equipoActual, index) => (
-                    <select
-                      key={`${grupoSeleccionado}-${index}`}
-                      value={equipoActual}
-                      onChange={(e) =>
-                        cambiarEquipoGrupo(grupoSeleccionado, index, e.target.value)
-                      }
-                      className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
-                    >
-                      <option value="">Equipo {index + 1}</option>
-
-                      {equiposDisponibles(equipoActual).map((equipo) => (
-                        <option
-                          key={`${grupoSeleccionado}-${index}-${equipo.nombre}`}
-                          value={equipo.nombre}
-                        >
-                          {equipo.nombre}
-                        </option>
-                      ))}
-                    </select>
-                  ))}
-                </div>
-
-                <button
-                  onClick={generarFaseGrupos}
-                  className="mt-5 w-full rounded-2xl border border-yellow-400/30 bg-[#C9981A] px-5 py-4 text-sm font-black uppercase text-white transition hover:bg-[#D4A017]"
-                >
-                  Generar fase de grupos
-                </button>
-
-                <button
-                  onClick={eliminarFaseGrupos}
-                  className="mt-3 w-full rounded-2xl border border-red-400/25 bg-red-400/10 px-5 py-4 text-sm font-black uppercase text-red-300 transition hover:bg-red-400 hover:text-black"
-                >
-                  Eliminar grupos
-                </button>
-              </section>
-
-              {/* MANUAL / AÑADIR CRUCE */}
+              {/* CRUCE MANUAL */}
               <section className="rounded-[34px] border border-emerald-500/25 bg-[#020714]/95 p-6">
-                <p className="text-xs font-black uppercase tracking-[0.35em] text-emerald-300">
-                  Manual
-                </p>
-
-                <h2 className="mt-2 text-3xl font-black uppercase">Añadir cruce</h2>
-
+                <h2 className="text-2xl font-black uppercase text-emerald-300">Añadir Cruce Manual</h2>
                 <div className="mt-5 space-y-3">
                   <select
                     value={faseManual}
@@ -981,7 +818,6 @@ export default function AdminCopasPage() {
                       </option>
                     ))}
                   </select>
-
                   <select
                     value={localManual}
                     onChange={(e) => setLocalManual(e.target.value)}
@@ -994,7 +830,6 @@ export default function AdminCopasPage() {
                       </option>
                     ))}
                   </select>
-
                   <select
                     value={visitanteManual}
                     onChange={(e) => setVisitanteManual(e.target.value)}
@@ -1007,31 +842,9 @@ export default function AdminCopasPage() {
                       </option>
                     ))}
                   </select>
-
-                  <input
-                    value={fechaManual}
-                    onChange={(e) => setFechaManual(e.target.value)}
-                    placeholder="Fecha / Ronda"
-                    className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
-                  />
-
-                  <input
-                    value={diaManual}
-                    onChange={(e) => setDiaManual(e.target.value)}
-                    placeholder="Día"
-                    className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
-                  />
-
-                  <input
-                    value={horaManual}
-                    onChange={(e) => setHoraManual(e.target.value)}
-                    placeholder="Hora"
-                    className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
-                  />
-
                   <button
                     onClick={crearCruceManual}
-                    className="w-full rounded-2xl border border-emerald-400/30 bg-emerald-400 px-5 py-4 text-sm font-black uppercase text-black transition hover:bg-white"
+                    className="w-full rounded-2xl border border-emerald-400/30 bg-emerald-400 px-5 py-4 text-sm font-black uppercase text-black hover:bg-white"
                   >
                     + Añadir cruce
                   </button>
@@ -1040,263 +853,170 @@ export default function AdminCopasPage() {
             </aside>
 
             <section className="space-y-6">
-              <section className="grid grid-cols-1 gap-6 2xl:grid-cols-4">
-                {GRUPOS.map((grupo) => (
-                  <section
-                    key={`tabla-${grupo}`}
-                    className="rounded-[30px] border border-sky-500/25 bg-[#020714]/95 p-5"
-                  >
-                    <p className="text-xs font-black uppercase tracking-[0.28em] text-sky-300">
-                      Grupo {grupo}
-                    </p>
-
-                    <div className="mt-4 overflow-x-auto">
-                      <table className="w-full min-w-[420px] border-separate border-spacing-y-2">
-                        <thead>
-                          <tr className="text-[10px] uppercase tracking-[0.18em] text-sky-300/80">
-                            <th className="py-2 text-left">#</th>
-                            <th className="py-2 text-left">Equipo</th>
-                            <th className="py-2 text-center">PTS</th>
-                            <th className="py-2 text-center">DG</th>
-                          </tr>
-                        </thead>
-
-                        <tbody>
-                          {(tablasPorGrupo[grupo] || []).length === 0 ? (
-                            <tr>
-                              <td colSpan={4} className="py-5 text-center text-zinc-500">
-                                Sin datos
-                              </td>
-                            </tr>
-                          ) : (
-                            tablasPorGrupo[grupo].map((e, index) => (
-                              <tr
-                                key={`${grupo}-${e.equipo}`}
-                                className="bg-gradient-to-r from-[#06152c] via-[#071a33] to-[#030b18]"
-                              >
-                                <td className="rounded-l-xl px-3 py-3 font-black text-yellow-300">
-                                  {index + 1}
-                                </td>
-                                <td className="px-3 py-3 text-xs font-black uppercase">
-                                  {e.equipo}
-                                </td>
-                                <td className="py-3 text-center font-black text-yellow-300">
-                                  {e.pts}
-                                  {e.sancion_pts > 0 && (
-                                    <span className="block text-[9px] font-bold text-red-400">
-                                      (-{e.sancion_pts} pts)
-                                    </span>
-                                  )}
-                                </td>
-                                <td className="rounded-r-xl py-3 text-center font-black text-sky-300">
-                                  {e.dg > 0 ? `+${e.dg}` : e.dg}
-                                </td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </section>
-                ))}
-              </section>
-
-              <section className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-                <section className="rounded-[34px] border border-yellow-500/25 bg-[#020714]/95 p-6">
-                  <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-300">
-                    Clasifican a Copa Argentina
-                  </p>
-
-                  <div className="mt-5 space-y-2">
-                    {clasificados.copaArgentina.length === 0 ? (
-                      <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-sm text-zinc-500">
-                        Todavía no hay clasificados.
-                      </p>
-                    ) : (
-                      clasificados.copaArgentina.map((e) => (
-                        <div
-                          key={`arg-${e.grupo}-${e.equipo}`}
-                          className="flex items-center justify-between rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-4 py-3"
-                        >
-                          <span className="font-black uppercase">{e.equipo}</span>
-                          <span className="text-xs font-black uppercase text-yellow-300">
-                            {e.posicion}° Grupo {e.grupo}
-                          </span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </section>
-
-                <section className="rounded-[34px] border border-sky-500/25 bg-[#020714]/95 p-6">
-                  <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
-                    Clasifican a Copa APA
-                  </p>
-
-                  <div className="mt-5 space-y-2">
-                    {clasificados.copaApa.length === 0 ? (
-                      <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-sm text-zinc-500">
-                        Todavía no hay clasificados.
-                      </p>
-                    ) : (
-                      clasificados.copaApa.map((e) => (
-                        <div
-                          key={`apa-${e.grupo}-${e.equipo}`}
-                          className="flex items-center justify-between rounded-2xl border border-sky-400/20 bg-sky-400/10 px-4 py-3"
-                        >
-                          <span className="font-black uppercase">{e.equipo}</span>
-                          <span className="text-xs font-black uppercase text-sky-300">
-                            {e.posicion}° Grupo {e.grupo}
-                          </span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </section>
-              </section>
-
-              {/* BOTÓN PARA GENERAR CUARTOS AUTOMÁTICOS */}
+              {/* BOTÓN GENERAR CUARTOS */}
               <section className="rounded-[34px] border border-yellow-500/25 bg-[#020714]/95 p-6 text-center">
-                <h3 className="text-xl font-black uppercase text-yellow-300">
-                  Generar Cuartos de Final Automáticos
-                </h3>
-                <p className="mt-2 text-xs text-zinc-400">
-                  Cruzará automáticamente los 1° vs 2° para la Copa Argentina y los 3° vs 4° para la Copa APA.
-                </p>
                 <button
                   onClick={generarCuartosDeFinalAutomaticos}
-                  className="mt-4 rounded-2xl border border-yellow-400/30 bg-yellow-400 px-6 py-3 text-sm font-black uppercase text-black transition hover:bg-white"
+                  className="rounded-2xl border border-yellow-400/30 bg-yellow-400 px-6 py-3 text-sm font-black uppercase text-black hover:bg-white"
                 >
-                  ⚡ Generar Cruces de Cuartos de Final
+                  ⚡ Generar Cruces de Cuartos de Final (Sorteo sin repetir grupo)
                 </button>
               </section>
 
+              {/* PROGRAMACIÓN DE PARTIDOS CON FILTROS Y ORDEN NUMÉRICO */}
               <section className="rounded-[34px] border border-yellow-500/25 bg-[#020714]/95 p-6">
-                <div className="mb-5 flex items-end justify-between gap-4">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
                   <div>
                     <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-300">
-                      Partidos de grupos y copas
+                      Programación de Horarios
                     </p>
-                    <h2 className="mt-2 text-3xl font-black uppercase">
+                    <h2 className="mt-1 text-3xl font-black uppercase">
                       Calendario
                     </h2>
                   </div>
 
-                  <span className="text-xs font-black uppercase text-zinc-500">
-                    {partidos.length} partidos
-                  </span>
+                  {/* PESTAÑAS DE NAVEGACIÓN Y FILTRO */}
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setTabFiltroCompeticion("primera")}
+                      className={`rounded-xl border px-3 py-2 text-xs font-black uppercase transition ${
+                        tabFiltroCompeticion === "primera"
+                          ? "border-sky-400 bg-sky-400 text-black"
+                          : "border-white/10 bg-black/35 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      ⚽ Primera
+                    </button>
+
+                    <button
+                      onClick={() => setTabFiltroCompeticion("segunda")}
+                      className={`rounded-xl border px-3 py-2 text-xs font-black uppercase transition ${
+                        tabFiltroCompeticion === "segunda"
+                          ? "border-sky-400 bg-sky-400 text-black"
+                          : "border-white/10 bg-black/35 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      ⚽ Segunda
+                    </button>
+
+                    <button
+                      onClick={() => setTabFiltroCompeticion("grupos")}
+                      className={`rounded-xl border px-3 py-2 text-xs font-black uppercase transition ${
+                        tabFiltroCompeticion === "grupos"
+                          ? "border-yellow-400 bg-yellow-400 text-black"
+                          : "border-white/10 bg-black/35 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      🛡️ Grupos
+                    </button>
+
+                    <button
+                      onClick={() => setTabFiltroCompeticion("copa_argentina")}
+                      className={`rounded-xl border px-3 py-2 text-xs font-black uppercase transition ${
+                        tabFiltroCompeticion === "copa_argentina"
+                          ? "border-yellow-400 bg-yellow-400 text-black"
+                          : "border-white/10 bg-black/35 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      🇦🇷 Copa Arg
+                    </button>
+
+                    <button
+                      onClick={() => setTabFiltroCompeticion("copa_apa")}
+                      className={`rounded-xl border px-3 py-2 text-xs font-black uppercase transition ${
+                        tabFiltroCompeticion === "copa_apa"
+                          ? "border-sky-400 bg-sky-400 text-black"
+                          : "border-white/10 bg-black/35 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      🏆 Copa APA
+                    </button>
+
+                    <button
+                      onClick={() => setTabFiltroCompeticion("todos")}
+                      className={`rounded-xl border px-3 py-2 text-xs font-black uppercase transition ${
+                        tabFiltroCompeticion === "todos"
+                          ? "border-white bg-white text-black"
+                          : "border-white/10 bg-black/35 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      Ver Todos ({partidos.length})
+                    </button>
+                  </div>
                 </div>
 
-                {loading ? (
-                  <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
-                    Cargando...
-                  </p>
-                ) : partidos.length === 0 ? (
-                  <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
-                    Todavía no hay cruces cargados.
+                {partidosFiltrados.length === 0 ? (
+                  <p className="rounded-2xl border border-white/10 bg-black/35 p-6 text-center text-sm text-zinc-500 uppercase font-black">
+                    No hay partidos cargados para esta categoría/competencia.
                   </p>
                 ) : (
                   <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-                    {partidos.map((p) => (
+                    {partidosFiltrados.map((p) => (
                       <article
                         key={p.id}
-                        className="rounded-2xl border border-sky-500/15 bg-[#020714] p-4"
+                        className="rounded-2xl border border-sky-500/15 bg-[#020714] p-4 space-y-3"
                       >
-                        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center justify-between">
                           <span className="rounded-full border border-yellow-400/25 bg-yellow-400/10 px-3 py-1 text-[10px] font-black uppercase text-yellow-300">
-                            {p.ronda ||
-                              (p.grupo
-                                ? `Grupo ${p.grupo} · Fecha ${p.fecha}`
-                                : p.competicion)}
+                            {p.ronda || p.fase || (p.division ? `División ${p.division}` : p.competicion)}
                           </span>
-
                           <button
                             onClick={() => eliminarPartido(p.id)}
-                            className="rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-1 text-[10px] font-black uppercase text-red-300 transition hover:bg-red-400 hover:text-black"
+                            className="text-xs text-red-400 font-bold hover:underline"
                           >
                             Eliminar
                           </button>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_120px_minmax(0,1fr)] xl:items-center">
-                          <p className="truncate rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-center text-sm font-black uppercase text-white">
-                            {p.local}
-                          </p>
+                        <div className="grid grid-cols-[1fr_100px_1fr] items-center gap-2">
+                          <p className="text-center font-black uppercase text-xs truncate">{p.local}</p>
+                          <input
+                            value={p.resultado || ""}
+                            onChange={(e) => actualizarPartido(p.id, { resultado: e.target.value || null })}
+                            placeholder="VS"
+                            className="rounded-xl border border-yellow-400/20 bg-black/35 py-1.5 text-center text-xs font-black uppercase text-yellow-300 outline-none"
+                          />
+                          <p className="text-center font-black uppercase text-xs truncate">{p.visitante}</p>
+                        </div>
 
-                          <div className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-3 py-3 text-center">
-                            <p className="text-[9px] font-black uppercase tracking-[0.18em] text-yellow-300/70">
-                              Resultado
-                            </p>
-
-                            {p.partido_id ? (
-                              <p className="mt-1 text-xl font-black text-yellow-300">
-                                {p.resultado || "VS"}
-                              </p>
-                            ) : (
-                              <input
-                                value={p.resultado || ""}
-                                onChange={(e) =>
-                                  actualizarPartido(p.id, {
-                                    resultado: e.target.value || null,
-                                  })
-                                }
-                                placeholder="VS"
-                                className="mt-1 w-full rounded-xl border border-yellow-400/20 bg-black/35 px-2 py-2 text-center text-lg font-black uppercase text-yellow-300 outline-none placeholder:text-yellow-300"
-                              />
-                            )}
+                        {/* INPUTS DE FECHA/FASE, DÍA Y HORA */}
+                        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10">
+                          <div>
+                            <label className="text-[9px] font-black uppercase text-zinc-500 block mb-1">
+                              Fase / Fecha
+                            </label>
+                            <input
+                              value={String(p.fecha || p.fase || "")}
+                              onChange={(e) => actualizarPartido(p.id, { fecha: e.target.value })}
+                              placeholder="Ej: 1"
+                              className="w-full rounded-xl border border-white/10 bg-black/35 px-2 py-1.5 text-xs font-black uppercase text-white outline-none"
+                            />
                           </div>
 
-                          <p className="truncate rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-center text-sm font-black uppercase text-white">
-                            {p.visitante}
-                          </p>
+                          <div>
+                            <label className="text-[9px] font-black uppercase text-zinc-500 block mb-1">
+                              Día
+                            </label>
+                            <input
+                              value={p.dia || ""}
+                              onChange={(e) => actualizarPartido(p.id, { dia: e.target.value })}
+                              placeholder="Ej: LUN 12/08"
+                              className="w-full rounded-xl border border-white/10 bg-black/35 px-2 py-1.5 text-xs font-black uppercase text-white outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[9px] font-black uppercase text-zinc-500 block mb-1">
+                              Hora
+                            </label>
+                            <input
+                              value={p.hora || ""}
+                              onChange={(e) => actualizarPartido(p.id, { hora: e.target.value })}
+                              placeholder="Ej: 22:00"
+                              className="w-full rounded-xl border border-white/10 bg-black/35 px-2 py-1.5 text-xs font-black uppercase text-white outline-none"
+                            />
+                          </div>
                         </div>
-
-                        {p.partido_id && (
-                          <p className="mt-3 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-300">
-                            🔒 Resultado bloqueado porque este partido ya tiene TXT cargado.
-                          </p>
-                        )}
-
-                        <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
-                          <input
-                            value={String(p.fecha || "")}
-                            onChange={(e) =>
-                              actualizarPartido(p.id, {
-                                fecha: e.target.value,
-                              })
-                            }
-                            placeholder="Fecha"
-                            className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
-                          />
-
-                          <input
-                            value={p.dia || ""}
-                            onChange={(e) =>
-                              actualizarPartido(p.id, {
-                                dia: e.target.value,
-                              })
-                            }
-                            placeholder="Día"
-                            className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
-                          />
-
-                          <input
-                            value={p.hora || ""}
-                            onChange={(e) =>
-                              actualizarPartido(p.id, {
-                                hora: e.target.value,
-                              })
-                            }
-                            placeholder="Hora"
-                            className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-black uppercase text-white outline-none"
-                          />
-                        </div>
-
-                        {p.partido_id && (
-                          <p className="mt-3 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">
-                            partido_id: {p.partido_id}
-                          </p>
-                        )}
                       </article>
                     ))}
                   </div>

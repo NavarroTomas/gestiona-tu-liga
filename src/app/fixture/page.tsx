@@ -35,10 +35,10 @@ const competencias = [
     ],
   },
   {
-    eyebrow: "Fase de grupos",
-    titulo: "Clasificación a Copas",
+    eyebrow: "Fase de grupos y Copas",
+    titulo: "Copas Oficiales",
     descripcion:
-      "Grupos A, B, C y D. Los dos primeros van a Copa Argentina y los dos últimos a Copa APA.",
+      "Fase de Grupos (A, B, C y D). Los dos primeros van a Copa Argentina y los dos últimos a Copa APA.",
     image: "/images/fixture/clasificacion.png",
     color: "border-yellow-400/35",
     accent: "text-yellow-300",
@@ -64,6 +64,18 @@ const competencias = [
         titulo: "Grupo D",
         texto: "Ver calendario",
         href: "/fixture/grupo-d?temporada=Temporada%204",
+      },
+      {
+        titulo: "Copa Argentina",
+        texto: "Ver Fixture",
+        href: "/fixture/copa-argentina?temporada=Temporada%204",
+        destacado: true,
+      },
+      {
+        titulo: "Copa APA",
+        texto: "Ver Fixture",
+        href: "/fixture/copa-apa?temporada=Temporada%204",
+        destacado: true,
       },
     ],
   },
@@ -173,7 +185,7 @@ export default function FixturePage() {
               </h1>
 
               <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-200 drop-shadow-[0_4px_16px_rgba(0,0,0,.9)] md:text-lg md:leading-8">
-                Calendario oficial de Liga, Clasificación a Copas, Copa de Campeones y Playoffs de Ascenso. Elegí la temporada, la competencia y después la categoría, grupo o fase.
+                Calendario oficial de Liga, Clasificación a Copas, Copa Argentina, Copa APA, Copa de Campeones y Playoffs.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
@@ -245,7 +257,7 @@ export default function FixturePage() {
               </h2>
             </div>
             <p className="max-w-xl text-sm leading-7 text-zinc-400 md:text-base">
-              Liga, Clasificación a Copas y Copa de Campeones conviven en el mismo calendario oficial.
+              Liga, Clasificación a Copas y Fases Eliminatorias conviven en el mismo calendario oficial.
             </p>
           </div>
 
@@ -290,23 +302,27 @@ export default function FixturePage() {
                     </p>
                   </div>
 
-                  <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-2 2xl:grid-cols-4">
-                    {competencia.items.map((item) => (
+                  <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-2 2xl:grid-cols-3">
+                    {competencia.items.map((item: any) => (
                       <Link
                         key={item.titulo}
                         href={item.href}
-                        className="group/item rounded-2xl border border-white/12 bg-black/48 p-4 backdrop-blur-md transition hover:border-sky-400/45 hover:bg-sky-400/10"
+                        className={`group/item rounded-2xl border p-4 backdrop-blur-md transition ${
+                          item.destacado
+                            ? "border-yellow-400/50 bg-yellow-400/15 hover:border-yellow-300 hover:bg-yellow-400/25"
+                            : "border-white/12 bg-black/48 hover:border-sky-400/45 hover:bg-sky-400/10"
+                        }`}
                       >
                         <div className="flex items-center justify-between gap-3">
-                          <span className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">
-                            Calendario
+                          <span className={`text-[10px] font-black uppercase tracking-[0.18em] ${item.destacado ? "text-yellow-300" : "text-zinc-500"}`}>
+                            {item.destacado ? "Copa Oficial" : "Calendario"}
                           </span>
                           <span className="text-sky-300 transition group-hover/item:translate-x-1">→</span>
                         </div>
-                        <p className="mt-3 text-sm font-black uppercase text-white">
+                        <p className={`mt-3 text-sm font-black uppercase ${item.destacado ? "text-yellow-300" : "text-white"}`}>
                           {item.titulo}
                         </p>
-                        <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-sky-300">
+                        <p className={`mt-1 text-[11px] font-bold uppercase tracking-[0.14em] ${item.destacado ? "text-yellow-400" : "text-sky-300"}`}>
                           {item.texto}
                         </p>
                       </Link>
