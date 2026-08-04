@@ -26,6 +26,15 @@ type ClubVisual = {
   slug?: string | null;
 };
 
+type Sancion = {
+  id: string;
+  temporada: string;
+  competicion?: string | null;
+  equipo: string;
+  puntos_descontados: number;
+  motivo?: string | null;
+};
+
 type EquipoTabla = {
   equipo: string;
   grupo: string;
@@ -37,6 +46,7 @@ type EquipoTabla = {
   gf: number;
   gc: number;
   dg: number;
+  sancion_pts: number;
 };
 
 const TEMPORADA = "Temporada 4";
@@ -51,7 +61,7 @@ function normalizar(value?: string | null) {
     .trim();
 }
 
-function calcularTablaGrupo(partidos: PartidoCopa[], grupo: string): EquipoTabla[] {
+function calcularTablaGrupo(partidos: PartidoCopa[], grupo: string, sanciones: Sancion[] = []): EquipoTabla[] {
   const mapa: Record<string, EquipoTabla> = {};
 
   function asegurar(nombre: string) {
@@ -67,6 +77,7 @@ function calcularTablaGrupo(partidos: PartidoCopa[], grupo: string): EquipoTabla
         gf: 0,
         gc: 0,
         dg: 0,
+        sancion_pts: 0,
       };
     }
   }
@@ -109,6 +120,22 @@ function calcularTablaGrupo(partidos: PartidoCopa[], grupo: string): EquipoTabla
       }
     });
 
+  // Aplicar sanciones estrictamente de la fase de grupos de copa
+  Object.keys(mapa).forEach((nombreEquipo) => {
+    const sancionesEquipo = sanciones.filter(
+      (s) =>
+        normalizar(s.equipo) === normalizar(nombreEquipo) &&
+        s.competicion === "copa_clasificatoria"
+    );
+    const totalDescuento = sancionesEquipo.reduce(
+      (acc, s) => acc + Number(s.puntos_descontados),
+      0
+    );
+
+    mapa[nombreEquipo].sancion_pts = totalDescuento;
+    mapa[nombreEquipo].pts = mapa[nombreEquipo].pts - totalDescuento;
+  });
+
   return Object.values(mapa)
     .map((e) => ({ ...e, dg: e.gf - e.gc }))
     .sort((a, b) => {
@@ -146,6 +173,7 @@ function claseFila(index: number) {
 export default function CopasPublicPage() {
   const [partidos, setPartidos] = useState<PartidoCopa[]>([]);
   const [clubes, setClubes] = useState<ClubVisual[]>([]);
+  const [sanciones, setSanciones] = useState<Sancion[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -155,7 +183,7 @@ export default function CopasPublicPage() {
   async function cargarDatos() {
     setLoading(true);
 
-    const [partidosRes, clubesRes] = await Promise.all([
+    const [partidosRes, clubesRes, sancionesRes] = await Promise.all([
       supabase
         .from("partidos")
         .select("id, local, visitante, resultado, fecha, temporada, division, dia, hora, competicion, grupo, fase, ronda")
@@ -170,6 +198,11 @@ export default function CopasPublicPage() {
         .select("nombre, slug, logo_url")
         .eq("temporada", TEMPORADA)
         .eq("activo", true),
+
+      supabase
+        .from("sanciones_equipos")
+        .select("*")
+        .eq("temporada", TEMPORADA),
     ]);
 
     if (partidosRes.error) {
@@ -184,6 +217,13 @@ export default function CopasPublicPage() {
       setClubes([]);
     } else {
       setClubes((clubesRes.data || []) as ClubVisual[]);
+    }
+
+    if (sancionesRes.error) {
+      console.log(sancionesRes.error);
+      setSanciones([]);
+    } else {
+      setSanciones((sancionesRes.data || []) as Sancion[]);
     }
 
     setLoading(false);
@@ -201,9 +241,9 @@ export default function CopasPublicPage() {
 
   const tablas = useMemo(() => {
     return Object.fromEntries(
-      GRUPOS.map((grupo) => [grupo, calcularTablaGrupo(partidos, grupo)]),
+      GRUPOS.map((grupo) => [grupo, calcularTablaGrupo(partidos, grupo, sanciones)]),
     ) as Record<string, EquipoTabla[]>;
-  }, [partidos]);
+  }, [partidos, sanciones]);
 
   const resumenClasificacion = useMemo(() => {
     let argentina = 0;
@@ -315,7 +355,7 @@ export default function CopasPublicPage() {
             Cargando clasificación...
           </p>
         ) : (
-          <section className="grid grid-cols-1 gap-6 grid-cols-1">
+          <section className="grid grid-cols-1 gap-6">
             {GRUPOS.map((grupo) => (
               <section
                 key={grupo}

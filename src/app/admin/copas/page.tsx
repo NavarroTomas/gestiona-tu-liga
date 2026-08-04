@@ -93,27 +93,6 @@ function obtenerGanador(partido: PartidoCopa): string | null {
   return obtenerGanadorYPerdedor(partido).ganador;
 }
 
-function generarPartidosGrupo(equipos: string[], grupo: string) {
-  const limpios = equipos.filter(Boolean);
-
-  if (limpios.length !== 4) {
-    throw new Error(`El grupo ${grupo} debe tener exactamente 4 equipos.`);
-  }
-
-  return [
-    { fecha: "1", local: limpios[0], visitante: limpios[1] },
-    { fecha: "1", local: limpios[2], visitante: limpios[3] },
-    { fecha: "2", local: limpios[0], visitante: limpios[2] },
-    { fecha: "2", local: limpios[1], visitante: limpios[3] },
-    { fecha: "3", local: limpios[0], visitante: limpios[3] },
-    { fecha: "3", local: limpios[1], visitante: limpios[2] },
-  ].map((p) => ({
-    ...p,
-    grupo,
-    ronda: `Grupo ${grupo} · Fecha ${p.fecha}`,
-  }));
-}
-
 function calcularTablaGrupo(
   partidos: PartidoCopa[],
   grupo: string,
@@ -177,9 +156,12 @@ function calcularTablaGrupo(
       }
     });
 
+  // Solo aplica sanciones estrictamente de "copa_clasificatoria" para los grupos
   Object.keys(mapa).forEach((nombreEquipo) => {
     const sancionesEquipo = sanciones.filter(
-      (s) => normalizar(s.equipo) === normalizar(nombreEquipo)
+      (s) =>
+        normalizar(s.equipo) === normalizar(nombreEquipo) &&
+        s.competicion === "copa_clasificatoria"
     );
     const totalDescuento = sancionesEquipo.reduce(
       (acc, s) => acc + Number(s.puntos_descontados),
@@ -208,13 +190,13 @@ export default function AdminCopasPage() {
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // TAB DE FILTRO DE CALENDARIO
   const [tabFiltroCompeticion, setTabFiltroCompeticion] = useState<
     "todos" | "primera" | "segunda" | "grupos" | "copa_argentina" | "copa_apa"
   >("copa_argentina");
 
   const [equipoSancionar, setEquipoSancionar] = useState("");
   const [puntosRestar, setPuntosRestar] = useState(1);
+  const [competicionSancion, setCompeticionSancion] = useState<string>("copa_clasificatoria");
   const [motivoSancion, setMotivoSancion] = useState("No presentación (W.O.)");
   const [guardandoSancion, setGuardandoSancion] = useState(false);
 
@@ -269,7 +251,6 @@ export default function AdminCopasPage() {
         .from("sanciones_equipos")
         .select("*")
         .eq("temporada", temporada)
-        .eq("competicion", "copa")
         .order("created_at", { ascending: false }),
     ]);
 
@@ -300,7 +281,6 @@ export default function AdminCopasPage() {
     setLoading(false);
   }
 
-  // GENERAR AUTOMÁTICAMENTE SEMIFINALES
   async function generarSemifinalesAutomaticas(competicion: "copa_argentina" | "copa_apa") {
     setMensaje("");
 
@@ -360,7 +340,6 @@ export default function AdminCopasPage() {
     }
   }
 
-  // GENERAR AUTOMÁTICAMENTE LA GRAN FINAL Y EL 3.º PUESTO DESDE SEMIS
   async function generarFinalY3erPuestoAutomatico(competicion: "copa_argentina" | "copa_apa") {
     setMensaje("");
 
@@ -455,7 +434,7 @@ export default function AdminCopasPage() {
 
     const { error } = await supabase.from("sanciones_equipos").insert({
       temporada,
-      competicion: "copa",
+      competicion: competicionSancion, // 'liga' o 'copa_clasificatoria'
       equipo: equipoSancionar,
       puntos_descontados: Number(puntosRestar),
       motivo: motivoSancion,
@@ -463,7 +442,7 @@ export default function AdminCopasPage() {
 
     if (error) setMensaje("Error al aplicar la sanción.");
     else {
-      setMensaje(`Sanción de Copa aplicada a ${equipoSancionar}.`);
+      setMensaje(`Sanción aplicada con éxito a ${equipoSancionar}.`);
       setEquipoSancionar("");
       await cargarTodo();
     }
@@ -472,7 +451,7 @@ export default function AdminCopasPage() {
   }
 
   async function eliminarSancion(id: string) {
-    if (!window.confirm("¿Eliminar esta sanción de copa?")) return;
+    if (!window.confirm("¿Eliminar esta sanción?")) return;
     const { error } = await supabase.from("sanciones_equipos").delete().eq("id", id);
     if (error) setMensaje("Error eliminando sanción.");
     else {
@@ -487,7 +466,6 @@ export default function AdminCopasPage() {
     ) as Record<string, any[]>;
   }, [partidos, sanciones]);
 
-  // GENERAR CUARTOS: 1os vs 2os (Copa Argentina) y 3os vs 4os (Copa APA) sorteados sin repetir grupo
   async function generarCuartosDeFinalAutomaticos() {
     setMensaje("");
     for (const g of GRUPOS) {
@@ -525,7 +503,6 @@ export default function AdminCopasPage() {
           const localObj = cabezasDeSerie[i];
           const visitanteObj = bolilleroShuffled[i];
 
-          // REGLA: No pueden ser del mismo grupo
           if (localObj.grupo === visitanteObj.grupo) {
             valido = false;
             break;
@@ -543,9 +520,7 @@ export default function AdminCopasPage() {
       return null;
     }
 
-    // 1ros (bombo 0) vs 2dos (bombo 1) para Copa Argentina
     const crucesArgentina = sortearCruces(bombos[0], bombos[1], "copa_argentina");
-    // 3ros (bombo 2) vs 4tos (bombo 3) para Copa APA
     const crucesApa = sortearCruces(bombos[2], bombos[3], "copa_apa");
 
     if (!crucesArgentina || !crucesApa) {
@@ -553,7 +528,7 @@ export default function AdminCopasPage() {
       return;
     }
 
-    if (!window.confirm("¿Generar los cruces de Cuartos de Final (1os vs 2os y 3os vs 4os aleatorios sin repetir grupo)?")) return;
+    if (!window.confirm("¿Generar los cruces de Cuartos de Final?")) return;
 
     const payload = [...crucesArgentina, ...crucesApa].map((c) => ({
       local: c.local,
@@ -574,7 +549,7 @@ export default function AdminCopasPage() {
     const { error } = await supabase.from("partidos").insert(payload);
     if (error) setMensaje("Error al generar cruces de Cuartos.");
     else {
-      setMensaje("¡Cruces de Cuartos de Final sorteados con éxito (1os vs 2os / 3os vs 4os)!");
+      setMensaje("¡Cruces de Cuartos de Final generados con éxito!");
       await cargarTodo();
     }
   }
@@ -649,7 +624,6 @@ export default function AdminCopasPage() {
     else setPartidos((prev) => prev.filter((p) => p.id !== id));
   }
 
-  // FILTRAR Y ORDENAR NUMÉRICAMENTE POR FECHA
   const partidosFiltrados = useMemo(() => {
     let lista = [...partidos];
 
@@ -702,7 +676,6 @@ export default function AdminCopasPage() {
             </div>
           )}
 
-          {/* AVANCE AUTOMÁTICO A SEMIFINALES, FINALES Y 3º PUESTO */}
           <section className="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-[34px] border border-yellow-500/25 bg-[#020714]/95 p-6">
             <div className="space-y-3 border-r border-white/10 pr-4">
               <h3 className="text-lg font-black uppercase text-yellow-300">
@@ -747,10 +720,19 @@ export default function AdminCopasPage() {
 
           <section className="grid grid-cols-1 gap-6 xl:grid-cols-[430px_1fr]">
             <aside className="space-y-6">
-              {/* SANCIONES */}
+              {/* SANCIONES CON SELECTOR DE COMPETICIÓN */}
               <section className="rounded-[34px] border border-red-500/25 bg-[#020714]/95 p-6 space-y-4">
-                <h2 className="text-2xl font-black uppercase text-red-400">Quitar Puntos (Copa)</h2>
+                <h2 className="text-2xl font-black uppercase text-red-400">Quitar Puntos</h2>
                 <form onSubmit={aplicarSancion} className="space-y-3">
+                  <select
+                    value={competicionSancion}
+                    onChange={(e) => setCompeticionSancion(e.target.value)}
+                    className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-xs font-black uppercase text-white outline-none"
+                  >
+                    <option value="copa_clasificatoria">Clasificación a Copas (Grupos)</option>
+                    <option value="liga">Torneo de Liga</option>
+                  </select>
+
                   <select
                     value={equipoSancionar}
                     onChange={(e) => setEquipoSancionar(e.target.value)}
@@ -763,6 +745,25 @@ export default function AdminCopasPage() {
                       </option>
                     ))}
                   </select>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      value={puntosRestar}
+                      onChange={(e) => setPuntosRestar(Number(e.target.value))}
+                      placeholder="Puntos"
+                      className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-xs font-black uppercase text-white outline-none"
+                    />
+                    <input
+                      type="text"
+                      value={motivoSancion}
+                      onChange={(e) => setMotivoSancion(e.target.value)}
+                      placeholder="Motivo"
+                      className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-xs font-black uppercase text-white outline-none"
+                    />
+                  </div>
+
                   <button
                     type="submit"
                     className="w-full rounded-2xl border border-red-400/30 bg-red-500 px-5 py-3 text-xs font-black uppercase text-white hover:bg-red-600"
@@ -770,6 +771,27 @@ export default function AdminCopasPage() {
                     - Restar Puntos
                   </button>
                 </form>
+
+                {/* LISTADO DE SANCIONES REGISTRADAS */}
+                {sanciones.length > 0 && (
+                  <div className="mt-4 space-y-2 max-h-48 overflow-y-auto pr-1">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400">Sanciones Activas:</p>
+                    {sanciones.map((s) => (
+                      <div key={s.id} className="flex items-center justify-between rounded-xl bg-black/40 p-3 text-xs">
+                        <div>
+                          <p className="font-black text-red-300">{s.equipo} (-{s.puntos_descontados} pts)</p>
+                          <p className="text-[10px] text-zinc-500">{s.competicion} - {s.motivo}</p>
+                        </div>
+                        <button
+                          onClick={() => eliminarSancion(s.id)}
+                          className="rounded-lg bg-red-500/20 px-2 py-1 text-red-400 hover:bg-red-500 hover:text-white font-bold"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
 
               {/* VISIBILIDAD */}
@@ -875,7 +897,6 @@ export default function AdminCopasPage() {
                     </h2>
                   </div>
 
-                  {/* PESTAÑAS DE NAVEGACIÓN Y FILTRO */}
                   <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => setTabFiltroCompeticion("primera")}
@@ -979,7 +1000,6 @@ export default function AdminCopasPage() {
                           <p className="text-center font-black uppercase text-xs truncate">{p.visitante}</p>
                         </div>
 
-                        {/* INPUTS DE FECHA/FASE, DÍA Y HORA */}
                         <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10">
                           <div>
                             <label className="text-[9px] font-black uppercase text-zinc-500 block mb-1">

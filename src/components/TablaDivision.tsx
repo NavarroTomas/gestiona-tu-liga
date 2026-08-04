@@ -41,7 +41,7 @@ export default function TablaDivision({
   }, [temporada, division]);
 
   async function cargarTabla() {
-    // 1. Cargar partidos, clubes y SANCIONES en paralelo
+    // 1. Cargar partidos, clubes y SANCIONES exclusivamente de la LIGA en paralelo
     const [partidosRes, equiposRes, sancionesRes] = await Promise.all([
       supabase
         .from("partidos")
@@ -60,8 +60,9 @@ export default function TablaDivision({
 
       supabase
         .from("sanciones_equipos")
-        .select("equipo, puntos_descontados")
-        .eq("temporada", temporada),
+        .select("equipo, puntos_descontados, competicion")
+        .eq("temporada", temporada)
+        .eq("competicion", "liga"),
     ]);
 
     if (partidosRes.error) {
@@ -183,7 +184,7 @@ export default function TablaDivision({
       }
     });
 
-    // 3. APLICAR SANCIONES (Descuento de puntos)
+    // 3. APLICAR SANCIONES EXCLUSIVAMENTE DE LIGA
     if (sancionesRes.data && sancionesRes.data.length > 0) {
       sancionesRes.data.forEach((sancion) => {
         if (equipos[sancion.equipo]) {

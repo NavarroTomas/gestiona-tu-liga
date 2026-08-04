@@ -13,7 +13,7 @@ type Torneo = {
   glow: string;
   accent: string;
   preview: string[];
-  estado: "Activo" | "Próximamente";
+  estado: "Activo" | "Próximamente" | "Finalizada";
 };
 
 type Acceso = {
@@ -48,7 +48,7 @@ const torneos: Torneo[] = [
     glow: "group-hover:shadow-[0_0_45px_rgba(250,204,21,.18)]",
     accent: "text-yellow-300 border-yellow-400/35 bg-yellow-400/10",
     preview: ["Grupo A", "Grupo B", "Grupo C", "Grupo D"],
-    estado: "Activo",
+    estado: "Finalizada",
   },
   {
     eyebrow: "Eliminatoria mayor",
@@ -60,8 +60,8 @@ const torneos: Torneo[] = [
     color: "border-emerald-400/35 from-emerald-500/15 to-cyan-950/20",
     glow: "group-hover:shadow-[0_0_45px_rgba(16,185,129,.18)]",
     accent: "text-emerald-300 border-emerald-400/35 bg-emerald-400/10",
-    preview: ["Octavos", "Cuartos", "Semis", "Final"],
-    estado: "Próximamente",
+    preview: ["Cuartos", "Semis", "3.º Puesto", "Final"],
+    estado: "Activo",
   },
   {
     eyebrow: "Eliminatoria APA",
@@ -73,8 +73,8 @@ const torneos: Torneo[] = [
     color: "border-purple-400/35 from-purple-500/15 to-fuchsia-950/20",
     glow: "group-hover:shadow-[0_0_45px_rgba(168,85,247,.18)]",
     accent: "text-purple-300 border-purple-400/35 bg-purple-400/10",
-    preview: ["Octavos", "Cuartos", "Semis", "Final"],
-    estado: "Próximamente",
+    preview: ["Cuartos", "Semis", "3.º Puesto", "Final"],
+    estado: "Activo",
   },
   {
     eyebrow: "Ascenso y promoción",
@@ -196,7 +196,7 @@ export default function CompeticionPage() {
             </div>
 
             <p className="max-w-xl text-base leading-7 text-zinc-400">
-              La liga y la clasificación a copas ya están disponibles. Copa Argentina, Copa APA y Copa de Campeones quedan preparadas para la fase eliminatoria.
+              La liga y las copas principales ya se encuentran activas en fase eliminatoria.
             </p>
           </div>
 
@@ -259,6 +259,8 @@ export default function CompeticionPage() {
                         className={`text-sm font-black uppercase tracking-[0.14em] ${
                           torneo.estado === "Activo"
                             ? "text-emerald-300"
+                            : torneo.estado === "Finalizada"
+                            ? "text-sky-300"
                             : "text-yellow-300"
                         }`}
                       >
