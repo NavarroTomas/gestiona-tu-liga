@@ -73,6 +73,10 @@ export default function AdminPlantillasPage() {
   const [loading, setLoading] = useState(false);
   const [buscandoJugador, setBuscandoJugador] = useState(false);
 
+  // Estados para editar el Steam ID de un jugador ya listado
+  const [editandoSteamId, setEditandoSteamId] = useState<number | null>(null);
+  const [nuevoSteamIdTemp, setNuevoSteamIdTemp] = useState("");
+
   const [transferJugador, setTransferJugador] = useState("");
   const [transferPlayerid, setTransferPlayerid] = useState("");
   const [desde, setDesde] = useState("");
@@ -214,6 +218,7 @@ export default function AdminPlantillasPage() {
     const jugadorLimpio = limpiar(jugador);
     const playeridLimpio = limpiar(playerid);
     const equipoLimpio = limpiar(equipo);
+    const steamIdLimpio = limpiar(steamId);
 
     if (!playeridLimpio) {
       setMensaje("El PSO ID es obligatorio.");
@@ -237,7 +242,7 @@ export default function AdminPlantillasPage() {
         {
           jugador: jugadorLimpio,
           playerid: playeridLimpio,
-          steam_id: steamId.trim() || null,
+          steam_id: steamIdLimpio || null,
           profile_id: profileId,
           equipo: equipoLimpio,
           posicion,
@@ -251,15 +256,30 @@ export default function AdminPlantillasPage() {
       },
     );
 
-    setLoading(false);
-
     if (error) {
+      setLoading(false);
       console.log(error);
       setMensaje("Error guardando jugador: " + error.message);
       return;
     }
 
-    setMensaje("Jugador guardado en plantilla.");
+    if (steamIdLimpio) {
+      if (profileId) {
+        await supabase
+          .from("profiles")
+          .update({ steam_id: steamIdLimpio })
+          .eq("id", profileId);
+      } else {
+        await supabase
+          .from("profiles")
+          .update({ steam_id: steamIdLimpio })
+          .ilike("playerid", playeridLimpio);
+      }
+    }
+
+    setLoading(false);
+
+    setMensaje("Jugador guardado en plantilla y Steam ID vinculado.");
     setJugador("");
     setPlayerid("");
     setSteamId("");
@@ -287,6 +307,34 @@ export default function AdminPlantillasPage() {
       return;
     }
 
+    await cargarPlantillas();
+  }
+
+  async function guardarSteamIdExistente(item: Plantilla) {
+    setMensaje("");
+    const steamLimpio = nuevoSteamIdTemp.trim();
+
+    const { error } = await supabase
+      .from("plantillas")
+      .update({ steam_id: steamLimpio || null })
+      .eq("id", item.id);
+
+    if (error) {
+      console.log(error);
+      setMensaje("Error actualizando Steam ID en plantilla.");
+      return;
+    }
+
+    if (item.playerid) {
+      await supabase
+        .from("profiles")
+        .update({ steam_id: steamLimpio || null })
+        .ilike("playerid", item.playerid);
+    }
+
+    setMensaje("¡Steam ID actualizado con éxito!");
+    setEditandoSteamId(null);
+    setNuevoSteamIdTemp("");
     await cargarPlantillas();
   }
 
@@ -611,9 +659,43 @@ export default function AdminPlantillasPage() {
                     >
                       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_360px] xl:items-center">
                         <div>
-                          <h3 className="text-2xl font-black uppercase text-white">
-                            {p.jugador}
-                          </h3>
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-2xl font-black uppercase text-white">
+                              {p.jugador}
+                            </h3>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (editandoSteamId === p.id) {
+                                  setEditandoSteamId(null);
+                                } else {
+                                  setEditandoSteamId(p.id);
+                                  setNuevoSteamIdTemp(p.steam_id || "");
+                                }
+                              }}
+                              className="text-[10px] font-black uppercase text-yellow-300 hover:underline"
+                            >
+                              {p.steam_id ? `Steam ID: ${p.steam_id}` : "+ Agregar Steam ID"}
+                            </button>
+                          </div>
+
+                          {editandoSteamId === p.id && (
+                            <div className="mt-3 flex items-center gap-2">
+                              <input
+                                className="input text-xs py-2"
+                                placeholder="Pegar Steam ID64..."
+                                value={nuevoSteamIdTemp}
+                                onChange={(e) => setNuevoSteamIdTemp(e.target.value)}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => guardarSteamIdExistente(p)}
+                                className="rounded-xl bg-yellow-400 px-3 py-2 text-xs font-black text-black uppercase"
+                              >
+                                Guardar
+                              </button>
+                            </div>
+                          )}
 
                           <div className="mt-2 flex flex-wrap gap-2 text-xs font-black uppercase">
                             <span className="rounded-xl border border-sky-400/20 bg-sky-400/10 px-3 py-2 text-sky-300">

@@ -3,9 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PermissionGuard from "@/components/PermissionGuard";
+import GestorSteamRapido from "@/components/GestorSteamRapido";
 
 type PremioKey =
-  "balon_oro" | "the_best" | "raiko_trophy" | "bota_oro" | "golden_boy";
+  | "balon_oro"
+  | "the_best"
+  | "raiko_trophy"
+  | "bota_oro"
+  | "golden_boy";
 
 type PremioConfig = {
   key: PremioKey;
@@ -62,6 +67,7 @@ type Candidato = {
   nombre: string;
   equipo: string;
   divisionPrincipal: string;
+  posicionPrincipal: string;
   partidos: number;
   temporadasJugadas: number;
   goles: number;
@@ -130,7 +136,7 @@ const premios: PremioConfig[] = [
     nombre: "Raiko Trophy",
     icono: "🧤",
     descripcion:
-      "Mejor arquero de la temporada. Usa jerarquía competitiva, influencia del arquero y logro colectivo.",
+      "Mejor arquero de la temporada (Exclusivo posición GK). Usa jerarquía competitiva, atajadas y logro colectivo.",
   },
   {
     key: "bota_oro",
@@ -209,50 +215,7 @@ function pesoImportanciaCompetitiva(
 
   if (c === "copa_argentina") return 0.95;
   if (c === "copa_apa") return 0.75;
-
-  // La clasificación a copas no es un título final: suma, pero por debajo de las competencias principales.
   if (c === "copa_clasificatoria") return 0.7;
-
-  return 1;
-}
-
-function labelPesoImportancia(
-  competicion?: string | null,
-  division?: string | null,
-  fase?: string | null,
-) {
-  const c = normalizarCompeticion(competicion);
-  const d = normalizarDivision(division);
-
-  if (c === "copa_campeones") return "Copa Campeones x1.20";
-  if (esPlayoffCompetitivo(c, fase)) return "Playoffs x0.60";
-  if (c === "liga" && d.includes("primera")) return "Primera División x1.00";
-  if (c === "liga" && d.includes("segunda")) return "Segunda División x0.85";
-  if (c === "copa_argentina") return "Copa Argentina x0.95";
-  if (c === "copa_apa") return "Copa APA x0.75";
-  if (c === "copa_clasificatoria") return "Clasificación x0.70";
-
-  return "Peso competitivo x1.00";
-}
-
-function pesoDivision(division?: string | null) {
-  const d = normalizarDivision(division);
-
-  if (d.includes("primera")) return 1;
-  if (d.includes("segunda")) return 0.85;
-
-  return 1;
-}
-
-function pesoCompeticion(competicion?: string | null) {
-  // Compatibilidad visual: el cálculo real usa pesoImportanciaCompetitiva().
-  const c = normalizarCompeticion(competicion);
-
-  if (c === "copa_campeones") return 1.2;
-  if (c === "copa_argentina") return 0.95;
-  if (c === "copa_apa") return 0.75;
-  if (c === "copa_clasificatoria") return 0.7;
-  if (c.includes("playoff")) return 0.6;
 
   return 1;
 }
@@ -290,10 +253,10 @@ function calcularRaikoStat(s: StatJugador) {
   const rating = Number(s.rating_apa ?? 0);
 
   return (
-    valorGKSave(s) * 2 +
-    valorGKCatches(s) * 2 +
+    valorGKSave(s) * 5 +
+    valorGKCatches(s) * 3 +
     Number(s.mvp || 0) * 10 +
-    rating * 15
+    rating * 10
   );
 }
 
@@ -859,6 +822,7 @@ export default function AdminPremiosPage() {
           partidos: 0,
           temporadasSet: new Set<string>(),
           divisionesConteo: {} as Record<string, number>,
+          posicionesConteo: {} as Record<string, number>,
           competicionesConteo: {} as Record<string, number>,
           goles: 0,
           asistencias: 0,
@@ -886,6 +850,11 @@ export default function AdminPremiosPage() {
       if (divisionOficial) {
         mapa[key].divisionesConteo[divisionOficial] =
           (mapa[key].divisionesConteo[divisionOficial] || 0) + 1;
+      }
+      if (s.posicion) {
+        const posLimpia = String(s.posicion).toUpperCase().trim();
+        mapa[key].posicionesConteo[posLimpia] =
+          (mapa[key].posicionesConteo[posLimpia] || 0) + 1;
       }
       if (competicion) {
         const nombreComp = nombreCompeticion(competicion);
@@ -926,6 +895,11 @@ export default function AdminPremiosPage() {
           (a: any, b: any) => Number(b[1]) - Number(a[1]),
         )[0]?.[0] || "Sin división";
 
+      const posicionPrincipal =
+        Object.entries(j.posicionesConteo || {}).sort(
+          (a: any, b: any) => Number(b[1]) - Number(a[1]),
+        )[0]?.[0] || "OUT";
+
       const competicionesResumen = Object.entries(j.competicionesConteo || {})
         .sort((a: any, b: any) => Number(b[1]) - Number(a[1]))
         .map(([nombre, cantidad]) => `${nombre} ${cantidad}`)
@@ -936,6 +910,7 @@ export default function AdminPremiosPage() {
         nombre: j.nombre,
         equipo: j.equipo,
         divisionPrincipal,
+        posicionPrincipal,
         partidos: j.partidos,
         temporadasJugadas: j.temporadasSet.size,
         goles: j.goles,
@@ -997,7 +972,7 @@ export default function AdminPremiosPage() {
           motivoNoElegible.push("sin SteamID");
         } else if (!steamInfo) {
           elegibleGoldenBoy = false;
-          motivoNoElegible.push("horas sin consultar");
+          motivoNoElegible.push("horas sin consultar (apretá Consultar horas Steam)");
         } else if (!steamInfo.found) {
           elegibleGoldenBoy = false;
           motivoNoElegible.push("horas no verificables");
@@ -1023,7 +998,9 @@ export default function AdminPremiosPage() {
     });
 
     if (premio === "raiko_trophy") {
-      lista = lista.filter((c) => c.atajadas > 0 || c.atrapadas > 0);
+      lista = lista.filter(
+        (c) => c.posicionPrincipal === "GK" && (c.atajadas > 0 || c.atrapadas > 0)
+      );
     }
 
     if (premio === "the_best") {
@@ -1036,7 +1013,12 @@ export default function AdminPremiosPage() {
 
     lista = lista
       .filter((c) => c.playerid)
-      .sort((a, b) => b.puntos - a.puntos)
+      .sort((a, b) => {
+        if (premio === "raiko_trophy") {
+          return b.raikoPonderado - a.raikoPonderado || b.atajadas - a.atajadas;
+        }
+        return b.puntos - a.puntos;
+      })
       .map((c, index) => ({
         ...c,
         posicion: index + 1,
@@ -1060,10 +1042,12 @@ export default function AdminPremiosPage() {
           motivoNoElegible.push("más de 2 temporadas");
         if (c.partidos >= 25) motivoNoElegible.push("25 o más PJ");
         if (!steamId) motivoNoElegible.push("sin SteamID");
-        else if (!steamInfo) motivoNoElegible.push("horas sin consultar");
+        else if (!steamInfo)
+          motivoNoElegible.push("horas sin consultar (apretá Consultar horas Steam)");
         else if (!steamInfo.found)
           motivoNoElegible.push("horas no verificables");
-        else if (steamInfo.hours >= 500) motivoNoElegible.push("500 hs o más");
+        else if (steamInfo.hours >= 500)
+          motivoNoElegible.push("500 hs o más");
 
         return {
           ...c,
@@ -1425,6 +1409,10 @@ export default function AdminPremiosPage() {
                   )}
                 </div>
               </section>
+
+              {/* GESTOR RÁPIDO DE STEAM INTEGRADO */}
+              <GestorSteamRapido />
+
             </aside>
 
             <section className="rounded-[28px] border border-yellow-500/20 bg-[#020714] p-5 shadow-[0_0_35px_rgba(250,204,21,.10)] sm:rounded-[34px] md:p-6">
