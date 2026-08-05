@@ -109,11 +109,10 @@ type PremioGuardado = {
 };
 
 const temporadas = ["Temporada 4"];
-
 const divisiones = ["Todas", "Primera", "Segunda"];
 
 const PESO_RENDIMIENTO_INDIVIDUAL = 0.65;
-const PESO_IMPACTO_EQUIPO = 0.20;
+const PESO_IMPACTO_EQUIPO = 0.2;
 const PESO_LOGRO_COLECTIVO = 0.15;
 
 const premios: PremioConfig[] = [
@@ -150,7 +149,7 @@ const premios: PremioConfig[] = [
     nombre: "Golden Boy",
     icono: "⭐",
     descripcion:
-      "Mejor promesa: máximo 2 temporadas, menos de 25 PJ y menos de 500 hs en PSO. Cuenta todas las competencias oficiales con jerarquía APA.",
+      "Mejor promesa: menos de 1000 hs en PSO. Cuenta todas las competencias oficiales con jerarquía APA.",
   },
 ];
 
@@ -188,11 +187,21 @@ function normalizarCompeticion(competicion?: string | null) {
     .trim();
 }
 
-function esPlayoffCompetitivo(competicion?: string | null, fase?: string | null) {
+function esPlayoffCompetitivo(
+  competicion?: string | null,
+  fase?: string | null,
+) {
   const c = normalizarCompeticion(competicion);
-  const f = String(fase || "").toLowerCase().trim();
+  const f = String(fase || "")
+    .toLowerCase()
+    .trim();
 
-  return c.includes("playoff") || f.includes("playoff") || f.includes("promocion") || f.includes("promoción");
+  return (
+    c.includes("playoff") ||
+    f.includes("playoff") ||
+    f.includes("promocion") ||
+    f.includes("promoción")
+  );
 }
 
 function pesoImportanciaCompetitiva(
@@ -204,7 +213,6 @@ function pesoImportanciaCompetitiva(
   const d = normalizarDivision(division);
 
   if (c === "copa_campeones") return 1.2;
-
   if (esPlayoffCompetitivo(c, fase)) return 0.6;
 
   if (c === "liga") {
@@ -222,14 +230,12 @@ function pesoImportanciaCompetitiva(
 
 function nombreCompeticion(competicion?: string | null) {
   const c = normalizarCompeticion(competicion);
-
   if (c === "liga") return "Liga";
   if (c === "copa_campeones") return "Copa Campeones";
   if (c === "copa_argentina") return "Copa Argentina";
   if (c === "copa_clasificatoria") return "Clasificación";
   if (c === "copa_apa") return "Copa APA";
   if (c.includes("playoff")) return "Playoffs";
-
   return competicion || "Competición";
 }
 
@@ -239,7 +245,6 @@ function esSegundaDivision(division?: string | null) {
 
 function calcularBaseStat(s: StatJugador) {
   const rating = Number(s.rating_apa ?? 0);
-
   return (
     Number(s.goals || 0) * 3 +
     Number(s.assists || 0) * 2 +
@@ -251,7 +256,6 @@ function calcularBaseStat(s: StatJugador) {
 
 function calcularRaikoStat(s: StatJugador) {
   const rating = Number(s.rating_apa ?? 0);
-
   return (
     valorGKSave(s) * 5 +
     valorGKCatches(s) * 3 +
@@ -262,7 +266,6 @@ function calcularRaikoStat(s: StatJugador) {
 
 function calcularGoldenStat(s: StatJugador) {
   const rating = Number(s.rating_apa ?? 0);
-
   return (
     Number(s.goals || 0) * 4 +
     Number(s.assists || 0) * 3 +
@@ -281,7 +284,6 @@ function golesReales(resultado?: string | null) {
   const visitante = Number(visitanteRaw?.trim());
 
   if (Number.isNaN(local) || Number.isNaN(visitante)) return null;
-
   return { local, visitante };
 }
 
@@ -291,18 +293,15 @@ function ganadorPartido(partido: PartidoOficial) {
 
   if (goles.local > goles.visitante) return partido.local || null;
   if (goles.visitante > goles.local) return partido.visitante || null;
-
   return null;
 }
 
 function faseValor(fase?: string | null) {
   const f = String(fase || "").toLowerCase();
-
   if (f.includes("final")) return 4;
   if (f.includes("semi")) return 3;
   if (f.includes("cuarto")) return 2;
   if (f.includes("octavo")) return 1;
-
   return 0;
 }
 
@@ -396,113 +395,6 @@ function crearBonusEquipo(partidos: PartidoOficial[]) {
         goles.local,
       );
     }
-
-    if (
-      comp === "copa_campeones" ||
-      comp === "copa_argentina" ||
-      comp === "copa_apa" ||
-      comp.includes("playoff")
-    ) {
-      const maxFase = faseValor(p.fase);
-      if (!copas[comp]) copas[comp] = {};
-      copas[comp][local] = Math.max(copas[comp][local] || 0, maxFase);
-      copas[comp][visitante] = Math.max(copas[comp][visitante] || 0, maxFase);
-
-      if (maxFase >= 4) {
-        const ganador = ganadorPartido(p);
-        if (ganador) {
-          const perdedor = ganador === local ? visitante : local;
-          const bonusCampeon =
-            comp === "copa_campeones"
-              ? 0.12
-              : comp === "copa_argentina"
-                ? 0.08
-                : comp.includes("playoff")
-                  ? 0.04
-                  : 0.05;
-          const bonusFinalista =
-            comp === "copa_campeones"
-              ? 0.08
-              : comp === "copa_argentina"
-                ? 0.05
-                : comp.includes("playoff")
-                  ? 0.025
-                  : 0.03;
-
-          bonus[`${comp}|${ganador}`] = Math.max(
-            bonus[`${comp}|${ganador}`] || 0,
-            bonusCampeon,
-          );
-          bonus[`${comp}|${perdedor}`] = Math.max(
-            bonus[`${comp}|${perdedor}`] || 0,
-            bonusFinalista,
-          );
-        }
-      }
-    }
-  });
-
-  Object.entries(liga).forEach(([division, tabla]) => {
-    Object.entries(tabla)
-      .sort(
-        (a, b) =>
-          b[1].pts - a[1].pts ||
-          b[1].gf - b[1].gc - (a[1].gf - a[1].gc) ||
-          b[1].gf - a[1].gf,
-      )
-      .forEach(([equipo], index) => {
-        const valor =
-          index === 0
-            ? 0.08
-            : index === 1
-              ? 0.05
-              : index === 2
-                ? 0.03
-                : index === 3
-                  ? 0.02
-                  : 0;
-        if (valor > 0)
-          bonus[`liga|${division}|${equipo}`] = Math.max(
-            bonus[`liga|${division}|${equipo}`] || 0,
-            valor,
-          );
-      });
-  });
-
-  Object.entries(grupos).forEach(([grupo, tabla]) => {
-    Object.entries(tabla)
-      .sort(
-        (a, b) =>
-          b[1].pts - a[1].pts ||
-          b[1].gf - b[1].gc - (a[1].gf - a[1].gc) ||
-          b[1].gf - a[1].gf,
-      )
-      .slice(0, 2)
-      .forEach(([equipo]) => {
-        bonus[`copa_clasificatoria|${grupo}|${equipo}`] = Math.max(
-          bonus[`copa_clasificatoria|${grupo}|${equipo}`] || 0,
-          0.03,
-        );
-      });
-  });
-
-  Object.entries(copas).forEach(([comp, equipos]) => {
-    Object.entries(equipos).forEach(([equipo, maxFase]) => {
-      if (maxFase >= 3) {
-        const valor =
-          comp === "copa_campeones"
-            ? 0.035
-            : comp === "copa_argentina"
-              ? 0.025
-              : comp.includes("playoff")
-                ? 0.012
-                : 0.018;
-        bonus[`${comp}|${equipo}`] = Math.max(
-          bonus[`${comp}|${equipo}`] || 0,
-          valor,
-        );
-      }
-    });
   });
 
   return bonus;
@@ -514,7 +406,6 @@ function obtenerBonusEquipo(
   equipo: string,
 ) {
   if (!partido || !equipo) return 0;
-
   const comp = normalizarCompeticion(partido.competicion);
 
   if (comp === "liga")
@@ -533,7 +424,6 @@ function rendimientoIndividualPremio(
   c: Omit<Candidato, "puntos" | "posicion">,
 ) {
   if (premio === "raiko_trophy") return c.raikoPonderado;
-
   if (premio === "bota_oro") {
     return (
       c.golesPonderados * 100000 +
@@ -542,9 +432,7 @@ function rendimientoIndividualPremio(
       c.ratingPromedio
     );
   }
-
   if (premio === "golden_boy") return c.goldenPonderado;
-
   return c.basePonderada;
 }
 
@@ -553,9 +441,8 @@ function calcularPuntos(
   c: Omit<Candidato, "puntos" | "posicion">,
 ) {
   const rendimientoIndividual = rendimientoIndividualPremio(premio, c);
-
-  const impactoEquipo = rendimientoIndividual * Math.min(1, Math.max(0, c.influencia));
-
+  const impactoEquipo =
+    rendimientoIndividual * Math.min(1, Math.max(0, c.influencia));
   const logroColectivo =
     rendimientoIndividual * Math.min(1, Math.max(0, c.bonusEquipo * 10));
 
@@ -576,6 +463,9 @@ export default function AdminPremiosPage() {
     [],
   );
   const [perfiles, setPerfiles] = useState<Perfil[]>([]);
+  const [plantillasSteam, setPlantillasSteam] = useState<
+    Record<string, string>
+  >({});
   const [premiosGuardados, setPremiosGuardados] = useState<PremioGuardado[]>(
     [],
   );
@@ -596,24 +486,33 @@ export default function AdminPremiosPage() {
     setLoading(true);
     setMensaje("");
 
-    const { data: partidosData, error: partidosError } = await supabase
-      .from("partidos")
-      .select(
-        "id,partido_id,temporada,division,competicion,fase,grupo,local,visitante,resultado",
-      )
-      .eq("temporada", temporada);
+    const [partidosRes, plantillasRes, premiosRes] = await Promise.all([
+      supabase
+        .from("partidos")
+        .select(
+          "id,partido_id,temporada,division,competicion,fase,grupo,local,visitante,resultado",
+        )
+        .eq("temporada", temporada),
+      supabase.from("plantillas").select("playerid, steam_id"),
+      supabase
+        .from("premios_apa")
+        .select(
+          "id,temporada,division,premio,playerid,nombre,equipo,puntos,posicion,created_at",
+        )
+        .order("created_at", { ascending: false }),
+    ]);
 
-    if (partidosError) {
-      console.log(partidosError);
-      setPartidosOficiales([]);
-      setStats([]);
-      setPerfiles([]);
-      setMensaje("Error cargando partidos oficiales: " + partidosError.message);
+    if (partidosRes.error) {
+      console.log(partidosRes.error);
+      setMensaje(
+        "Error cargando partidos oficiales: " + partidosRes.error.message,
+      );
       setLoading(false);
       return;
     }
 
-    const partidosLimpios = (partidosData || []) as unknown as PartidoOficial[];
+    const partidosLimpios = (partidosRes.data ||
+      []) as unknown as PartidoOficial[];
     const partidoIds = Array.from(
       new Set(
         partidosLimpios
@@ -623,6 +522,16 @@ export default function AdminPremiosPage() {
     );
 
     setPartidosOficiales(partidosLimpios);
+
+    const steamMap: Record<string, string> = {};
+    (plantillasRes.data || []).forEach((p: any) => {
+      const pid = String(p.playerid || "").trim();
+      const st = String(p.steam_id || "").trim();
+      if (pid && st) {
+        steamMap[pid] = st;
+      }
+    });
+    setPlantillasSteam(steamMap);
 
     let statsLimpias: StatJugador[] = [];
 
@@ -638,7 +547,6 @@ export default function AdminPremiosPage() {
       if (statsError) {
         console.log(statsError);
         setStats([]);
-        setPerfiles([]);
         setMensaje("Error cargando estadísticas: " + statsError.message);
       } else {
         statsLimpias = (statsData || []) as unknown as StatJugador[];
@@ -663,7 +571,6 @@ export default function AdminPremiosPage() {
       if (perfilesError) {
         console.log(perfilesError);
         setPerfiles([]);
-        setMensaje("Error cargando perfiles: " + perfilesError.message);
       } else {
         setPerfiles((perfilesData || []) as unknown as Perfil[]);
       }
@@ -671,19 +578,13 @@ export default function AdminPremiosPage() {
       setPerfiles([]);
     }
 
-    const { data: premiosData, error: premiosError } = await supabase
-      .from("premios_apa")
-      .select(
-        "id,temporada,division,premio,playerid,nombre,equipo,puntos,posicion,created_at",
-      )
-      .order("created_at", { ascending: false });
-
-    if (premiosError) {
-      console.log(premiosError);
+    if (premiosRes.error) {
+      console.log(premiosRes.error);
       setPremiosGuardados([]);
-      setMensaje("Error cargando premios: " + premiosError.message);
     } else {
-      setPremiosGuardados((premiosData || []) as unknown as PremioGuardado[]);
+      setPremiosGuardados(
+        (premiosRes.data || []) as unknown as PremioGuardado[],
+      );
     }
 
     setLoading(false);
@@ -691,18 +592,15 @@ export default function AdminPremiosPage() {
 
   const perfilesPorPlayerId = useMemo(() => {
     const mapa: Record<string, Perfil> = {};
-
     perfiles.forEach((p) => {
       const key = String(p.playerid || "").trim();
       if (key) mapa[key] = p;
     });
-
     return mapa;
   }, [perfiles]);
 
   const candidatosBase = useMemo(() => {
     const partidoPorId: Record<string, PartidoOficial> = {};
-
     partidosOficiales.forEach((p) => {
       const key = String(p.partido_id || p.id || "").trim();
       if (key) partidoPorId[key] = p;
@@ -717,7 +615,6 @@ export default function AdminPremiosPage() {
 
       const divOficial = String(partido.division || s.division || "");
       if (division !== "Todas" && divOficial !== division) return false;
-
       return true;
     });
 
@@ -905,7 +802,7 @@ export default function AdminPremiosPage() {
         .map(([nombre, cantidad]) => `${nombre} ${cantidad}`)
         .join(" · ");
 
-      const base = {
+      return {
         playerid: j.playerid || "",
         nombre: j.nombre,
         equipo: j.equipo,
@@ -938,68 +835,53 @@ export default function AdminPremiosPage() {
             : 0,
         pesoCompetitivoPromedio:
           j.pesoCompetitivoPartidos > 0
-            ? Math.round((j.pesoCompetitivoTotal / j.pesoCompetitivoPartidos) * 100) / 100
+            ? Math.round(
+                (j.pesoCompetitivoTotal / j.pesoCompetitivoPartidos) * 100,
+              ) / 100
             : 1,
         competicionesResumen: competicionesResumen || "Sin competición",
       };
-
-      return base;
     }) as Omit<Candidato, "puntos" | "posicion">[];
   }, [stats, temporada, division, partidosOficiales]);
 
   const candidatos = useMemo(() => {
     let lista = candidatosBase.map((c) => {
-      const perfil = perfilesPorPlayerId[c.playerid];
-      const steamId = perfil?.steam_id || null;
+      const steamId = plantillasSteam[c.playerid] || null;
       const steamInfo = steamId ? steamCache[steamId] : null;
+
+      const horas = steamInfo ? steamInfo.hours : 0;
+      const encontrado = steamInfo ? steamInfo.found : false;
 
       const motivoNoElegible: string[] = [];
       let elegibleGoldenBoy = true;
 
       if (premio === "golden_boy") {
-        if (c.temporadasJugadas > 2) {
-          elegibleGoldenBoy = false;
-          motivoNoElegible.push("más de 2 temporadas");
-        }
-
-        if (c.partidos >= 25) {
-          elegibleGoldenBoy = false;
-          motivoNoElegible.push("25 o más PJ");
-        }
-
         if (!steamId) {
           elegibleGoldenBoy = false;
           motivoNoElegible.push("sin SteamID");
-        } else if (!steamInfo) {
+        } else if (steamInfo && steamInfo.found && horas >= 1000) {
           elegibleGoldenBoy = false;
-          motivoNoElegible.push("horas sin consultar (apretá Consultar horas Steam)");
-        } else if (!steamInfo.found) {
-          elegibleGoldenBoy = false;
-          motivoNoElegible.push("horas no verificables");
-        } else if (steamInfo.hours >= 500) {
-          elegibleGoldenBoy = false;
-          motivoNoElegible.push("500 hs o más");
+          motivoNoElegible.push("1000 hs o más");
         }
       }
 
-      const item: Candidato = {
+      return {
         ...c,
         puntos: Math.round(calcularPuntos(premio, c) * 10) / 10,
         posicion: 0,
         steamId,
-        steamFound: steamInfo?.found,
-        steamHours: steamInfo?.hours,
+        steamFound: encontrado,
+        steamHours: horas,
         steamReason: steamInfo?.reason || null,
         elegibleGoldenBoy,
         motivoNoElegible,
-      };
-
-      return item;
+      } as Candidato;
     });
 
     if (premio === "raiko_trophy") {
       lista = lista.filter(
-        (c) => c.posicionPrincipal === "GK" && (c.atajadas > 0 || c.atrapadas > 0)
+        (c) =>
+          c.posicionPrincipal === "GK" && (c.atajadas > 0 || c.atrapadas > 0),
       );
     }
 
@@ -1008,10 +890,13 @@ export default function AdminPremiosPage() {
     }
 
     if (premio === "golden_boy") {
-      lista = lista.filter((c) => c.elegibleGoldenBoy);
+      // Muestra solo los elegibles que realmente tienen el juego encontrado y menos de 1000 horas
+      lista = lista.filter(
+        (c) => c.elegibleGoldenBoy && c.steamFound && (c.steamHours ?? 0) > 0,
+      );
     }
 
-    lista = lista
+    return lista
       .filter((c) => c.playerid)
       .sort((a, b) => {
         if (premio === "raiko_trophy") {
@@ -1023,31 +908,20 @@ export default function AdminPremiosPage() {
         ...c,
         posicion: index + 1,
       }));
-
-    return lista;
-  }, [candidatosBase, perfilesPorPlayerId, premio, steamCache]);
+  }, [candidatosBase, plantillasSteam, premio, steamCache]);
 
   const candidatosNoElegiblesGoldenBoy = useMemo(() => {
     if (premio !== "golden_boy") return [];
 
     return candidatosBase
       .map((c) => {
-        const perfil = perfilesPorPlayerId[c.playerid];
-        const steamId = perfil?.steam_id || null;
+        const steamId = plantillasSteam[c.playerid] || null;
         const steamInfo = steamId ? steamCache[steamId] : null;
-
         const motivoNoElegible: string[] = [];
 
-        if (c.temporadasJugadas > 2)
-          motivoNoElegible.push("más de 2 temporadas");
-        if (c.partidos >= 25) motivoNoElegible.push("25 o más PJ");
         if (!steamId) motivoNoElegible.push("sin SteamID");
-        else if (!steamInfo)
-          motivoNoElegible.push("horas sin consultar (apretá Consultar horas Steam)");
-        else if (!steamInfo.found)
-          motivoNoElegible.push("horas no verificables");
-        else if (steamInfo.hours >= 500)
-          motivoNoElegible.push("500 hs o más");
+        else if (steamInfo && steamInfo.found && steamInfo.hours >= 1000)
+          motivoNoElegible.push("1000 hs o más");
 
         return {
           ...c,
@@ -1059,48 +933,61 @@ export default function AdminPremiosPage() {
       })
       .filter((c) => c.motivoNoElegible.length > 0)
       .slice(0, 10);
-  }, [candidatosBase, perfilesPorPlayerId, premio, steamCache]);
+  }, [candidatosBase, plantillasSteam, premio, steamCache]);
 
   async function consultarHorasSteam() {
     if (premio !== "golden_boy") return;
 
     setCalculandoSteam(true);
-    setMensaje("");
+    setMensaje("Consultando horas de Steam de forma segura...");
 
     const steamIds = Array.from(
-      new Set(
-        candidatosBase
-          .map((c) => perfilesPorPlayerId[c.playerid]?.steam_id)
-          .filter(Boolean) as string[],
-      ),
+      new Set(Object.values(plantillasSteam).filter(Boolean) as string[]),
     );
 
     if (steamIds.length === 0) {
-      setMensaje("No hay SteamID cargados para consultar.");
+      setMensaje("No hay SteamID cargados en plantillas para consultar.");
       setCalculandoSteam(false);
       return;
     }
 
     const nuevoCache = { ...steamCache };
 
+    // Consultamos uno por uno con una pausa para no saturar a Steam
     for (const steamId of steamIds) {
       if (nuevoCache[steamId]) continue;
 
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+
         const res = await fetch(
           `/api/steam/hours?steamId=${encodeURIComponent(steamId)}`,
           {
             cache: "no-store",
+            signal: controller.signal,
           },
         );
 
-        const data = await res.json();
+        clearTimeout(timeoutId);
 
-        nuevoCache[steamId] = {
-          found: !!data.found,
-          hours: Number(data.hours || 0),
-          reason: data.reason || null,
-        };
+        if (!res.ok) {
+          nuevoCache[steamId] = {
+            found: false,
+            hours: 0,
+            reason: `Error HTTP ${res.status}`,
+          };
+        } else {
+          const data = await res.json();
+          nuevoCache[steamId] = {
+            found: !!data.found,
+            hours: Number(data.hours || 0),
+            reason: data.reason || null,
+          };
+        }
+
+        // Pequeña pausa de 250 milisegundos entre cada usuario para evitar el bloqueo de Steam
+        await new Promise((resolve) => setTimeout(resolve, 250));
       } catch (error) {
         console.log(error);
         nuevoCache[steamId] = {
@@ -1113,25 +1000,18 @@ export default function AdminPremiosPage() {
 
     setSteamCache(nuevoCache);
     setCalculandoSteam(false);
+    setMensaje("¡Horas de Steam consultadas con éxito!");
   }
 
   async function notificarPremioGanado(candidato: Candidato) {
     const perfil = perfilesPorPlayerId[candidato.playerid];
-
-    if (!perfil?.id) {
-      console.log(
-        "No hay perfil vinculado para notificar premio:",
-        candidato.playerid,
-      );
-      return;
-    }
+    if (!perfil?.id) return;
 
     const premioTexto = nombrePremio(premio);
     const mensajePremio = `Ganaste ${premioTexto} - ${temporada}${division !== "Todas" ? ` · ${division}` : ""}.`;
-
     const haceCincoMinutos = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
-    const { data: existente, error: existenteError } = await supabase
+    const { data: existente } = await supabase
       .from("notificaciones")
       .select("id")
       .eq("user_id", perfil.id)
@@ -1141,15 +1021,9 @@ export default function AdminPremiosPage() {
       .gte("created_at", haceCincoMinutos)
       .limit(1);
 
-    if (existenteError) {
-      console.log(existenteError);
-    }
+    if (existente && existente.length > 0) return;
 
-    if (existente && existente.length > 0) {
-      return;
-    }
-
-    const { error } = await supabase.from("notificaciones").insert({
+    await supabase.from("notificaciones").insert({
       user_id: perfil.id,
       tipo: "award",
       titulo: "Premio recibido",
@@ -1157,10 +1031,6 @@ export default function AdminPremiosPage() {
       href: "/perfil",
       leida: false,
     });
-
-    if (error) {
-      console.log("No pude crear notificación de premio:", error);
-    }
   }
 
   async function asignarGanador(candidato: Candidato) {
@@ -1198,10 +1068,7 @@ export default function AdminPremiosPage() {
     }
 
     await notificarPremioGanado(candidato);
-
-    setMensaje(
-      "Premio asignado correctamente y notificación enviada si el jugador tiene perfil vinculado.",
-    );
+    setMensaje("Premio asignado correctamente.");
     await cargarDatos();
   }
 
@@ -1210,7 +1077,6 @@ export default function AdminPremiosPage() {
     if (!confirmar) return;
 
     const { error } = await supabase.from("premios_apa").delete().eq("id", id);
-
     if (error) {
       console.log(error);
       setMensaje("Error borrando premio: " + error.message);
@@ -1314,20 +1180,6 @@ export default function AdminPremiosPage() {
                     <p className="mt-2 text-sm leading-6 text-zinc-400">
                       {premioActual.descripcion}
                     </p>
-
-                    {(premio === "balon_oro" ||
-                      premio === "raiko_trophy" ||
-                      premio === "golden_boy") && (
-                      <p className="mt-3 rounded-xl border border-yellow-400/20 bg-yellow-400/10 p-3 text-xs font-bold leading-5 text-yellow-200">
-                        Fórmula: 65% rendimiento individual · 20% impacto en el equipo · 15% logro colectivo. Jerarquía: Copa Campeones x1.20 · Primera x1.00 · Copa Argentina x0.95 · Segunda x0.85 · Copa APA x0.75 · Playoffs x0.60 · Clasificación x0.70
-                      </p>
-                    )}
-
-                    {premio === "the_best" && (
-                      <p className="mt-3 rounded-xl border border-purple-400/20 bg-purple-400/10 p-3 text-xs font-bold leading-5 text-purple-200">
-                        Solo compiten jugadores cuya división principal sea Segunda. También cuentan copas y playoffs oficiales. Fórmula: 65% rendimiento individual · 20% impacto en el equipo · 15% logro colectivo.
-                      </p>
-                    )}
                   </div>
 
                   {premio === "golden_boy" && (
@@ -1410,9 +1262,7 @@ export default function AdminPremiosPage() {
                 </div>
               </section>
 
-              {/* GESTOR RÁPIDO DE STEAM INTEGRADO */}
               <GestorSteamRapido />
-
             </aside>
 
             <section className="rounded-[28px] border border-yellow-500/20 bg-[#020714] p-5 shadow-[0_0_35px_rgba(250,204,21,.10)] sm:rounded-[34px] md:p-6">
@@ -1443,17 +1293,6 @@ export default function AdminPremiosPage() {
                 <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
                   Cargando datos...
                 </p>
-              ) : premio === "golden_boy" &&
-                Object.keys(steamCache).length === 0 ? (
-                <div className="rounded-2xl border border-sky-400/20 bg-sky-400/10 p-5">
-                  <p className="font-black uppercase text-sky-300">
-                    Primero consultá las horas de Steam.
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-zinc-400">
-                    Golden Boy necesita verificar automáticamente que el jugador
-                    tenga menos de 500 horas de Pro Soccer Online.
-                  </p>
-                </div>
               ) : candidatos.length === 0 ? (
                 <div className="space-y-4">
                   <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
@@ -1524,30 +1363,25 @@ export default function AdminPremiosPage() {
                               {c.competicionesResumen}
                             </p>
 
-                            {(premio === "balon_oro" ||
-                              premio === "raiko_trophy" ||
-                              premio === "golden_boy") && (
-                              <p className="mt-1 text-xs font-black uppercase tracking-[0.14em] text-yellow-300">
-                                Peso competitivo x{c.pesoCompetitivoPromedio.toFixed(2)} ·
-                                Influencia {(c.influencia * 100).toFixed(0)}% ·
-                                Equipo +{(c.bonusEquipo * 100).toFixed(0)}%
-                              </p>
-                            )}
-
-                            {premio === "the_best" && (
-                              <p className="mt-1 text-xs font-black uppercase tracking-[0.14em] text-purple-300">
-                                Segunda División · Copas incluidas
-                              </p>
-                            )}
-
                             {premio === "golden_boy" && (
-                              <p className="mt-1 text-xs font-black uppercase tracking-[0.14em] text-sky-300">
-                                {typeof c.steamHours === "number"
-                                  ? `${c.steamHours} hs PSO`
-                                  : "Horas no consultadas"}
-                                {" · "}
-                                {c.temporadasJugadas} temp.
-                              </p>
+                              <div className="mt-1 text-xs font-black uppercase tracking-[0.14em]">
+                                {c.steamId ? (
+                                  c.steamFound ? (
+                                    <span className="text-sky-300">
+                                      {c.steamHours} hs PSO
+                                    </span>
+                                  ) : (
+                                    <span className="text-red-400">
+                                      {c.steamReason ||
+                                        "Juego no encontrado / Perfil privado"}
+                                    </span>
+                                  )
+                                ) : (
+                                  <span className="text-yellow-400">
+                                    Sin SteamID vinculado
+                                  </span>
+                                )}
+                              </div>
                             )}
                           </div>
                         </div>
