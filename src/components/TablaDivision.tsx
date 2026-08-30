@@ -107,19 +107,25 @@ export default function TablaDivision({
       };
     });
 
-    // 2. Procesar los partidos jugados
+// 2. Procesar los partidos jugados
     (partidosRes.data || []).forEach((partido: any) => {
+      console.log("Partido recibido de Supabase:", partido.local, "vs", partido.visitante, "Resultado:", JSON.stringify(partido.resultado));
+
       if (!partido.resultado) return;
 
-      // Detecta cualquier tipo de guion o carácter en medio de los números
       const match = String(partido.resultado).match(/(\d+)\s*[^0-9]\s*(\d+)/);
-      if (!match) return;
+      if (!match) {
+        console.log("⚠️ No se pudo matchear el resultado de:", partido.local, "vs", partido.visitante);
+        return;
+      }
 
       const local = partido.local;
       const visitante = partido.visitante;
 
       const golesLocal = Number(match[1]);
       const golesVisitante = Number(match[2]);
+
+      console.log(`✅ Éxito al leer: ${local} ${golesLocal} - ${golesVisitante} ${visitante}`);
 
       if (isNaN(golesLocal) || isNaN(golesVisitante)) return;
 
