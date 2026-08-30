@@ -109,13 +109,17 @@ export default function TablaDivision({
 
     // 2. Procesar los partidos jugados
     (partidosRes.data || []).forEach((partido: any) => {
-      if (!partido.resultado || !partido.resultado.includes("-")) return;
+      if (!partido.resultado) return;
+
+      // Detecta cualquier tipo de guion o carácter en medio de los números
+      const match = String(partido.resultado).match(/(\d+)\s*[^0-9]\s*(\d+)/);
+      if (!match) return;
 
       const local = partido.local;
       const visitante = partido.visitante;
 
-      const golesLocal = parseInt(partido.resultado.split("-")[0].trim());
-      const golesVisitante = parseInt(partido.resultado.split("-")[1].trim());
+      const golesLocal = Number(match[1]);
+      const golesVisitante = Number(match[2]);
 
       if (isNaN(golesLocal) || isNaN(golesVisitante)) return;
 
