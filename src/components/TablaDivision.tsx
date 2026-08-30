@@ -41,15 +41,14 @@ export default function TablaDivision({
   }, [temporada, division]);
 
   async function cargarTabla() {
-    // 1. Cargar partidos, clubes y SANCIONES exclusivamente de la LIGA en paralelo
+    // 1. Cargar partidos de la temporada (sin filtrar división estricta en base de datos para evitar desajustes manuales)
     const [partidosRes, equiposRes, sancionesRes] = await Promise.all([
       supabase
         .from("partidos")
         .select(
           "id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora",
         )
-        .eq("temporada", temporada)
-        .eq("division", division),
+        .eq("temporada", temporada),
 
       supabase
         .from("v_clubes_temporada_public")
@@ -75,6 +74,12 @@ export default function TablaDivision({
     }
 
     const divisionKey = normalizarDivision(division);
+
+    // Filtrar partidos usando normalizarDivision para capturar también los cargados a mano
+    const partidosFiltrados = (partidosRes.data || []).filter(
+      (p: any) => normalizarDivision(p.division) === divisionKey,
+    );
+
     const equiposFiltrados = (equiposRes.data || []).filter(
       (e: any) => normalizarDivision(e.division) === divisionKey,
     );
@@ -107,9 +112,9 @@ export default function TablaDivision({
       };
     });
 
-// 2. Procesar los partidos jugados
-    (partidosRes.data || []).forEach((partido: any) => {
-      console.log("Partido recibido de Supabase:", partido.local, "vs", partido.visitante, "Resultado:", JSON.stringify(partido.resultado));
+    // 2. Procesar los partidos filtrados
+    partidosFiltrados.forEach((partido: any) => {
+      console.log("Partido procesando:", partido.local, "vs", partido.visitante, "Resultado:", JSON.stringify(partido.resultado));
 
       if (!partido.resultado) return;
 
