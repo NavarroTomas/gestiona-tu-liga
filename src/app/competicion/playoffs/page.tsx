@@ -1,24 +1,105 @@
-import Link from "next/link";
+"use client";
 
-interface PageProps {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { supabase } from "../../../lib/supabase";
+import { matchFitsContext, normalizeDivision, normalizeRound, stableMatchId } from "../../../lib/competitionData";
+
+function Escudo({ nombre, logo }: { nombre: string; logo?: string | null }) {
+  return (
+    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-sky-300/30 bg-gradient-to-br from-sky-500 to-blue-950 text-sm font-black shadow-[0_0_18px_rgba(0,140,255,.55)]">
+      {logo ? (
+        <img src={logo} alt={nombre} className="h-full w-full object-contain p-1.5" />
+      ) : (
+        nombre?.slice(0, 2).toUpperCase()
+      )}
+    </div>
+  );
 }
 
-export default async function PlayoffsPage({ searchParams }: PageProps) {
-  const resolvedSearchParams = await searchParams;
-  const temporada = (typeof resolvedSearchParams.temporada === "string" ? resolvedSearchParams.temporada : "Temporada 4");
-  const faseActual = (typeof resolvedSearchParams.fase === "string" ? resolvedSearchParams.fase : "Semifinal");
+export default function PlayoffsPage() {
+  const searchParams = useSearchParams();
+  const temporada = searchParams.get("temporada") || "Temporada 4";
+  const faseActual = searchParams.get("fase") || "Semifinal";
 
-  // Definición de las fases de playoffs disponibles
+  const [partidos, setPartidos] = useState<any[]>([]);
+  const [clubesInfo, setClubesInfo] = useState<any[]>([]);
+
   const fasesPlayoffs = [
     { label: "Semifinales", value: "Semifinal", desc: "2° al 5° de Segunda División" },
     { label: "Final Ascenso", value: "Final Ascenso", desc: "Ganador SF1 vs Ganador SF2" },
     { label: "Promoción", value: "Promoción", desc: "Ganador Final vs Anteúltimo Primera" },
   ];
 
-  // Aquí puedes conectar tu llamada real a la base de datos o API filtrando por temporada y fase
-  // Ejemplo: const partidos = await obtenerPartidosPlayoffs(temporada, faseActual);
-  const partidos: any[] = []; // Simulado vacío por defecto para mostrar el estado interactivo
+  useEffect(() => {
+    cargarPartidosPlayoffs();
+  }, [temporada, faseActual]);
+
+  async function cargarPartidosPlayoffs() {
+    const { data, error } = await supabase
+      .from("partidos")
+      .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora, competicion, grupo, fase, ronda")
+      .order("fecha", { ascending: true });
+
+    if (error) {
+      console.error("Error cargando partidos de playoffs:", error);
+      setPartidos([]);
+      setClubesInfo([]);
+      return;
+    }
+
+    const context = {
+      temporada,
+      competicion: "playoffs",
+      fase: faseActual,
+    };
+
+    const partidosLimpios = (data || []).filter((partido: any) =>
+      matchFitsContext(partido, context)
+    );
+
+    setPartidos(partidosLimpios);
+
+    const nombresEquipos = Array.from(
+      new Set(partidosLimpios.flatMap((p: any) => [p.local, p.visitante]).filter(Boolean))
+    );
+
+    if (nombresEquipos.length > 0) {
+      const { data: clubesData, error: clubesError } = await supabase
+        .from("v_clubes_temporada_public")
+        .select("*")
+        .eq("temporada", temporada)
+        .eq("activo", true)
+        .in("nombre", nombresEquipos);
+
+      if (clubesError) console.error("Error cargando clubes:", clubesError);
+      setClubesInfo(clubesData || []);
+    } else {
+      setClubesInfo([]);
+    }
+  }
+
+  function estadoPartido(p: any) {
+    if (p.resultado) return "finalizado";
+    if (p.dia || p.hora) return "programado";
+    return "pendiente";
+  }
+
+  function claseEstado(p: any) {
+    const estado = estadoPartido(p);
+    if (estado === "finalizado") return "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
+    if (estado === "programado") return "border-yellow-400/30 bg-yellow-400/10 text-yellow-300";
+    return "border-sky-400/30 bg-sky-400/10 text-sky-300";
+  }
+
+  function logoEquipo(nombre?: string) {
+    if (!nombre) return null;
+    const club = clubesInfo.find(
+      (c) => String(c.nombre || "").toLowerCase().trim() === String(nombre || "").toLowerCase().trim()
+    );
+    return club?.logo_url || null;
+  }
 
   return (
     <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,#3b1607_0%,#081427_28%,#020714_58%,#000_100%)] text-white">
@@ -104,15 +185,53 @@ export default async function PlayoffsPage({ searchParams }: PageProps) {
             </span>
           </div>
 
-          {/* Renderizado de partidos o mensaje de estado */}
           {partidos.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Mapeo de partidos reales cuando existan */}
-              {partidos.map((partido, index) => (
-                <div key={index} className="border border-white/10 rounded-2xl p-4 bg-black/40">
-                  {/* Estructura de tu tarjeta de partido */}
-                </div>
-              ))}
+            <div className="grid grid-cols-1 gap-4">
+              {partidos.map((p, index) => {
+                const estado = estadoPartido(p);
+                const tarjetaPartido = (
+                  <div className="group overflow-hidden rounded-[28px] border border-orange-500/20 bg-gradient-to-r from-[#020814] via-[#1a0c04] to-[#020814] transition hover:border-orange-400/60 hover:shadow-[0_0_28px_rgba(251,146,60,.15)] p-5">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3 mb-4">
+                      <span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase ${claseEstado(p)}`}>
+                        {estado === "finalizado" ? "🟢 Finalizado" : estado === "programado" ? "🟡 Programado" : "🔵 Pendiente"}
+                      </span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-400">
+                        {p.dia || "Sin día"} · {p.hora || "Sin hora"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 items-center gap-4 xl:grid-cols-[1fr_140px_1fr]">
+                      <div className="flex items-center justify-center gap-4 xl:justify-end">
+                        <p className="max-w-[380px] break-words text-center text-xl font-black uppercase leading-tight xl:text-right md:text-2xl">
+                          {p.local}
+                        </p>
+                        <Escudo nombre={p.local} logo={logoEquipo(p.local)} />
+                      </div>
+
+                      <div className="mx-auto min-w-[132px] rounded-2xl border border-orange-400/35 bg-orange-400/10 px-5 py-4 text-center shadow-[0_0_22px_rgba(251,146,60,.18)]">
+                        <p className="text-4xl font-black text-orange-400 drop-shadow-[0_0_10px_rgba(251,146,60,.45)]">
+                          {p.resultado ? p.resultado.replace(/\s/g, "") : "VS"}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-center gap-4 xl:justify-start">
+                        <Escudo nombre={p.visitante} logo={logoEquipo(p.visitante)} />
+                        <p className="max-w-[380px] break-words text-center text-xl font-black uppercase leading-tight xl:text-left md:text-2xl">
+                          {p.visitante}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+
+                return (p.partido_id || p.id) ? (
+                  <Link key={p.id || index} href={`/estadisticas/${encodeURIComponent(p.partido_id || stableMatchId(p.temporada, p.id))}`}>
+                    {tarjetaPartido}
+                  </Link>
+                ) : (
+                  <div key={p.id || index}>{tarjetaPartido}</div>
+                );
+              })}
             </div>
           ) : (
             <div className="py-16 text-center">
