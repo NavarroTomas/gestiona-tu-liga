@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../../lib/supabase";
-import { matchFitsContext, normalizeDivision, normalizeRound, stableMatchId } from "../../../lib/competitionData";
+import { matchFitsContext, stableMatchId } from "../../../lib/competitionData";
 
 function Escudo({ nombre, logo }: { nombre: string; logo?: string | null }) {
   return (
@@ -18,7 +18,7 @@ function Escudo({ nombre, logo }: { nombre: string; logo?: string | null }) {
   );
 }
 
-export default function PlayoffsPage() {
+function PlayoffsContent() {
   const searchParams = useSearchParams();
   const temporada = searchParams.get("temporada") || "Temporada 4";
   const faseActual = searchParams.get("fase") || "Semifinal";
@@ -256,5 +256,13 @@ export default function PlayoffsPage() {
 
       </section>
     </main>
+  );
+}
+
+export default function PlayoffsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#020714] text-white flex items-center justify-center font-black uppercase tracking-widest">Cargando playoffs...</div>}>
+      <PlayoffsContent />
+    </Suspense>
   );
 }
