@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import TablaDivision from "@/components/TablaDivision";
 import { supabase } from "@/lib/supabase";
 
@@ -119,12 +120,12 @@ export default function DivisionesPage() {
                 </p>
 
                 <div className="mt-7 flex flex-wrap gap-3">
-                  <a
+                  <Link
                     href="/competicion"
                     className="rounded-2xl border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-sm font-black uppercase text-sky-300 transition hover:bg-sky-400/20"
                   >
                     ← Volver a torneos
-                  </a>
+                  </Link>
 
                   <span className="rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-sm font-black uppercase text-yellow-300">
                     🏆 Liga oficial
@@ -345,7 +346,7 @@ export default function DivisionesPage() {
                   </div>
                 ) : (
                   ultimosResultados.map((partido) => (
-                    <a
+                    <Link
                       key={partido.id}
                       href={`/estadisticas/${encodeURIComponent(partido.partido_id)}`}
                       className="group block rounded-2xl border border-sky-500/20 bg-black/35 p-3 transition hover:border-sky-400/60 hover:bg-sky-500/10"
@@ -383,17 +384,17 @@ export default function DivisionesPage() {
                           Ver stats →
                         </span>
                       </div>
-                    </a>
+                    </Link>
                   ))
                 )}
               </div>
 
-              <a
+              <Link
                 href="/estadisticas"
                 className="mt-4 block w-full rounded-xl border border-sky-500/30 bg-sky-500/10 py-3 text-center text-[11px] font-black uppercase tracking-[0.22em] text-sky-300 transition hover:bg-sky-500/20"
               >
                 Ver todos los resultados
-              </a>
+              </Link>
             </div>
 
             <div className="relative overflow-hidden rounded-[26px] border border-sky-500/35 bg-[#020714] p-5 min-h-[150px]">

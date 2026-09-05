@@ -562,8 +562,8 @@ export default function AdminCopasPage() {
       return;
     }
 
-    let esGrupo = faseManual.startsWith("Grupo");
-    let grupoAsignado = esGrupo ? faseManual.replace("Grupo ", "").trim() : null;
+    const esGrupo = faseManual.startsWith("Grupo");
+    const grupoAsignado = esGrupo ? faseManual.replace("Grupo ", "").trim() : null;
     let competicionAsignada = COMPETICION_GRUPOS;
     let faseNombre = "grupos";
 

@@ -42,62 +42,6 @@ export default function RegistroPage() {
   }
 
 
-  async function verificarDuplicadosAntesDeRegistrar({
-    usernameLimpio,
-    playerIdLimpio,
-    steamIdLimpio,
-    discordIdLimpio,
-  }: {
-    usernameLimpio: string;
-    playerIdLimpio: string;
-    steamIdLimpio: string;
-    discordIdLimpio: string;
-  }) {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, username, requested_playerid, playerid, steam_id, discord_id")
-      .or(
-        [
-          `username.eq.${usernameLimpio}`,
-          `requested_playerid.eq.${playerIdLimpio}`,
-          `playerid.eq.${playerIdLimpio}`,
-          `steam_id.eq.${steamIdLimpio}`,
-          `discord_id.eq.${discordIdLimpio}`,
-        ].join(","),
-      )
-      .limit(1);
-
-    if (error) {
-      console.log(error);
-      return "No pude verificar si los datos ya están usados. Intentá nuevamente.";
-    }
-
-    const duplicado = data?.[0];
-
-    if (!duplicado) return "";
-
-    if (duplicado.username === usernameLimpio) {
-      return "Ese usuario ya está usado por otra cuenta.";
-    }
-
-    if (
-      duplicado.requested_playerid === playerIdLimpio ||
-      duplicado.playerid === playerIdLimpio
-    ) {
-      return "Ese PlayerId ya está usado o solicitado por otra cuenta.";
-    }
-
-    if (duplicado.steam_id === steamIdLimpio) {
-      return "Ese SteamID64 ya está usado por otra cuenta.";
-    }
-
-    if (duplicado.discord_id === discordIdLimpio) {
-      return "Ese Discord ID ya está usado por otra cuenta.";
-    }
-
-    return "Uno de los datos ya está usado por otra cuenta.";
-  }
-
   async function registrarse(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setMensaje("");
@@ -158,9 +102,9 @@ export default function RegistroPage() {
       return;
     }
 
-    if (password.length < 6) {
+    if (password.length < 10) {
       setTipoMensaje("error");
-      setMensaje("La contraseña debe tener al menos 6 caracteres.");
+      setMensaje("La contraseña debe tener al menos 10 caracteres.");
       return;
     }
 
@@ -171,22 +115,9 @@ export default function RegistroPage() {
     }
 
 
-    const duplicado = await verificarDuplicadosAntesDeRegistrar({
-      usernameLimpio,
-      playerIdLimpio,
-      steamIdLimpio,
-      discordIdLimpio,
-    });
-
-    if (duplicado) {
-      setTipoMensaje("error");
-      setMensaje(duplicado);
-      return;
-    }
-
     setCargando(true);
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: emailLimpio,
       password,
       options: {
@@ -211,28 +142,11 @@ export default function RegistroPage() {
       } else if (errorText.includes("duplicate") || errorText.includes("unique")) {
         setMensaje("Uno de los datos ya está usado por otra cuenta.");
       } else {
-        setMensaje("Error creando cuenta: " + error.message);
+        setMensaje("No pudimos crear la cuenta. Revisá los datos e intentá nuevamente.");
       }
 
       setCargando(false);
       return;
-    }
-
-    const userId = data.user?.id;
-
-    if (userId) {
-      await supabase
-        .from("profiles")
-        .update({
-          display_name: nombreLimpio,
-          username: usernameLimpio,
-          requested_playerid: playerIdLimpio,
-          steam_id: steamIdLimpio,
-          discord_id: discordIdLimpio,
-          avatar_url: null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", userId);
     }
 
     setTipoMensaje("ok");
@@ -457,14 +371,15 @@ export default function RegistroPage() {
                 Contraseña
                 <HelperTooltip
                   title="Contraseña"
-                  description="Debe tener al menos 6 caracteres. No uses una contraseña que compartas con otras cuentas importantes."
+                  description="Debe tener al menos 10 caracteres. No uses una contraseña que compartas con otras cuentas importantes."
                 />
               </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
+                minLength={10}
+                placeholder="Mínimo 10 caracteres"
                 className="w-full rounded-2xl border border-sky-500/20 bg-black/35 px-5 py-4 text-white outline-none transition placeholder:text-zinc-700 focus:border-sky-400/60"
               />
             </div>

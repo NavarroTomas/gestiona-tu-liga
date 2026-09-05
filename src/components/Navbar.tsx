@@ -172,10 +172,22 @@ export default function Navbar() {
       setNotificacionesAbiertas(false);
     }
 
+    function cerrarConEscape(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+
+      setOpen(null);
+      setUserMenuOpen(false);
+      setNotificacionesAbiertas(false);
+      setMobileOpen(false);
+      setBuscadorAbierto(false);
+    }
+
     window.addEventListener("click", cerrar);
+    window.addEventListener("keydown", cerrarConEscape);
 
     return () => {
       window.removeEventListener("click", cerrar);
+      window.removeEventListener("keydown", cerrarConEscape);
     };
   }, []);
 
@@ -492,6 +504,9 @@ export default function Navbar() {
           type="button"
           onClick={() => setNotificacionesAbiertas(!notificacionesAbiertas)}
           className="relative rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-4 py-2.5 text-sm font-black uppercase text-yellow-300 transition hover:bg-yellow-400 hover:text-black"
+          aria-label={`Notificaciones APA${notificacionesNoLeidas > 0 ? `, ${notificacionesNoLeidas} sin leer` : ""}`}
+          aria-expanded={notificacionesAbiertas}
+          aria-controls="apa-notifications-menu"
           title="Notificaciones APA"
         >
           🔔
@@ -503,7 +518,12 @@ export default function Navbar() {
         </button>
 
         {notificacionesAbiertas && (
-          <div className="absolute right-0 top-full z-[99999] mt-3 w-[min(380px,calc(100vw-1rem))] overflow-hidden rounded-[26px] border border-yellow-400/20 bg-[#050914]/96 p-3 shadow-[0_24px_70px_rgba(0,0,0,.65)] backdrop-blur-2xl">
+          <div
+            id="apa-notifications-menu"
+            role="region"
+            aria-label="Notificaciones APA"
+            className="absolute right-0 top-full z-[99999] mt-3 w-[min(380px,calc(100vw-1rem))] overflow-hidden rounded-[26px] border border-yellow-400/20 bg-[#050914]/96 p-3 shadow-[0_24px_70px_rgba(0,0,0,.65)] backdrop-blur-2xl"
+          >
             <div className="mb-3 flex items-center justify-between gap-3 border-b border-white/10 pb-3">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.25em] text-yellow-300">
@@ -598,6 +618,9 @@ export default function Navbar() {
           type="button"
           onClick={() => setUserMenuOpen(!userMenuOpen)}
           className="flex max-w-[220px] items-center gap-3 rounded-2xl border border-sky-400/25 bg-sky-400/10 px-4 py-2.5 transition hover:border-sky-300 hover:bg-sky-400/15"
+          aria-label={`Abrir menú de usuario de ${nombreVisible}`}
+          aria-expanded={userMenuOpen}
+          aria-controls="apa-user-menu"
         >
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-sky-400/35 bg-black/35 text-sm font-black text-sky-300">
             {inicial}
@@ -618,7 +641,12 @@ export default function Navbar() {
         </button>
 
         {userMenuOpen && (
-          <div className="absolute right-0 top-full z-[99999] mt-3 w-[min(280px,calc(100vw-1.5rem))] overflow-hidden rounded-[24px] border border-sky-400/20 bg-[#050914]/96 p-2 shadow-[0_24px_70px_rgba(0,0,0,.62)] backdrop-blur-2xl">
+          <div
+            id="apa-user-menu"
+            role="region"
+            aria-label="Menú de usuario"
+            className="absolute right-0 top-full z-[99999] mt-3 w-[min(280px,calc(100vw-1.5rem))] overflow-hidden rounded-[24px] border border-sky-400/20 bg-[#050914]/96 p-2 shadow-[0_24px_70px_rgba(0,0,0,.62)] backdrop-blur-2xl"
+          >
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_36%)]" />
 
             <div className="relative z-10 border-b border-white/10 px-3 py-4">
@@ -726,6 +754,8 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setOpen(open === menu.nombre ? null : menu.nombre)}
+                aria-expanded={open === menu.nombre}
+                aria-controls={`apa-desktop-menu-${menu.nombre.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
                 className={`group relative flex items-center gap-2 rounded-2xl border px-5 py-2.5 text-[15px] font-black transition-all ${
                   activo
                     ? "border-sky-400/50 bg-sky-500/15 text-white shadow-[0_0_22px_rgba(56,189,248,.18)]"
@@ -745,7 +775,12 @@ export default function Navbar() {
               </button>
 
               {open === menu.nombre && (
-                <div className="animate-apa-fade-up absolute left-1/2 top-full z-[99999] mt-3 w-[310px] -translate-x-1/2 overflow-hidden rounded-[24px] border border-sky-400/20 bg-[#050914]/96 p-2 shadow-[0_24px_70px_rgba(0,0,0,.62)] backdrop-blur-2xl">
+                <div
+                  id={`apa-desktop-menu-${menu.nombre.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                  role="region"
+                  aria-label={`Menú ${menu.nombre}`}
+                  className="animate-apa-fade-up absolute left-1/2 top-full z-[99999] mt-3 w-[310px] -translate-x-1/2 overflow-hidden rounded-[24px] border border-sky-400/20 bg-[#050914]/96 p-2 shadow-[0_24px_70px_rgba(0,0,0,.62)] backdrop-blur-2xl"
+                >
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_36%)]" />
 
                   <div className="relative z-10 mb-2 border-b border-white/10 px-3 py-3">
@@ -817,7 +852,11 @@ export default function Navbar() {
           className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         />
 
-        <aside className="absolute right-0 top-0 flex h-full w-[min(420px,92vw)] flex-col overflow-hidden border-l border-sky-400/20 bg-[#050914] shadow-[0_0_70px_rgba(0,0,0,.75)]">
+        <aside
+          id="apa-mobile-menu"
+          aria-label="Menú principal"
+          className="absolute right-0 top-0 flex h-full w-[min(420px,92vw)] flex-col overflow-hidden border-l border-sky-400/20 bg-[#050914] shadow-[0_0_70px_rgba(0,0,0,.75)]"
+        >
           <div className="border-b border-white/10 p-4">
             <div className="flex items-center justify-between gap-3">
               <Brand />
@@ -825,6 +864,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
+                aria-label="Cerrar menú principal"
                 className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-xl font-black text-zinc-300"
               >
                 ✕
@@ -980,6 +1020,7 @@ export default function Navbar() {
               type="button"
               onClick={() => setBuscadorAbierto(true)}
               className="hidden rounded-2xl border border-sky-400/25 bg-sky-400/10 px-4 py-2.5 text-sm font-black uppercase text-sky-300 transition hover:bg-sky-400 hover:text-black md:inline-flex xl:hidden"
+              aria-label="Buscar en APA"
               title="Buscar en APA"
             >
               🔍
@@ -1022,7 +1063,9 @@ export default function Navbar() {
                 setMobileOpen(true);
               }}
               className="flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-400/25 bg-sky-400/10 text-xl font-black text-sky-300 transition hover:bg-sky-400 hover:text-black xl:hidden"
-              aria-label="Abrir menú"
+              aria-label="Abrir menú principal"
+              aria-expanded={mobileOpen}
+              aria-controls="apa-mobile-menu"
             >
               ☰
             </button>
@@ -1032,6 +1075,9 @@ export default function Navbar() {
 
       {buscadorAbierto && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="apa-search-title"
           className="fixed inset-0 z-[10000] flex items-start justify-center bg-black/75 px-4 pt-24 backdrop-blur-sm md:pt-28"
           onClick={() => setBuscadorAbierto(false)}
         >
@@ -1047,7 +1093,7 @@ export default function Navbar() {
                   <p className="text-[10px] font-black uppercase tracking-[0.32em] text-sky-300">
                     Buscador global
                   </p>
-                  <h2 className="mt-2 text-3xl font-black uppercase text-white">
+                  <h2 id="apa-search-title" className="mt-2 text-3xl font-black uppercase text-white">
                     Buscar en APA
                   </h2>
                 </div>
@@ -1055,6 +1101,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setBuscadorAbierto(false)}
+                  aria-label="Cerrar buscador"
                   className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-xl font-black text-zinc-300 transition hover:border-red-400/35 hover:text-red-300"
                 >
                   ✕
@@ -1075,6 +1122,8 @@ export default function Navbar() {
                       abrirPrimerResultado();
                     }
                   }}
+                  aria-label="Buscar usuario, jugador o club"
+                  aria-describedby="apa-search-help"
                   placeholder="Buscar usuario, jugador o club..."
                   className="w-full rounded-2xl border border-sky-400/25 bg-black/45 px-5 py-5 pr-14 text-base font-bold text-white outline-none placeholder:text-zinc-600 focus:border-sky-300"
                 />
@@ -1138,7 +1187,7 @@ export default function Navbar() {
                 )}
               </div>
 
-              <p className="mt-5 text-center text-[10px] font-black uppercase tracking-[0.22em] text-zinc-600">
+              <p id="apa-search-help" className="mt-5 text-center text-[10px] font-black uppercase tracking-[0.22em] text-zinc-600">
                 Enter abre el primer resultado · Esc cierra el buscador
               </p>
             </div>
@@ -1147,7 +1196,12 @@ export default function Navbar() {
       )}
 
       {perfil?.verification_status === "disputed" && mostrarAlertaDisputa && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="apa-dispute-title"
+          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm"
+        >
           <div className="relative w-full max-w-xl overflow-hidden rounded-[34px] border border-orange-400/35 bg-[#050914] p-6 shadow-[0_0_70px_rgba(251,146,60,.22)] md:p-8">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,146,60,.18),transparent_42%)]" />
 
@@ -1156,7 +1210,7 @@ export default function Navbar() {
                 ⚠ Atención
               </p>
 
-              <h2 className="mt-3 text-3xl font-black uppercase text-white md:text-4xl">
+              <h2 id="apa-dispute-title" className="mt-3 text-3xl font-black uppercase text-white md:text-4xl">
                 Tu cuenta está en disputa
               </h2>
 

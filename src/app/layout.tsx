@@ -4,8 +4,8 @@ import "./theme-worldcup-mural.css";
 import Navbar from "../components/Navbar";
 import BienvenidaAPA from "../components/BienvenidaAPA";
 import IntroAPA from "../components/IntroAPA";
+import CookieConsent from "../components/CookieConsent";
 import { Orbitron } from "next/font/google";
-import Script from "next/script";
 
 const orbitron = Orbitron({
   subsets: ["latin"],
@@ -13,8 +13,31 @@ const orbitron = Orbitron({
 });
 
 export const metadata: Metadata = {
-  title: "APA PSO Argentina",
-  description: "Liga APA PSO Argentina",
+  metadataBase: new URL("https://www.psoargentina.com"),
+  title: {
+    default: "APA PSO Argentina",
+    template: "%s | APA PSO Argentina",
+  },
+  description:
+    "Sitio oficial de APA PSO Argentina: fixture, resultados, estadísticas, clubes, jugadores, competiciones y comunidad de Pro Soccer Online.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "es_AR",
+    url: "/",
+    siteName: "APA PSO Argentina",
+    title: "APA PSO Argentina",
+    description:
+      "Fixture, resultados, estadísticas, clubes, jugadores y competiciones de APA PSO Argentina.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "APA PSO Argentina",
+    description:
+      "Fixture, resultados, estadísticas, clubes, jugadores y competiciones de APA PSO Argentina.",
+  },
   icons: {
     icon: [
       { url: "/favicon.png?v=5", type: "image/png" },
@@ -34,39 +57,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
-      <head>
-        {/* Google Analytics */}
-        <Script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-EMHDZV5ZPW"
-          strategy="afterInteractive"
-        />
-
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        gtag('config', 'G-EMHDZV5ZPW');
-      `}
-        </Script>
-
-        {/* Google AdSense */}
-        <Script
-          async
-          strategy="afterInteractive"
-          crossOrigin="anonymous"
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9012377872796123"
-        />
-      </head>
-
+    <html lang="es-AR">
       <body className={`${orbitron.className} text-white overflow-x-hidden`}>
         <IntroAPA />
         <BienvenidaAPA />
         <Navbar />
         {children}
+        <CookieConsent />
       </body>
     </html>
   );

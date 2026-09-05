@@ -1,14 +1,13 @@
+import Link from "next/link";
+
 export default function Footer() {
-
   return (
-
     <footer className="
       border-t border-white/10
       mt-20
       bg-black/20
       backdrop-blur-xl
     ">
-
       <div className="
         max-w-7xl mx-auto
         px-6 py-10
@@ -16,9 +15,7 @@ export default function Footer() {
         items-center justify-between
         gap-6
       ">
-
         <div>
-
           <h3 className="
             text-3xl
             font-black
@@ -34,6 +31,12 @@ export default function Footer() {
             Liga oficial de Pro Soccer Online.
           </p>
 
+          <nav aria-label="Información legal" className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-zinc-500">
+            <Link href="/privacidad" className="hover:text-zinc-300">Privacidad</Link>
+            <Link href="/terminos" className="hover:text-zinc-300">Términos</Link>
+            <Link href="/cookies" className="hover:text-zinc-300">Cookies</Link>
+            <Link href="/contacto" className="hover:text-zinc-300">Contacto</Link>
+          </nav>
         </div>
 
         <div className="
@@ -42,10 +45,7 @@ export default function Footer() {
         ">
           © 2026 APA PSO ARGENTINA
         </div>
-
       </div>
-
     </footer>
-
   );
 }

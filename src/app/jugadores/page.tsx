@@ -164,8 +164,8 @@ export default function JugadoresPage() {
         .map((j) => String(j.playerId || "").trim())
         .filter(Boolean);
 
-      let mapaClubActual: Record<string, string> = {};
-      let atrapadasPorJugador: Record<string, number> = {};
+      const mapaClubActual: Record<string, string> = {};
+      const atrapadasPorJugador: Record<string, number> = {};
 
       const consultasExtra: Array<PromiseLike<any>> = [];
 
