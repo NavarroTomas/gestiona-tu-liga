@@ -43,7 +43,7 @@ export default function PaginaCompeticion() {
                   alt="Logo de PSO Argentina"
                   fill
                   priority
-                  sizes="87px"
+                  sizes="64px"
                   className={estilos.logo}
                 />
               </span>
@@ -113,6 +113,24 @@ export default function PaginaCompeticion() {
             </ul>
           </nav>
         </section>
+
+        <footer className={estilos.footer}>
+          <div className={estilos.footerInterior}>
+            <div className={estilos.footerMarca}>
+              <strong>PSO ARGENTINA</strong>
+              <span>Liga oficial de Pro Soccer Online</span>
+            </div>
+
+            <nav className={estilos.footerNav} aria-label="Enlaces del pie de página">
+              <a href="/privacidad">Privacidad</a>
+              <a href="/terminos">Términos</a>
+              <a href="/cookies">Cookies</a>
+              <a href="/contacto">Contacto</a>
+            </nav>
+
+            <span className={estilos.copyright}>© 2026 APA PSO ARGENTINA</span>
+          </div>
+        </footer>
       </main>
     </>
   );
