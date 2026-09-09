@@ -5,7 +5,8 @@
   --fondo-header: #f3fafe;
   --linea: #bfd9e8;
   min-height: 100svh;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
   background: var(--azul);
   color: #fff;
   font-family: Arial, Helvetica, sans-serif;
@@ -157,8 +158,7 @@
 
 .hero {
   position: relative;
-  height: calc(100svh - 96px);
-  min-height: 650px;
+  height: clamp(720px, calc(100svh - 96px), 820px);
   overflow: hidden;
   background: #07172a;
 }
@@ -179,7 +179,7 @@
 .cabeceraHero {
   position: absolute;
   z-index: 5;
-  top: 64px;
+  top: 88px;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
@@ -200,7 +200,7 @@
 }
 
 .titulo {
-  margin: 24px 0 0;
+  margin: 28px 0 0;
   padding: 0 16px;
   color: #fff;
   font-size: 64px;
@@ -214,7 +214,7 @@
 .lineaTitulo {
   width: 94px;
   height: 4px;
-  margin: 29px auto 0;
+  margin: 34px auto 0;
   border-radius: 999px;
   background: var(--celeste);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20);
@@ -225,13 +225,13 @@
   z-index: 10;
   left: 33px;
   right: 34px;
-  bottom: 37px;
+  bottom: 54px;
 }
 
 .menu {
-  min-height: 118px;
+  min-height: 124px;
   margin: 0;
-  padding: 10px;
+  padding: 11px;
   list-style: none;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -253,7 +253,7 @@
   left: 0;
   top: 50%;
   width: 1px;
-  height: 52px;
+  height: 56px;
   transform: translateY(-50%);
   background: var(--linea);
 }
@@ -261,12 +261,12 @@
 .botonCompeticion {
   position: relative;
   width: 100%;
-  min-height: 96px;
+  min-height: 102px;
   border: 0;
   border-radius: 14px;
   background: transparent;
   color: var(--azul);
-  padding: 14px 16px 13px;
+  padding: 16px 16px 15px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -290,7 +290,7 @@
 
 .estadoCompeticion {
   display: block;
-  margin-top: 8px;
+  margin-top: 9px;
   color: #4f7196;
   font-size: 14px;
   line-height: 1;
@@ -301,12 +301,65 @@
 .indicadorActivo {
   position: absolute;
   left: 50%;
-  bottom: 9px;
+  bottom: 10px;
   width: 103px;
   height: 4px;
   transform: translateX(-50%);
   border-radius: 999px;
   background: var(--celeste);
+}
+
+.footer {
+  border-top: 1px solid rgba(201, 227, 241, 0.24);
+  background: #102f55;
+  color: #f3fafe;
+}
+
+.footerInterior {
+  width: 100%;
+  max-width: 1648px;
+  min-height: 168px;
+  margin: 0 auto;
+  padding: 34px 55px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 36px;
+}
+
+.footerMarca {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footerMarca strong {
+  font-size: 22px;
+  letter-spacing: 0.04em;
+}
+
+.footerMarca span,
+.copyright {
+  color: #a9c7dc;
+  font-size: 13px;
+}
+
+.footerNav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.footerNav a {
+  color: #dff1fb;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.copyright {
+  justify-self: end;
+  white-space: nowrap;
 }
 
 @media (max-width: 1280px) {
@@ -326,11 +379,23 @@
   .unite {
     width: 176px;
   }
+  .hero {
+    height: clamp(690px, calc(100svh - 96px), 780px);
+  }
+  .cabeceraHero {
+    top: 76px;
+  }
+  .menuContenedor {
+    bottom: 44px;
+  }
   .nombreCompeticion {
     font-size: 15px;
   }
   .estadoCompeticion {
     font-size: 12px;
+  }
+  .footerInterior {
+    padding-inline: 28px;
   }
 }
 
@@ -359,11 +424,10 @@
     margin-left: auto;
   }
   .hero {
-    height: calc(100svh - 84px);
-    min-height: 620px;
+    height: 760px;
   }
   .cabeceraHero {
-    top: 48px;
+    top: 58px;
   }
   .temporada {
     font-size: 16px;
@@ -375,13 +439,25 @@
   .menuContenedor {
     left: 20px;
     right: 20px;
-    bottom: 22px;
+    bottom: 34px;
   }
   .menu {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .item + .item::before {
     display: none;
+  }
+  .footerInterior {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    padding: 30px 22px;
+  }
+  .footerNav {
+    justify-self: end;
+  }
+  .copyright {
+    grid-column: 1 / -1;
+    justify-self: start;
   }
 }
 
@@ -410,29 +486,29 @@
     gap: 8px;
   }
   .hero {
-    height: calc(100svh - 72px);
+    height: 720px;
   }
   .cabeceraHero {
-    top: 34px;
+    top: 42px;
   }
   .temporada {
     font-size: 12px;
     letter-spacing: 0.46em;
   }
   .titulo {
-    margin-top: 14px;
+    margin-top: 16px;
     font-size: 34px;
     line-height: 1;
   }
   .lineaTitulo {
     width: 64px;
     height: 3px;
-    margin-top: 20px;
+    margin-top: 22px;
   }
   .menuContenedor {
     left: 12px;
     right: 12px;
-    bottom: 12px;
+    bottom: 20px;
   }
   .menu {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -440,8 +516,8 @@
     border-radius: 15px;
   }
   .botonCompeticion {
-    min-height: 72px;
-    padding: 10px 8px;
+    min-height: 78px;
+    padding: 11px 8px;
   }
   .nombreCompeticion {
     font-size: 13px;
@@ -455,5 +531,20 @@
     width: 64px;
     height: 3px;
     bottom: 6px;
+  }
+  .footerInterior {
+    min-height: 0;
+    padding: 28px 18px;
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .footerNav {
+    justify-self: start;
+    flex-wrap: wrap;
+    gap: 14px 20px;
+  }
+  .copyright {
+    grid-column: auto;
+    justify-self: start;
   }
 }
