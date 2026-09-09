@@ -1,4 +1,5 @@
 import Image from "next/image";
+import AplicarLayoutGuardado from "./AplicarLayoutGuardado";
 import estilos from "./competicion.module.css";
 
 const competiciones = [
@@ -32,6 +33,8 @@ export default function PaginaCompeticion() {
           background: #102f55;
         }
       `}</style>
+
+      <AplicarLayoutGuardado />
 
       <main className={estilos.pagina} data-zona="competicion">
         <header className={estilos.header}>
@@ -86,17 +89,18 @@ export default function PaginaCompeticion() {
             priority
             sizes="100vw"
             className={estilos.fondo}
+            data-layout="fondo"
           />
 
           <div className={estilos.velo} aria-hidden="true" />
 
           <div className={estilos.cabeceraHero}>
-            <p className={estilos.temporada}>Temporada 4</p>
-            <h1 className={estilos.titulo} id="titulo-competicion">Competición Oficial</h1>
-            <div className={estilos.lineaTitulo} aria-hidden="true" />
+            <p className={estilos.temporada} data-layout="temporada">Temporada 4</p>
+            <h1 className={estilos.titulo} id="titulo-competicion" data-layout="titulo">Competición Oficial</h1>
+            <div className={estilos.lineaTitulo} data-layout="linea" aria-hidden="true" />
           </div>
 
-          <nav className={estilos.menuContenedor} aria-label="Competiciones de la temporada">
+          <nav className={estilos.menuContenedor} data-layout="menu" aria-label="Competiciones de la temporada">
             <ul className={estilos.menu}>
               {competiciones.map((competicion, indice) => (
                 <li
