@@ -1,0 +1,449 @@
+.pagina {
+  --azul: #102f55;
+  --celeste: #56afe2;
+  --celeste-claro: #d8effc;
+  --fondo-header: #f3fafe;
+  --linea: #bfd9e8;
+  min-height: 100svh;
+  overflow: hidden;
+  background: var(--azul);
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.header {
+  position: relative;
+  z-index: 30;
+  height: 122px;
+  border-bottom: 1px solid #c9e3f1;
+  background: linear-gradient(100deg, #f3fafe 0%, #edf8fe 45%, #f8fcff 100%);
+  color: var(--azul);
+  box-shadow: 0 4px 24px rgba(16, 47, 85, 0.06);
+}
+
+.headerInterior {
+  width: 100%;
+  max-width: 1648px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 67px;
+  display: flex;
+  align-items: center;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  flex: 0 0 auto;
+  color: inherit;
+  text-decoration: none;
+}
+
+.logoCaja {
+  position: relative;
+  width: 87px;
+  height: 83px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #fff;
+  border: 1px solid rgba(16, 47, 85, 0.16);
+  box-shadow: 0 4px 14px rgba(16, 47, 85, 0.12);
+}
+
+.logo {
+  object-fit: cover;
+}
+
+.marcaTexto {
+  line-height: 1;
+  transform: translateY(1px);
+}
+
+.pso {
+  font-size: 41px;
+  line-height: 0.9;
+  font-weight: 900;
+  letter-spacing: -0.055em;
+  color: var(--azul);
+}
+
+.argentina {
+  margin-top: 10px;
+  padding-left: 3px;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 0.49em;
+  text-transform: uppercase;
+  color: var(--azul);
+}
+
+.navegacion {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.enlaceNav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 49px;
+  padding: 0 18px;
+  border: 2px solid transparent;
+  border-radius: 5px;
+  color: var(--azul);
+  text-decoration: none;
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.enlaceActivo {
+  min-width: 136px;
+  border-color: var(--celeste);
+  background: #ddf1fc;
+}
+
+.acciones {
+  margin-left: 47px;
+  display: flex;
+  align-items: center;
+  gap: 27px;
+}
+
+.buscar {
+  width: 45px;
+  height: 45px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--azul);
+  padding: 0;
+}
+
+.separadorHeader {
+  width: 1px;
+  height: 44px;
+  background: #b7d3e3;
+}
+
+.unite {
+  width: 229px;
+  height: 56px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--celeste);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 23px;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 8px 20px rgba(86, 175, 226, 0.22);
+}
+
+.flecha {
+  font-size: 22px;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.hero {
+  position: relative;
+  height: calc(100svh - 122px);
+  min-height: 650px;
+  overflow: hidden;
+  background: #07172a;
+}
+
+.fondo {
+  object-fit: cover;
+  object-position: 50% 50%;
+}
+
+.velo {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(4, 18, 35, 0.28) 0%, rgba(4, 18, 35, 0.07) 46%, rgba(0, 0, 0, 0.02) 70%, rgba(0, 0, 0, 0.13) 100%);
+  pointer-events: none;
+}
+
+.cabeceraHero {
+  position: absolute;
+  z-index: 5;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  text-align: center;
+  pointer-events: none;
+}
+
+.temporada {
+  margin: 0;
+  color: var(--celeste);
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 0.62em;
+  text-transform: uppercase;
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.55);
+  padding-left: 0.62em;
+}
+
+.titulo {
+  margin: 24px 0 0;
+  padding: 0 16px;
+  color: #fff;
+  font-size: 64px;
+  line-height: 0.97;
+  font-weight: 900;
+  letter-spacing: -0.042em;
+  text-transform: uppercase;
+  text-shadow: 0 5px 18px rgba(0, 0, 0, 0.55);
+}
+
+.lineaTitulo {
+  width: 94px;
+  height: 4px;
+  margin: 29px auto 0;
+  border-radius: 999px;
+  background: var(--celeste);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20);
+}
+
+.menuContenedor {
+  position: absolute;
+  z-index: 10;
+  left: 33px;
+  right: 34px;
+  bottom: 37px;
+}
+
+.menu {
+  min-height: 118px;
+  margin: 0;
+  padding: 10px;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 19px;
+  background: rgba(246, 251, 254, 0.96);
+  box-shadow: 0 10px 35px rgba(2, 20, 40, 0.22);
+  backdrop-filter: blur(12px);
+}
+
+.item {
+  position: relative;
+  min-width: 0;
+}
+
+.item + .item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 1px;
+  height: 52px;
+  transform: translateY(-50%);
+  background: var(--linea);
+}
+
+.botonCompeticion {
+  position: relative;
+  width: 100%;
+  min-height: 96px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--azul);
+  padding: 14px 16px 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font: inherit;
+}
+
+.itemActivo .botonCompeticion {
+  background: var(--celeste-claro);
+}
+
+.nombreCompeticion {
+  display: block;
+  color: var(--azul);
+  font-size: 17px;
+  line-height: 1.15;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.estadoCompeticion {
+  display: block;
+  margin-top: 8px;
+  color: #4f7196;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.indicadorActivo {
+  position: absolute;
+  left: 50%;
+  bottom: 9px;
+  width: 103px;
+  height: 4px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: var(--celeste);
+}
+
+@media (max-width: 1280px) {
+  .headerInterior {
+    padding: 0 32px;
+  }
+  .navegacion {
+    gap: 6px;
+  }
+  .enlaceNav {
+    padding-inline: 14px;
+  }
+  .acciones {
+    margin-left: 24px;
+    gap: 18px;
+  }
+  .unite {
+    width: 190px;
+  }
+  .nombreCompeticion {
+    font-size: 15px;
+  }
+  .estadoCompeticion {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .header {
+    height: 96px;
+  }
+  .headerInterior {
+    padding: 0 24px;
+  }
+  .logoCaja {
+    width: 64px;
+    height: 64px;
+  }
+  .pso {
+    font-size: 28px;
+  }
+  .argentina {
+    margin-top: 7px;
+    font-size: 9px;
+  }
+  .navegacion {
+    display: none;
+  }
+  .acciones {
+    margin-left: auto;
+  }
+  .hero {
+    height: calc(100svh - 96px);
+    min-height: 620px;
+  }
+  .cabeceraHero {
+    top: 48px;
+  }
+  .temporada {
+    font-size: 16px;
+  }
+  .titulo {
+    margin-top: 20px;
+    font-size: 48px;
+  }
+  .menuContenedor {
+    left: 20px;
+    right: 20px;
+    bottom: 22px;
+  }
+  .menu {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .item + .item::before {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .headerInterior {
+    padding: 0 16px;
+  }
+  .marca {
+    gap: 12px;
+  }
+  .marcaTexto {
+    display: none;
+  }
+  .separadorHeader,
+  .unite {
+    display: none;
+  }
+  .acciones {
+    gap: 8px;
+  }
+  .cabeceraHero {
+    top: 34px;
+  }
+  .temporada {
+    font-size: 12px;
+    letter-spacing: 0.46em;
+  }
+  .titulo {
+    margin-top: 14px;
+    font-size: 34px;
+    line-height: 1;
+  }
+  .lineaTitulo {
+    width: 64px;
+    height: 3px;
+    margin-top: 20px;
+  }
+  .menuContenedor {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+  }
+  .menu {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 8px;
+    border-radius: 15px;
+  }
+  .botonCompeticion {
+    min-height: 72px;
+    padding: 10px 8px;
+  }
+  .nombreCompeticion {
+    font-size: 13px;
+    white-space: normal;
+  }
+  .estadoCompeticion {
+    margin-top: 6px;
+    font-size: 11px;
+  }
+  .indicadorActivo {
+    width: 64px;
+    height: 3px;
+    bottom: 6px;
+  }
+}
