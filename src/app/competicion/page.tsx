@@ -80,8 +80,8 @@ export default function PaginaCompeticion() {
 
         <section className={estilos.hero} aria-labelledby="titulo-competicion">
           <Image
-            src="/images/competicion-hero.png"
-            alt="Estadio de Pro Soccer Online"
+            src="/themes/worldcup/backgrounds/Banderin.png"
+            alt="Estadio vacío de Pro Soccer Online visto desde el córner"
             fill
             priority
             sizes="100vw"
@@ -103,7 +103,7 @@ export default function PaginaCompeticion() {
                   key={competicion.titulo}
                   className={`${estilos.item} ${indice === 0 ? estilos.itemActivo : ""}`}
                 >
-                  <button className={estilos.botonCompeticion} type="button">
+                  <button className={estilos.botonCompeticion} type="button" tabIndex={-1}>
                     <span className={estilos.nombreCompeticion}>{competicion.titulo}</span>
                     <span className={estilos.estadoCompeticion}>{competicion.subtitulo}</span>
                     {indice === 0 && <span className={estilos.indicadorActivo} aria-hidden="true" />}
