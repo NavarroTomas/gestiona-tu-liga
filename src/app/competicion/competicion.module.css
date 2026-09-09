@@ -14,7 +14,7 @@
 .header {
   position: relative;
   z-index: 30;
-  height: 122px;
+  height: 96px;
   border-bottom: 1px solid #c9e3f1;
   background: linear-gradient(100deg, #f3fafe 0%, #edf8fe 45%, #f8fcff 100%);
   color: var(--azul);
@@ -26,7 +26,7 @@
   max-width: 1648px;
   height: 100%;
   margin: 0 auto;
-  padding: 0 67px;
+  padding: 0 55px;
   display: flex;
   align-items: center;
 }
@@ -34,7 +34,7 @@
 .marca {
   display: flex;
   align-items: center;
-  gap: 19px;
+  gap: 14px;
   flex: 0 0 auto;
   color: inherit;
   text-decoration: none;
@@ -42,8 +42,8 @@
 
 .logoCaja {
   position: relative;
-  width: 87px;
-  height: 83px;
+  width: 64px;
+  height: 64px;
   overflow: hidden;
   border-radius: 4px;
   background: #fff;
@@ -61,7 +61,7 @@
 }
 
 .pso {
-  font-size: 41px;
+  font-size: 32px;
   line-height: 0.9;
   font-weight: 900;
   letter-spacing: -0.055em;
@@ -69,9 +69,9 @@
 }
 
 .argentina {
-  margin-top: 10px;
+  margin-top: 7px;
   padding-left: 3px;
-  font-size: 11px;
+  font-size: 9px;
   line-height: 1;
   font-weight: 900;
   letter-spacing: 0.49em;
@@ -83,41 +83,41 @@
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 10px;
 }
 
 .enlaceNav {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 52px;
-  padding: 0 20px;
+  min-height: 42px;
+  padding: 0 16px;
   border: 2px solid transparent;
   border-radius: 5px;
   color: var(--azul);
   text-decoration: none;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1;
   font-weight: 800;
   white-space: nowrap;
 }
 
 .enlaceActivo {
-  min-width: 140px;
+  min-width: 125px;
   border-color: var(--celeste);
   background: #ddf1fc;
 }
 
 .acciones {
-  margin-left: 52px;
+  margin-left: 38px;
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 22px;
 }
 
 .buscar {
-  width: 46px;
-  height: 46px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
   border: 0;
@@ -128,13 +128,13 @@
 
 .separadorHeader {
   width: 1px;
-  height: 46px;
+  height: 36px;
   background: #b7d3e3;
 }
 
 .unite {
-  width: 229px;
-  height: 58px;
+  width: 200px;
+  height: 48px;
   border: 0;
   border-radius: 999px;
   background: var(--celeste);
@@ -142,23 +142,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 25px;
-  font-size: 16px;
+  gap: 20px;
+  font-size: 15px;
   font-weight: 800;
   line-height: 1;
   box-shadow: 0 8px 20px rgba(86, 175, 226, 0.22);
 }
 
 .flecha {
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1;
   transform: translateY(-1px);
 }
 
 .hero {
   position: relative;
-  height: calc(100svh - 122px);
-  min-height: 680px;
+  height: calc(100svh - 96px);
+  min-height: 650px;
   overflow: hidden;
   background: #07172a;
 }
@@ -172,14 +172,14 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(4, 18, 35, 0.27) 0%, rgba(4, 18, 35, 0.06) 46%, rgba(0, 0, 0, 0.02) 70%, rgba(0, 0, 0, 0.13) 100%);
+    linear-gradient(180deg, rgba(4, 18, 35, 0.28) 0%, rgba(4, 18, 35, 0.07) 46%, rgba(0, 0, 0, 0.02) 70%, rgba(0, 0, 0, 0.13) 100%);
   pointer-events: none;
 }
 
 .cabeceraHero {
   position: absolute;
   z-index: 5;
-  top: 82px;
+  top: 64px;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
@@ -190,21 +190,21 @@
 .temporada {
   margin: 0;
   color: var(--celeste);
-  font-size: 21px;
+  font-size: 20px;
   line-height: 1;
   font-weight: 900;
-  letter-spacing: 0.64em;
+  letter-spacing: 0.62em;
   text-transform: uppercase;
   text-shadow: 0 3px 12px rgba(0, 0, 0, 0.55);
-  padding-left: 0.64em;
+  padding-left: 0.62em;
 }
 
 .titulo {
-  margin: 29px 0 0;
-  padding: 0 20px;
+  margin: 24px 0 0;
+  padding: 0 16px;
   color: #fff;
-  font-size: 68px;
-  line-height: 0.98;
+  font-size: 64px;
+  line-height: 0.97;
   font-weight: 900;
   letter-spacing: -0.042em;
   text-transform: uppercase;
@@ -212,9 +212,9 @@
 }
 
 .lineaTitulo {
-  width: 102px;
+  width: 94px;
   height: 4px;
-  margin: 35px auto 0;
+  margin: 29px auto 0;
   border-radius: 999px;
   background: var(--celeste);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20);
@@ -223,20 +223,20 @@
 .menuContenedor {
   position: absolute;
   z-index: 10;
-  left: 43px;
-  right: 43px;
-  bottom: 48px;
+  left: 33px;
+  right: 34px;
+  bottom: 37px;
 }
 
 .menu {
-  min-height: 136px;
+  min-height: 118px;
   margin: 0;
-  padding: 12px;
+  padding: 10px;
   list-style: none;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   border: 1px solid rgba(255, 255, 255, 0.82);
-  border-radius: 21px;
+  border-radius: 19px;
   background: rgba(246, 251, 254, 0.96);
   box-shadow: 0 10px 35px rgba(2, 20, 40, 0.22);
   backdrop-filter: blur(12px);
@@ -253,7 +253,7 @@
   left: 0;
   top: 50%;
   width: 1px;
-  height: 62px;
+  height: 52px;
   transform: translateY(-50%);
   background: var(--linea);
 }
@@ -261,12 +261,12 @@
 .botonCompeticion {
   position: relative;
   width: 100%;
-  min-height: 112px;
+  min-height: 96px;
   border: 0;
-  border-radius: 16px;
+  border-radius: 14px;
   background: transparent;
   color: var(--azul);
-  padding: 18px 22px 17px;
+  padding: 14px 16px 13px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -282,18 +282,18 @@
 .nombreCompeticion {
   display: block;
   color: var(--azul);
-  font-size: 18px;
-  line-height: 1.18;
+  font-size: 17px;
+  line-height: 1.15;
   font-weight: 900;
   white-space: nowrap;
 }
 
 .estadoCompeticion {
   display: block;
-  margin-top: 10px;
+  margin-top: 8px;
   color: #4f7196;
   font-size: 14px;
-  line-height: 1.1;
+  line-height: 1;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -301,8 +301,8 @@
 .indicadorActivo {
   position: absolute;
   left: 50%;
-  bottom: 11px;
-  width: 116px;
+  bottom: 9px;
+  width: 103px;
   height: 4px;
   transform: translateX(-50%);
   border-radius: 999px;
@@ -311,50 +311,46 @@
 
 @media (max-width: 1280px) {
   .headerInterior {
-    padding: 0 32px;
+    padding: 0 28px;
   }
   .navegacion {
-    gap: 9px;
+    gap: 6px;
   }
   .enlaceNav {
-    padding-inline: 15px;
+    padding-inline: 13px;
   }
   .acciones {
-    margin-left: 26px;
-    gap: 20px;
+    margin-left: 22px;
+    gap: 16px;
   }
   .unite {
-    width: 196px;
-  }
-  .menuContenedor {
-    left: 30px;
-    right: 30px;
+    width: 176px;
   }
   .nombreCompeticion {
-    font-size: 16px;
+    font-size: 15px;
   }
   .estadoCompeticion {
-    font-size: 13px;
+    font-size: 12px;
   }
 }
 
 @media (max-width: 1024px) {
   .header {
-    height: 96px;
+    height: 84px;
   }
   .headerInterior {
-    padding: 0 24px;
+    padding: 0 22px;
   }
   .logoCaja {
-    width: 64px;
-    height: 64px;
+    width: 56px;
+    height: 56px;
   }
   .pso {
-    font-size: 28px;
+    font-size: 26px;
   }
   .argentina {
-    margin-top: 7px;
-    font-size: 9px;
+    margin-top: 6px;
+    font-size: 8px;
   }
   .navegacion {
     display: none;
@@ -363,45 +359,45 @@
     margin-left: auto;
   }
   .hero {
-    height: calc(100svh - 96px);
-    min-height: 640px;
+    height: calc(100svh - 84px);
+    min-height: 620px;
   }
   .cabeceraHero {
-    top: 58px;
+    top: 48px;
   }
   .temporada {
     font-size: 16px;
   }
   .titulo {
-    margin-top: 22px;
-    font-size: 50px;
-  }
-  .lineaTitulo {
-    margin-top: 28px;
+    margin-top: 20px;
+    font-size: 48px;
   }
   .menuContenedor {
     left: 20px;
     right: 20px;
-    bottom: 24px;
+    bottom: 22px;
   }
   .menu {
-    min-height: 124px;
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .item + .item::before {
     display: none;
   }
-  .botonCompeticion {
-    min-height: 96px;
-  }
 }
 
 @media (max-width: 720px) {
+  .header {
+    height: 72px;
+  }
   .headerInterior {
-    padding: 0 16px;
+    padding: 0 14px;
+  }
+  .logoCaja {
+    width: 48px;
+    height: 48px;
   }
   .marca {
-    gap: 12px;
+    gap: 10px;
   }
   .marcaTexto {
     display: none;
@@ -413,22 +409,25 @@
   .acciones {
     gap: 8px;
   }
+  .hero {
+    height: calc(100svh - 72px);
+  }
   .cabeceraHero {
-    top: 38px;
+    top: 34px;
   }
   .temporada {
     font-size: 12px;
     letter-spacing: 0.46em;
   }
   .titulo {
-    margin-top: 16px;
-    font-size: 36px;
+    margin-top: 14px;
+    font-size: 34px;
     line-height: 1;
   }
   .lineaTitulo {
-    width: 68px;
+    width: 64px;
     height: 3px;
-    margin-top: 22px;
+    margin-top: 20px;
   }
   .menuContenedor {
     left: 12px;
@@ -436,25 +435,24 @@
     bottom: 12px;
   }
   .menu {
-    min-height: 0;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     padding: 8px;
     border-radius: 15px;
   }
   .botonCompeticion {
-    min-height: 78px;
-    padding: 12px 8px;
+    min-height: 72px;
+    padding: 10px 8px;
   }
   .nombreCompeticion {
     font-size: 13px;
     white-space: normal;
   }
   .estadoCompeticion {
-    margin-top: 7px;
+    margin-top: 6px;
     font-size: 11px;
   }
   .indicadorActivo {
-    width: 68px;
+    width: 64px;
     height: 3px;
     bottom: 6px;
   }
