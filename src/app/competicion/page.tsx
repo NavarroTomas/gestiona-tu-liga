@@ -1,15 +1,7 @@
 import Image from "next/image";
 import AplicarLayoutGuardado from "./AplicarLayoutGuardado";
+import SelectorCompeticiones from "./SelectorCompeticiones";
 import estilos from "./competicion.module.css";
-
-const competiciones = [
-  { titulo: "Torneo de Liga", subtitulo: "Primera y Segunda" },
-  { titulo: "Clasificación a Copas", subtitulo: "Fase de grupos" },
-  { titulo: "Copa Argentina", subtitulo: "Cuartos de final" },
-  { titulo: "Copa APA", subtitulo: "En juego" },
-  { titulo: "Playoffs de Ascenso", subtitulo: "Próximamente" },
-  { titulo: "Copa de Campeones", subtitulo: "Próximamente" },
-];
 
 function IconoBuscar() {
   return (
@@ -101,20 +93,7 @@ export default function PaginaCompeticion() {
           </div>
 
           <nav className={estilos.menuContenedor} data-layout="menu" aria-label="Competiciones de la temporada">
-            <ul className={estilos.menu}>
-              {competiciones.map((competicion, indice) => (
-                <li
-                  key={competicion.titulo}
-                  className={`${estilos.item} ${indice === 0 ? estilos.itemActivo : ""}`}
-                >
-                  <button className={estilos.botonCompeticion} type="button" tabIndex={-1}>
-                    <span className={estilos.nombreCompeticion}>{competicion.titulo}</span>
-                    <span className={estilos.estadoCompeticion}>{competicion.subtitulo}</span>
-                    {indice === 0 && <span className={estilos.indicadorActivo} aria-hidden="true" />}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <SelectorCompeticiones />
           </nav>
         </section>
 
