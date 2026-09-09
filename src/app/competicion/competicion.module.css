@@ -165,7 +165,7 @@
 
 .fondo {
   object-fit: cover;
-  object-position: 50% 50%;
+  object-position: 70% 50%;
 }
 
 .velo {
@@ -382,6 +382,9 @@
   .hero {
     height: clamp(690px, calc(100svh - 96px), 780px);
   }
+  .fondo {
+    object-position: 68% 50%;
+  }
   .cabeceraHero {
     top: 76px;
   }
@@ -425,6 +428,9 @@
   }
   .hero {
     height: 760px;
+  }
+  .fondo {
+    object-position: 64% 50%;
   }
   .cabeceraHero {
     top: 58px;
@@ -487,6 +493,9 @@
   }
   .hero {
     height: 720px;
+  }
+  .fondo {
+    object-position: 58% 50%;
   }
   .cabeceraHero {
     top: 42px;
