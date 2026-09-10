@@ -18,47 +18,34 @@ import { getFixtureMatchDate, moveFixtureMonth, type FixtureMatch } from "@/lib/
 /**
  * PÁGINA PRINCIPAL DEL FIXTURE
  * ----------------------------
- * Esta página solo coordina estado y ensambla módulos.
+ * Desktop: navegación lateral + calendario + panel derecho.
+ * Mobile/tablet: hero primero, filtros compactos, agenda/calendario y detalle.
  *
  * PARA CAMBIAR COSAS VOS MISMO:
  * - temporadas/competencias/divisiones/grupos -> `src/config/fixture.ts`
  * - consultas de Supabase                    -> `src/hooks/useFixture.ts`
  * - fechas/calendario/reglas auxiliares       -> `src/lib/fixture.ts`
- * - lateral                                  -> `src/components/fixture/FixtureSidebar.tsx`
- * - calendario                               -> `src/components/fixture/FixtureCalendar.tsx`
- * - detalle y próximos partidos              -> `src/components/fixture/FixtureMatchPanel.tsx`
+ * - filtros/lateral                          -> `src/components/fixture/FixtureSidebar.tsx`
+ * - calendario/agenda mobile                 -> `src/components/fixture/FixtureCalendar.tsx`
+ * - detalle y partidos del día               -> `src/components/fixture/FixtureMatchPanel.tsx`
  * - hero                                     -> `src/components/fixture/FixtureHero.tsx`
- *
- * Las rutas antiguas `/fixture/[division]` siguen existiendo. Esta nueva vista
- * funciona como centro general para consultar todas las competiciones.
  */
 function FixtureContent() {
   const searchParams = useSearchParams();
   const requestedSeason = searchParams.get("temporada");
-  const initialSeason = FIXTURE_CONFIG.seasons.includes(
-    requestedSeason as (typeof FIXTURE_CONFIG.seasons)[number],
-  )
+  const initialSeason = FIXTURE_CONFIG.seasons.includes(requestedSeason as (typeof FIXTURE_CONFIG.seasons)[number])
     ? String(requestedSeason)
     : FIXTURE_CONFIG.defaultSeason;
 
   const [season, setSeason] = useState(initialSeason);
-  const [competitionId, setCompetitionId] = useState<FixtureCompetitionId>(
-    FIXTURE_CONFIG.defaultCompetition,
-  );
+  const [competitionId, setCompetitionId] = useState<FixtureCompetitionId>(FIXTURE_CONFIG.defaultCompetition);
   const [division, setDivision] = useState("Primera");
   const [group, setGroup] = useState("A");
   const [team, setTeam] = useState("all");
   const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [selectedMatch, setSelectedMatch] = useState<FixtureMatch | null>(null);
 
-  const {
-    loading,
-    competition,
-    matches,
-    availableTeams,
-    firstMatchDate,
-    getLogo,
-  } = useFixture({
+  const { loading, competition, matches, availableTeams, firstMatchDate, getLogo } = useFixture({
     season,
     competitionId,
     division,
@@ -70,25 +57,13 @@ function FixtureContent() {
     if (team !== "all" && !availableTeams.includes(team)) setTeam("all");
   }, [availableTeams, team]);
 
-  /**
-   * `firstMatchDate` puede recrearse como objeto Date aunque represente el
-   * mismo mes, por eso usamos un timestamp primitivo como dependencia.
-   *
-   * Si la competencia elegida no tiene todavía ningún partido con fecha
-   * calendario (por ejemplo Copa de Campeones antes de cargar sus cruces),
-   * NO conservamos un mes viejo de otra competencia. En ese caso volvemos al
-   * año configurado para la temporada, evitando que quede visible "2001" por
-   * una selección anterior.
-   */
   const firstMatchMonthTime = firstMatchDate
     ? new Date(firstMatchDate.getFullYear(), firstMatchDate.getMonth(), 1).getTime()
     : null;
 
   useEffect(() => {
     if (firstMatchMonthTime !== null) {
-      setMonth((current) =>
-        current.getTime() === firstMatchMonthTime ? current : new Date(firstMatchMonthTime),
-      );
+      setMonth((current) => current.getTime() === firstMatchMonthTime ? current : new Date(firstMatchMonthTime));
       return;
     }
 
@@ -96,10 +71,7 @@ function FixtureContent() {
     const now = new Date();
     const fallbackMonthIndex = now.getFullYear() === seasonYear ? now.getMonth() : 0;
     const fallbackTime = new Date(seasonYear, fallbackMonthIndex, 1).getTime();
-
-    setMonth((current) =>
-      current.getTime() === fallbackTime ? current : new Date(fallbackTime),
-    );
+    setMonth((current) => current.getTime() === fallbackTime ? current : new Date(fallbackTime));
   }, [competitionId, division, firstMatchMonthTime, group, season, team]);
 
   useEffect(() => {
@@ -110,7 +82,6 @@ function FixtureContent() {
 
     const startToday = new Date();
     startToday.setHours(0, 0, 0, 0);
-
     const preferred =
       matches.find((match) => {
         const date = getFixtureMatchDate(match);
@@ -118,7 +89,6 @@ function FixtureContent() {
       }) ||
       matches.find((match) => !match.resultado) ||
       matches[0];
-
     setSelectedMatch(preferred);
   }, [matches]);
 
@@ -130,45 +100,59 @@ function FixtureContent() {
     if (next.groups?.length) setGroup(next.defaultGroup || next.groups[0]);
   }
 
+  function changeSeason(value: string) {
+    setSeason(value);
+    setTeam("all");
+  }
+
+  function changeDivision(value: string) {
+    setDivision(value);
+    setTeam("all");
+  }
+
+  function changeGroup(value: string) {
+    setGroup(value);
+    setTeam("all");
+  }
+
   const heroSubtitle = useMemo(() => {
     if (competitionId === "liga") return `${competition.label} · ${division} División`;
     if (competitionId === "copas-oficiales") return `${competition.label} · Grupo ${group}`;
     return `${competition.label} · ${season}`;
   }, [competition.label, competitionId, division, group, season]);
 
+  const sidebarProps = {
+    competitionId,
+    onCompetitionChange: changeCompetition,
+    season,
+    onSeasonChange: changeSeason,
+    division,
+    onDivisionChange: changeDivision,
+    group,
+    onGroupChange: changeGroup,
+  };
+
   return (
-    <main className="min-h-screen bg-[#f4f9fd] text-[#102f55]">
+    <main className="min-h-screen overflow-x-hidden bg-[#f4f9fd] text-[#102f55]">
       <div className="mx-auto grid w-full max-w-[1680px] lg:grid-cols-[250px_minmax(0,1fr)]">
-        <FixtureSidebar
-          competitionId={competitionId}
-          onCompetitionChange={changeCompetition}
-          season={season}
-          onSeasonChange={(value) => {
-            setSeason(value);
-            setTeam("all");
-          }}
-          division={division}
-          onDivisionChange={(value) => {
-            setDivision(value);
-            setTeam("all");
-          }}
-          group={group}
-          onGroupChange={(value) => {
-            setGroup(value);
-            setTeam("all");
-          }}
-        />
+        <div className="hidden lg:block">
+          <FixtureSidebar {...sidebarProps} />
+        </div>
 
         <div className="min-w-0 bg-[linear-gradient(180deg,#f4f9fd_0%,#f9fcfe_100%)]">
           <FixtureHero subtitle={heroSubtitle} />
 
-          <section className="px-4 py-4 sm:px-6 sm:py-5 xl:px-7">
+          <div className="lg:hidden">
+            <FixtureSidebar {...sidebarProps} compact />
+          </div>
+
+          <section className="px-3 py-3 sm:px-5 sm:py-5 xl:px-7">
             {loading ? (
-              <div className="flex min-h-[520px] items-center justify-center rounded-[10px] border border-[#d7e6f0] bg-white text-sm font-bold text-[#7890a7]">
+              <div className="flex min-h-[260px] items-center justify-center rounded-[10px] border border-[#d7e6f0] bg-white text-[12px] font-bold text-[#7890a7] sm:min-h-[420px] sm:text-sm">
                 Cargando fixture…
               </div>
             ) : (
-              <div className="grid items-stretch gap-5 xl:grid-cols-[minmax(0,1fr)_390px] 2xl:grid-cols-[minmax(0,1fr)_410px]">
+              <div className="grid min-w-0 items-stretch gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1fr)_390px] 2xl:grid-cols-[minmax(0,1fr)_410px]">
                 <FixtureCalendar
                   month={month}
                   onPreviousMonth={() => setMonth((current) => moveFixtureMonth(current, -1))}
@@ -203,15 +187,7 @@ function FixtureContent() {
 
 export default function FixturePage() {
   return (
-    <Suspense
-      fallback={
-        <main className="min-h-screen bg-[#f4f9fd] text-[#102f55]">
-          <div className="flex min-h-[420px] items-center justify-center text-sm font-bold text-[#7890a7]">
-            Cargando fixture…
-          </div>
-        </main>
-      }
-    >
+    <Suspense fallback={<main className="min-h-screen bg-[#f4f9fd] text-[#102f55]"><div className="flex min-h-[320px] items-center justify-center text-sm font-bold text-[#7890a7]">Cargando fixture…</div></main>}>
       <FixtureContent />
     </Suspense>
   );
