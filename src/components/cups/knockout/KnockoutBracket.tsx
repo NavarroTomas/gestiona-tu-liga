@@ -1,6 +1,23 @@
 import type { CupMatch } from "@/lib/cups/types";
-import type { KnockoutBracket as KnockoutBracketData } from "@/lib/cups/knockout";
+import type {
+  KnockoutBracket as KnockoutBracketData,
+  KnockoutRoundId,
+} from "@/lib/cups/knockout";
 import { getKnockoutScore, getKnockoutWinner } from "@/lib/cups/knockout";
+
+const ROUND_META: Record<KnockoutRoundId, { title: string; count: number }> = {
+  roundOf16: { title: "Octavos", count: 8 },
+  quarterfinals: { title: "Cuartos", count: 4 },
+  semifinals: { title: "Semifinales", count: 2 },
+  final: { title: "Final", count: 1 },
+};
+
+function getRoundMatches(bracket: KnockoutBracketData, round: KnockoutRoundId) {
+  if (round === "roundOf16") return bracket.roundOf16;
+  if (round === "quarterfinals") return bracket.quarterfinals;
+  if (round === "semifinals") return bracket.semifinals;
+  return [bracket.final];
+}
 
 function TeamLogo({
   name,
@@ -102,118 +119,138 @@ function TrophyIcon() {
 }
 
 /**
- * CUADRO VISUAL DE COPA ARGENTINA
- * --------------------------------
- * Este componente solo decide CÓMO SE VE el bracket.
+ * CUADRO VISUAL COMPARTIDO PARA COPAS DE ELIMINACIÓN
+ * --------------------------------------------------
+ * `rounds` decide qué fases se muestran EN ESA TEMPORADA.
  *
- * Si querés:
- * - cambiar colores, anchos o separaciones -> hacelo acá;
- * - agregar otra fase/nombre de fase       -> `src/config/copaArgentina.ts`;
- * - cambiar cómo se ordenan los partidos   -> `src/lib/cups/knockout.ts`.
+ * Ejemplos:
+ * - ["quarterfinals", "semifinals", "final"] -> empieza en Cuartos.
+ * - ["roundOf16", "quarterfinals", "semifinals", "final"] -> con Octavos.
+ * - ["semifinals", "final"] -> empieza directamente en Semifinales.
  *
- * El formato actual replica el esquema progresivo:
- * OCTAVOS -> CUARTOS -> SEMIFINALES -> FINAL.
+ * No agregues ni borres columnas manualmente acá para cambiar una temporada:
+ * hacelo en el archivo de configuración de la copa.
  */
 export default function KnockoutBracket({
   bracket,
   getLogo,
+  rounds,
   showThirdPlace,
 }: {
   bracket: KnockoutBracketData;
   getLogo: (name?: string | null) => string | null;
+  rounds: readonly KnockoutRoundId[];
   showThirdPlace: boolean;
 }) {
   const champion = getKnockoutWinner(bracket.final);
+  const bodyHeight = 560;
+  const columnWidth = 310;
+  const columnGap = 16;
+  const cardInset = 16;
+  const totalWidth = rounds.length * columnWidth + Math.max(0, rounds.length - 1) * columnGap;
+
+  const connectorPaths: string[] = [];
+
+  rounds.slice(0, -1).forEach((round, stageIndex) => {
+    const nextRound = rounds[stageIndex + 1];
+    const sourceCount = ROUND_META[round].count;
+    const targetCount = ROUND_META[nextRound].count;
+
+    // El sistema estándar conecta pares: 8->4, 4->2 y 2->1.
+    if (sourceCount !== targetCount * 2) return;
+
+    const sourceX = stageIndex * (columnWidth + columnGap) + columnWidth - cardInset;
+    const targetX = (stageIndex + 1) * (columnWidth + columnGap) + cardInset;
+    const middleX = (sourceX + targetX) / 2;
+
+    for (let targetIndex = 0; targetIndex < targetCount; targetIndex += 1) {
+      const firstSource = targetIndex * 2;
+      const secondSource = firstSource + 1;
+      const y1 = bodyHeight * ((firstSource + 0.5) / sourceCount);
+      const y2 = bodyHeight * ((secondSource + 0.5) / sourceCount);
+      const targetY = bodyHeight * ((targetIndex + 0.5) / targetCount);
+
+      connectorPaths.push(`M ${sourceX} ${y1} H ${middleX} V ${y2} H ${sourceX}`);
+      connectorPaths.push(`M ${middleX} ${targetY} H ${targetX}`);
+    }
+  });
 
   return (
     <section>
       <div className="overflow-x-auto pb-2">
-        <div className="relative min-w-[1240px] overflow-hidden rounded-[10px] border border-[#d7e6f0] bg-white">
-          {/*
-            Las líneas están en un SVG independiente para que el usuario pueda
-            cambiar tarjetas/datos sin tocar las conexiones del cuadro.
-          */}
+        <div
+          className="relative overflow-hidden rounded-[10px] border border-[#d7e6f0] bg-white"
+          style={{ minWidth: totalWidth, width: totalWidth }}
+        >
           <svg
-            className="pointer-events-none absolute left-0 top-[52px] z-10 h-[560px] w-full"
-            viewBox="0 0 1240 560"
-            preserveAspectRatio="none"
+            className="pointer-events-none absolute left-0 top-[52px] z-10"
+            width={totalWidth}
+            height={bodyHeight}
+            viewBox={`0 0 ${totalWidth} ${bodyHeight}`}
             aria-hidden="true"
           >
             <g fill="none" stroke="#9fcdea" strokeWidth="1.2" vectorEffect="non-scaling-stroke">
-              {/* Octavos -> Cuartos */}
-              <path d="M284 35 H314 V105 M284 105 H314 M314 70 H328" />
-              <path d="M284 175 H314 V245 M284 245 H314 M314 210 H328" />
-              <path d="M284 315 H314 V385 M284 385 H314 M314 350 H328" />
-              <path d="M284 455 H314 V525 M284 525 H314 M314 490 H328" />
-              {/* Cuartos -> Semifinales */}
-              <path d="M598 70 H628 V210 M598 210 H628 M628 140 H642" />
-              <path d="M598 350 H628 V490 M598 490 H628 M628 420 H642" />
-              {/* Semifinales -> Final */}
-              <path d="M912 140 H942 V420 M912 420 H942 M942 280 H956" />
+              {connectorPaths.map((path, index) => (
+                <path key={`${path}-${index}`} d={path} />
+              ))}
             </g>
           </svg>
 
-          <div className="relative z-20 grid grid-cols-4 gap-4 bg-[#f8fbfd]">
-            <section className="border-r border-[#e6eff5] bg-[linear-gradient(90deg,#f4faff_0%,#fbfdff_100%)]">
-              <StageHeader title="Octavos" />
-              <div className="grid h-[560px] grid-rows-8 px-4">
-                {bracket.roundOf16.map((match, index) => (
-                  <div key={`r16-${index}`} className="flex items-center">
-                    <div className="w-full">
-                      <MatchCard match={match} getLogo={getLogo} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+          <div
+            className="relative z-20 grid bg-[#f8fbfd]"
+            style={{
+              gridTemplateColumns: `repeat(${rounds.length}, ${columnWidth}px)`,
+              columnGap,
+            }}
+          >
+            {rounds.map((round, roundIndex) => {
+              const meta = ROUND_META[round];
+              const matches = getRoundMatches(bracket, round);
+              const isFinal = round === "final";
 
-            <section className="border-r border-[#e6eff5] bg-[linear-gradient(90deg,#fbfdff_0%,#f5faff_100%)]">
-              <StageHeader title="Cuartos" />
-              <div className="grid h-[560px] grid-rows-4 px-4">
-                {bracket.quarterfinals.map((match, index) => (
-                  <div key={`qf-${index}`} className="flex items-center">
-                    <div className="w-full">
-                      <MatchCard match={match} getLogo={getLogo} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+              return (
+                <section
+                  key={round}
+                  className={`${roundIndex < rounds.length - 1 ? "border-r border-[#e6eff5]" : ""} bg-[linear-gradient(90deg,#f7fbfe_0%,#fbfdff_100%)]`}
+                >
+                  <StageHeader title={meta.title} />
 
-            <section className="border-r border-[#e6eff5] bg-[linear-gradient(90deg,#f5faff_0%,#fbfdff_100%)]">
-              <StageHeader title="Semifinales" />
-              <div className="grid h-[560px] grid-rows-2 px-4">
-                {bracket.semifinals.map((match, index) => (
-                  <div key={`sf-${index}`} className="flex items-center">
-                    <div className="w-full">
-                      <MatchCard match={match} getLogo={getLogo} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+                  {isFinal ? (
+                    <div className="relative px-4" style={{ height: bodyHeight }}>
+                      <div className="absolute left-1/2 top-[78px] flex -translate-x-1/2 flex-col items-center text-center">
+                        {champion && getLogo(champion) ? (
+                          <img src={getLogo(champion) || ""} alt={champion} className="mb-2 h-16 w-16 object-contain" />
+                        ) : (
+                          <TrophyIcon />
+                        )}
+                        {champion && (
+                          <span className="mt-1 max-w-[190px] truncate text-[10px] font-black uppercase tracking-[.04em] text-[#355d83]">
+                            {champion}
+                          </span>
+                        )}
+                      </div>
 
-            <section className="bg-[linear-gradient(90deg,#fbfdff_0%,#f3f9fd_100%)]">
-              <StageHeader title="Final" />
-              <div className="relative h-[560px] px-4">
-                <div className="absolute left-1/2 top-[78px] flex -translate-x-1/2 flex-col items-center text-center">
-                  {champion && getLogo(champion) ? (
-                    <img src={getLogo(champion) || ""} alt={champion} className="mb-2 h-16 w-16 object-contain" />
+                      <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2">
+                        <MatchCard match={bracket.final} getLogo={getLogo} final />
+                      </div>
+                    </div>
                   ) : (
-                    <TrophyIcon />
+                    <div
+                      className="grid px-4"
+                      style={{ height: bodyHeight, gridTemplateRows: `repeat(${meta.count}, minmax(0, 1fr))` }}
+                    >
+                      {matches.map((match, index) => (
+                        <div key={`${round}-${index}`} className="flex items-center">
+                          <div className="w-full">
+                            <MatchCard match={match} getLogo={getLogo} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )}
-                  {champion && (
-                    <span className="mt-1 max-w-[190px] truncate text-[10px] font-black uppercase tracking-[.04em] text-[#355d83]">
-                      {champion}
-                    </span>
-                  )}
-                </div>
-
-                <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2">
-                  <MatchCard match={bracket.final} getLogo={getLogo} final />
-                </div>
-              </div>
-            </section>
+                </section>
+              );
+            })}
           </div>
         </div>
       </div>
