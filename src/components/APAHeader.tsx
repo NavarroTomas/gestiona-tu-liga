@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import estilos from "./APAHeader.module.css";
 
 function IconoBuscar() {
@@ -45,7 +48,25 @@ function IconoYoutube() {
   );
 }
 
+function seccionActiva(pathname: string, seccion: "competicion" | "clubes" | "noticias" | "guia") {
+  if (seccion === "competicion") {
+    return ["/competicion", "/divisiones", "/fixture", "/estadisticas", "/historia"].some((ruta) =>
+      pathname.startsWith(ruta),
+    );
+  }
+
+  if (seccion === "clubes") {
+    return ["/clubes", "/plantillas", "/mercado", "/jugadores", "/equipos"].some((ruta) =>
+      pathname.startsWith(ruta),
+    );
+  }
+
+  return pathname.startsWith(`/${seccion}`);
+}
+
 export default function APAHeader() {
+  const pathname = usePathname();
+
   return (
     <header className={estilos.header}>
       <div className={estilos.interior}>
@@ -68,10 +89,30 @@ export default function APAHeader() {
         </Link>
 
         <nav className={estilos.navegacion} aria-label="Navegación principal">
-          <Link className={`${estilos.enlace} ${estilos.activo}`} href="/competicion">Competición</Link>
-          <Link className={estilos.enlace} href="/clubes">Clubes</Link>
-          <Link className={estilos.enlace} href="/noticias">Noticias</Link>
-          <Link className={estilos.enlace} href="/guia">Guía</Link>
+          <Link
+            className={`${estilos.enlace} ${seccionActiva(pathname, "competicion") ? estilos.activo : ""}`}
+            href="/competicion"
+          >
+            Competición
+          </Link>
+          <Link
+            className={`${estilos.enlace} ${seccionActiva(pathname, "clubes") ? estilos.activo : ""}`}
+            href="/clubes"
+          >
+            Clubes
+          </Link>
+          <Link
+            className={`${estilos.enlace} ${seccionActiva(pathname, "noticias") ? estilos.activo : ""}`}
+            href="/noticias"
+          >
+            Noticias
+          </Link>
+          <Link
+            className={`${estilos.enlace} ${seccionActiva(pathname, "guia") ? estilos.activo : ""}`}
+            href="/guia"
+          >
+            Guía
+          </Link>
         </nav>
 
         <div className={estilos.acciones}>
