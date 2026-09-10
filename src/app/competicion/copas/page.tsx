@@ -35,7 +35,7 @@ export default function CopasPublicPage() {
       <CupsHero season={season} />
       <CupsTabs activeId="grupos" />
 
-      <section className="mx-auto w-full max-w-[1480px] px-5 py-5 sm:px-8 sm:py-6 lg:px-12">
+      <section className="mx-auto w-full max-w-[1480px] px-5 py-4 sm:px-8 sm:py-5 lg:px-12">
         <CupControls
           season={season}
           group={group}
@@ -43,7 +43,7 @@ export default function CopasPublicPage() {
           onGroupChange={setGroup}
         />
 
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_390px] xl:gap-6">
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_390px] xl:gap-5">
           <CupGroupStandings
             group={group}
             rows={standings}
