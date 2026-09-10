@@ -12,11 +12,13 @@ export default function CupControls({
   onGroupChange: (group: string) => void;
 }) {
   return (
-    <div className="mb-5 space-y-4 sm:mb-6">
+    <div className="mb-4 space-y-3 sm:mb-5">
       <div className="flex items-end justify-between gap-4">
         <div className="min-w-0">
           <p className="text-[9px] font-black uppercase tracking-[.16em] text-[#7991a8]">Grupos</p>
-          <p className="mt-1 text-[12px] font-semibold text-[#5f7891]">Elegí el grupo que querés consultar.</p>
+          <p className="mt-1 text-[11px] font-semibold text-[#5f7891] sm:text-[12px]">
+            Elegí el grupo que querés consultar.
+          </p>
         </div>
 
         <label className="grid shrink-0 gap-1.5">
@@ -43,8 +45,13 @@ export default function CupControls({
         </label>
       </div>
 
-      <div className="overflow-x-auto pb-1">
+      <div className="overflow-x-auto pb-0.5">
         <div className="flex min-w-max gap-2">
+          {/*
+            Los botones se generan automáticamente desde CUPS_CONFIG.groups.
+            Para agregar Grupo E/F/etc. no copies este botón: agregá la letra en
+            `src/config/cups.ts` y aparecerá acá solo.
+          */}
           {CUPS_CONFIG.groups.map((item) => {
             const active = item === group;
             return (
@@ -52,7 +59,7 @@ export default function CupControls({
                 key={item}
                 type="button"
                 onClick={() => onGroupChange(item)}
-                className={`min-w-[108px] rounded-[8px] border px-4 py-3 text-[12px] font-black transition sm:min-w-[118px] sm:text-[13px] ${
+                className={`min-w-[104px] rounded-[8px] border px-4 py-2.5 text-[12px] font-black transition sm:min-w-[114px] sm:text-[13px] ${
                   active
                     ? "border-[#56afe2] bg-[#56afe2] text-white"
                     : "border-[#d4e5ef] bg-[#eef6fb] text-[#244d76] hover:border-[#a8cfe6] hover:bg-[#e5f3fb]"
