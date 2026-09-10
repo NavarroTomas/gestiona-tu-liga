@@ -19,10 +19,8 @@ interface EquipoTabla {
 
 function normalizarDivision(division: string) {
   const value = String(division || "").toLowerCase();
-
   if (value.includes("primera")) return "primera";
   if (value.includes("segunda")) return "segunda";
-
   return value;
 }
 
@@ -50,14 +48,12 @@ export default function TablaDivision({
         )
         .eq("temporada", temporada)
         .order("id", { ascending: true }),
-
       supabase
         .from("v_clubes_temporada_public")
         .select("*")
         .eq("temporada", temporada)
         .eq("activo", true)
         .order("nombre", { ascending: true }),
-
       supabase
         .from("sanciones_equipos")
         .select("equipo, puntos_descontados, competicion")
@@ -70,30 +66,23 @@ export default function TablaDivision({
       return;
     }
 
-    if (equiposRes.error) {
-      console.log(equiposRes.error);
-    }
+    if (equiposRes.error) console.log(equiposRes.error);
 
     const divisionKey = normalizarDivision(division);
-
     const partidosFiltrados = (partidosRes.data || []).filter(
       (p: any) => normalizarDivision(p.division) === divisionKey,
     );
-
     const equiposFiltrados = (equiposRes.data || []).filter(
       (e: any) => normalizarDivision(e.division) === divisionKey,
     );
 
     const logosMap: Record<string, string> = {};
-
     equiposFiltrados.forEach((e: any) => {
       if (e.logo_url) logosMap[e.nombre] = e.logo_url;
     });
-
     setLogos(logosMap);
 
     const equipos: Record<string, EquipoTabla> = {};
-
     equiposFiltrados.forEach((e: any) => {
       equipos[e.nombre] = {
         nombre: e.nombre,
@@ -120,7 +109,6 @@ export default function TablaDivision({
       const visitante = partido.visitante;
       const golesLocal = Number(match[1]);
       const golesVisitante = Number(match[2]);
-
       if (isNaN(golesLocal) || isNaN(golesVisitante)) return;
 
       if (!equipos[local]) {
@@ -199,11 +187,8 @@ export default function TablaDivision({
       .sort((a, b) => b.puntos - a.puntos || b.dg - a.dg || b.gf - a.gf);
 
     const proximos: Record<string, string> = {};
-
     partidosFiltrados.forEach((partido: any) => {
-      if (partido.resultado) return;
-      if (!partido.local || !partido.visitante) return;
-
+      if (partido.resultado || !partido.local || !partido.visitante) return;
       if (!proximos[partido.local]) proximos[partido.local] = partido.visitante;
       if (!proximos[partido.visitante]) proximos[partido.visitante] = partido.local;
     });
@@ -239,133 +224,128 @@ export default function TablaDivision({
   }
 
   return (
-    <section className="overflow-hidden rounded-[10px] border border-[#d7e6f0] bg-white text-[#102f55]">
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[920px] border-collapse">
-          <thead>
-            <tr className="h-11 border-b border-[#d7e6f0] bg-[#eef6fb] text-[11px] font-black uppercase tracking-[.04em] text-[#244d76]">
-              <th className="w-[58px] px-3 text-center">#</th>
-              <th className="min-w-[220px] px-3 text-left">Club</th>
-              <th className="w-[58px] px-2 text-center">PJ</th>
-              <th className="w-[52px] px-2 text-center">G</th>
-              <th className="w-[52px] px-2 text-center">E</th>
-              <th className="w-[52px] px-2 text-center">P</th>
-              <th className="w-[68px] px-2 text-center">DG</th>
-              <th className="w-[68px] px-2 text-center">PTS</th>
-              <th className="w-[140px] px-3 text-center">Forma</th>
-              <th className="min-w-[180px] px-3 text-left">Próximo rival</th>
+    <section className="overflow-hidden rounded-[9px] border border-[#d7e6f0] bg-white text-[#102f55]">
+      <table className="w-full table-fixed border-collapse">
+        <thead>
+          <tr className="h-10 border-b border-[#d7e6f0] bg-[#eef6fb] text-[10px] font-black uppercase tracking-[.045em] text-[#244d76] sm:text-[11px]">
+            <th className="w-[42px] px-1 text-center sm:w-[50px]">#</th>
+            <th className="px-2 text-left sm:px-3">Club</th>
+            <th className="w-[48px] px-1 text-center sm:w-[54px]">PJ</th>
+            <th className="hidden w-[48px] px-1 text-center md:table-cell">G</th>
+            <th className="hidden w-[48px] px-1 text-center md:table-cell">E</th>
+            <th className="hidden w-[48px] px-1 text-center md:table-cell">P</th>
+            <th className="hidden w-[58px] px-1 text-center sm:table-cell">DG</th>
+            <th className="w-[54px] px-1 text-center sm:w-[62px]">PTS</th>
+            <th className="hidden w-[118px] px-2 text-center lg:table-cell">Forma</th>
+            <th className="hidden w-[170px] px-3 text-left xl:table-cell">Próximo rival</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {tabla.length === 0 ? (
+            <tr>
+              <td colSpan={10} className="py-14 text-center text-sm font-semibold text-[#7890a8]">
+                No hay clubes cargados para esta temporada y división.
+              </td>
             </tr>
-          </thead>
+          ) : (
+            tabla.map((equipo, index) => {
+              const zona = zonaEquipo(index);
+              const rival = proximosRivales[equipo.nombre];
 
-          <tbody>
-            {tabla.length === 0 ? (
-              <tr>
-                <td colSpan={10} className="py-14 text-center text-sm font-semibold text-[#7890a8]">
-                  No hay clubes cargados para esta temporada y división.
-                </td>
-              </tr>
-            ) : (
-              tabla.map((equipo, index) => {
-                const zona = zonaEquipo(index);
-                const rival = proximosRivales[equipo.nombre];
+              return (
+                <tr
+                  key={equipo.nombre}
+                  title={zona.etiqueta || undefined}
+                  className="group h-[43px] border-b border-[#e4edf3] bg-white text-[11px] font-semibold transition-colors last:border-b-0 hover:bg-[#f5faff] sm:text-[12px]"
+                >
+                  <td className="relative px-1 text-center font-medium text-[#46698d]">
+                    <span className={`absolute bottom-0 left-0 top-0 w-[3px] ${zona.barra}`} />
+                    {index + 1}
+                  </td>
 
-                return (
-                  <tr
-                    key={equipo.nombre}
-                    title={zona.etiqueta || undefined}
-                    className="group h-[46px] border-b border-[#e1ebf2] bg-white text-[12px] font-semibold transition-colors last:border-b-0 hover:bg-[#f5faff]"
-                  >
-                    <td className="relative px-3 text-center font-medium text-[#46698d]">
-                      <span className={`absolute bottom-0 left-0 top-0 w-[3px] ${zona.barra}`} />
-                      {index + 1}
-                    </td>
+                  <td className="min-w-0 px-2 sm:px-3">
+                    <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center sm:h-7 sm:w-7">
+                        {logos[equipo.nombre] ? (
+                          <img
+                            src={logos[equipo.nombre]}
+                            alt={equipo.nombre}
+                            className="h-full w-full object-contain"
+                          />
+                        ) : (
+                          <span className="flex h-6 w-6 items-center justify-center rounded bg-[#edf5fa] text-[8px] font-black text-[#597895] sm:h-7 sm:w-7 sm:text-[9px]">
+                            {equipo.nombre.slice(0, 2).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <span className="truncate font-bold text-[#173e68]">{equipo.nombre}</span>
+                    </div>
+                  </td>
 
-                    <td className="px-3">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center">
-                          {logos[equipo.nombre] ? (
-                            <img
-                              src={logos[equipo.nombre]}
-                              alt={equipo.nombre}
-                              className="h-7 w-7 object-contain"
-                            />
+                  <td className="px-1 text-center text-[#45698e]">{equipo.pj}</td>
+                  <td className="hidden px-1 text-center text-[#45698e] md:table-cell">{equipo.pg}</td>
+                  <td className="hidden px-1 text-center text-[#45698e] md:table-cell">{equipo.pe}</td>
+                  <td className="hidden px-1 text-center text-[#45698e] md:table-cell">{equipo.pp}</td>
+                  <td className="hidden px-1 text-center text-[#45698e] sm:table-cell">
+                    {equipo.dg > 0 ? "+" : ""}{equipo.dg}
+                  </td>
+                  <td className="px-1 text-center text-[12px] font-black text-[#102f55] sm:text-[13px]">
+                    {equipo.puntos}
+                  </td>
+
+                  <td className="hidden px-2 lg:table-cell">
+                    <div className="flex justify-center gap-[5px]">
+                      {equipo.forma.length === 0 ? (
+                        <span className="text-[#9aabb9]">—</span>
+                      ) : (
+                        equipo.forma.map((resultado, i) => (
+                          <span
+                            key={`${equipo.nombre}-${i}`}
+                            className={`h-[10px] w-[10px] rounded-[3px] ${colorForma(resultado)}`}
+                            title={resultado === "W" ? "Victoria" : resultado === "D" ? "Empate" : "Derrota"}
+                          />
+                        ))
+                      )}
+                    </div>
+                  </td>
+
+                  <td className="hidden px-3 xl:table-cell">
+                    {rival ? (
+                      <div className="flex min-w-0 items-center gap-2">
+                        <div className="flex h-5 w-5 shrink-0 items-center justify-center">
+                          {logos[rival] ? (
+                            <img src={logos[rival]} alt={rival} className="h-5 w-5 object-contain" />
                           ) : (
-                            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#edf5fa] text-[9px] font-black text-[#597895]">
-                              {equipo.nombre.slice(0, 2).toUpperCase()}
+                            <span className="flex h-5 w-5 items-center justify-center rounded bg-[#edf5fa] text-[7px] font-black text-[#597895]">
+                              {rival.slice(0, 2).toUpperCase()}
                             </span>
                           )}
                         </div>
-
-                        <span className="truncate font-bold text-[#173e68]">
-                          {equipo.nombre}
-                        </span>
+                        <span className="truncate text-[10px] font-semibold text-[#355d83] 2xl:text-[11px]">{rival}</span>
                       </div>
-                    </td>
+                    ) : (
+                      <span className="text-[#9aabb9]">—</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+      </table>
 
-                    <td className="px-2 text-center text-[#45698e]">{equipo.pj}</td>
-                    <td className="px-2 text-center text-[#45698e]">{equipo.pg}</td>
-                    <td className="px-2 text-center text-[#45698e]">{equipo.pe}</td>
-                    <td className="px-2 text-center text-[#45698e]">{equipo.pp}</td>
-                    <td className="px-2 text-center text-[#45698e]">
-                      {equipo.dg > 0 ? "+" : ""}{equipo.dg}
-                    </td>
-                    <td className="px-2 text-center text-[13px] font-black text-[#102f55]">
-                      {equipo.puntos}
-                    </td>
-
-                    <td className="px-3">
-                      <div className="flex justify-center gap-[6px]">
-                        {equipo.forma.length === 0 ? (
-                          <span className="text-[#9aabb9]">—</span>
-                        ) : (
-                          equipo.forma.map((resultado, i) => (
-                            <span
-                              key={`${equipo.nombre}-${i}`}
-                              className={`h-[11px] w-[11px] rounded-[3px] ${colorForma(resultado)}`}
-                              title={resultado === "W" ? "Victoria" : resultado === "D" ? "Empate" : "Derrota"}
-                            />
-                          ))
-                        )}
-                      </div>
-                    </td>
-
-                    <td className="px-3">
-                      {rival ? (
-                        <div className="flex min-w-0 items-center gap-2.5">
-                          <div className="flex h-6 w-6 shrink-0 items-center justify-center">
-                            {logos[rival] ? (
-                              <img src={logos[rival]} alt={rival} className="h-6 w-6 object-contain" />
-                            ) : (
-                              <span className="flex h-6 w-6 items-center justify-center rounded bg-[#edf5fa] text-[8px] font-black text-[#597895]">
-                                {rival.slice(0, 2).toUpperCase()}
-                              </span>
-                            )}
-                          </div>
-                          <span className="truncate text-[11px] font-semibold text-[#355d83]">{rival}</span>
-                        </div>
-                      ) : (
-                        <span className="text-[#9aabb9]">—</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[#d7e6f0] bg-[#fbfdff] px-4 py-3 text-[10px] font-semibold text-[#67819a]">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#d7e6f0] bg-[#fbfdff] px-3 py-2.5 text-[9px] font-semibold text-[#67819a] sm:px-4 sm:text-[10px]">
         {normalizarDivision(division) === "primera" ? (
           <>
-            <span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#2497e6]" /> Campeón</span>
-            <span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#f1a33b]" /> Promoción</span>
-            <span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#ef4855]" /> Descenso</span>
+            <span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-[#2497e6]" /> Campeón</span>
+            <span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-[#f1a33b]" /> Promoción</span>
+            <span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-[#ef4855]" /> Descenso</span>
           </>
         ) : (
           <>
-            <span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#2fb56d]" /> Ascenso directo</span>
-            <span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#2497e6]" /> Playoffs de ascenso</span>
+            <span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-[#2fb56d]" /> Ascenso directo</span>
+            <span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-[#2497e6]" /> Playoffs de ascenso</span>
           </>
         )}
       </div>
