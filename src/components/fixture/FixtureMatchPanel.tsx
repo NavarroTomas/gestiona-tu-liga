@@ -17,10 +17,7 @@ function readableDate(match?: FixtureMatch | null) {
     weekday: "short",
     day: "numeric",
     month: "short",
-  })
-    .format(date)
-    .replace(".", "")
-    .toUpperCase();
+  }).format(date).replace(".", "").toUpperCase();
 }
 
 function matchHref(match: FixtureMatch) {
@@ -32,34 +29,20 @@ function matchHref(match: FixtureMatch) {
 
 function Shield({ name, logo, large = false }: { name?: string | null; logo: string | null; large?: boolean }) {
   return (
-    <span
-      className={`flex shrink-0 items-center justify-center overflow-hidden bg-[#eef6fb] ${
-        large
-          ? "h-[76px] w-[76px] rounded-[12px] sm:h-[88px] sm:w-[88px]"
-          : "h-11 w-11 rounded-[8px]"
-      }`}
-    >
+    <span className={`flex shrink-0 items-center justify-center overflow-hidden bg-[#eef6fb] ${large ? "h-[60px] w-[60px] rounded-[10px] sm:h-[74px] sm:w-[74px] 2xl:h-[88px] 2xl:w-[88px]" : "h-9 w-9 rounded-[7px] sm:h-11 sm:w-11 sm:rounded-[8px]"}`}>
       {logo ? (
         <img src={logo} alt={name || "Escudo"} className="h-full w-full object-contain p-1" />
       ) : (
-        <span className={`${large ? "text-lg" : "text-[10px]"} font-black text-[#9bb4c6]`}>
-          {shortTeamName(name)}
-        </span>
+        <span className={`${large ? "text-sm sm:text-base" : "text-[9px] sm:text-[10px]"} font-black text-[#9bb4c6]`}>{shortTeamName(name)}</span>
       )}
     </span>
   );
 }
 
 /**
- * Partido seleccionado + partidos del mismo día.
- *
- * IMPORTANTE:
- * El listado inferior incluye TODOS los encuentros de la fecha seleccionada,
- * incluido el que está abierto arriba. Así, si el 26 hubo dos partidos, el
- * panel "Partidos del día" muestra dos filas y no solamente el otro encuentro.
- *
- * El partido seleccionado se resalta dentro de esa lista y el usuario puede
- * cambiar de encuentro sin abandonar la fecha.
+ * Detalle del encuentro + todos los partidos de la misma fecha.
+ * En mobile reduce tamaños y cambia las filas a una composición vertical para
+ * que nunca haya contenido cortado ni scroll horizontal.
  */
 export default function FixtureMatchPanel({
   selectedMatch,
@@ -73,139 +56,87 @@ export default function FixtureMatchPanel({
   getLogo: (name?: string | null) => string | null;
 }) {
   const selectedDate = selectedMatch ? getFixtureMatchDate(selectedMatch) : null;
-
   const dayMatches = selectedDate
     ? matches.filter((match) => sameFixtureDay(getFixtureMatchDate(match), selectedDate))
     : matches.slice(0, 5);
 
   return (
-    <aside className="flex h-full min-h-0 flex-col gap-4">
+    <aside className="flex h-full min-w-0 flex-col gap-3 sm:gap-4">
       <section className="shrink-0 overflow-hidden rounded-[10px] border border-[#cfe4f0] bg-white">
         {selectedMatch ? (
           <>
-            <div className="flex items-start justify-between gap-3 border-b border-[#dfebf2] px-5 py-4">
-              <strong className="text-[13px] font-black uppercase text-[#102f55]">
-                {readableDate(selectedMatch)}
-              </strong>
-              <span className="text-[10px] font-bold uppercase text-[#3f6c94]">
-                {fixtureRoundLabel(selectedMatch)}
-              </span>
+            <div className="flex items-start justify-between gap-2 border-b border-[#dfebf2] px-4 py-3 sm:gap-3 sm:px-5 sm:py-4">
+              <strong className="min-w-0 truncate text-[11px] font-black uppercase text-[#102f55] sm:text-[13px]">{readableDate(selectedMatch)}</strong>
+              <span className="shrink-0 text-[9px] font-bold uppercase text-[#3f6c94] sm:text-[10px]">{fixtureRoundLabel(selectedMatch)}</span>
             </div>
 
-            <div className="px-5 pb-5 pt-5">
-              <div className="grid grid-cols-[1fr_58px_1fr] items-start gap-3">
+            <div className="px-4 pb-4 pt-4 sm:px-5 sm:pb-5 sm:pt-5">
+              <div className="grid grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)] items-start gap-1.5 sm:grid-cols-[1fr_54px_1fr] sm:gap-3">
                 <div className="flex min-w-0 flex-col items-center text-center">
                   <Shield name={selectedMatch.local} logo={getLogo(selectedMatch.local)} large />
-                  <strong className="mt-2.5 max-w-full text-[14px] font-black leading-4 text-[#102f55]">
-                    {selectedMatch.local}
-                  </strong>
+                  <strong className="mt-2 line-clamp-2 max-w-full text-[11px] font-black leading-3.5 text-[#102f55] sm:text-[13px] sm:leading-4">{selectedMatch.local}</strong>
                 </div>
 
-                <div className="flex min-h-[88px] items-center justify-center text-[20px] font-black text-[#102f55]">
-                  {selectedMatch.resultado || "VS"}
-                </div>
+                <div className="flex min-h-[60px] items-center justify-center text-[17px] font-black text-[#102f55] sm:min-h-[74px] sm:text-[20px]">{selectedMatch.resultado || "VS"}</div>
 
                 <div className="flex min-w-0 flex-col items-center text-center">
                   <Shield name={selectedMatch.visitante} logo={getLogo(selectedMatch.visitante)} large />
-                  <strong className="mt-2.5 max-w-full text-[14px] font-black leading-4 text-[#102f55]">
-                    {selectedMatch.visitante}
-                  </strong>
+                  <strong className="mt-2 line-clamp-2 max-w-full text-[11px] font-black leading-3.5 text-[#102f55] sm:text-[13px] sm:leading-4">{selectedMatch.visitante}</strong>
                 </div>
               </div>
 
-              <div className="mt-5 grid grid-cols-2 border-y border-[#e3edf3] py-3.5 text-center">
-                <div className="border-r border-[#e3edf3]">
-                  <span className="block text-[9px] font-bold uppercase tracking-[.12em] text-[#8aa0b2]">Hora</span>
-                  <strong className="mt-1 block text-[13px] text-[#244b72]">{selectedMatch.hora || "A confirmar"}</strong>
+              <div className="mt-4 grid grid-cols-2 border-y border-[#e3edf3] py-3 text-center sm:mt-5 sm:py-3.5">
+                <div className="min-w-0 border-r border-[#e3edf3] px-1">
+                  <span className="block text-[8px] font-bold uppercase tracking-[.1em] text-[#8aa0b2] sm:text-[9px]">Hora</span>
+                  <strong className="mt-1 block truncate text-[11px] text-[#244b72] sm:text-[13px]">{selectedMatch.hora || "A confirmar"}</strong>
                 </div>
-                <div>
-                  <span className="block text-[9px] font-bold uppercase tracking-[.12em] text-[#8aa0b2]">Competición</span>
-                  <strong className="mt-1 block truncate px-2 text-[13px] capitalize text-[#244b72]">
-                    {String(selectedMatch.competicion || "APA").replaceAll("_", " ")}
-                  </strong>
+                <div className="min-w-0 px-1">
+                  <span className="block text-[8px] font-bold uppercase tracking-[.1em] text-[#8aa0b2] sm:text-[9px]">Competición</span>
+                  <strong className="mt-1 block truncate text-[11px] capitalize text-[#244b72] sm:text-[13px]">{String(selectedMatch.competicion || "APA").replaceAll("_", " ")}</strong>
                 </div>
               </div>
 
               {matchHref(selectedMatch) ? (
-                <Link
-                  href={matchHref(selectedMatch)!}
-                  className="mt-4 flex h-12 items-center justify-center rounded-full bg-[#2a9eea] px-4 text-[12px] font-black text-white transition hover:bg-[#1889d1]"
-                >
-                  Ver detalles del partido →
-                </Link>
+                <Link href={matchHref(selectedMatch)!} className="mt-3 flex h-11 items-center justify-center rounded-full bg-[#2a9eea] px-3 text-center text-[10px] font-black text-white transition hover:bg-[#1889d1] sm:mt-4 sm:h-12 sm:px-4 sm:text-[12px]">Ver detalles del partido →</Link>
               ) : null}
             </div>
           </>
         ) : (
-          <div className="px-5 py-12 text-center">
-            <strong className="text-[13px] font-black text-[#102f55]">Sin partido seleccionado</strong>
-            <p className="mx-auto mt-2 max-w-[250px] text-[11px] leading-5 text-[#7890a7]">
-              Elegí un encuentro del calendario o de la lista para ver sus detalles.
-            </p>
+          <div className="px-5 py-9 text-center sm:py-12">
+            <strong className="text-[12px] font-black text-[#102f55] sm:text-[13px]">Sin partido seleccionado</strong>
+            <p className="mx-auto mt-2 max-w-[250px] text-[11px] leading-5 text-[#7890a7]">Elegí un encuentro para ver sus detalles.</p>
           </div>
         )}
       </section>
 
-      <section className="flex min-h-[390px] flex-1 flex-col overflow-hidden rounded-[10px] border border-[#cfe4f0] bg-white">
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#dfebf2] px-5 py-4.5">
-          <strong className="text-[13px] font-black uppercase tracking-[.02em] text-[#102f55]">
-            {selectedDate ? "Partidos del día" : "Próximos partidos"}
-          </strong>
-          {selectedDate && selectedMatch ? (
-            <span className="text-[10px] font-black uppercase text-[#4d79a0]">
-              {readableDate(selectedMatch)}
-            </span>
-          ) : null}
+      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[10px] border border-[#cfe4f0] bg-white xl:min-h-[390px]">
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-[#dfebf2] px-4 py-3 sm:px-5 sm:py-4">
+          <strong className="text-[11px] font-black uppercase tracking-[.02em] text-[#102f55] sm:text-[13px]">{selectedDate ? "Partidos del día" : "Próximos partidos"}</strong>
+          {selectedDate && selectedMatch ? <span className="shrink-0 text-[9px] font-black uppercase text-[#4d79a0] sm:text-[10px]">{readableDate(selectedMatch)}</span> : null}
         </div>
 
         {dayMatches.length ? (
-          <div
-            className="grid min-h-0 flex-1 divide-y divide-[#e5eef4] px-5"
-            style={{ gridTemplateRows: `repeat(${dayMatches.length}, minmax(82px, 1fr))` }}
-          >
+          <div className="min-h-0 flex-1 divide-y divide-[#e5eef4] px-3 sm:px-5">
             {dayMatches.map((match, index) => {
               const played = Boolean(match.resultado);
               const isSelected = match === selectedMatch;
-
               return (
                 <button
                   key={String(match.partido_id || match.id || index)}
                   type="button"
                   onClick={() => onSelectMatch(match)}
-                  className={`grid h-full w-full grid-cols-[86px_minmax(0,1fr)] items-center gap-4 px-2 py-4 text-left transition ${
-                    isSelected
-                      ? "bg-[#eef8fd] shadow-[inset_3px_0_0_#56afe2]"
-                      : "hover:bg-[#f8fcff]"
-                  }`}
+                  className={`grid w-full grid-cols-1 gap-2 px-1 py-3 text-left transition sm:grid-cols-[72px_minmax(0,1fr)] sm:items-center sm:gap-3 sm:px-2 sm:py-4 xl:min-h-[82px] ${isSelected ? "bg-[#eef8fd] shadow-[inset_3px_0_0_#56afe2]" : "hover:bg-[#f8fcff]"}`}
                 >
-                  <div>
-                    <strong className="block text-[11px] font-black uppercase leading-4 text-[#244b72]">
-                      {readableDate(match).split(" ").slice(0, 2).join(" ")}
-                    </strong>
-                    <span className="mt-1 block text-[11px] font-bold text-[#4d79a0]">
-                      {match.hora || "--:--"}
-                    </span>
+                  <div className="flex items-center justify-between gap-2 sm:block">
+                    <strong className="text-[9px] font-black uppercase leading-4 text-[#244b72] sm:block sm:text-[11px]">{readableDate(match).split(" ").slice(0, 2).join(" ")}</strong>
+                    <span className="text-[9px] font-bold text-[#4d79a0] sm:mt-1 sm:block sm:text-[11px]">{match.hora || "--:--"}</span>
                   </div>
 
-                  <div className="grid min-w-0 grid-cols-[44px_minmax(38px,1fr)_48px_minmax(38px,1fr)_44px] items-center gap-2.5">
+                  <div className="grid min-w-0 grid-cols-[36px_minmax(30px,1fr)_44px_minmax(30px,1fr)_36px] items-center gap-1.5 sm:grid-cols-[44px_minmax(38px,1fr)_48px_minmax(38px,1fr)_44px] sm:gap-2.5">
                     <Shield name={match.local} logo={getLogo(match.local)} />
-                    <span className="truncate text-center text-[11px] font-black text-[#315f89]">
-                      {shortTeamName(match.local)}
-                    </span>
-
-                    <span
-                      className={`flex min-h-7 items-center justify-center rounded-[7px] px-1 text-center font-black ${
-                        played
-                          ? "bg-[#e3f3fd] text-[12px] text-[#102f55]"
-                          : "text-[10px] text-[#98acbb]"
-                      }`}
-                    >
-                      {match.resultado || "vs"}
-                    </span>
-
-                    <span className="truncate text-center text-[11px] font-black text-[#315f89]">
-                      {shortTeamName(match.visitante)}
-                    </span>
+                    <span className="truncate text-center text-[10px] font-black text-[#315f89] sm:text-[11px]">{shortTeamName(match.local)}</span>
+                    <span className={`flex min-h-7 items-center justify-center rounded-[7px] px-1 text-center font-black ${played ? "bg-[#e3f3fd] text-[11px] text-[#102f55] sm:text-[12px]" : "text-[9px] text-[#98acbb] sm:text-[10px]"}`}>{match.resultado || "vs"}</span>
+                    <span className="truncate text-center text-[10px] font-black text-[#315f89] sm:text-[11px]">{shortTeamName(match.visitante)}</span>
                     <Shield name={match.visitante} logo={getLogo(match.visitante)} />
                   </div>
                 </button>
@@ -214,11 +145,7 @@ export default function FixtureMatchPanel({
           </div>
         ) : (
           <div className="flex flex-1 items-center justify-center px-5 py-8 text-center">
-            <p className="max-w-[280px] text-[12px] font-semibold leading-5 text-[#7890a7]">
-              {selectedDate
-                ? "No hay partidos cargados para este mismo día."
-                : "No hay más partidos para mostrar."}
-            </p>
+            <p className="max-w-[280px] text-[11px] font-semibold leading-5 text-[#7890a7] sm:text-[12px]">{selectedDate ? "No hay partidos cargados para este mismo día." : "No hay más partidos para mostrar."}</p>
           </div>
         )}
       </section>
