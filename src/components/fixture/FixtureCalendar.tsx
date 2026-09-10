@@ -8,12 +8,21 @@ import {
 } from "@/lib/fixture";
 
 const WEEK_DAYS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+const selectStyle = {
+  backgroundColor: "#f3fafe",
+  color: "#102f55",
+  borderColor: "#c9e3f1",
+} as const;
 
 function matchKey(match: FixtureMatch, index: number) {
   return String(match.partido_id || match.id || `${match.local}-${match.visitante}-${index}`);
 }
 
-/** Calendario mensual. Solo se ocupa de mostrar y seleccionar partidos. */
+/**
+ * Calendario mensual del Fixture.
+ * El filtro de equipo queda arriba del mes para replicar la estructura de la
+ * referencia y mantener el lateral reservado a competición/temporada.
+ */
 export default function FixtureCalendar({
   month,
   onPreviousMonth,
@@ -22,6 +31,9 @@ export default function FixtureCalendar({
   selectedMatch,
   onSelectMatch,
   getLogo,
+  team,
+  onTeamChange,
+  teams,
 }: {
   month: Date;
   onPreviousMonth: () => void;
@@ -30,6 +42,9 @@ export default function FixtureCalendar({
   selectedMatch: FixtureMatch | null;
   onSelectMatch: (match: FixtureMatch) => void;
   getLogo: (name?: string | null) => string | null;
+  team: string;
+  onTeamChange: (team: string) => void;
+  teams: string[];
 }) {
   const days = buildFixtureCalendar(month);
   const matchesByDay = new Map<string, FixtureMatch[]>();
@@ -46,26 +61,48 @@ export default function FixtureCalendar({
 
   return (
     <section className="min-w-0">
-      <div className="mb-3 grid grid-cols-[44px_1fr_44px] items-center overflow-hidden rounded-[9px] border border-[#cfe4f0] bg-white">
-        <button
-          type="button"
-          onClick={onPreviousMonth}
-          className="h-12 border-r border-[#dceaf2] text-xl font-black text-[#1979c7] transition hover:bg-[#eef8fd]"
-          aria-label="Mes anterior"
-        >
-          ‹
-        </button>
-        <strong className="text-center text-[13px] font-black uppercase tracking-[.03em] text-[#102f55]">
-          {fixtureMonthLabel(month)}
-        </strong>
-        <button
-          type="button"
-          onClick={onNextMonth}
-          className="h-12 border-l border-[#dceaf2] text-xl font-black text-[#1979c7] transition hover:bg-[#eef8fd]"
-          aria-label="Mes siguiente"
-        >
-          ›
-        </button>
+      <div className="mb-3 grid gap-3 sm:grid-cols-[minmax(220px,300px)_1fr]">
+        <label className="grid h-12 grid-cols-[72px_1fr] items-center rounded-[9px] border border-[#cfe4f0] bg-white px-3">
+          <span>
+            <small className="block text-[8px] font-black uppercase tracking-[.12em] text-[#7b96ab]">Equipo</small>
+            <strong className="mt-0.5 block text-[10px] font-black text-[#315f89]">Filtrar</strong>
+          </span>
+          <select
+            value={team}
+            onChange={(event) => onTeamChange(event.target.value)}
+            style={{ ...selectStyle, borderColor: "transparent", backgroundColor: "white" }}
+            className="h-9 min-w-0 w-full border-0 px-2 text-[11px] font-black outline-none"
+          >
+            <option value="all" style={selectStyle}>Todos los equipos</option>
+            {teams.map((item) => (
+              <option key={item} value={item} style={selectStyle}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="grid grid-cols-[44px_1fr_44px] items-center overflow-hidden rounded-[9px] border border-[#cfe4f0] bg-white">
+          <button
+            type="button"
+            onClick={onPreviousMonth}
+            className="h-12 border-r border-[#dceaf2] text-xl font-black text-[#1979c7] transition hover:bg-[#eef8fd]"
+            aria-label="Mes anterior"
+          >
+            ‹
+          </button>
+          <strong className="text-center text-[13px] font-black uppercase tracking-[.03em] text-[#102f55]">
+            {fixtureMonthLabel(month)}
+          </strong>
+          <button
+            type="button"
+            onClick={onNextMonth}
+            className="h-12 border-l border-[#dceaf2] text-xl font-black text-[#1979c7] transition hover:bg-[#eef8fd]"
+            aria-label="Mes siguiente"
+          >
+            ›
+          </button>
+        </div>
       </div>
 
       <div className="overflow-x-auto rounded-[9px] border border-[#cfe4f0] bg-white">
