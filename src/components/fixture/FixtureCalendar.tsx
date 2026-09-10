@@ -25,8 +25,11 @@ function matchKey(match: FixtureMatch, index: number) {
  * En APA es normal que varios partidos se jueguen el mismo día y a la misma
  * hora. Para no achicar los escudos/textos hasta volverlos ilegibles, cada día
  * muestra como máximo 2 partidos grandes. Si hay más, aparece `+N partidos`.
- * Los encuentros restantes siguen disponibles en el panel de la derecha y al
- * filtrar por un equipo el calendario queda mucho más despejado.
+ *
+ * La grilla ya NO fuerza seis semanas. Solo muestra las semanas necesarias del
+ * mes seleccionado y las celdas pertenecientes al mes anterior/siguiente se
+ * dejan vacías. De esta manera ganamos espacio real para hacer más grandes los
+ * partidos y los escudos sin convertir el calendario en una lista interminable.
  */
 export default function FixtureCalendar({
   month,
@@ -63,6 +66,7 @@ export default function FixtureCalendar({
 
   const selectedDate = selectedMatch ? getFixtureMatchDate(selectedMatch) : null;
   const datedCount = Array.from(matchesByDay.values()).reduce((total, list) => total + list.length, 0);
+  const lastRowStart = Math.max(0, days.length - 7);
 
   return (
     <section className="min-w-0">
@@ -125,93 +129,99 @@ export default function FixtureCalendar({
 
           <div className="grid grid-cols-7">
             {days.map((day, index) => {
-              const dayMatches = matchesByDay.get(day.key) || [];
+              const dayMatches = day.inCurrentMonth ? matchesByDay.get(day.key) || [] : [];
               const visibleDayMatches = dayMatches.slice(0, 2);
               const hiddenCount = Math.max(0, dayMatches.length - visibleDayMatches.length);
-              const isSelectedDay = Boolean(selectedDate && dateKey(selectedDate) === day.key);
+              const isSelectedDay = Boolean(
+                day.inCurrentMonth && selectedDate && dateKey(selectedDate) === day.key,
+              );
 
               return (
                 <div
                   key={day.key}
-                  className={`relative min-h-[138px] border-b border-r border-[#e2edf4] p-2 transition ${(index + 1) % 7 === 0 ? "border-r-0" : ""} ${index >= 35 ? "border-b-0" : ""} ${
-                    isSelectedDay ? "bg-[#e9f6fd]" : day.inCurrentMonth ? "bg-white" : "bg-[#f8fbfd]"
+                  className={`relative min-h-[154px] border-b border-r border-[#e2edf4] p-2.5 transition ${(index + 1) % 7 === 0 ? "border-r-0" : ""} ${index >= lastRowStart ? "border-b-0" : ""} ${
+                    !day.inCurrentMonth
+                      ? "bg-[#f8fbfd]"
+                      : isSelectedDay
+                        ? "bg-[#e9f6fd]"
+                        : "bg-white"
                   }`}
                 >
-                  <span
-                    className={`text-[11px] font-bold ${
-                      day.inCurrentMonth ? "text-[#173b62]" : "text-[#afc4d2]"
-                    }`}
-                  >
-                    {day.date.getDate()}
-                  </span>
+                  {day.inCurrentMonth ? (
+                    <>
+                      <span className="text-[12px] font-black text-[#173b62]">
+                        {day.date.getDate()}
+                      </span>
 
-                  <div className="mt-1.5 space-y-1.5">
-                    {visibleDayMatches.map((match, matchIndex) => {
-                      const logoLocal = getLogo(match.local);
-                      const logoVisitante = getLogo(match.visitante);
-                      const selected = selectedMatch === match;
+                      <div className="mt-2 space-y-2">
+                        {visibleDayMatches.map((match, matchIndex) => {
+                          const logoLocal = getLogo(match.local);
+                          const logoVisitante = getLogo(match.visitante);
+                          const selected = selectedMatch === match;
 
-                      return (
+                          return (
+                            <button
+                              key={matchKey(match, matchIndex)}
+                              type="button"
+                              onClick={() => onSelectMatch(match)}
+                              className={`w-full rounded-[8px] border px-1.5 py-2 text-left transition ${
+                                selected
+                                  ? "border-[#63b8eb] bg-[#dff2fd] shadow-[0_2px_8px_rgba(41,136,196,.10)]"
+                                  : "border-[#d7eaf5] bg-[#f1f9fe] hover:border-[#9fd4f1] hover:bg-[#e8f6fd]"
+                              }`}
+                            >
+                              <div className="flex min-w-0 items-center justify-center gap-1">
+                                <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-[5px] bg-[#e4f0f7]">
+                                  {logoLocal ? (
+                                    <img src={logoLocal} alt="" className="h-full w-full object-contain p-[1px]" />
+                                  ) : (
+                                    <span className="text-[7px] font-black text-[#8ba8bc]">{shortTeamName(match.local)}</span>
+                                  )}
+                                </span>
+
+                                <strong className="min-w-0 truncate text-[9px] font-black text-[#102f55]">
+                                  {shortTeamName(match.local)}
+                                </strong>
+
+                                <span className="shrink-0 text-[8px] font-bold text-[#7591a8]">
+                                  {match.resultado || "vs"}
+                                </span>
+
+                                <strong className="min-w-0 truncate text-[9px] font-black text-[#102f55]">
+                                  {shortTeamName(match.visitante)}
+                                </strong>
+
+                                <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-[5px] bg-[#e4f0f7]">
+                                  {logoVisitante ? (
+                                    <img src={logoVisitante} alt="" className="h-full w-full object-contain p-[1px]" />
+                                  ) : (
+                                    <span className="text-[7px] font-black text-[#8ba8bc]">{shortTeamName(match.visitante)}</span>
+                                  )}
+                                </span>
+                              </div>
+
+                              <div className="mt-1.5 text-center text-[9px] font-black leading-none text-[#287bb8]">
+                                {match.resultado ? "Finalizado" : match.hora || "A confirmar"}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {hiddenCount > 0 ? (
                         <button
-                          key={matchKey(match, matchIndex)}
                           type="button"
-                          onClick={() => onSelectMatch(match)}
-                          className={`w-full rounded-[7px] border px-1.5 py-1.5 text-left transition ${
-                            selected
-                              ? "border-[#63b8eb] bg-[#dff2fd] shadow-[0_2px_8px_rgba(41,136,196,.10)]"
-                              : "border-[#d7eaf5] bg-[#f1f9fe] hover:border-[#9fd4f1] hover:bg-[#e8f6fd]"
-                          }`}
+                          onClick={() => onSelectMatch(dayMatches[visibleDayMatches.length])}
+                          title={dayMatches
+                            .slice(visibleDayMatches.length)
+                            .map((match) => `${match.local} vs ${match.visitante}`)
+                            .join(" · ")}
+                          className="absolute bottom-2 left-2.5 right-2.5 rounded-[6px] border border-[#d4e9f5] bg-white/95 px-2 py-1.5 text-center text-[9px] font-black text-[#3a78a6] transition hover:border-[#a9d5ee] hover:bg-[#edf8fd]"
                         >
-                          <div className="flex min-w-0 items-center justify-center gap-1.5">
-                            <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center overflow-hidden rounded-[4px] bg-[#e4f0f7]">
-                              {logoLocal ? (
-                                <img src={logoLocal} alt="" className="h-full w-full object-contain p-[1px]" />
-                              ) : (
-                                <span className="text-[7px] font-black text-[#8ba8bc]">{shortTeamName(match.local)}</span>
-                              )}
-                            </span>
-
-                            <strong className="min-w-0 truncate text-[9px] font-black text-[#102f55]">
-                              {shortTeamName(match.local)}
-                            </strong>
-
-                            <span className="shrink-0 text-[8px] font-bold text-[#7591a8]">
-                              {match.resultado || "vs"}
-                            </span>
-
-                            <strong className="min-w-0 truncate text-[9px] font-black text-[#102f55]">
-                              {shortTeamName(match.visitante)}
-                            </strong>
-
-                            <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center overflow-hidden rounded-[4px] bg-[#e4f0f7]">
-                              {logoVisitante ? (
-                                <img src={logoVisitante} alt="" className="h-full w-full object-contain p-[1px]" />
-                              ) : (
-                                <span className="text-[7px] font-black text-[#8ba8bc]">{shortTeamName(match.visitante)}</span>
-                              )}
-                            </span>
-                          </div>
-
-                          <div className="mt-1 text-center text-[9px] font-black leading-none text-[#287bb8]">
-                            {match.resultado ? "Finalizado" : match.hora || "A confirmar"}
-                          </div>
+                          +{hiddenCount} {hiddenCount === 1 ? "partido" : "partidos"}
                         </button>
-                      );
-                    })}
-                  </div>
-
-                  {hiddenCount > 0 ? (
-                    <button
-                      type="button"
-                      onClick={() => onSelectMatch(dayMatches[visibleDayMatches.length])}
-                      title={dayMatches
-                        .slice(visibleDayMatches.length)
-                        .map((match) => `${match.local} vs ${match.visitante}`)
-                        .join(" · ")}
-                      className="absolute bottom-1.5 left-2 right-2 rounded-[5px] border border-[#d4e9f5] bg-white/90 px-2 py-1 text-center text-[8px] font-black text-[#3a78a6] transition hover:border-[#a9d5ee] hover:bg-[#edf8fd]"
-                    >
-                      +{hiddenCount} {hiddenCount === 1 ? "partido" : "partidos"}
-                    </button>
+                      ) : null}
+                    </>
                   ) : null}
                 </div>
               );
