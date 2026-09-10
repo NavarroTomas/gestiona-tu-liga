@@ -11,8 +11,10 @@ const selectStyle = {
 } as const;
 
 /**
- * Lateral de filtros del Fixture.
- * Las competencias y temporadas vienen de `src/config/fixture.ts`.
+ * Lateral de navegación del Fixture.
+ * Las competencias, temporadas, divisiones y grupos se editan en
+ * `src/config/fixture.ts`. El filtro de equipo queda sobre el calendario,
+ * como en la referencia visual.
  */
 export default function FixtureSidebar({
   competitionId,
@@ -23,9 +25,6 @@ export default function FixtureSidebar({
   onDivisionChange,
   group,
   onGroupChange,
-  team,
-  onTeamChange,
-  teams,
 }: {
   competitionId: FixtureCompetitionId;
   onCompetitionChange: (id: FixtureCompetitionId) => void;
@@ -35,9 +34,6 @@ export default function FixtureSidebar({
   onDivisionChange: (division: string) => void;
   group: string;
   onGroupChange: (group: string) => void;
-  team: string;
-  onTeamChange: (team: string) => void;
-  teams: string[];
 }) {
   const competition = getFixtureCompetition(competitionId);
 
@@ -126,25 +122,6 @@ export default function FixtureSidebar({
               className="h-11 w-full rounded-[8px] border px-3 text-[12px] font-bold outline-none focus:border-[#56afe2]"
             >
               {FIXTURE_CONFIG.seasons.map((item) => (
-                <option key={item} value={item} style={selectStyle}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="mb-2 block text-[10px] font-black uppercase tracking-[.15em] text-[#4e7ba4]">
-              Equipo
-            </span>
-            <select
-              value={team}
-              onChange={(event) => onTeamChange(event.target.value)}
-              style={selectStyle}
-              className="h-11 w-full rounded-[8px] border px-3 text-[12px] font-bold outline-none focus:border-[#56afe2]"
-            >
-              <option value="all" style={selectStyle}>Todos los equipos</option>
-              {teams.map((item) => (
                 <option key={item} value={item} style={selectStyle}>
                   {item}
                 </option>
