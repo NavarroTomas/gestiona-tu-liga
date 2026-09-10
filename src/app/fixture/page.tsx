@@ -9,6 +9,7 @@ import FixtureSidebar from "@/components/fixture/FixtureSidebar";
 import {
   FIXTURE_CONFIG,
   getFixtureCompetition,
+  getFixtureSeasonYear,
   type FixtureCompetitionId,
 } from "@/config/fixture";
 import { useFixture } from "@/hooks/useFixture";
@@ -70,23 +71,36 @@ function FixtureContent() {
   }, [availableTeams, team]);
 
   /**
-   * IMPORTANTE:
-   * `firstMatchDate` es un objeto Date y puede ser recreado aunque represente
-   * exactamente la misma fecha. Por eso el effect depende de un timestamp
-   * primitivo y no del objeto Date. Así evitamos un setState -> render ->
-   * Date nueva -> setState infinito (Maximum update depth exceeded).
+   * `firstMatchDate` puede recrearse como objeto Date aunque represente el
+   * mismo mes, por eso usamos un timestamp primitivo como dependencia.
+   *
+   * Si la competencia elegida no tiene todavía ningún partido con fecha
+   * calendario (por ejemplo Copa de Campeones antes de cargar sus cruces),
+   * NO conservamos un mes viejo de otra competencia. En ese caso volvemos al
+   * año configurado para la temporada, evitando que quede visible "2001" por
+   * una selección anterior.
    */
   const firstMatchMonthTime = firstMatchDate
     ? new Date(firstMatchDate.getFullYear(), firstMatchDate.getMonth(), 1).getTime()
     : null;
 
   useEffect(() => {
-    if (firstMatchMonthTime === null) return;
+    if (firstMatchMonthTime !== null) {
+      setMonth((current) =>
+        current.getTime() === firstMatchMonthTime ? current : new Date(firstMatchMonthTime),
+      );
+      return;
+    }
+
+    const seasonYear = getFixtureSeasonYear(season);
+    const now = new Date();
+    const fallbackMonthIndex = now.getFullYear() === seasonYear ? now.getMonth() : 0;
+    const fallbackTime = new Date(seasonYear, fallbackMonthIndex, 1).getTime();
 
     setMonth((current) =>
-      current.getTime() === firstMatchMonthTime ? current : new Date(firstMatchMonthTime),
+      current.getTime() === fallbackTime ? current : new Date(fallbackTime),
     );
-  }, [firstMatchMonthTime]);
+  }, [competitionId, division, firstMatchMonthTime, group, season, team]);
 
   useEffect(() => {
     if (!matches.length) {
