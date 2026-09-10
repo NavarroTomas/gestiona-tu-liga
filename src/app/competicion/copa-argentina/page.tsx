@@ -1,332 +1,63 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { useState } from "react";
+import KnockoutBracket from "@/components/cups/knockout/KnockoutBracket";
+import KnockoutChampion from "@/components/cups/knockout/KnockoutChampion";
+import KnockoutCupControls from "@/components/cups/knockout/KnockoutCupControls";
+import KnockoutCupHero from "@/components/cups/knockout/KnockoutCupHero";
+import KnockoutCupTabs from "@/components/cups/knockout/KnockoutCupTabs";
+import LeagueFooter from "@/components/league/LeagueFooter";
+import { COPA_ARGENTINA_CONFIG } from "@/config/copaArgentina";
+import { useCopaArgentina } from "@/hooks/useCopaArgentina";
 
-type PartidoCopa = {
-  id: string;
-  partido_id?: string | null;
-  local: string;
-  visitante: string;
-  resultado?: string | null;
-  fecha?: string | number | null;
-  temporada: string;
-  division: string;
-  dia?: string | null;
-  hora?: string | null;
-  competicion?: string | null;
-  grupo?: string | null;
-  fase?: string | null;
-  ronda?: string | null;
-};
-
-type Club = {
-  nombre: string;
-  logo_url?: string | null;
-};
-
-const TEMPORADA_UNICA = "Temporada 4";
-
-function normalizar(texto?: string | null) {
-  return String(texto || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim();
-}
-
-function obtenerGanador(p?: PartidoCopa): string | null {
-  if (!p || !p.resultado || !p.resultado.includes("-")) return null;
-  const [gl, gv] = p.resultado.split("-").map((g) => Number(g.trim()));
-  if (Number.isNaN(gl) || Number.isNaN(gv)) return null;
-  if (gl > gv) return p.local;
-  if (gv > gl) return p.visitante;
-  return null;
-}
-
+/**
+ * PÁGINA COPA ARGENTINA
+ * ---------------------
+ * Esta página solo ensambla módulos. Para cambios comunes:
+ *
+ * - temporadas, textos, fondo, nombres de fases -> `src/config/copaArgentina.ts`
+ * - consultas y tablas de Supabase             -> `src/hooks/useCopaArgentina.ts`
+ * - lógica para ubicar partidos en el bracket  -> `src/lib/cups/knockout.ts`
+ * - diseño visual del cuadro                    -> `src/components/cups/knockout/KnockoutBracket.tsx`
+ *
+ * Así podés modificar la competición sin tener que volver a tocar un page.tsx
+ * enorme como el que había antes.
+ */
 export default function CopaArgentinaPage() {
-  const [activa, setActiva] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [partidos, setPartidos] = useState<PartidoCopa[]>([]);
-  const [clubesMap, setClubesMap] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    async function cargarCopa() {
-      setLoading(true);
-
-      const [configRes, partidosRes, clubesRes] = await Promise.all([
-        supabase
-          .from("configuracion_copas")
-          .select("copa_argentina_activa")
-          .eq("temporada", TEMPORADA_UNICA)
-          .maybeSingle(),
-
-        supabase
-          .from("partidos")
-          .select("*")
-          .eq("temporada", TEMPORADA_UNICA)
-          .eq("competicion", "copa_argentina")
-          .order("id", { ascending: true }),
-
-        supabase.from("clubes_info").select("nombre, logo_url"),
-      ]);
-
-      const estaActiva = configRes.data?.copa_argentina_activa ?? false;
-      setActiva(estaActiva);
-
-      if (estaActiva) {
-        setPartidos((partidosRes.data || []) as PartidoCopa[]);
-
-        const mapaEscudos: Record<string, string> = {};
-        (clubesRes.data || []).forEach((c: Club) => {
-          if (c.logo_url) {
-            mapaEscudos[normalizar(c.nombre)] = c.logo_url;
-          }
-        });
-        setClubesMap(mapaEscudos);
-      } else {
-        setPartidos([]);
-      }
-
-      setLoading(false);
-    }
-
-    cargarCopa();
-  }, []);
-
-  // Filtrado de fases
-  const cuartos = partidos.filter((p) => {
-    const f = (p.fase || p.ronda || "").toLowerCase();
-    return f.includes("cuartos");
-  });
-
-  const semifinales = partidos.filter((p) => {
-    const f = (p.fase || p.ronda || "").toLowerCase();
-    return f.includes("semifinal") || f.includes("semi");
-  });
-
-  const final = partidos.filter((p) => {
-    const f = (p.fase || p.ronda || "").toLowerCase();
-    return f.includes("final") && !f.includes("cuartos") && !f.includes("semi") && !f.includes("tercer");
-  });
-
-  const tercerPuesto = partidos.find((p) => {
-    const f = (p.fase || p.ronda || "").toLowerCase();
-    return f.includes("tercer") || f.includes("3") || f.includes("3er");
-  });
-
-  const cuartosIzquierda = cuartos.slice(0, 2);
-  const cuartosDerecha = cuartos.slice(2, 4);
-
-  const semiIzquierda = semifinales[0];
-  const semiDerecha = semifinales[1];
-  const partidoFinal = final[0];
-
-  const campeon = obtenerGanador(partidoFinal);
-  const logoCampeon = campeon ? clubesMap[normalizar(campeon)] : null;
-
-  const renderPartidoBracket = (p?: PartidoCopa, esFinal = false) => {
-    if (!p) {
-      return (
-        <div
-          className={`flex items-center justify-center rounded-2xl border border-dashed border-yellow-500/20 bg-black/30 p-4 text-center ${
-            esFinal ? "h-32" : "h-24"
-          }`}
-        >
-          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600">
-            Por definir
-          </span>
-        </div>
-      );
-    }
-
-    const logoLocal = clubesMap[normalizar(p.local)];
-    const logoVisitante = clubesMap[normalizar(p.visitante)];
-
-    return (
-      <div
-        className={`relative overflow-hidden rounded-2xl border transition-all duration-300 shadow-xl ${
-          esFinal
-            ? "border-yellow-400 bg-gradient-to-b from-[#2a2007] via-[#120d02] to-[#020714] p-4 ring-2 ring-yellow-400/30"
-            : "border-yellow-500/30 bg-gradient-to-b from-[#1c1606] via-[#0f0b02] to-[#020714] p-3 hover:border-yellow-400/60"
-        }`}
-      >
-        {p.hora && (
-          <div className="mb-2 text-center">
-            <span className="rounded-full bg-yellow-400/10 border border-yellow-400/20 px-2 py-0.5 text-[9px] font-black uppercase text-yellow-300">
-              {p.dia || ""} {p.hora}
-            </span>
-          </div>
-        )}
-
-        {/* Local */}
-        <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/50 p-1">
-              {logoLocal ? (
-                <img src={logoLocal} alt={p.local} className="h-full w-full object-contain" />
-              ) : (
-                <span className="text-[9px] font-black text-yellow-400">
-                  {p.local.substring(0, 2).toUpperCase()}
-                </span>
-              )}
-            </div>
-            <span className="text-[11px] font-black uppercase leading-tight text-white break-words">
-              {p.local}
-            </span>
-          </div>
-          <span className="text-xs font-black text-yellow-300 shrink-0 ml-1">
-            {p.resultado ? p.resultado.split("-")[0] : "-"}
-          </span>
-        </div>
-
-        {/* Visitante */}
-        <div className="flex items-center justify-between gap-2 pt-2">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/50 p-1">
-              {logoVisitante ? (
-                <img src={logoVisitante} alt={p.visitante} className="h-full w-full object-contain" />
-              ) : (
-                <span className="text-[9px] font-black text-yellow-400">
-                  {p.visitante.substring(0, 2).toUpperCase()}
-                </span>
-              )}
-            </div>
-            <span className="text-[11px] font-black uppercase leading-tight text-white break-words">
-              {p.visitante}
-            </span>
-          </div>
-          <span className="text-xs font-black text-yellow-300 shrink-0 ml-1">
-            {p.resultado ? p.resultado.split("-")[1] : "-"}
-          </span>
-        </div>
-      </div>
-    );
-  };
+  const [season, setSeason] = useState<string>(COPA_ARGENTINA_CONFIG.defaultSeason);
+  const { active, loading, bracket, champion, getLogo } = useCopaArgentina(season);
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] px-4 py-8 text-white md:px-8">
-      <section className="mx-auto max-w-[1600px] space-y-8">
-        
-        {/* Banner Fijado en Temporada 4 */}
-        <div className="rounded-[40px] border border-yellow-500/25 bg-[#020714] p-8 shadow-[0_0_50px_rgba(250,204,21,0.1)]">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-300">
-                Competición Oficial
-              </p>
-              <h1 className="mt-1 text-4xl font-black uppercase italic text-white md:text-6xl">
-                Copa Argentina
-              </h1>
-            </div>
-            <div className="inline-flex items-center rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-5 py-2.5 text-xs font-black uppercase text-yellow-300">
-              🏆 Temporada 4
-            </div>
-          </div>
-        </div>
+    <main className="min-h-screen bg-[#f4f9fd] text-[#102f55]">
+      <KnockoutCupHero season={season} />
+      <KnockoutCupTabs />
 
-        {/* MÓDULO CAMPEÓN SI YA SE JUGÓ LA FINAL */}
-        {campeon && (
-          <div className="rounded-[34px] border-2 border-yellow-400 bg-gradient-to-r from-yellow-500/20 via-yellow-400/10 to-yellow-500/20 p-6 md:p-8 text-center shadow-[0_0_50px_rgba(250,204,21,0.3)] animate-fade-in">
-            <span className="text-xs font-black uppercase tracking-[0.4em] text-yellow-300">
-              👑 Campeón Copa Argentina
-            </span>
-            <div className="mt-4 flex flex-col items-center justify-center gap-3 md:flex-row">
-              {logoCampeon && (
-                <img src={logoCampeon} alt={campeon} className="h-16 w-16 object-contain drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
-              )}
-              <h2 className="text-3xl font-black uppercase italic text-yellow-300 md:text-5xl drop-shadow-[0_0_10px_rgba(250,204,21,0.4)]">
-                {campeon}
-              </h2>
-            </div>
-          </div>
-        )}
+      <section className="mx-auto w-full max-w-[1480px] px-5 py-4 sm:px-8 sm:py-5 lg:px-12">
+        <KnockoutCupControls season={season} onSeasonChange={setSeason} />
+        <KnockoutChampion champion={champion} getLogo={getLogo} />
 
-        {/* Estado Mantenimiento / Carga */}
         {loading ? (
-          <div className="rounded-[34px] border border-yellow-500/20 bg-[#020714]/80 p-12 text-center">
-            <p className="text-sm font-black uppercase tracking-widest text-yellow-400 animate-pulse">
-              Cargando Cuadro de Copa Argentina...
+          <section className="rounded-[12px] border border-[#d7e6f0] bg-white px-5 py-14 text-center text-sm font-semibold text-[#7890a7]">
+            Cargando cuadro de Copa Argentina…
+          </section>
+        ) : !active ? (
+          <section className="rounded-[12px] border border-[#d7e6f0] bg-white px-5 py-12 text-center">
+            <p className="text-[9px] font-black uppercase tracking-[.16em] text-[#56afe2]">Competición pendiente</p>
+            <h2 className="mt-2 text-[24px] font-black uppercase tracking-[-.035em] text-[#102f55]">Copa Argentina todavía no está activa</h2>
+            <p className="mx-auto mt-2 max-w-[640px] text-[12px] font-semibold leading-5 text-[#6a839b]">
+              Cuando la habilites para {season} y cargues los cruces en Supabase, este cuadro se completa automáticamente.
             </p>
-          </div>
-        ) : !activa ? (
-          <div className="rounded-[34px] border border-yellow-500/25 bg-black/40 p-12 text-center shadow-2xl max-w-2xl mx-auto space-y-4">
-            <h2 className="text-3xl font-black uppercase italic text-yellow-300">
-              Copa Argentina en Mantenimiento
-            </h2>
-            <p className="text-zinc-300 text-sm">
-              Esta competición aún no se encuentra activa en la Temporada 4.
-            </p>
-          </div>
+          </section>
         ) : (
-          /* CUADRO / BRACKET ESTILO TORNEO */
-          <div className="rounded-[34px] border border-yellow-500/20 bg-[#020714]/90 p-6 md:p-8 shadow-2xl overflow-x-auto">
-            <div className="min-w-[1100px] grid grid-cols-5 items-center gap-4 md:gap-6">
-              
-              {/* LADO IZQUIERDO: CUARTOS */}
-              <div className="space-y-6">
-                <div className="text-center">
-                  <span className="text-xs font-black uppercase text-yellow-400 tracking-wider">Cuartos</span>
-                </div>
-                <div className="space-y-6">
-                  {cuartosIzquierda[0] ? renderPartidoBracket(cuartosIzquierda[0]) : renderPartidoBracket()}
-                  {cuartosIzquierda[1] ? renderPartidoBracket(cuartosIzquierda[1]) : renderPartidoBracket()}
-                </div>
-              </div>
-
-              {/* LADO IZQUIERDO: SEMIFINAL */}
-              <div className="space-y-6">
-                <div className="text-center">
-                  <span className="text-xs font-black uppercase text-yellow-400 tracking-wider">Semifinal</span>
-                </div>
-                <div>{renderPartidoBracket(semiIzquierda)}</div>
-              </div>
-
-              {/* CENTRO: GRAN FINAL Y TERCER PUESTO */}
-              <div className="space-y-6 px-1">
-                <div>
-                  <div className="text-center mb-2">
-                    <span className="text-xs font-black uppercase tracking-widest text-yellow-300 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">
-                      🏆 Gran Final
-                    </span>
-                  </div>
-                  {renderPartidoBracket(partidoFinal, true)}
-                </div>
-
-                {/* TERCER Y CUARTO PUESTO */}
-                <div className="pt-2 border-t border-white/10">
-                  <div className="text-center mb-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">
-                      🥉 3.º y 4.º Puesto
-                    </span>
-                  </div>
-                  {renderPartidoBracket(tercerPuesto)}
-                </div>
-              </div>
-
-              {/* LADO DERECHO: SEMIFINAL */}
-              <div className="space-y-6">
-                <div className="text-center">
-                  <span className="text-xs font-black uppercase text-yellow-400 tracking-wider">Semifinal</span>
-                </div>
-                <div>{renderPartidoBracket(semiDerecha)}</div>
-              </div>
-
-              {/* LADO DERECHO: CUARTOS */}
-              <div className="space-y-6">
-                <div className="text-center">
-                  <span className="text-xs font-black uppercase text-yellow-400 tracking-wider">Cuartos</span>
-                </div>
-                <div className="space-y-6">
-                  {cuartosDerecha[0] ? renderPartidoBracket(cuartosDerecha[0]) : renderPartidoBracket()}
-                  {cuartosDerecha[1] ? renderPartidoBracket(cuartosDerecha[1]) : renderPartidoBracket()}
-                </div>
-              </div>
-
-            </div>
-          </div>
+          <KnockoutBracket
+            bracket={bracket}
+            getLogo={getLogo}
+            showThirdPlace={COPA_ARGENTINA_CONFIG.showThirdPlace}
+          />
         )}
       </section>
+
+      <LeagueFooter />
     </main>
   );
 }
