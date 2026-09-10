@@ -52,9 +52,9 @@ function Shield({ name, logo, large = false }: { name?: string | null; logo: str
 /**
  * Partido seleccionado + próximos partidos.
  *
- * El segundo panel usa todo el alto libre de la columna. Como el calendario
- * suele ser bastante alto, repartimos ese espacio entre los próximos partidos
- * para evitar que queden cinco filas diminutas arriba y un bloque vacío abajo.
+ * El segundo panel usa todo el alto libre de la columna. Además, si un partido
+ * ya tiene `resultado` en Supabase, la lista muestra ese marcador en lugar de
+ * seguir enseñando "vs" como si todavía no se hubiese jugado.
  */
 export default function FixtureMatchPanel({
   selectedMatch,
@@ -158,35 +158,49 @@ export default function FixtureMatchPanel({
             className="grid min-h-0 flex-1 divide-y divide-[#e5eef4] px-5"
             style={{ gridTemplateRows: `repeat(${upcoming.length}, minmax(76px, 1fr))` }}
           >
-            {upcoming.map((match, index) => (
-              <button
-                key={String(match.partido_id || match.id || index)}
-                type="button"
-                onClick={() => onSelectMatch(match)}
-                className="grid h-full w-full grid-cols-[86px_minmax(0,1fr)] items-center gap-4 py-4 text-left transition hover:bg-[#f8fcff]"
-              >
-                <div>
-                  <strong className="block text-[11px] font-black uppercase leading-4 text-[#244b72]">
-                    {readableDate(match).split(" ").slice(0, 2).join(" ")}
-                  </strong>
-                  <span className="mt-1 block text-[11px] font-bold text-[#4d79a0]">
-                    {match.hora || "--:--"}
-                  </span>
-                </div>
+            {upcoming.map((match, index) => {
+              const played = Boolean(match.resultado);
 
-                <div className="grid min-w-0 grid-cols-[44px_minmax(38px,1fr)_24px_minmax(38px,1fr)_44px] items-center gap-2.5">
-                  <Shield name={match.local} logo={getLogo(match.local)} />
-                  <span className="truncate text-center text-[11px] font-black text-[#315f89]">
-                    {shortTeamName(match.local)}
-                  </span>
-                  <span className="text-center text-[10px] font-bold text-[#98acbb]">vs</span>
-                  <span className="truncate text-center text-[11px] font-black text-[#315f89]">
-                    {shortTeamName(match.visitante)}
-                  </span>
-                  <Shield name={match.visitante} logo={getLogo(match.visitante)} />
-                </div>
-              </button>
-            ))}
+              return (
+                <button
+                  key={String(match.partido_id || match.id || index)}
+                  type="button"
+                  onClick={() => onSelectMatch(match)}
+                  className="grid h-full w-full grid-cols-[86px_minmax(0,1fr)] items-center gap-4 py-4 text-left transition hover:bg-[#f8fcff]"
+                >
+                  <div>
+                    <strong className="block text-[11px] font-black uppercase leading-4 text-[#244b72]">
+                      {readableDate(match).split(" ").slice(0, 2).join(" ")}
+                    </strong>
+                    <span className="mt-1 block text-[11px] font-bold text-[#4d79a0]">
+                      {match.hora || "--:--"}
+                    </span>
+                  </div>
+
+                  <div className="grid min-w-0 grid-cols-[44px_minmax(38px,1fr)_48px_minmax(38px,1fr)_44px] items-center gap-2.5">
+                    <Shield name={match.local} logo={getLogo(match.local)} />
+                    <span className="truncate text-center text-[11px] font-black text-[#315f89]">
+                      {shortTeamName(match.local)}
+                    </span>
+
+                    <span
+                      className={`flex min-h-7 items-center justify-center rounded-[7px] px-1 text-center font-black ${
+                        played
+                          ? "bg-[#e3f3fd] text-[12px] text-[#102f55]"
+                          : "text-[10px] text-[#98acbb]"
+                      }`}
+                    >
+                      {match.resultado || "vs"}
+                    </span>
+
+                    <span className="truncate text-center text-[11px] font-black text-[#315f89]">
+                      {shortTeamName(match.visitante)}
+                    </span>
+                    <Shield name={match.visitante} logo={getLogo(match.visitante)} />
+                  </div>
+                </button>
+              );
+            })}
           </div>
         ) : (
           <div className="flex flex-1 items-center justify-center px-5 py-8 text-center">
