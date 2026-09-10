@@ -1,4 +1,14 @@
-import { COPA_ARGENTINA_CONFIG } from "@/config/copaArgentina";
+import {
+  COPA_ARGENTINA_CONFIG,
+  getCopaArgentinaSeasonFormat,
+} from "@/config/copaArgentina";
+
+const ROUND_LABELS = {
+  roundOf16: "Octavos",
+  quarterfinals: "Cuartos",
+  semifinals: "Semifinales",
+  final: "Final",
+} as const;
 
 export default function KnockoutCupControls({
   season,
@@ -7,12 +17,15 @@ export default function KnockoutCupControls({
   season: string;
   onSeasonChange: (season: string) => void;
 }) {
+  const format = getCopaArgentinaSeasonFormat(season);
+  const formatLabel = format.rounds.map((round) => ROUND_LABELS[round]).join(" · ");
+
   return (
     <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
       <div>
         <p className="text-[9px] font-black uppercase tracking-[.16em] text-[#7991a8]">Formato</p>
         <p className="mt-1 text-[12px] font-semibold text-[#5f7891]">
-          Cuartos · Semifinales · Final{COPA_ARGENTINA_CONFIG.showThirdPlace ? " · 3.º puesto" : ""}
+          {formatLabel}{format.showThirdPlace ? " · 3.º puesto" : ""}
         </p>
       </div>
 
