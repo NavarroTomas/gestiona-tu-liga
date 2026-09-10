@@ -1,5 +1,7 @@
 import type { CupMatch } from "@/lib/cups/types";
 
+export type KnockoutRoundId = "roundOf16" | "quarterfinals" | "semifinals" | "final";
+
 export type KnockoutBracket = {
   roundOf16: (CupMatch | undefined)[];
   quarterfinals: (CupMatch | undefined)[];
@@ -44,14 +46,14 @@ export function getKnockoutScore(match: CupMatch, side: "home" | "away") {
 }
 
 /**
- * Convierte los partidos crudos de Supabase en las posiciones del bracket.
+ * Convierte los partidos crudos de Supabase en todas las rondas posibles.
  *
- * Si en otra temporada la copa empieza directamente en cuartos, no hace falta
- * borrar nada: `roundOf16` simplemente queda vacío y el diseño muestra los
- * espacios "por definir". Si agregás octavos en Supabase, aparecen solos.
- *
- * Para reconocer nombres nuevos de fases, cambiá solamente
- * `src/config/copaArgentina.ts -> phaseKeywords`.
+ * OJO: esto NO decide qué rondas se muestran. La temporada decide eso desde
+ * su archivo de configuración (`formatsBySeason`). De esta forma podés tener:
+ * - una temporada desde Cuartos;
+ * - otra desde Octavos;
+ * - otra desde Semifinales;
+ * usando el mismo componente y la misma consulta a Supabase.
  */
 export function buildKnockoutBracket(
   matches: CupMatch[],
