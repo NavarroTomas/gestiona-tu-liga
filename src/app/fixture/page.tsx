@@ -69,10 +69,24 @@ function FixtureContent() {
     if (team !== "all" && !availableTeams.includes(team)) setTeam("all");
   }, [availableTeams, team]);
 
+  /**
+   * IMPORTANTE:
+   * `firstMatchDate` es un objeto Date y puede ser recreado aunque represente
+   * exactamente la misma fecha. Por eso el effect depende de un timestamp
+   * primitivo y no del objeto Date. Así evitamos un setState -> render ->
+   * Date nueva -> setState infinito (Maximum update depth exceeded).
+   */
+  const firstMatchMonthTime = firstMatchDate
+    ? new Date(firstMatchDate.getFullYear(), firstMatchDate.getMonth(), 1).getTime()
+    : null;
+
   useEffect(() => {
-    if (!firstMatchDate) return;
-    setMonth(new Date(firstMatchDate.getFullYear(), firstMatchDate.getMonth(), 1));
-  }, [competitionId, division, firstMatchDate, group, season, team]);
+    if (firstMatchMonthTime === null) return;
+
+    setMonth((current) =>
+      current.getTime() === firstMatchMonthTime ? current : new Date(firstMatchMonthTime),
+    );
+  }, [firstMatchMonthTime]);
 
   useEffect(() => {
     if (!matches.length) {
