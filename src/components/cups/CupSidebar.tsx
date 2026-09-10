@@ -4,7 +4,7 @@ import { formatCupDate } from "@/lib/cups/utils";
 
 function TeamLogo({ name, getLogo, size = "md" }: { name: string; getLogo: (name?: string | null) => string | null; size?: "sm" | "md" | "lg" }) {
   const logo = getLogo(name);
-  const sizeClass = size === "lg" ? "h-14 w-14" : size === "sm" ? "h-6 w-6" : "h-8 w-8";
+  const sizeClass = size === "lg" ? "h-16 w-16" : size === "sm" ? "h-6 w-6" : "h-8 w-8";
 
   return (
     <span className={`flex shrink-0 items-center justify-center ${sizeClass}`}>
@@ -37,25 +37,33 @@ export default function CupSidebar({
         </header>
 
         {nextMatch ? (
-          <div className="px-4 py-5 sm:px-5">
-            <div className="grid grid-cols-[minmax(0,1fr)_42px_minmax(0,1fr)] items-center gap-2">
-              <div className="flex min-w-0 flex-col items-center gap-2 text-center">
+          <div className="px-4 py-5 sm:px-5 sm:py-6">
+            <div className="grid grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)] items-center gap-2">
+              <div className="flex min-w-0 flex-col items-center gap-2.5 text-center">
                 <TeamLogo name={nextMatch.local} getLogo={getLogo} size="lg" />
-                <strong className="max-w-full truncate text-[12px] font-black text-[#173e68]">{nextMatch.local}</strong>
+                <strong className="max-w-full truncate text-[12px] font-black text-[#173e68] sm:text-[13px]">{nextMatch.local}</strong>
               </div>
 
-              <span className="text-center text-[13px] font-black uppercase text-[#102f55]">vs</span>
+              <span className="text-center text-[14px] font-black uppercase text-[#102f55]">vs</span>
 
-              <div className="flex min-w-0 flex-col items-center gap-2 text-center">
+              <div className="flex min-w-0 flex-col items-center gap-2.5 text-center">
                 <TeamLogo name={nextMatch.visitante} getLogo={getLogo} size="lg" />
-                <strong className="max-w-full truncate text-[12px] font-black text-[#173e68]">{nextMatch.visitante}</strong>
+                <strong className="max-w-full truncate text-[12px] font-black text-[#173e68] sm:text-[13px]">{nextMatch.visitante}</strong>
               </div>
             </div>
 
-            <div className="mt-5 flex items-center justify-center gap-3 border-t border-[#e7eff5] pt-4 text-[10px] font-bold text-[#66819b]">
-              <span>{formatCupDate(nextMatch)}</span>
-              <span className="h-3 w-px bg-[#cbdce7]" />
-              <span>{nextMatch.hora || "Horario a confirmar"}</span>
+            <div className="mt-5 border-t border-[#e7eff5] pt-4">
+              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] font-bold text-[#66819b]">
+                <span>{formatCupDate(nextMatch)}</span>
+                <span className="hidden h-3 w-px bg-[#cbdce7] sm:block" />
+                <span>{nextMatch.hora || "Horario a confirmar"}</span>
+              </div>
+
+              <div className="mt-3 flex justify-center">
+                <Link href="/fixture" className="text-[10px] font-black text-[#2498d8] transition hover:text-[#102f55] sm:text-[11px]">
+                  Ver partido →
+                </Link>
+              </div>
             </div>
           </div>
         ) : (
@@ -81,7 +89,7 @@ export default function CupSidebar({
               <Link
                 key={match.id}
                 href="/fixture"
-                className="grid min-h-[54px] grid-cols-[minmax(0,1fr)_24px_minmax(0,1fr)_52px] items-center gap-1.5 border-b border-[#e7eff5] py-2.5 last:border-b-0 transition hover:bg-[#f8fbfd]"
+                className="grid min-h-[56px] grid-cols-[minmax(0,1fr)_24px_minmax(0,1fr)_54px] items-center gap-1.5 border-b border-[#e7eff5] py-2.5 last:border-b-0 transition hover:bg-[#f8fbfd]"
               >
                 <div className="flex min-w-0 items-center gap-1.5">
                   <TeamLogo name={match.local} getLogo={getLogo} size="sm" />
@@ -92,7 +100,9 @@ export default function CupSidebar({
                   <span className="truncate text-right text-[10px] font-bold text-[#173e68]">{match.visitante}</span>
                   <TeamLogo name={match.visitante} getLogo={getLogo} size="sm" />
                 </div>
-                <span className="text-right text-[9px] font-bold text-[#7890a7]">{match.hora || formatCupDate(match)}</span>
+                <span className="text-right text-[9px] font-bold leading-[1.3] text-[#7890a7]">
+                  {match.hora || formatCupDate(match)}
+                </span>
               </Link>
             ))
           )}
