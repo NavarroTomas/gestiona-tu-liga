@@ -1,10 +1,9 @@
 import type { CupMatch } from "@/lib/cups/types";
 
 export type KnockoutBracket = {
-  quarterLeft: [CupMatch | undefined, CupMatch | undefined];
-  quarterRight: [CupMatch | undefined, CupMatch | undefined];
-  semifinalLeft?: CupMatch;
-  semifinalRight?: CupMatch;
+  roundOf16: (CupMatch | undefined)[];
+  quarterfinals: (CupMatch | undefined)[];
+  semifinals: (CupMatch | undefined)[];
   final?: CupMatch;
   thirdPlace?: CupMatch;
 };
@@ -45,25 +44,33 @@ export function getKnockoutScore(match: CupMatch, side: "home" | "away") {
 }
 
 /**
- * Convierte los partidos crudos de Supabase en las posiciones visuales del
- * bracket. Si más adelante cambia el formato del torneo, este es el archivo
- * correcto para modificar el armado del cuadro, no la página principal.
+ * Convierte los partidos crudos de Supabase en las posiciones del bracket.
+ *
+ * Si en otra temporada la copa empieza directamente en cuartos, no hace falta
+ * borrar nada: `roundOf16` simplemente queda vacío y el diseño muestra los
+ * espacios "por definir". Si agregás octavos en Supabase, aparecen solos.
+ *
+ * Para reconocer nombres nuevos de fases, cambiá solamente
+ * `src/config/copaArgentina.ts -> phaseKeywords`.
  */
 export function buildKnockoutBracket(
   matches: CupMatch[],
   keywords: {
+    roundOf16: readonly string[];
     quarter: readonly string[];
     semifinal: readonly string[];
     final: readonly string[];
     thirdPlace: readonly string[];
   },
 ): KnockoutBracket {
-  const quarters = matches.filter((match) => containsKeyword(match, keywords.quarter));
-  const semifinals = matches.filter((match) => containsKeyword(match, keywords.semifinal));
+  const roundOf16Matches = matches.filter((match) => containsKeyword(match, keywords.roundOf16));
+  const quarterMatches = matches.filter((match) => containsKeyword(match, keywords.quarter));
+  const semifinalMatches = matches.filter((match) => containsKeyword(match, keywords.semifinal));
   const thirdPlace = matches.find((match) => containsKeyword(match, keywords.thirdPlace));
 
   const final = matches.find((match) => {
     if (!containsKeyword(match, keywords.final)) return false;
+    if (containsKeyword(match, keywords.roundOf16)) return false;
     if (containsKeyword(match, keywords.quarter)) return false;
     if (containsKeyword(match, keywords.semifinal)) return false;
     if (containsKeyword(match, keywords.thirdPlace)) return false;
@@ -71,10 +78,9 @@ export function buildKnockoutBracket(
   });
 
   return {
-    quarterLeft: [quarters[0], quarters[1]],
-    quarterRight: [quarters[2], quarters[3]],
-    semifinalLeft: semifinals[0],
-    semifinalRight: semifinals[1],
+    roundOf16: Array.from({ length: 8 }, (_, index) => roundOf16Matches[index]),
+    quarterfinals: Array.from({ length: 4 }, (_, index) => quarterMatches[index]),
+    semifinals: Array.from({ length: 2 }, (_, index) => semifinalMatches[index]),
     final,
     thirdPlace,
   };
