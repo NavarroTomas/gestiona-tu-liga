@@ -7,6 +7,8 @@ import {
   type CompeticionLayout,
 } from "./layoutConfig";
 
+const DESKTOP_EDITOR_MIN_WIDTH = 1181;
+
 function obtenerElementos() {
   return {
     temporada: document.querySelector<HTMLElement>('[data-layout="temporada"]'),
@@ -81,25 +83,25 @@ function aplicarLayout(layout: CompeticionLayout) {
 
 export default function AplicarLayoutGuardado() {
   useEffect(() => {
-    // El editor carga /competicion?editorBase=1 para ver SIEMPRE el código real,
-    // sin que una configuración vieja de localStorage pise cambios recientes.
     const parametros = new URLSearchParams(window.location.search);
+
+    // El editor siempre debe mostrar el código/CSS actual como base.
     if (parametros.get("editorBase") === "1") {
       limpiarLayoutEnLinea();
       return;
     }
 
     const cargar = () => {
+      limpiarLayoutEnLinea();
+
+      // El zoom del navegador modifica el ancho CSS disponible. Cuando entra
+      // en un breakpoint de tablet/móvil, dejamos que el CSS responsive mande
+      // y no aplicamos offsets/tamaños fijos guardados por el editor.
+      if (window.innerWidth < DESKTOP_EDITOR_MIN_WIDTH) return;
+
       try {
         const guardado = localStorage.getItem(COMPETICION_LAYOUT_STORAGE_KEY);
-
-        // Si no existe una edición guardada, no aplicamos defaults JS:
-        // dejamos que mande exactamente el TSX/CSS actual de la página.
-        if (!guardado) {
-          limpiarLayoutEnLinea();
-          return;
-        }
-
+        if (!guardado) return;
         aplicarLayout(normalizarLayout(JSON.parse(guardado)));
       } catch {
         limpiarLayoutEnLinea();
@@ -112,8 +114,15 @@ export default function AplicarLayoutGuardado() {
       if (event.key === COMPETICION_LAYOUT_STORAGE_KEY) cargar();
     };
 
+    // Chrome/Edge disparan resize al hacer Ctrl + rueda / Ctrl +/- porque
+    // cambia el viewport CSS. Así recalculamos automáticamente el layout.
+    window.addEventListener("resize", cargar);
     window.addEventListener("storage", alCambiarStorage);
-    return () => window.removeEventListener("storage", alCambiarStorage);
+
+    return () => {
+      window.removeEventListener("resize", cargar);
+      window.removeEventListener("storage", alCambiarStorage);
+    };
   }, []);
 
   return null;
