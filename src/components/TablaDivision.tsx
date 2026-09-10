@@ -35,20 +35,21 @@ export default function TablaDivision({
 }) {
   const [tabla, setTabla] = useState<EquipoTabla[]>([]);
   const [logos, setLogos] = useState<Record<string, string>>({});
+  const [proximosRivales, setProximosRivales] = useState<Record<string, string>>({});
 
   useEffect(() => {
     cargarTabla();
   }, [temporada, division]);
 
   async function cargarTabla() {
-    // 1. Cargar partidos de la temporada (sin filtrar división estricta en base de datos para evitar desajustes manuales)
     const [partidosRes, equiposRes, sancionesRes] = await Promise.all([
       supabase
         .from("partidos")
         .select(
           "id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora",
         )
-        .eq("temporada", temporada),
+        .eq("temporada", temporada)
+        .order("id", { ascending: true }),
 
       supabase
         .from("v_clubes_temporada_public")
@@ -75,7 +76,6 @@ export default function TablaDivision({
 
     const divisionKey = normalizarDivision(division);
 
-    // Filtrar partidos usando normalizarDivision para capturar también los cargados a mano
     const partidosFiltrados = (partidosRes.data || []).filter(
       (p: any) => normalizarDivision(p.division) === divisionKey,
     );
@@ -86,17 +86,15 @@ export default function TablaDivision({
 
     const logosMap: Record<string, string> = {};
 
-    equiposFiltrados?.forEach((e) => {
-      if (e.logo_url) {
-        logosMap[e.nombre] = e.logo_url;
-      }
+    equiposFiltrados.forEach((e: any) => {
+      if (e.logo_url) logosMap[e.nombre] = e.logo_url;
     });
 
     setLogos(logosMap);
 
-    const equipos: { [key: string]: EquipoTabla } = {};
+    const equipos: Record<string, EquipoTabla> = {};
 
-    equiposFiltrados?.forEach((e) => {
+    equiposFiltrados.forEach((e: any) => {
       equipos[e.nombre] = {
         nombre: e.nombre,
         logo_url: e.logo_url || undefined,
@@ -112,25 +110,16 @@ export default function TablaDivision({
       };
     });
 
-    // 2. Procesar los partidos filtrados
     partidosFiltrados.forEach((partido: any) => {
-      console.log("Partido procesando:", partido.local, "vs", partido.visitante, "Resultado:", JSON.stringify(partido.resultado));
-
       if (!partido.resultado) return;
 
       const match = String(partido.resultado).match(/(\d+)\s*[^0-9]\s*(\d+)/);
-      if (!match) {
-        console.log("⚠️ No se pudo matchear el resultado de:", partido.local, "vs", partido.visitante);
-        return;
-      }
+      if (!match) return;
 
       const local = partido.local;
       const visitante = partido.visitante;
-
       const golesLocal = Number(match[1]);
       const golesVisitante = Number(match[2]);
-
-      console.log(`✅ Éxito al leer: ${local} ${golesLocal} - ${golesVisitante} ${visitante}`);
 
       if (isNaN(golesLocal) || isNaN(golesVisitante)) return;
 
@@ -166,10 +155,8 @@ export default function TablaDivision({
 
       equipos[local].pj += 1;
       equipos[visitante].pj += 1;
-
       equipos[local].gf += golesLocal;
       equipos[local].gc += golesVisitante;
-
       equipos[visitante].gf += golesVisitante;
       equipos[visitante].gc += golesLocal;
 
@@ -177,40 +164,32 @@ export default function TablaDivision({
         equipos[local].pg += 1;
         equipos[local].puntos += 3;
         equipos[local].forma.push("W");
-
         equipos[visitante].pp += 1;
         equipos[visitante].forma.push("L");
       } else if (golesVisitante > golesLocal) {
         equipos[visitante].pg += 1;
         equipos[visitante].puntos += 3;
         equipos[visitante].forma.push("W");
-
         equipos[local].pp += 1;
         equipos[local].forma.push("L");
       } else {
         equipos[local].pe += 1;
         equipos[visitante].pe += 1;
-
         equipos[local].puntos += 1;
         equipos[visitante].puntos += 1;
-
         equipos[local].forma.push("D");
         equipos[visitante].forma.push("D");
       }
     });
 
-    // 3. APLICAR SANCIONES EXCLUSIVAMENTE DE LIGA
-    if (sancionesRes.data && sancionesRes.data.length > 0) {
-      sancionesRes.data.forEach((sancion) => {
+    if (sancionesRes.data?.length) {
+      sancionesRes.data.forEach((sancion: any) => {
         if (equipos[sancion.equipo]) {
-          equipos[sancion.equipo].puntos -= Number(
-            sancion.puntos_descontados || 0
-          );
+          equipos[sancion.equipo].puntos -= Number(sancion.puntos_descontados || 0);
         }
       });
     }
 
-    // 4. Calcular DG, forma reciente y ordenar la tabla por Puntos
     const tablaFinal = Object.values(equipos)
       .map((equipo) => ({
         ...equipo,
@@ -219,252 +198,154 @@ export default function TablaDivision({
       }))
       .sort((a, b) => b.puntos - a.puntos || b.dg - a.dg || b.gf - a.gf);
 
+    const proximos: Record<string, string> = {};
+
+    partidosFiltrados.forEach((partido: any) => {
+      if (partido.resultado) return;
+      if (!partido.local || !partido.visitante) return;
+
+      if (!proximos[partido.local]) proximos[partido.local] = partido.visitante;
+      if (!proximos[partido.visitante]) proximos[partido.visitante] = partido.local;
+    });
+
+    setProximosRivales(proximos);
     setTabla(tablaFinal);
   }
 
-  function movimiento(index: number) {
-    if (index === 0) return "▲";
-    if (index === tabla.length - 1) return "▼";
-    return "▬";
-  }
-
-  function colorMovimiento(index: number) {
-    if (index === 0) return "text-green-400";
-    if (index === tabla.length - 1) return "text-red-500";
-    return "text-zinc-500";
-  }
-
   function colorForma(resultado: "W" | "D" | "L") {
-    if (resultado === "W")
-      return "bg-green-400 shadow-[0_0_8px_rgba(74,222,128,.7)]";
-
-    if (resultado === "D")
-      return "bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,.6)]";
-
-    return "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,.65)]";
+    if (resultado === "W") return "bg-[#2fb56d]";
+    if (resultado === "D") return "bg-[#b9c3cc]";
+    return "bg-[#f0525d]";
   }
 
   function zonaEquipo(index: number) {
     const puesto = index + 1;
+    const total = tabla.length;
     const esPrimera = normalizarDivision(division) === "primera";
     const esSegunda = normalizarDivision(division) === "segunda";
 
     if (esPrimera) {
-      if (puesto === 1) {
-        return {
-          barra: "bg-yellow-400 shadow-[0_0_12px_rgba(250,204,21,.85)]",
-          punto: "bg-yellow-400 shadow-[0_0_12px_rgba(250,204,21,.85)]",
-          fila: "bg-gradient-to-r from-[#2b2306] via-[#101827] to-[#030b18] ring-1 ring-yellow-300/40 shadow-[0_0_28px_rgba(250,204,21,.16)]",
-          movimiento: "text-yellow-300",
-          simbolo: "★",
-          etiqueta: "Campeón",
-        };
-      }
-
-      if (puesto === tabla.length - 1) {
-        return {
-          barra: "bg-orange-400 shadow-[0_0_12px_rgba(251,146,60,.75)]",
-          punto: "bg-orange-400 shadow-[0_0_12px_rgba(251,146,60,.75)]",
-          fila: "bg-gradient-to-r from-[#2b1606] via-[#111827] to-[#030b18] ring-1 ring-orange-400/30",
-          movimiento: "text-orange-300",
-          simbolo: "◆",
-          etiqueta: "Promoción",
-        };
-      }
-
-      if (puesto === tabla.length) {
-        return {
-          barra: "bg-red-500 shadow-[0_0_12px_rgba(239,68,68,.75)]",
-          punto: "bg-red-500 shadow-[0_0_12px_rgba(239,68,68,.75)]",
-          fila: "bg-gradient-to-r from-[#2b0710] via-[#111827] to-[#030b18] ring-1 ring-red-500/30",
-          movimiento: "text-red-400",
-          simbolo: "▼",
-          etiqueta: "Descenso",
-        };
-      }
+      if (puesto === 1) return { barra: "bg-[#2497e6]", etiqueta: "Campeón" };
+      if (puesto === total - 1) return { barra: "bg-[#f1a33b]", etiqueta: "Promoción" };
+      if (puesto === total) return { barra: "bg-[#ef4855]", etiqueta: "Descenso" };
     }
 
     if (esSegunda) {
-      if (puesto === 1) {
-        return {
-          barra: "bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.8)]",
-          punto: "bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.8)]",
-          fila: "bg-gradient-to-r from-[#062b1b] via-[#071c36] to-[#030b18] ring-1 ring-emerald-400/35 shadow-[0_0_28px_rgba(52,211,153,.14)]",
-          movimiento: "text-emerald-300",
-          simbolo: "▲",
-          etiqueta: "Ascenso",
-        };
-      }
-
-      if (puesto >= 2 && puesto <= 5) {
-        return {
-          barra: "bg-sky-400 shadow-[0_0_12px_rgba(56,189,248,.75)]",
-          punto: "bg-sky-400 shadow-[0_0_12px_rgba(56,189,248,.75)]",
-          fila: "bg-gradient-to-r from-[#06233d] via-[#071a33] to-[#030b18] ring-1 ring-sky-400/20",
-          movimiento: "text-sky-300",
-          simbolo: "●",
-          etiqueta: "Playoffs",
-        };
-      }
+      if (puesto === 1) return { barra: "bg-[#2fb56d]", etiqueta: "Ascenso directo" };
+      if (puesto >= 2 && puesto <= 5) return { barra: "bg-[#2497e6]", etiqueta: "Playoffs" };
     }
 
-    return {
-      barra: "bg-zinc-600/60",
-      punto: "bg-zinc-400 shadow-[0_0_8px_rgba(161,161,170,.45)]",
-      fila: "bg-gradient-to-r from-[#06152c] via-[#071a33] to-[#030b18]",
-      movimiento: "text-zinc-500",
-      simbolo: "▬",
-      etiqueta: "Normal",
-    };
-  }
-
-  function textoReglamento() {
-    if (normalizarDivision(division) === "primera") {
-      return "★ 1° CAMPEÓN · 7° PROMOCIÓN · 8° DESCENSO DIRECTO ★";
-    }
-
-    if (normalizarDivision(division) === "segunda") {
-      return "★ 1° ASCENSO DIRECTO · 2° AL 5° PLAYOFFS DE ASCENSO ★";
-    }
-
-    return "★ Torneo de Liga APA ★";
+    return { barra: "bg-transparent", etiqueta: "" };
   }
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-sky-500/30 bg-[#020814] shadow-[0_0_35px_rgba(0,120,255,.22)]">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(56,189,248,.13),transparent_58%)]" />
-
-      <div className="relative overflow-x-auto">
-        <table className="w-full min-w-[880px] border-separate border-spacing-y-[6px] px-2 pb-2">
-          <thead className="sticky top-0 z-10">
-            <tr className="bg-[#061a33] text-[11px] font-black uppercase tracking-[0.28em] text-sky-300/80">
-              <th className="py-3 text-center w-[68px] rounded-l-xl">#</th>
-              <th className="py-3 text-left">Equipo</th>
-              <th className="py-3 text-center">PJ</th>
-              <th className="py-3 text-center">PG</th>
-              <th className="py-3 text-center">PE</th>
-              <th className="py-3 text-center">PP</th>
-              <th className="py-3 text-center">GF</th>
-              <th className="py-3 text-center">GC</th>
-              <th className="py-3 text-center">DG</th>
-              <th className="py-3 text-center">Forma</th>
-              <th className="py-3 text-center rounded-r-xl">PTS</th>
+    <section className="overflow-hidden rounded-[10px] border border-[#d7e6f0] bg-white text-[#102f55]">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[920px] border-collapse">
+          <thead>
+            <tr className="h-11 border-b border-[#d7e6f0] bg-[#eef6fb] text-[11px] font-black uppercase tracking-[.04em] text-[#244d76]">
+              <th className="w-[58px] px-3 text-center">#</th>
+              <th className="min-w-[220px] px-3 text-left">Club</th>
+              <th className="w-[58px] px-2 text-center">PJ</th>
+              <th className="w-[52px] px-2 text-center">G</th>
+              <th className="w-[52px] px-2 text-center">E</th>
+              <th className="w-[52px] px-2 text-center">P</th>
+              <th className="w-[68px] px-2 text-center">DG</th>
+              <th className="w-[68px] px-2 text-center">PTS</th>
+              <th className="w-[140px] px-3 text-center">Forma</th>
+              <th className="min-w-[180px] px-3 text-left">Próximo rival</th>
             </tr>
           </thead>
 
           <tbody>
             {tabla.length === 0 ? (
               <tr>
-                <td colSpan={11} className="py-12 text-center text-zinc-500">
+                <td colSpan={10} className="py-14 text-center text-sm font-semibold text-[#7890a8]">
                   No hay clubes cargados para esta temporada y división.
                 </td>
               </tr>
             ) : (
               tabla.map((equipo, index) => {
                 const zona = zonaEquipo(index);
+                const rival = proximosRivales[equipo.nombre];
 
                 return (
                   <tr
                     key={equipo.nombre}
-                    title={zona.etiqueta}
-                    className={`group relative text-[12px] font-black uppercase transition-all duration-300 hover:scale-[1.008] hover:shadow-[0_0_22px_rgba(56,189,248,.16)] ${zona.fila}`}
+                    title={zona.etiqueta || undefined}
+                    className="group h-[46px] border-b border-[#e1ebf2] bg-white text-[12px] font-semibold transition-colors last:border-b-0 hover:bg-[#f5faff]"
                   >
-                    <td className="relative rounded-l-xl py-3 text-center overflow-hidden">
-                      <div
-                        className={`absolute left-0 top-0 h-full w-[3px] ${zona.barra}`}
-                      />
-
-                      <div className="grid grid-cols-[22px_16px] items-center justify-center gap-1">
-                        <span className="text-sky-200 text-center">
-                          {index + 1}
-                        </span>
-
-                        <span
-                          className={`flex h-[16px] w-[16px] items-center justify-center text-[9px] font-black leading-none ${zona.movimiento}`}
-                        >
-                          {zona.simbolo}
-                        </span>
-                      </div>
+                    <td className="relative px-3 text-center font-medium text-[#46698d]">
+                      <span className={`absolute bottom-0 left-0 top-0 w-[3px] ${zona.barra}`} />
+                      {index + 1}
                     </td>
 
-                    <td className="py-3">
-                      <div className="flex items-center gap-3">
-                        <div className={`h-3 w-3 rounded-full ${zona.punto}`} />
-
-                        <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-sky-400/40 bg-black">
+                    <td className="px-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center">
                           {logos[equipo.nombre] ? (
                             <img
                               src={logos[equipo.nombre]}
                               alt={equipo.nombre}
-                              className="h-full w-full object-contain p-1"
+                              className="h-7 w-7 object-contain"
                             />
                           ) : (
-                            <span className="text-[10px] text-white">
+                            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#edf5fa] text-[9px] font-black text-[#597895]">
                               {equipo.nombre.slice(0, 2).toUpperCase()}
                             </span>
                           )}
                         </div>
 
-                        <span className="max-w-[280px] truncate text-white">
+                        <span className="truncate font-bold text-[#173e68]">
                           {equipo.nombre}
                         </span>
                       </div>
                     </td>
 
-                    <td className="py-3 text-center text-zinc-300">
-                      {equipo.pj}
+                    <td className="px-2 text-center text-[#45698e]">{equipo.pj}</td>
+                    <td className="px-2 text-center text-[#45698e]">{equipo.pg}</td>
+                    <td className="px-2 text-center text-[#45698e]">{equipo.pe}</td>
+                    <td className="px-2 text-center text-[#45698e]">{equipo.pp}</td>
+                    <td className="px-2 text-center text-[#45698e]">
+                      {equipo.dg > 0 ? "+" : ""}{equipo.dg}
+                    </td>
+                    <td className="px-2 text-center text-[13px] font-black text-[#102f55]">
+                      {equipo.puntos}
                     </td>
 
-                    <td className="py-3 text-center text-zinc-300">
-                      {equipo.pg}
-                    </td>
-
-                    <td className="py-3 text-center text-zinc-300">
-                      {equipo.pe}
-                    </td>
-
-                    <td className="py-3 text-center text-zinc-300">
-                      {equipo.pp}
-                    </td>
-
-                    <td className="py-3 text-center text-zinc-300">
-                      {equipo.gf}
-                    </td>
-
-                    <td className="py-3 text-center text-zinc-300">
-                      {equipo.gc}
-                    </td>
-
-                    <td
-                      className={`py-3 text-center ${
-                        equipo.dg >= 0 ? "text-sky-300" : "text-red-400"
-                      }`}
-                    >
-                      {equipo.dg > 0 ? "+" : ""}
-                      {equipo.dg}
-                    </td>
-
-                    <td className="py-3">
-                      <div className="flex justify-center gap-1.5">
+                    <td className="px-3">
+                      <div className="flex justify-center gap-[6px]">
                         {equipo.forma.length === 0 ? (
-                          <span className="text-zinc-600">—</span>
+                          <span className="text-[#9aabb9]">—</span>
                         ) : (
                           equipo.forma.map((resultado, i) => (
                             <span
                               key={`${equipo.nombre}-${i}`}
-                              className={`h-2.5 w-2.5 rounded-full ${colorForma(
-                                resultado,
-                              )}`}
+                              className={`h-[11px] w-[11px] rounded-[3px] ${colorForma(resultado)}`}
+                              title={resultado === "W" ? "Victoria" : resultado === "D" ? "Empate" : "Derrota"}
                             />
                           ))
                         )}
                       </div>
                     </td>
 
-                    <td className="rounded-r-xl py-3 text-center">
-                      <span className="bg-gradient-to-b from-yellow-300 to-amber-500 bg-clip-text text-2xl font-black text-transparent drop-shadow-[0_0_8px_rgba(250,204,21,.55)]">
-                        {equipo.puntos}
-                      </span>
+                    <td className="px-3">
+                      {rival ? (
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <div className="flex h-6 w-6 shrink-0 items-center justify-center">
+                            {logos[rival] ? (
+                              <img src={logos[rival]} alt={rival} className="h-6 w-6 object-contain" />
+                            ) : (
+                              <span className="flex h-6 w-6 items-center justify-center rounded bg-[#edf5fa] text-[8px] font-black text-[#597895]">
+                                {rival.slice(0, 2).toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                          <span className="truncate text-[11px] font-semibold text-[#355d83]">{rival}</span>
+                        </div>
+                      ) : (
+                        <span className="text-[#9aabb9]">—</span>
+                      )}
                     </td>
                   </tr>
                 );
@@ -474,8 +355,19 @@ export default function TablaDivision({
         </table>
       </div>
 
-      <div className="relative border-t border-sky-500/20 px-4 py-3 text-center text-[11px] font-black uppercase tracking-[0.25em] text-sky-300">
-        {textoReglamento()}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[#d7e6f0] bg-[#fbfdff] px-4 py-3 text-[10px] font-semibold text-[#67819a]">
+        {normalizarDivision(division) === "primera" ? (
+          <>
+            <span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#2497e6]" /> Campeón</span>
+            <span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#f1a33b]" /> Promoción</span>
+            <span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#ef4855]" /> Descenso</span>
+          </>
+        ) : (
+          <>
+            <span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#2fb56d]" /> Ascenso directo</span>
+            <span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#2497e6]" /> Playoffs de ascenso</span>
+          </>
+        )}
       </div>
     </section>
   );
