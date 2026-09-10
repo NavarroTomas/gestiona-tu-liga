@@ -161,67 +161,69 @@ export default function DivisionesPage() {
       <section className="mx-auto w-full max-w-[1480px] px-5 py-5 sm:px-8 sm:py-6 lg:px-12">
         <div className="mb-5 flex flex-wrap items-end gap-3 sm:mb-6">
           <label className="grid gap-1.5">
-            <span className="text-[9px] font-black uppercase tracking-[.15em] text-[#7991a8]">Temporada</span>
+            <span className="text-[9px] font-black uppercase tracking-[.15em] text-[#6d88a0]">Temporada</span>
             <span className="relative">
               <select
                 value={temporada}
                 onChange={(e) => setTemporada(e.target.value)}
-                className="h-10 min-w-[160px] cursor-pointer appearance-none rounded-[8px] border border-[#caddea] bg-[#eef6fb] px-3.5 pr-9 text-[12px] font-bold text-[#173e68] outline-none transition hover:border-[#a8cfe6] focus:border-[#56afe2] sm:h-11 sm:min-w-[170px] sm:text-sm"
+                className="h-10 min-w-[160px] cursor-pointer appearance-none rounded-[8px] border border-[#284f76] bg-[#102f55] px-3.5 pr-9 text-[12px] font-bold text-white outline-none transition hover:bg-[#153b67] hover:border-[#56afe2] focus:border-[#56afe2] focus:ring-2 focus:ring-[#56afe2]/20 sm:h-11 sm:min-w-[170px] sm:text-sm"
               >
                 {temporadas.map((temp) => <option key={temp} value={temp}>{temp}</option>)}
               </select>
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[#459bd0]">⌄</span>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-[#56afe2]">⌄</span>
             </span>
           </label>
 
           <label className="grid gap-1.5">
-            <span className="text-[9px] font-black uppercase tracking-[.15em] text-[#7991a8]">División</span>
+            <span className="text-[9px] font-black uppercase tracking-[.15em] text-[#6d88a0]">División</span>
             <span className="relative">
               <select
                 value={division}
                 onChange={(e) => setDivision(e.target.value)}
-                className="h-10 min-w-[175px] cursor-pointer appearance-none rounded-[8px] border border-[#caddea] bg-[#eef6fb] px-3.5 pr-9 text-[12px] font-bold text-[#173e68] outline-none transition hover:border-[#a8cfe6] focus:border-[#56afe2] sm:h-11 sm:min-w-[190px] sm:text-sm"
+                className="h-10 min-w-[175px] cursor-pointer appearance-none rounded-[8px] border border-[#284f76] bg-[#102f55] px-3.5 pr-9 text-[12px] font-bold text-white outline-none transition hover:bg-[#153b67] hover:border-[#56afe2] focus:border-[#56afe2] focus:ring-2 focus:ring-[#56afe2]/20 sm:h-11 sm:min-w-[190px] sm:text-sm"
               >
                 {divisiones.map((div) => <option key={div} value={div}>{div} División</option>)}
               </select>
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[#459bd0]">⌄</span>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-[#56afe2]">⌄</span>
             </span>
           </label>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_405px] xl:gap-6">
+        <div className="grid grid-cols-1 gap-5 min-[1100px]:grid-cols-[minmax(0,1fr)_390px] min-[1100px]:gap-6">
           <section className="min-w-0">
             <TablaDivision temporada={temporada} division={division} />
           </section>
 
-          <aside className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1 xl:self-start">
+          <aside className="grid items-start gap-4 sm:grid-cols-2 min-[1100px]:grid-cols-1 min-[1100px]:self-start">
             <section className="overflow-hidden rounded-[10px] border border-[#d8e7f0] bg-white">
-              <header className="flex h-[48px] items-center justify-between border-b border-[#e1edf4] bg-[#f8fbfd] px-4 sm:px-5">
-                <h2 className="text-[15px] font-black uppercase tracking-[-.02em] text-[#102f55] sm:text-[16px]">Próxima fecha</h2>
-                <Link href="/fixture" className="text-[10px] font-bold text-[#5d7893] transition hover:text-[#2498d8] sm:text-[11px]">Ver fixture →</Link>
+              <header className="flex h-[46px] items-center justify-between border-b border-[#e1edf4] bg-[#f8fbfd] px-4">
+                <h2 className="text-[15px] font-black uppercase tracking-[-.02em] text-[#102f55]">Próxima fecha</h2>
+                <Link href="/fixture" className="text-[10px] font-bold text-[#5d7893] transition hover:text-[#2498d8]">Ver fixture →</Link>
               </header>
 
-              <div className="px-3.5 sm:px-4">
+              <div className="px-3.5">
                 {proximosPartidos.length === 0 ? (
-                  <p className="py-7 text-center text-xs text-[#7890a7] sm:text-sm">No hay próximos partidos cargados.</p>
+                  <div className="flex min-h-[62px] items-center justify-center py-3 text-center">
+                    <p className="text-[11px] font-medium text-[#7890a7]">No hay próximos partidos cargados.</p>
+                  </div>
                 ) : (
                   proximosPartidos.map((partido) => (
                     <Link
                       key={partido.id}
                       href="/fixture"
-                      className="grid min-h-[54px] grid-cols-[48px_minmax(0,1fr)_24px_minmax(0,1fr)] items-center gap-1.5 border-b border-[#e7eff5] py-2.5 last:border-b-0 transition hover:bg-[#f8fbfd] sm:grid-cols-[52px_minmax(0,1fr)_26px_minmax(0,1fr)] sm:gap-2"
+                      className="grid min-h-[50px] grid-cols-[46px_minmax(0,1fr)_22px_minmax(0,1fr)] items-center gap-1.5 border-b border-[#e7eff5] py-2 last:border-b-0 transition hover:bg-[#f8fbfd] sm:grid-cols-[50px_minmax(0,1fr)_24px_minmax(0,1fr)]"
                     >
-                      <div className="text-[9px] font-bold leading-[1.45] text-[#64809a] sm:text-[10px]">
+                      <div className="text-[9px] font-bold leading-[1.4] text-[#64809a]">
                         <span className="block truncate">{textoFecha(partido)}</span>
                         <span className="block text-[#8ca0b3]">{partido.hora || "—"}</span>
                       </div>
-                      <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+                      <div className="flex min-w-0 items-center gap-1.5">
                         <EscudoMini nombre={partido.local} />
-                        <span className="truncate text-[10px] font-bold text-[#173e68] sm:text-[11px]">{partido.local}</span>
+                        <span className="truncate text-[10px] font-bold text-[#173e68]">{partido.local}</span>
                       </div>
                       <span className="text-center text-[9px] font-black text-[#7890a7]">vs</span>
-                      <div className="flex min-w-0 items-center justify-end gap-1.5 sm:gap-2">
-                        <span className="truncate text-right text-[10px] font-bold text-[#173e68] sm:text-[11px]">{partido.visitante}</span>
+                      <div className="flex min-w-0 items-center justify-end gap-1.5">
+                        <span className="truncate text-right text-[10px] font-bold text-[#173e68]">{partido.visitante}</span>
                         <EscudoMini nombre={partido.visitante} />
                       </div>
                     </Link>
@@ -231,29 +233,31 @@ export default function DivisionesPage() {
             </section>
 
             <section className="overflow-hidden rounded-[10px] border border-[#d8e7f0] bg-white">
-              <header className="flex h-[48px] items-center justify-between border-b border-[#e1edf4] bg-[#f8fbfd] px-4 sm:px-5">
-                <h2 className="text-[15px] font-black uppercase tracking-[-.02em] text-[#102f55] sm:text-[16px]">Últimos resultados</h2>
-                <Link href="/estadisticas" className="text-[10px] font-bold text-[#5d7893] transition hover:text-[#2498d8] sm:text-[11px]">Ver todos →</Link>
+              <header className="flex h-[46px] items-center justify-between border-b border-[#e1edf4] bg-[#f8fbfd] px-4">
+                <h2 className="text-[15px] font-black uppercase tracking-[-.02em] text-[#102f55]">Últimos resultados</h2>
+                <Link href="/estadisticas" className="text-[10px] font-bold text-[#5d7893] transition hover:text-[#2498d8]">Ver todos →</Link>
               </header>
 
-              <div className="px-3.5 sm:px-4">
+              <div className="px-3.5">
                 {ultimosResultados.length === 0 ? (
-                  <p className="py-7 text-center text-xs text-[#7890a7] sm:text-sm">No hay resultados cargados.</p>
+                  <div className="flex min-h-[62px] items-center justify-center py-3 text-center">
+                    <p className="text-[11px] font-medium text-[#7890a7]">No hay resultados cargados.</p>
+                  </div>
                 ) : (
                   ultimosResultados.map((partido) => (
                     <Link
                       key={partido.id}
                       href={partido.partido_id ? `/estadisticas/${encodeURIComponent(partido.partido_id)}` : "/estadisticas"}
-                      className="grid min-h-[54px] grid-cols-[42px_minmax(0,1fr)_44px_minmax(0,1fr)] items-center gap-1.5 border-b border-[#e7eff5] py-2.5 last:border-b-0 transition hover:bg-[#f8fbfd] sm:grid-cols-[46px_minmax(0,1fr)_50px_minmax(0,1fr)] sm:gap-2"
+                      className="grid min-h-[48px] grid-cols-[40px_minmax(0,1fr)_46px_minmax(0,1fr)] items-center gap-1.5 border-b border-[#e7eff5] py-2 last:border-b-0 transition hover:bg-[#f8fbfd] sm:grid-cols-[44px_minmax(0,1fr)_48px_minmax(0,1fr)]"
                     >
-                      <span className="truncate text-[9px] font-bold text-[#7890a7] sm:text-[10px]">{textoFecha(partido)}</span>
-                      <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+                      <span className="truncate text-[9px] font-bold text-[#7890a7]">{textoFecha(partido)}</span>
+                      <div className="flex min-w-0 items-center gap-1.5">
                         <EscudoMini nombre={partido.local} />
-                        <span className="truncate text-[10px] font-bold text-[#173e68] sm:text-[11px]">{partido.local}</span>
+                        <span className="truncate text-[10px] font-bold text-[#173e68]">{partido.local}</span>
                       </div>
-                      <strong className="text-center text-[13px] font-black text-[#102f55] sm:text-[14px]">{partido.resultado}</strong>
-                      <div className="flex min-w-0 items-center justify-end gap-1.5 sm:gap-2">
-                        <span className="truncate text-right text-[10px] font-bold text-[#173e68] sm:text-[11px]">{partido.visitante}</span>
+                      <strong className="text-center text-[14px] font-black tracking-[-.02em] text-[#102f55]">{partido.resultado}</strong>
+                      <div className="flex min-w-0 items-center justify-end gap-1.5">
+                        <span className="truncate text-right text-[10px] font-bold text-[#173e68]">{partido.visitante}</span>
                         <EscudoMini nombre={partido.visitante} />
                       </div>
                     </Link>
