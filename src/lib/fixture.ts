@@ -1,3 +1,4 @@
+import { getFixtureSeasonYear } from "@/config/fixture";
 import type { CupMatch } from "@/lib/cups/types";
 
 export type FixtureMatch = CupMatch & {
@@ -36,8 +37,29 @@ export function normalizeFixtureText(value: unknown) {
     .toLowerCase();
 }
 
+function validLocalDate(year: number, monthIndex: number, day: number) {
+  const parsed = new Date(year, monthIndex, day);
+  if (
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== monthIndex ||
+    parsed.getDate() !== day
+  ) {
+    return null;
+  }
+  return parsed;
+}
+
 /**
  * Convierte los formatos de fecha más habituales del proyecto a Date.
+ *
+ * Supabase tiene muchos `dia` guardados como "12/7", "17/7", "1/8", etc.
+ * Esos valores NO se pueden mandar directo a Date.parse porque JavaScript los
+ * interpreta con formato estadounidense y puede terminar creando fechas del
+ * año 2001. Por ejemplo, "1/8" podía aparecer como 8 de enero de 2001.
+ *
+ * Para las fechas sin año usamos `calendarYearBySeason` de
+ * `src/config/fixture.ts`. Así "12/7" + Temporada 4 = 12/07/2026.
+ *
  * Si `fecha` es solamente un número de jornada (ej. "4"), se ignora.
  * Para sumar un formato nuevo, hacelo acá y no dentro del calendario visual.
  */
@@ -49,15 +71,29 @@ export function getFixtureMatchDate(match: FixtureMatch): Date | null {
     const raw = String(rawValue).trim();
     if (!raw || /^\d{1,2}$/.test(raw) || /^fecha\s*\d+$/i.test(raw)) continue;
 
+    // Formato argentino corto sin año: 12/7, 1/8, 22-8, etc.
+    const shortLatin = raw.match(/^(\d{1,2})[\/-](\d{1,2})(?:\s+.*)?$/);
+    if (shortLatin) {
+      const day = Number(shortLatin[1]);
+      const monthIndex = Number(shortLatin[2]) - 1;
+      const year = getFixtureSeasonYear(match.temporada);
+      const parsed = validLocalDate(year, monthIndex, day);
+      if (parsed) return parsed;
+      continue;
+    }
+
+    // Formato argentino completo: 12/7/2026, 12-07-26, etc.
     const latin = raw.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})(?:\s+.*)?$/);
     if (latin) {
       const day = Number(latin[1]);
-      const month = Number(latin[2]) - 1;
+      const monthIndex = Number(latin[2]) - 1;
       const year = Number(latin[3].length === 2 ? `20${latin[3]}` : latin[3]);
-      const parsed = new Date(year, month, day);
-      if (!Number.isNaN(parsed.getTime())) return parsed;
+      const parsed = validLocalDate(year, monthIndex, day);
+      if (parsed) return parsed;
+      continue;
     }
 
+    // ISO y otros formatos inequívocos con año explícito.
     const normalizedIso = raw.includes(" ") && /^\d{4}-\d{2}-\d{2}\s/.test(raw)
       ? raw.replace(" ", "T")
       : raw;
