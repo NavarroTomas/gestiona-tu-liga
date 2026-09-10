@@ -5,7 +5,10 @@ import KnockoutBracket from "@/components/cups/knockout/KnockoutBracket";
 import KnockoutCupHero from "@/components/cups/knockout/KnockoutCupHero";
 import KnockoutCupTabs from "@/components/cups/knockout/KnockoutCupTabs";
 import LeagueFooter from "@/components/league/LeagueFooter";
-import { COPA_ARGENTINA_CONFIG } from "@/config/copaArgentina";
+import {
+  COPA_ARGENTINA_CONFIG,
+  getCopaArgentinaSeasonFormat,
+} from "@/config/copaArgentina";
 import { useCopaArgentina } from "@/hooks/useCopaArgentina";
 
 /**
@@ -14,16 +17,18 @@ import { useCopaArgentina } from "@/hooks/useCopaArgentina";
  * Esta página solo compone módulos.
  *
  * Si querés cambiar algo vos mismo:
- * - temporadas, textos, fondo y fases -> `src/config/copaArgentina.ts`
- * - datos/consultas de Supabase       -> `src/hooks/useCopaArgentina.ts`
- * - armado lógico de rondas           -> `src/lib/cups/knockout.ts`
- * - aspecto del cuadro                -> `src/components/cups/knockout/KnockoutBracket.tsx`
+ * - temporadas, textos, fondo y FORMATO POR TEMPORADA -> `src/config/copaArgentina.ts`
+ * - datos/consultas de Supabase                       -> `src/hooks/useCopaArgentina.ts`
+ * - armado lógico de rondas                           -> `src/lib/cups/knockout.ts`
+ * - aspecto del cuadro                                -> `src/components/cups/knockout/KnockoutBracket.tsx`
  *
- * No hace falta agregar lógica nueva a este page.tsx para cambios normales.
+ * Para pasar de Cuartos a Octavos en una temporada NO agregues JSX acá:
+ * cambiá solamente `formatsBySeason` dentro de la configuración.
  */
 export default function CopaArgentinaPage() {
   const [season, setSeason] = useState<string>(COPA_ARGENTINA_CONFIG.defaultSeason);
   const { active, loading, bracket, getLogo } = useCopaArgentina(season);
+  const seasonFormat = getCopaArgentinaSeasonFormat(season);
 
   return (
     <main className="min-h-screen bg-[#f4f9fd] text-[#102f55]">
@@ -47,7 +52,8 @@ export default function CopaArgentinaPage() {
           <KnockoutBracket
             bracket={bracket}
             getLogo={getLogo}
-            showThirdPlace={COPA_ARGENTINA_CONFIG.showThirdPlace}
+            rounds={seasonFormat.rounds}
+            showThirdPlace={seasonFormat.showThirdPlace}
           />
         )}
       </section>
