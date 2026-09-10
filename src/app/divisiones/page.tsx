@@ -12,7 +12,6 @@ export default function DivisionesPage() {
   const [clubesInfo, setClubesInfo] = useState<any[]>([]);
 
   const temporadas = ["Temporada 4"];
-
   const divisiones = ["Primera", "Segunda"];
 
   useEffect(() => {
@@ -91,110 +90,85 @@ export default function DivisionesPage() {
   }
 
   return (
-    <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
-      <section className="max-w-[1500px] mx-auto px-4 md:px-8 py-8 space-y-6">
-        <div className="relative overflow-hidden rounded-[34px] border border-sky-500/40 bg-[#020714] shadow-[0_0_55px_rgba(0,120,255,.28)]">
-          <div className="relative min-h-[250px] bg-[url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center">
-            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 to-black/20" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,140,255,.25),transparent_35%)]" />
+    <main className="min-h-screen bg-[#f4f9fd] text-[#102f55]">
+      <section className="relative min-h-[190px] overflow-hidden border-b border-[#c9e3f1]">
+        <img
+          src="/themes/worldcup/backgrounds/FotoCancha.png"
+          alt="Cancha de Pro Soccer Online"
+          className="absolute inset-0 h-full w-full object-cover object-center"
+        />
 
-            <div className="relative z-10 flex items-center justify-between gap-8 p-7 md:p-10">
-              <div>
-                <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black">
-                  Competición · Torneos
-                </p>
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(244,249,253,.97)_0%,rgba(236,247,253,.90)_32%,rgba(205,235,250,.64)_58%,rgba(86,175,226,.34)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.04))]" />
 
-                <h1 className="mt-4 text-5xl md:text-7xl font-black uppercase italic leading-none">
-                  <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
-                    Torneo
-                  </span>
-                  <span className="block text-sky-400 drop-shadow-[0_0_18px_rgba(56,189,248,.65)]">
-                    de Liga APA
-                  </span>
-                </h1>
-
-                <p className="mt-5 max-w-2xl text-lg leading-8 text-zinc-300">
-                  La competencia principal de APA PSO Argentina. Primera y
-                  Segunda División compiten por puntos, ascensos,
-                  clasificación y gloria temporada tras temporada.
-                </p>
-
-                <div className="mt-7 flex flex-wrap gap-3">
-                  <Link
-                    href="/competicion"
-                    className="rounded-2xl border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-sm font-black uppercase text-sky-300 transition hover:bg-sky-400/20"
-                  >
-                    ← Volver a torneos
-                  </Link>
-
-                  <span className="rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-sm font-black uppercase text-yellow-300">
-                    🏆 Liga oficial
-                  </span>
-
-                  <span className="rounded-2xl border border-green-400/30 bg-green-400/10 px-4 py-2 text-sm font-black uppercase text-green-300">
-                    ● Activa
-                  </span>
-                </div>
-              </div>
-
-              <div className="hidden lg:flex w-40 h-40 rounded-[36px] border border-sky-400/40 bg-black/40 overflow-hidden shadow-[0_0_42px_rgba(0,120,255,.45)] items-center justify-center">
-                <div className="relative h-full w-full">
-                  <div className="absolute inset-0 bg-sky-400/10 blur-2xl" />
-                  <img
-                    src="/logo-apa.png"
-                    alt="APA PSO"
-                    className="relative z-10 w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-            </div>
+        <div className="relative z-10 mx-auto flex min-h-[190px] w-full max-w-[1480px] items-center justify-between gap-8 px-5 py-8 sm:px-8 lg:px-12">
+          <div className="min-w-0">
+            <h1 className="m-0 text-[clamp(34px,4vw,64px)] font-black uppercase leading-[.92] tracking-[-.055em] text-[#102f55]">
+              Torneo de Liga APA
+            </h1>
+            <p className="mt-4 text-[clamp(15px,1.45vw,22px)] font-semibold text-[#214b77]">
+              {division} División · {temporada}
+            </p>
           </div>
 
-          <div className="border-t border-sky-500/30 bg-gradient-to-r from-[#020714] via-[#061a33] to-[#020714] p-4 md:p-5 space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-[120px_1fr] gap-3 items-center">
-              <p className="text-sky-300 uppercase tracking-[0.25em] text-xs font-black">
-                Temporada
-              </p>
-
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                {temporadas.map((temp) => (
-                  <button
-                    key={temp}
-                    onClick={() => setTemporada(temp)}
-                    className={`relative overflow-hidden rounded-xl border px-4 py-3 font-black uppercase text-sm transition-all ${
-                      temporada === temp
-                        ? "border-sky-300 bg-gradient-to-b from-sky-400 to-blue-700 text-white shadow-[0_0_20px_rgba(56,189,248,.45)]"
-                        : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/50 hover:text-white"
-                    }`}
-                  >
-                    {temp.replace("Temporada ", "")}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-[120px_1fr] gap-3 items-center">
-              <p className="text-sky-300 uppercase tracking-[0.25em] text-xs font-black">
-                Categoría
-              </p>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {divisiones.map((div) => (
-                  <button
-                    key={div}
-                    onClick={() => setDivision(div)}
-                    className={`rounded-xl border px-4 py-3 font-black uppercase text-sm transition-all ${
-                      division === div
-                        ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
-                        : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/50 hover:text-white"
-                    }`}
-                  >
-                    🏆 {div}
-                  </button>
-                ))}
-              </div>
-            </div>
+          <div className="hidden shrink-0 items-center gap-5 md:flex">
+            <span className="h-[2px] w-16 bg-white/90" />
+            <p className="m-0 max-w-[230px] text-right text-[12px] font-bold uppercase leading-[1.65] tracking-[.18em] text-white drop-shadow-[0_2px_8px_rgba(16,47,85,.28)]">
+              El fútbol virtual
+              <br />
+              también nos une
+            </p>
           </div>
+        </div>
+      </section>
+
+      <div className="border-b border-[#d7e6f0] bg-white/95">
+        <nav className="mx-auto flex w-full max-w-[1480px] items-end gap-7 overflow-x-auto px-5 sm:px-8 lg:px-12" aria-label="Secciones de Liga">
+          <Link href="/divisiones" className="whitespace-nowrap border-b-[3px] border-transparent px-1 py-4 text-sm font-bold text-[#5c7693] transition hover:text-[#102f55]">
+            Resumen
+          </Link>
+          <Link href="/divisiones" className="whitespace-nowrap border-b-[3px] border-[#56afe2] px-1 py-4 text-sm font-black text-[#102f55]">
+            Tabla
+          </Link>
+          <Link href="/fixture" className="whitespace-nowrap border-b-[3px] border-transparent px-1 py-4 text-sm font-bold text-[#5c7693] transition hover:text-[#102f55]">
+            Partidos
+          </Link>
+          <Link href="/estadisticas" className="whitespace-nowrap border-b-[3px] border-transparent px-1 py-4 text-sm font-bold text-[#5c7693] transition hover:text-[#102f55]">
+            Estadísticas
+          </Link>
+          <Link href="/clubes" className="whitespace-nowrap border-b-[3px] border-transparent px-1 py-4 text-sm font-bold text-[#5c7693] transition hover:text-[#102f55]">
+            Equipos
+          </Link>
+        </nav>
+      </div>
+
+      <section className="mx-auto w-full max-w-[1500px] space-y-6 px-4 py-6 md:px-8">
+        <div className="flex flex-wrap items-center gap-3 border-b border-[#d7e6f0] pb-5">
+          <label className="relative">
+            <span className="sr-only">Temporada</span>
+            <select
+              value={temporada}
+              onChange={(e) => setTemporada(e.target.value)}
+              className="h-11 min-w-[170px] cursor-pointer rounded-lg border border-[#c9deec] bg-[#edf6fc] px-4 pr-10 text-sm font-bold text-[#173e68] outline-none transition focus:border-[#56afe2]"
+            >
+              {temporadas.map((temp) => (
+                <option key={temp} value={temp}>{temp}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="relative">
+            <span className="sr-only">División</span>
+            <select
+              value={division}
+              onChange={(e) => setDivision(e.target.value)}
+              className="h-11 min-w-[190px] cursor-pointer rounded-lg border border-[#c9deec] bg-[#edf6fc] px-4 pr-10 text-sm font-bold text-[#173e68] outline-none transition focus:border-[#56afe2]"
+            >
+              {divisiones.map((div) => (
+                <option key={div} value={div}>{div} División</option>
+              ))}
+            </select>
+          </label>
         </div>
 
         <section className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -206,7 +180,7 @@ export default function DivisionesPage() {
           ].map(([icon, label, value]) => (
             <div
               key={label}
-              className="rounded-[26px] border border-sky-500/20 bg-[#020714]/90 p-5 shadow-[0_0_25px_rgba(0,120,255,.10)]"
+              className="rounded-[26px] border border-sky-500/20 bg-[#020714]/90 p-5 text-white shadow-[0_0_25px_rgba(0,120,255,.10)]"
             >
               <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
                 {icon} {label}
@@ -219,7 +193,7 @@ export default function DivisionesPage() {
         </section>
 
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
-          <section className="overflow-hidden rounded-[30px] border border-sky-500/40 bg-[#020714] shadow-[0_0_40px_rgba(0,120,255,.2)]">
+          <section className="overflow-hidden rounded-[30px] border border-sky-500/40 bg-[#020714] text-white shadow-[0_0_40px_rgba(0,120,255,.2)]">
             <div className="flex items-center justify-between gap-4 border-b border-sky-500/30 bg-gradient-to-r from-[#061a33] to-[#020714] px-5 py-4">
               <div>
                 <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black">
@@ -247,7 +221,7 @@ export default function DivisionesPage() {
             </div>
           </section>
 
-          <aside className="space-y-4">
+          <aside className="space-y-4 text-white">
             <div className="rounded-[26px] border border-sky-500/40 bg-[#020714] p-5 shadow-[0_0_30px_rgba(0,120,255,.18)]">
               <h3 className="text-sky-300 uppercase tracking-[0.25em] text-xs font-black mb-4">
                 Torneo actual
