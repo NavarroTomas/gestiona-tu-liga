@@ -18,7 +18,7 @@ export default function PaginaCompeticion() {
       <main className={estilos.pagina} data-zona="competicion">
         <section className={estilos.hero} aria-labelledby="titulo-competicion">
           <Image
-            src="/themes/worldcup/backgrounds/Banderin.png"
+            src="/images/competicion/fondo_principal.png"
             alt="Estadio vacío de Pro Soccer Online visto desde el córner"
             fill
             priority
