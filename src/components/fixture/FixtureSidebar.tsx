@@ -10,11 +10,26 @@ const selectStyle = {
   borderColor: "#c9e3f1",
 } as const;
 
+type FixtureSidebarProps = {
+  competitionId: FixtureCompetitionId;
+  onCompetitionChange: (id: FixtureCompetitionId) => void;
+  season: string;
+  onSeasonChange: (season: string) => void;
+  division: string;
+  onDivisionChange: (division: string) => void;
+  group: string;
+  onGroupChange: (group: string) => void;
+  compact?: boolean;
+};
+
 /**
- * Lateral de navegación del Fixture.
- * Las competencias, temporadas, divisiones y grupos se editan en
- * `src/config/fixture.ts`. El filtro de equipo queda sobre el calendario,
- * como en la referencia visual.
+ * Navegación y filtros del Fixture.
+ *
+ * `compact=true` se usa en teléfono/tablet: reemplaza la lista vertical de
+ * competencias por selects grandes y táctiles. En desktop conserva el lateral
+ * completo de la referencia.
+ *
+ * Las opciones se editan en `src/config/fixture.ts`.
  */
 export default function FixtureSidebar({
   competitionId,
@@ -25,26 +40,96 @@ export default function FixtureSidebar({
   onDivisionChange,
   group,
   onGroupChange,
-}: {
-  competitionId: FixtureCompetitionId;
-  onCompetitionChange: (id: FixtureCompetitionId) => void;
-  season: string;
-  onSeasonChange: (season: string) => void;
-  division: string;
-  onDivisionChange: (division: string) => void;
-  group: string;
-  onGroupChange: (group: string) => void;
-}) {
+  compact = false,
+}: FixtureSidebarProps) {
   const competition = getFixtureCompetition(competitionId);
 
+  if (compact) {
+    return (
+      <section className="border-b border-[#d5e7f1] bg-white px-4 py-4 sm:px-6">
+        <div className="mx-auto grid max-w-[900px] grid-cols-1 gap-3 sm:grid-cols-2">
+          <label className="block sm:col-span-2">
+            <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[.14em] text-[#4e7ba4]">
+              Competencia
+            </span>
+            <select
+              value={competitionId}
+              onChange={(event) => onCompetitionChange(event.target.value as FixtureCompetitionId)}
+              style={selectStyle}
+              className="h-12 w-full rounded-[9px] border px-3 text-[12px] font-black outline-none focus:border-[#56afe2]"
+            >
+              {FIXTURE_CONFIG.competitions.map((item) => (
+                <option key={item.id} value={item.id} style={selectStyle}>
+                  {item.label} · {item.description}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {competition.divisions ? (
+            <label className="block">
+              <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[.14em] text-[#4e7ba4]">
+                División
+              </span>
+              <select
+                value={division}
+                onChange={(event) => onDivisionChange(event.target.value)}
+                style={selectStyle}
+                className="h-12 w-full rounded-[9px] border px-3 text-[12px] font-black outline-none focus:border-[#56afe2]"
+              >
+                {competition.divisions.map((item) => (
+                  <option key={item} value={item} style={selectStyle}>{item}</option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
+          {competition.groups ? (
+            <label className="block">
+              <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[.14em] text-[#4e7ba4]">
+                Grupo
+              </span>
+              <select
+                value={group}
+                onChange={(event) => onGroupChange(event.target.value)}
+                style={selectStyle}
+                className="h-12 w-full rounded-[9px] border px-3 text-[12px] font-black outline-none focus:border-[#56afe2]"
+              >
+                {competition.groups.map((item) => (
+                  <option key={item} value={item} style={selectStyle}>Grupo {item}</option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
+          <label className={`block ${!competition.divisions && !competition.groups ? "sm:col-span-2" : ""}`}>
+            <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[.14em] text-[#4e7ba4]">
+              Temporada
+            </span>
+            <select
+              value={season}
+              onChange={(event) => onSeasonChange(event.target.value)}
+              style={selectStyle}
+              className="h-12 w-full rounded-[9px] border px-3 text-[12px] font-black outline-none focus:border-[#56afe2]"
+            >
+              {FIXTURE_CONFIG.seasons.map((item) => (
+                <option key={item} value={item} style={selectStyle}>{item}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <aside className="border-b border-[#d5e7f1] bg-white/88 lg:min-h-full lg:border-b-0 lg:border-r">
-      <div className="px-5 py-5 sm:px-7 lg:sticky lg:top-0 lg:px-6 lg:py-7">
+    <aside className="min-h-full border-r border-[#d5e7f1] bg-white/88">
+      <div className="sticky top-0 px-6 py-7">
         <p className="mb-3 text-[10px] font-black uppercase tracking-[.17em] text-[#4e7ba4]">
           Competencias
         </p>
 
-        <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-1">
+        <div className="grid gap-1.5">
           {FIXTURE_CONFIG.competitions.map((item) => {
             const active = item.id === competitionId;
             return (
@@ -58,79 +143,42 @@ export default function FixtureSidebar({
                     : "border-transparent bg-transparent text-[#294d72] hover:bg-[#f3fafe]"
                 }`}
               >
-                {active ? (
-                  <span className="absolute inset-y-0 left-0 w-[3px] rounded-r-full bg-[#2c9ff0]" />
-                ) : null}
+                {active ? <span className="absolute inset-y-0 left-0 w-[3px] rounded-r-full bg-[#2c9ff0]" /> : null}
                 <strong className="block text-[13px] font-black">{item.label}</strong>
-                <span className="mt-0.5 block text-[10px] font-semibold text-[#7890a7]">
-                  {item.description}
-                </span>
+                <span className="mt-0.5 block text-[10px] font-semibold text-[#7890a7]">{item.description}</span>
               </button>
             );
           })}
         </div>
 
-        <div className="mt-7 grid gap-4 border-t border-[#d8e8f1] pt-6 sm:grid-cols-2 lg:grid-cols-1">
+        <div className="mt-7 grid gap-4 border-t border-[#d8e8f1] pt-6">
           {competition.divisions ? (
             <label className="block">
-              <span className="mb-2 block text-[10px] font-black uppercase tracking-[.15em] text-[#4e7ba4]">
-                División
-              </span>
-              <select
-                value={division}
-                onChange={(event) => onDivisionChange(event.target.value)}
-                style={selectStyle}
-                className="h-11 w-full rounded-[8px] border px-3 text-[12px] font-bold outline-none focus:border-[#56afe2]"
-              >
-                {competition.divisions.map((item) => (
-                  <option key={item} value={item} style={selectStyle}>
-                    {item}
-                  </option>
-                ))}
+              <span className="mb-2 block text-[10px] font-black uppercase tracking-[.15em] text-[#4e7ba4]">División</span>
+              <select value={division} onChange={(event) => onDivisionChange(event.target.value)} style={selectStyle} className="h-11 w-full rounded-[8px] border px-3 text-[12px] font-bold outline-none focus:border-[#56afe2]">
+                {competition.divisions.map((item) => <option key={item} value={item} style={selectStyle}>{item}</option>)}
               </select>
             </label>
           ) : null}
 
           {competition.groups ? (
             <label className="block">
-              <span className="mb-2 block text-[10px] font-black uppercase tracking-[.15em] text-[#4e7ba4]">
-                Grupo
-              </span>
-              <select
-                value={group}
-                onChange={(event) => onGroupChange(event.target.value)}
-                style={selectStyle}
-                className="h-11 w-full rounded-[8px] border px-3 text-[12px] font-bold outline-none focus:border-[#56afe2]"
-              >
-                {competition.groups.map((item) => (
-                  <option key={item} value={item} style={selectStyle}>
-                    Grupo {item}
-                  </option>
-                ))}
+              <span className="mb-2 block text-[10px] font-black uppercase tracking-[.15em] text-[#4e7ba4]">Grupo</span>
+              <select value={group} onChange={(event) => onGroupChange(event.target.value)} style={selectStyle} className="h-11 w-full rounded-[8px] border px-3 text-[12px] font-bold outline-none focus:border-[#56afe2]">
+                {competition.groups.map((item) => <option key={item} value={item} style={selectStyle}>Grupo {item}</option>)}
               </select>
             </label>
           ) : null}
 
           <label className="block">
-            <span className="mb-2 block text-[10px] font-black uppercase tracking-[.15em] text-[#4e7ba4]">
-              Temporada
-            </span>
-            <select
-              value={season}
-              onChange={(event) => onSeasonChange(event.target.value)}
-              style={selectStyle}
-              className="h-11 w-full rounded-[8px] border px-3 text-[12px] font-bold outline-none focus:border-[#56afe2]"
-            >
-              {FIXTURE_CONFIG.seasons.map((item) => (
-                <option key={item} value={item} style={selectStyle}>
-                  {item}
-                </option>
-              ))}
+            <span className="mb-2 block text-[10px] font-black uppercase tracking-[.15em] text-[#4e7ba4]">Temporada</span>
+            <select value={season} onChange={(event) => onSeasonChange(event.target.value)} style={selectStyle} className="h-11 w-full rounded-[8px] border px-3 text-[12px] font-bold outline-none focus:border-[#56afe2]">
+              {FIXTURE_CONFIG.seasons.map((item) => <option key={item} value={item} style={selectStyle}>{item}</option>)}
             </select>
           </label>
         </div>
 
-        <div className="mt-8 hidden border-t border-[#d8e8f1] pt-6 text-[10px] font-semibold uppercase leading-5 tracking-[.14em] text-[#6f879d] lg:block">
+        <div className="mt-8 border-t border-[#d8e8f1] pt-6 text-[10px] font-semibold uppercase leading-5 tracking-[.14em] text-[#6f879d]">
           El fútbol virtual<br />también nos une.
           <span className="mt-3 block h-[2px] w-8 bg-[#56afe2]" />
         </div>
