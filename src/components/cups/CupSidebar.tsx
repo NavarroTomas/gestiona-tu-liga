@@ -1,4 +1,5 @@
 import Link from "next/link";
+import TeamLink from "@/components/team/TeamLink";
 import type { CupMatch } from "@/lib/cups/types";
 import { formatCupDate } from "@/lib/cups/utils";
 
@@ -39,17 +40,37 @@ export default function CupSidebar({
         {nextMatch ? (
           <div className="px-4 py-5 sm:px-5 sm:py-6">
             <div className="grid grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)] items-center gap-2">
-              <div className="flex min-w-0 flex-col items-center gap-2.5 text-center">
-                <TeamLogo name={nextMatch.local} getLogo={getLogo} size="lg" />
-                <strong className="max-w-full truncate text-[12px] font-black text-[#173e68] sm:text-[13px]">{nextMatch.local}</strong>
-              </div>
+              <TeamLink
+                name={nextMatch.local}
+                className="group/team flex min-w-0 flex-col items-center gap-2.5 text-center"
+              >
+                <span className="transition-transform group-hover/team:scale-[1.04]">
+                  <TeamLogo name={nextMatch.local} getLogo={getLogo} size="lg" />
+                </span>
+                <strong className="max-w-full truncate text-[12px] font-black text-[#173e68] transition-colors group-hover/team:text-[#258fcf] sm:text-[13px]">
+                  {nextMatch.local}
+                </strong>
+              </TeamLink>
 
-              <span className="text-center text-[14px] font-black uppercase text-[#102f55]">vs</span>
+              <Link
+                href="/fixture"
+                className="text-center text-[14px] font-black uppercase text-[#102f55] transition-colors hover:text-[#258fcf]"
+                aria-label="Ver partido en el fixture"
+              >
+                vs
+              </Link>
 
-              <div className="flex min-w-0 flex-col items-center gap-2.5 text-center">
-                <TeamLogo name={nextMatch.visitante} getLogo={getLogo} size="lg" />
-                <strong className="max-w-full truncate text-[12px] font-black text-[#173e68] sm:text-[13px]">{nextMatch.visitante}</strong>
-              </div>
+              <TeamLink
+                name={nextMatch.visitante}
+                className="group/team flex min-w-0 flex-col items-center gap-2.5 text-center"
+              >
+                <span className="transition-transform group-hover/team:scale-[1.04]">
+                  <TeamLogo name={nextMatch.visitante} getLogo={getLogo} size="lg" />
+                </span>
+                <strong className="max-w-full truncate text-[12px] font-black text-[#173e68] transition-colors group-hover/team:text-[#258fcf] sm:text-[13px]">
+                  {nextMatch.visitante}
+                </strong>
+              </TeamLink>
             </div>
 
             <div className="mt-5 border-t border-[#e7eff5] pt-4">
@@ -86,24 +107,40 @@ export default function CupSidebar({
             <p className="py-7 text-center text-[11px] font-medium text-[#7890a7]">No hay partidos pendientes.</p>
           ) : (
             matchdayMatches.map((match) => (
-              <Link
+              <div
                 key={match.id}
-                href="/fixture"
                 className="grid min-h-[56px] grid-cols-[minmax(0,1fr)_24px_minmax(0,1fr)_54px] items-center gap-1.5 border-b border-[#e7eff5] py-2.5 last:border-b-0 transition hover:bg-[#f8fbfd]"
               >
-                <div className="flex min-w-0 items-center gap-1.5">
-                  <TeamLogo name={match.local} getLogo={getLogo} size="sm" />
-                  <span className="truncate text-[10px] font-bold text-[#173e68]">{match.local}</span>
-                </div>
-                <span className="text-center text-[9px] font-black text-[#7890a7]">vs</span>
-                <div className="flex min-w-0 items-center justify-end gap-1.5">
-                  <span className="truncate text-right text-[10px] font-bold text-[#173e68]">{match.visitante}</span>
-                  <TeamLogo name={match.visitante} getLogo={getLogo} size="sm" />
-                </div>
-                <span className="text-right text-[9px] font-bold leading-[1.3] text-[#7890a7]">
+                <TeamLink name={match.local} className="group/team flex min-w-0 items-center gap-1.5">
+                  <span className="transition-transform group-hover/team:scale-[1.04]">
+                    <TeamLogo name={match.local} getLogo={getLogo} size="sm" />
+                  </span>
+                  <span className="truncate text-[10px] font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">{match.local}</span>
+                </TeamLink>
+
+                <Link
+                  href="/fixture"
+                  className="text-center text-[9px] font-black text-[#7890a7] transition-colors hover:text-[#258fcf]"
+                  aria-label={`Ver ${match.local} vs ${match.visitante} en el fixture`}
+                >
+                  vs
+                </Link>
+
+                <TeamLink name={match.visitante} className="group/team flex min-w-0 items-center justify-end gap-1.5">
+                  <span className="truncate text-right text-[10px] font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">{match.visitante}</span>
+                  <span className="transition-transform group-hover/team:scale-[1.04]">
+                    <TeamLogo name={match.visitante} getLogo={getLogo} size="sm" />
+                  </span>
+                </TeamLink>
+
+                <Link
+                  href="/fixture"
+                  className="text-right text-[9px] font-bold leading-[1.3] text-[#7890a7] transition-colors hover:text-[#258fcf]"
+                  aria-label={`Ver ${match.local} vs ${match.visitante} en el fixture`}
+                >
                   {match.hora || formatCupDate(match)}
-                </span>
-              </Link>
+                </Link>
+              </div>
             ))
           )}
         </div>
