@@ -80,19 +80,32 @@ export function sameFixtureDay(a: Date | null, b: Date | null) {
   return dateKey(a) === dateKey(b);
 }
 
-/** Crea las 6 semanas del calendario mensual (42 celdas). */
+/**
+ * Crea únicamente las semanas necesarias para el mes visible.
+ *
+ * Antes siempre generábamos 42 celdas (6 semanas), aunque el mes necesitara
+ * solo 5. Eso hacía aparecer una fila completa del mes siguiente. Ahora la
+ * grilla puede tener 4, 5 o 6 semanas según el mes real. Las celdas de relleno
+ * de la primera/última semana se mantienen solo para conservar la alineación
+ * de domingo a sábado; el componente visual las deja vacías.
+ */
 export function buildFixtureCalendar(month: Date): FixtureCalendarDay[] {
-  const first = new Date(month.getFullYear(), month.getMonth(), 1);
+  const year = month.getFullYear();
+  const monthIndex = month.getMonth();
+  const first = new Date(year, monthIndex, 1);
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  const requiredCells = first.getDay() + daysInMonth;
+  const weekCount = Math.ceil(requiredCells / 7);
   const gridStart = new Date(first);
   gridStart.setDate(first.getDate() - first.getDay());
 
-  return Array.from({ length: 42 }, (_, index) => {
+  return Array.from({ length: weekCount * 7 }, (_, index) => {
     const date = new Date(gridStart);
     date.setDate(gridStart.getDate() + index);
     return {
       date,
       key: dateKey(date),
-      inCurrentMonth: date.getMonth() === month.getMonth(),
+      inCurrentMonth: date.getMonth() === monthIndex && date.getFullYear() === year,
     };
   });
 }
