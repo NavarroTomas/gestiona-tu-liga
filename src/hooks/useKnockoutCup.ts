@@ -6,8 +6,12 @@ import type { CupClub, CupMatch } from "@/lib/cups/types";
 import { buildKnockoutBracket, getKnockoutWinner, normalizeCupText } from "@/lib/cups/knockout";
 
 type KnockoutDataConfig = {
-  configTable: string;
-  activationField: string;
+  /**
+   * Algunas copas tienen un flag de activación en `configuracion_copas` y
+   * otras no. Si estos dos campos se omiten, la competición se considera activa.
+   */
+  configTable?: string;
+  activationField?: string;
   competitionKey: string;
   phaseKeywords: {
     roundOf16: readonly string[];
@@ -21,12 +25,11 @@ type KnockoutDataConfig = {
 /**
  * HOOK COMPARTIDO PARA COPAS DE ELIMINACIÓN DIRECTA
  * -------------------------------------------------
- * Copa Argentina y Copa APA usan la misma mecánica de datos. Este hook evita
- * duplicar consultas y lógica: cada copa solamente le pasa su configuración.
+ * Copa Argentina, Copa APA y Copa de Campeones comparten esta mecánica.
+ * Cada competición solamente aporta su configuración.
  *
- * Si cambia la estructura común de Supabase para ambas copas, modificá acá.
- * Si cambia únicamente una clave/nombre de una copa, modificá su archivo de
- * configuración (`copaArgentina.ts` o `copaApa.ts`).
+ * Si una copa usa un flag de activación, pasá `configTable` + `activationField`.
+ * Si no usa flag, omitilos y el hook consulta directamente sus partidos.
  */
 export function useKnockoutCup(season: string, config: KnockoutDataConfig) {
   const [active, setActive] = useState<boolean | null>(null);
@@ -39,13 +42,31 @@ export function useKnockoutCup(season: string, config: KnockoutDataConfig) {
 
     async function load() {
       setLoading(true);
+      let isActive = true;
 
-      const [configRes, matchesRes, clubsRes] = await Promise.all([
-        supabase
+      if (config.configTable && config.activationField) {
+        const configRes = await supabase
           .from(config.configTable)
           .select(config.activationField)
           .eq("temporada", season)
-          .maybeSingle(),
+          .maybeSingle();
+
+        if (cancelled) return;
+        if (configRes.error) console.log(configRes.error);
+
+        const configData = configRes.data as Record<string, unknown> | null;
+        isActive = Boolean(configData?.[config.activationField]);
+      }
+
+      if (!isActive) {
+        setActive(false);
+        setMatches([]);
+        setClubs([]);
+        setLoading(false);
+        return;
+      }
+
+      const [matchesRes, clubsRes] = await Promise.all([
         supabase
           .from("partidos")
           .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora, competicion, grupo, fase, ronda")
@@ -57,15 +78,11 @@ export function useKnockoutCup(season: string, config: KnockoutDataConfig) {
 
       if (cancelled) return;
 
-      if (configRes.error) console.log(configRes.error);
       if (matchesRes.error) console.log(matchesRes.error);
       if (clubsRes.error) console.log(clubsRes.error);
 
-      const configData = configRes.data as Record<string, unknown> | null;
-      const isActive = Boolean(configData?.[config.activationField]);
-
-      setActive(isActive);
-      setMatches(isActive && !matchesRes.error ? ((matchesRes.data || []) as CupMatch[]) : []);
+      setActive(true);
+      setMatches(!matchesRes.error ? ((matchesRes.data || []) as CupMatch[]) : []);
       setClubs(!clubsRes.error ? ((clubsRes.data || []) as CupClub[]) : []);
       setLoading(false);
     }
