@@ -5,18 +5,26 @@ import Link from "next/link";
 import TablaDivision from "@/components/TablaDivision";
 import { supabase } from "@/lib/supabase";
 
+function normalizarDivision(division: string) {
+  const valor = String(division || "").toLowerCase();
+  if (valor.includes("primera")) return "primera";
+  if (valor.includes("segunda")) return "segunda";
+  return valor;
+}
+
 export default function DivisionesPage() {
   const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
   const [ultimosResultados, setUltimosResultados] = useState<any[]>([]);
+  const [proximosPartidos, setProximosPartidos] = useState<any[]>([]);
   const [clubesInfo, setClubesInfo] = useState<any[]>([]);
 
   const temporadas = ["Temporada 4"];
   const divisiones = ["Primera", "Segunda"];
 
   useEffect(() => {
-    cargarUltimosResultados();
-  }, []);
+    cargarPartidos();
+  }, [temporada, division]);
 
   function logoEquipo(nombre?: string) {
     if (!nombre) return null;
@@ -34,59 +42,88 @@ export default function DivisionesPage() {
     const logo = logoEquipo(nombre);
 
     return (
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-sky-400/40 bg-gradient-to-br from-sky-500 to-blue-950 text-[10px] font-black shadow-[0_0_12px_rgba(56,189,248,.35)]">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden">
         {logo ? (
           <img
             src={logo}
             alt={nombre}
-            className="h-full w-full object-contain p-1"
+            className="h-full w-full object-contain"
           />
         ) : (
-          nombre?.slice(0, 2).toUpperCase()
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#e8f3fa] text-[8px] font-black text-[#55738f]">
+            {nombre?.slice(0, 2).toUpperCase()}
+          </span>
         )}
-      </div>
+      </span>
     );
   }
 
-  async function cargarUltimosResultados() {
+  function textoFecha(partido: any) {
+    if (partido?.dia) return String(partido.dia);
+    if (!partido?.fecha) return "Próximo";
+
+    const fecha = new Date(partido.fecha);
+    if (Number.isNaN(fecha.getTime())) return String(partido.fecha);
+
+    return new Intl.DateTimeFormat("es-AR", {
+      day: "2-digit",
+      month: "2-digit",
+    }).format(fecha);
+  }
+
+  async function cargarPartidos() {
     const { data, error } = await supabase
       .from("partidos")
-      .select("id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora")
-      .not("resultado", "is", null)
-      .not("partido_id", "is", null)
-      .order("id", { ascending: false })
-      .limit(3);
+      .select(
+        "id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora",
+      )
+      .eq("temporada", temporada)
+      .order("id", { ascending: true });
 
     if (error) {
       console.log(error);
+      setUltimosResultados([]);
+      setProximosPartidos([]);
       return;
     }
 
-    const resultados = data || [];
-    setUltimosResultados(resultados);
+    const divisionKey = normalizarDivision(division);
+    const partidosDivision = (data || []).filter(
+      (p: any) => normalizarDivision(p.division) === divisionKey,
+    );
+
+    const jugados = partidosDivision
+      .filter((p: any) => String(p.resultado || "").trim() !== "")
+      .slice(-5)
+      .reverse();
+
+    const pendientes = partidosDivision
+      .filter((p: any) => String(p.resultado || "").trim() === "")
+      .slice(0, 5);
+
+    setUltimosResultados(jugados);
+    setProximosPartidos(pendientes);
 
     const nombresEquipos = Array.from(
       new Set(
-        resultados
+        [...jugados, ...pendientes]
           .flatMap((p: any) => [p.local, p.visitante])
           .filter(Boolean),
       ),
     );
 
-    if (nombresEquipos.length > 0) {
-      const { data: clubesData, error: clubesError } = await supabase
-        .from("clubes_info")
-        .select("nombre, logo_url")
-        .in("nombre", nombresEquipos);
-
-      if (clubesError) {
-        console.log(clubesError);
-      }
-
-      setClubesInfo(clubesData || []);
-    } else {
+    if (nombresEquipos.length === 0) {
       setClubesInfo([]);
+      return;
     }
+
+    const { data: clubesData, error: clubesError } = await supabase
+      .from("clubes_info")
+      .select("nombre, logo_url")
+      .in("nombre", nombresEquipos);
+
+    if (clubesError) console.log(clubesError);
+    setClubesInfo(clubesData || []);
   }
 
   return (
@@ -114,27 +151,45 @@ export default function DivisionesPage() {
       </section>
 
       <div className="border-b border-[#d7e6f0] bg-white/95">
-        <nav className="mx-auto flex w-full max-w-[1480px] items-end gap-7 overflow-x-auto px-5 sm:px-8 lg:px-12" aria-label="Secciones de Liga">
-          <Link href="/divisiones" className="whitespace-nowrap border-b-[3px] border-transparent px-1 py-4 text-sm font-bold text-[#5c7693] transition hover:text-[#102f55]">
+        <nav
+          className="mx-auto flex w-full max-w-[1480px] items-end gap-7 overflow-x-auto px-5 sm:px-8 lg:px-12"
+          aria-label="Secciones de Liga"
+        >
+          <Link
+            href="/divisiones"
+            className="whitespace-nowrap border-b-[3px] border-transparent px-1 py-4 text-sm font-bold text-[#5c7693] transition hover:text-[#102f55]"
+          >
             Resumen
           </Link>
-          <Link href="/divisiones" className="whitespace-nowrap border-b-[3px] border-[#56afe2] px-1 py-4 text-sm font-black text-[#102f55]">
+          <Link
+            href="/divisiones"
+            className="whitespace-nowrap border-b-[3px] border-[#56afe2] px-1 py-4 text-sm font-black text-[#102f55]"
+          >
             Tabla
           </Link>
-          <Link href="/fixture" className="whitespace-nowrap border-b-[3px] border-transparent px-1 py-4 text-sm font-bold text-[#5c7693] transition hover:text-[#102f55]">
+          <Link
+            href="/fixture"
+            className="whitespace-nowrap border-b-[3px] border-transparent px-1 py-4 text-sm font-bold text-[#5c7693] transition hover:text-[#102f55]"
+          >
             Partidos
           </Link>
-          <Link href="/estadisticas" className="whitespace-nowrap border-b-[3px] border-transparent px-1 py-4 text-sm font-bold text-[#5c7693] transition hover:text-[#102f55]">
+          <Link
+            href="/estadisticas"
+            className="whitespace-nowrap border-b-[3px] border-transparent px-1 py-4 text-sm font-bold text-[#5c7693] transition hover:text-[#102f55]"
+          >
             Estadísticas
           </Link>
-          <Link href="/clubes" className="whitespace-nowrap border-b-[3px] border-transparent px-1 py-4 text-sm font-bold text-[#5c7693] transition hover:text-[#102f55]">
+          <Link
+            href="/clubes"
+            className="whitespace-nowrap border-b-[3px] border-transparent px-1 py-4 text-sm font-bold text-[#5c7693] transition hover:text-[#102f55]"
+          >
             Equipos
           </Link>
         </nav>
       </div>
 
-      <section className="mx-auto w-full max-w-[1500px] space-y-6 px-4 py-6 md:px-8">
-        <div className="flex flex-wrap items-center gap-3 border-b border-[#d7e6f0] pb-5">
+      <section className="mx-auto w-full max-w-[1480px] px-5 py-6 sm:px-8 lg:px-12">
+        <div className="flex flex-wrap items-center gap-3 pb-5">
           <label className="relative">
             <span className="sr-only">Temporada</span>
             <select
@@ -143,7 +198,9 @@ export default function DivisionesPage() {
               className="h-11 min-w-[170px] cursor-pointer rounded-lg border border-[#c9deec] bg-[#edf6fc] px-4 pr-10 text-sm font-bold text-[#173e68] outline-none transition focus:border-[#56afe2]"
             >
               {temporadas.map((temp) => (
-                <option key={temp} value={temp}>{temp}</option>
+                <option key={temp} value={temp}>
+                  {temp}
+                </option>
               ))}
             </select>
           </label>
@@ -156,230 +213,145 @@ export default function DivisionesPage() {
               className="h-11 min-w-[190px] cursor-pointer rounded-lg border border-[#c9deec] bg-[#edf6fc] px-4 pr-10 text-sm font-bold text-[#173e68] outline-none transition focus:border-[#56afe2]"
             >
               {divisiones.map((div) => (
-                <option key={div} value={div}>{div} División</option>
+                <option key={div} value={div}>
+                  {div} División
+                </option>
               ))}
             </select>
           </label>
         </div>
 
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-4">
-          {[
-            ["🏆", "Torneo", "Liga APA"],
-            ["📅", "Temporada", temporada],
-            ["🛡️", "Categoría", `${division} División`],
-            ["🟢", "Estado", "Activa"],
-          ].map(([icon, label, value]) => (
-            <div
-              key={label}
-              className="rounded-[26px] border border-sky-500/20 bg-[#020714]/90 p-5 text-white shadow-[0_0_25px_rgba(0,120,255,.10)]"
-            >
-              <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
-                {icon} {label}
-              </p>
-              <p className="mt-2 text-2xl font-black uppercase text-white">
-                {value}
-              </p>
-            </div>
-          ))}
-        </section>
-
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
-          <section className="overflow-hidden rounded-[30px] border border-sky-500/40 bg-[#020714] text-white shadow-[0_0_40px_rgba(0,120,255,.2)]">
-            <div className="flex items-center justify-between gap-4 border-b border-sky-500/30 bg-gradient-to-r from-[#061a33] to-[#020714] px-5 py-4">
+        <div className="grid grid-cols-1 gap-7 xl:grid-cols-[minmax(0,1fr)_390px]">
+          <section className="min-w-0">
+            <div className="mb-3 flex items-end justify-between gap-4">
               <div>
-                <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black">
-                  Torneo de Liga
+                <p className="text-[11px] font-black uppercase tracking-[.2em] text-[#6c88a2]">
+                  Clasificación
                 </p>
-
-                <h2 className="text-2xl md:text-4xl font-black uppercase mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 leading-tight">
-                  <span className="inline-block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent pr-1">
-                    {temporada}
-                  </span>
-
-                  <span className="inline-block text-sky-400">
-                    / {division} División
-                  </span>
+                <h2 className="mt-1 text-[clamp(21px,2vw,30px)] font-black uppercase tracking-[-.035em] text-[#102f55]">
+                  Tabla de posiciones
                 </h2>
               </div>
 
-              <div className="hidden md:flex w-16 h-16 rounded-2xl border border-sky-400/30 bg-sky-400/10 items-center justify-center text-3xl">
-                🏆
-              </div>
+              <span className="hidden text-xs font-bold text-[#708ba4] sm:block">
+                {division} División · {temporada}
+              </span>
             </div>
 
-            <div className="p-4 md:p-5">
-              <TablaDivision temporada={temporada} division={division} />
-            </div>
+            <TablaDivision temporada={temporada} division={division} />
           </section>
 
-          <aside className="space-y-4 text-white">
-            <div className="rounded-[26px] border border-sky-500/40 bg-[#020714] p-5 shadow-[0_0_30px_rgba(0,120,255,.18)]">
-              <h3 className="text-sky-300 uppercase tracking-[0.25em] text-xs font-black mb-4">
-                Torneo actual
-              </h3>
-
-              <div className="space-y-3 text-sm">
-                <p className="flex justify-between gap-4">
-                  <span className="text-zinc-400">Temporada</span>
-                  <b>{temporada}</b>
-                </p>
-
-                <p className="flex justify-between gap-4">
-                  <span className="text-zinc-400">Categoría</span>
-                  <b className="text-sky-400">{division} División</b>
-                </p>
-
-                <p className="flex justify-between gap-4">
-                  <span className="text-zinc-400">Estado</span>
-                  <b className="text-green-400">● Activa</b>
-                </p>
-
-                <p className="flex justify-between gap-4">
-                  <span className="text-zinc-400">Formato</span>
-                  <b>Todos contra todos</b>
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded-[26px] border border-yellow-500/35 bg-gradient-to-b from-[#18120a] to-[#050505] p-5 shadow-[0_0_30px_rgba(250,204,21,.12)]">
-              <h3 className="text-yellow-300 uppercase tracking-[0.25em] text-xs font-black mb-4">
-                Zonas del torneo
-              </h3>
-
-              {division === "Primera" ? (
-                <div className="space-y-3 text-sm font-black uppercase">
-                  <div className="flex items-center justify-between rounded-xl border border-white/5 bg-black/30 px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <span className="h-3 w-9 rounded bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,.65)]" />
-                      <span>Campeón</span>
-                    </div>
-                    <span className="text-zinc-500 text-[10px]">1°</span>
-                  </div>
-
-                  <div className="flex items-center justify-between rounded-xl border border-white/5 bg-black/30 px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <span className="h-3 w-9 rounded bg-orange-400 shadow-[0_0_10px_rgba(251,146,60,.6)]" />
-                      <span>Promoción</span>
-                    </div>
-                    <span className="text-zinc-500 text-[10px]">7°</span>
-                  </div>
-
-                  <div className="flex items-center justify-between rounded-xl border border-white/5 bg-black/30 px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <span className="h-3 w-9 rounded bg-red-600 shadow-[0_0_10px_rgba(239,68,68,.55)]" />
-                      <span>Descenso</span>
-                    </div>
-                    <span className="text-zinc-500 text-[10px]">8°</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3 text-sm font-black uppercase">
-                  <div className="flex items-center justify-between rounded-xl border border-white/5 bg-black/30 px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <span className="h-3 w-9 rounded bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,.65)]" />
-                      <span>Ascenso directo</span>
-                    </div>
-                    <span className="text-zinc-500 text-[10px]">1°</span>
-                  </div>
-
-                  <div className="flex items-center justify-between rounded-xl border border-white/5 bg-black/30 px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <span className="h-3 w-9 rounded bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,.65)]" />
-                      <span>Playoffs</span>
-                    </div>
-                    <span className="text-zinc-500 text-[10px]">2°-5°</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="rounded-[26px] border border-sky-500/40 bg-[#020714] p-5 shadow-[0_0_30px_rgba(0,120,255,.18)]">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sky-300 uppercase tracking-[0.25em] text-xs font-black">
-                  Últimos partidos
+          <aside className="space-y-4">
+            <section className="overflow-hidden rounded-[14px] border border-[#d8e7f0] bg-white">
+              <header className="flex items-center justify-between border-b border-[#e1edf4] bg-[#f8fbfd] px-5 py-4">
+                <h3 className="text-[17px] font-black uppercase tracking-[-.025em] text-[#102f55]">
+                  Próxima fecha
                 </h3>
+                <Link
+                  href="/fixture"
+                  className="text-[11px] font-bold text-[#5d7893] transition hover:text-[#2498d8]"
+                >
+                  Ver fixture →
+                </Link>
+              </header>
 
-                <span className="text-[10px] text-zinc-500 uppercase font-black">
-                  Torneo
-                </span>
-              </div>
-
-              <div className="space-y-3">
-                {ultimosResultados.length === 0 ? (
-                  <div className="rounded-2xl border border-sky-500/20 bg-black/35 p-4 text-center text-xs text-zinc-500">
-                    No hay resultados cargados.
-                  </div>
+              <div className="px-4">
+                {proximosPartidos.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-[#7890a7]">
+                    No hay próximos partidos cargados.
+                  </p>
                 ) : (
-                  ultimosResultados.map((partido) => (
+                  proximosPartidos.map((partido) => (
                     <Link
                       key={partido.id}
-                      href={`/estadisticas/${encodeURIComponent(partido.partido_id)}`}
-                      className="group block rounded-2xl border border-sky-500/20 bg-black/35 p-3 transition hover:border-sky-400/60 hover:bg-sky-500/10"
+                      href="/fixture"
+                      className="grid grid-cols-[58px_minmax(0,1fr)_30px_minmax(0,1fr)] items-center gap-2 border-b border-[#e7eff5] py-3.5 last:border-b-0"
                     >
-                      <div className="grid grid-cols-[1fr_78px_1fr] items-center gap-3">
-                        <div className="min-w-0 flex items-center gap-2">
-                          <EscudoMini nombre={partido.local} />
-
-                          <span className="truncate text-[11px] font-black text-white">
-                            {partido.local}
-                          </span>
-                        </div>
-
-                        <div className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-2 py-1 text-center">
-                          <span className="whitespace-nowrap text-lg font-black text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,.55)]">
-                            {partido.resultado}
-                          </span>
-                        </div>
-
-                        <div className="min-w-0 flex items-center justify-end gap-2">
-                          <span className="truncate text-right text-[11px] font-black text-zinc-300">
-                            {partido.visitante}
-                          </span>
-
-                          <EscudoMini nombre={partido.visitante} />
-                        </div>
+                      <div className="text-[10px] font-bold leading-4 text-[#64809a]">
+                        <span className="block">{textoFecha(partido)}</span>
+                        <span className="block text-[#8ca0b3]">
+                          {partido.hora || "—"}
+                        </span>
                       </div>
 
-                      <div className="mt-3 flex items-center justify-between">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-sky-400">
-                          {partido.division || "Sin división"}
-                        </p>
-
-                        <span className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500 group-hover:text-sky-300">
-                          Ver stats →
+                      <div className="flex min-w-0 items-center gap-2">
+                        <EscudoMini nombre={partido.local} />
+                        <span className="truncate text-[11px] font-bold text-[#173e68]">
+                          {partido.local}
                         </span>
+                      </div>
+
+                      <span className="text-center text-[10px] font-black text-[#668099]">
+                        vs
+                      </span>
+
+                      <div className="flex min-w-0 items-center justify-end gap-2">
+                        <span className="truncate text-right text-[11px] font-bold text-[#173e68]">
+                          {partido.visitante}
+                        </span>
+                        <EscudoMini nombre={partido.visitante} />
                       </div>
                     </Link>
                   ))
                 )}
               </div>
+            </section>
 
-              <Link
-                href="/estadisticas"
-                className="mt-4 block w-full rounded-xl border border-sky-500/30 bg-sky-500/10 py-3 text-center text-[11px] font-black uppercase tracking-[0.22em] text-sky-300 transition hover:bg-sky-500/20"
-              >
-                Ver todos los resultados
-              </Link>
-            </div>
-
-            <div className="relative overflow-hidden rounded-[26px] border border-sky-500/35 bg-[#020714] p-5 min-h-[150px]">
-              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1517927033932-b3d18e61fb3a?q=80&w=1200&auto=format&fit=crop')] bg-cover bg-center opacity-25" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
-
-              <div className="relative z-10">
-                <p className="text-sky-300 uppercase tracking-[0.25em] text-xs font-black">
-                  Torneo de Liga
-                </p>
-
-                <h3 className="text-2xl font-black mt-2 uppercase">
-                  Camino al campeonato
+            <section className="overflow-hidden rounded-[14px] border border-[#d8e7f0] bg-white">
+              <header className="flex items-center justify-between border-b border-[#e1edf4] bg-[#f8fbfd] px-5 py-4">
+                <h3 className="text-[17px] font-black uppercase tracking-[-.025em] text-[#102f55]">
+                  Últimos resultados
                 </h3>
+                <Link
+                  href="/estadisticas"
+                  className="text-[11px] font-bold text-[#5d7893] transition hover:text-[#2498d8]"
+                >
+                  Ver todos →
+                </Link>
+              </header>
 
-                <p className="text-zinc-400 text-sm mt-2">
-                  Cada punto cuenta. Cada fecha importa. Cada división escribe su historia.
-                </p>
+              <div className="px-4">
+                {ultimosResultados.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-[#7890a7]">
+                    No hay resultados cargados.
+                  </p>
+                ) : (
+                  ultimosResultados.map((partido) => (
+                    <Link
+                      key={partido.id}
+                      href={
+                        partido.partido_id
+                          ? `/estadisticas/${encodeURIComponent(partido.partido_id)}`
+                          : "/estadisticas"
+                      }
+                      className="grid grid-cols-[46px_minmax(0,1fr)_54px_minmax(0,1fr)] items-center gap-2 border-b border-[#e7eff5] py-3.5 last:border-b-0"
+                    >
+                      <span className="text-[10px] font-bold text-[#7890a7]">
+                        {textoFecha(partido)}
+                      </span>
+
+                      <div className="flex min-w-0 items-center gap-2">
+                        <EscudoMini nombre={partido.local} />
+                        <span className="truncate text-[11px] font-bold text-[#173e68]">
+                          {partido.local}
+                        </span>
+                      </div>
+
+                      <strong className="text-center text-[15px] font-black text-[#102f55]">
+                        {partido.resultado}
+                      </strong>
+
+                      <div className="flex min-w-0 items-center justify-end gap-2">
+                        <span className="truncate text-right text-[11px] font-bold text-[#173e68]">
+                          {partido.visitante}
+                        </span>
+                        <EscudoMini nombre={partido.visitante} />
+                      </div>
+                    </Link>
+                  ))
+                )}
               </div>
-            </div>
+            </section>
           </aside>
         </div>
       </section>
