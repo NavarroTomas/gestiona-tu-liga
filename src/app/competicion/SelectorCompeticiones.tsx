@@ -1,44 +1,14 @@
 import Link from "next/link";
+import { getEnabledCompetitions } from "@/config/competitions";
 import estilos from "./competicion.module.css";
 
-const competiciones = [
-  {
-    titulo: "Torneo de Liga",
-    subtitulo: "Primera y Segunda",
-    href: "/divisiones",
-  },
-  {
-    titulo: "Clasificación a Copas",
-    subtitulo: "Fase de grupos",
-    href: "/competicion/copas",
-  },
-  {
-    titulo: "Copa Argentina",
-    subtitulo: "Cuartos de final",
-    href: "/competicion/copa-argentina",
-  },
-  {
-    titulo: "Copa APA",
-    subtitulo: "En juego",
-    href: "/competicion/copa-apa",
-  },
-  {
-    titulo: "Playoffs de Ascenso",
-    subtitulo: "Próximamente",
-    href: "/competicion/playoffs",
-  },
-  {
-    titulo: "Copa de Campeones",
-    subtitulo: "Próximamente",
-    href: "/competicion/copa-campeones",
-  },
-];
-
 export default function SelectorCompeticiones() {
+  const competiciones = getEnabledCompetitions();
+
   return (
     <ul className={estilos.menu} role="list">
       {competiciones.map((competicion) => (
-        <li key={competicion.titulo} className={estilos.item}>
+        <li key={competicion.id} className={estilos.item}>
           <Link
             className={estilos.botonCompeticion}
             href={competicion.href}

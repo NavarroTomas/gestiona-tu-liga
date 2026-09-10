@@ -1,9 +1,12 @@
 import Image from "next/image";
+import { COMPETITION_LANDING_CONFIG } from "@/config/competitions";
 import AplicarLayoutGuardado from "./AplicarLayoutGuardado";
 import SelectorCompeticiones from "./SelectorCompeticiones";
 import estilos from "./competicion.module.css";
 
 export default function PaginaCompeticion() {
+  const config = COMPETITION_LANDING_CONFIG;
+
   return (
     <>
       <style>{`
@@ -18,8 +21,8 @@ export default function PaginaCompeticion() {
       <main className={estilos.pagina} data-zona="competicion">
         <section className={estilos.hero} aria-labelledby="titulo-competicion">
           <Image
-            src="/images/competicion/fondo_principal.png"
-            alt="Estadio vacío de Pro Soccer Online visto desde el córner"
+            src={config.heroImage}
+            alt={config.heroAlt}
             fill
             priority
             sizes="100vw"
@@ -30,8 +33,8 @@ export default function PaginaCompeticion() {
           <div className={estilos.velo} aria-hidden="true" />
 
           <div className={estilos.cabeceraHero}>
-            <p className={estilos.temporada} data-layout="temporada">Temporada 4</p>
-            <h1 className={estilos.titulo} id="titulo-competicion" data-layout="titulo">Competición Oficial</h1>
+            <p className={estilos.temporada} data-layout="temporada">{config.temporada}</p>
+            <h1 className={estilos.titulo} id="titulo-competicion" data-layout="titulo">{config.titulo}</h1>
             <div className={estilos.lineaTitulo} data-layout="linea" aria-hidden="true" />
           </div>
 
@@ -43,18 +46,17 @@ export default function PaginaCompeticion() {
         <footer className={estilos.footer}>
           <div className={estilos.footerInterior}>
             <div className={estilos.footerMarca}>
-              <strong>PSO ARGENTINA</strong>
-              <span>Liga oficial de Pro Soccer Online</span>
+              <strong>{config.footer.marca}</strong>
+              <span>{config.footer.descripcion}</span>
             </div>
 
             <nav className={estilos.footerNav} aria-label="Enlaces del pie de página">
-              <a href="/privacidad">Privacidad</a>
-              <a href="/terminos">Términos</a>
-              <a href="/cookies">Cookies</a>
-              <a href="/contacto">Contacto</a>
+              {config.footer.enlaces.map((enlace) => (
+                <a key={enlace.label} href={enlace.href}>{enlace.label}</a>
+              ))}
             </nav>
 
-            <span className={estilos.copyright}>© 2026 APA PSO ARGENTINA</span>
+            <span className={estilos.copyright}>{config.footer.copyright}</span>
           </div>
         </footer>
       </main>
