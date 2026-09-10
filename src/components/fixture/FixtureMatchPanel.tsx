@@ -3,6 +3,7 @@ import { stableMatchId } from "@/lib/competitionData";
 import {
   fixtureRoundLabel,
   getFixtureMatchDate,
+  sameFixtureDay,
   shortTeamName,
   type FixtureMatch,
 } from "@/lib/fixture";
@@ -50,11 +51,14 @@ function Shield({ name, logo, large = false }: { name?: string | null; logo: str
 }
 
 /**
- * Partido seleccionado + próximos partidos.
+ * Partido seleccionado + partidos del mismo día.
  *
- * El segundo panel usa todo el alto libre de la columna. Además, si un partido
- * ya tiene `resultado` en Supabase, la lista muestra ese marcador en lugar de
- * seguir enseñando "vs" como si todavía no se hubiese jugado.
+ * Cuando el usuario hace click en un partido del calendario, el panel inferior
+ * deja de mezclar encuentros de fechas posteriores: muestra únicamente los
+ * otros partidos que se jugaron/se jugarán ese mismo día.
+ *
+ * Si el partido seleccionado no tiene una fecha reconocible, se conserva un
+ * fallback con los primeros encuentros disponibles para no dejar el panel roto.
  */
 export default function FixtureMatchPanel({
   selectedMatch,
@@ -67,16 +71,13 @@ export default function FixtureMatchPanel({
   onSelectMatch: (match: FixtureMatch) => void;
   getLogo: (name?: string | null) => string | null;
 }) {
-  const selectedDate = selectedMatch ? getFixtureMatchDate(selectedMatch)?.getTime() : null;
+  const selectedDate = selectedMatch ? getFixtureMatchDate(selectedMatch) : null;
 
-  const upcoming = matches
-    .filter((match) => match !== selectedMatch)
-    .filter((match) => {
-      if (selectedDate == null) return true;
-      const date = getFixtureMatchDate(match)?.getTime();
-      return date == null || date >= selectedDate;
-    })
-    .slice(0, 5);
+  const dayMatches = selectedDate
+    ? matches.filter(
+        (match) => match !== selectedMatch && sameFixtureDay(getFixtureMatchDate(match), selectedDate),
+      )
+    : matches.filter((match) => match !== selectedMatch).slice(0, 5);
 
   return (
     <aside className="flex h-full min-h-0 flex-col gap-4">
@@ -147,18 +148,23 @@ export default function FixtureMatchPanel({
       </section>
 
       <section className="flex min-h-[390px] flex-1 flex-col overflow-hidden rounded-[10px] border border-[#cfe4f0] bg-white">
-        <div className="shrink-0 border-b border-[#dfebf2] px-5 py-4.5">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#dfebf2] px-5 py-4.5">
           <strong className="text-[13px] font-black uppercase tracking-[.02em] text-[#102f55]">
-            Próximos partidos
+            {selectedDate ? "Partidos del día" : "Próximos partidos"}
           </strong>
+          {selectedDate && selectedMatch ? (
+            <span className="text-[10px] font-black uppercase text-[#4d79a0]">
+              {readableDate(selectedMatch)}
+            </span>
+          ) : null}
         </div>
 
-        {upcoming.length ? (
+        {dayMatches.length ? (
           <div
             className="grid min-h-0 flex-1 divide-y divide-[#e5eef4] px-5"
-            style={{ gridTemplateRows: `repeat(${upcoming.length}, minmax(76px, 1fr))` }}
+            style={{ gridTemplateRows: `repeat(${dayMatches.length}, minmax(82px, 1fr))` }}
           >
-            {upcoming.map((match, index) => {
+            {dayMatches.map((match, index) => {
               const played = Boolean(match.resultado);
 
               return (
@@ -204,8 +210,10 @@ export default function FixtureMatchPanel({
           </div>
         ) : (
           <div className="flex flex-1 items-center justify-center px-5 py-8 text-center">
-            <p className="text-[12px] font-semibold text-[#7890a7]">
-              No hay más partidos para mostrar.
+            <p className="max-w-[280px] text-[12px] font-semibold leading-5 text-[#7890a7]">
+              {selectedDate
+                ? "No hay otros partidos cargados para este mismo día."
+                : "No hay más partidos para mostrar."}
             </p>
           </div>
         )}
