@@ -18,24 +18,16 @@ function matchKey(match: FixtureMatch, index: number) {
   return String(match.partido_id || match.id || `${match.local}-${match.visitante}-${index}`);
 }
 
-function mobileDateLabel(date: Date) {
-  return new Intl.DateTimeFormat("es-AR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  })
-    .format(date)
-    .replace(".", "");
-}
-
 /**
  * Calendario mensual del Fixture.
  *
  * RESPONSIVE:
- * - Teléfono (<768px): se transforma en una agenda vertical por fecha. No hay
- *   calendario de 7 columnas ni scroll horizontal y se muestran TODOS los
- *   partidos de cada día.
- * - Tablet/desktop: conserva el calendario mensual de la referencia.
+ * - Teléfono (<768px): mantiene un calendario REAL de 7 columnas estilo FIFA.
+ *   Las celdas son cuadradas y entran completas en el ancho del teléfono, sin
+ *   scroll horizontal. Para no romper la grilla, cada día muestra un resumen
+ *   compacto del primer partido; si hay más, aparece +N. Al tocarlo, el panel
+ *   inferior muestra todos los partidos de esa fecha.
+ * - Tablet/desktop: conserva el calendario mensual grande de la referencia.
  *
  * REGLA DESKTOP:
  * - 1 partido: destacado grande con tamaño de escudo limitado.
@@ -79,7 +71,6 @@ export default function FixtureCalendar({
   const selectedDate = selectedMatch ? getFixtureMatchDate(selectedMatch) : null;
   const datedCount = Array.from(matchesByDay.values()).reduce((total, list) => total + list.length, 0);
   const lastRowStart = Math.max(0, days.length - 7);
-  const mobileMatchDays = days.filter((day) => day.inCurrentMonth && (matchesByDay.get(day.key)?.length || 0) > 0);
 
   return (
     <section className="min-w-0">
@@ -107,59 +98,94 @@ export default function FixtureCalendar({
         </div>
       </div>
 
-      {/* MOBILE: agenda vertical, sin scroll horizontal. */}
-      <div className="space-y-3 md:hidden">
-        {mobileMatchDays.length ? mobileMatchDays.map((day) => {
-          const dayMatches = matchesByDay.get(day.key) || [];
-          return (
-            <section key={day.key} className="overflow-hidden rounded-[10px] border border-[#cfe4f0] bg-white">
-              <div className="flex items-center justify-between gap-3 border-b border-[#e1edf4] bg-[#f7fbfe] px-3.5 py-2.5">
-                <strong className="min-w-0 truncate text-[11px] font-black capitalize text-[#173b62]">{mobileDateLabel(day.date)}</strong>
-                <span className="shrink-0 rounded-full bg-[#e3f3fd] px-2 py-1 text-[9px] font-black text-[#3479a8]">{dayMatches.length} {dayMatches.length === 1 ? "partido" : "partidos"}</span>
-              </div>
+      {/* MOBILE: calendario compacto de 7 columnas, estilo FIFA. */}
+      <div className="overflow-hidden rounded-[9px] border border-[#cfe4f0] bg-white md:hidden">
+        <div className="grid grid-cols-7 border-b border-[#dceaf2] bg-[#f8fcff]">
+          {WEEK_DAYS.map((day) => (
+            <div
+              key={day}
+              className="min-w-0 border-r border-[#e4eef4] px-0.5 py-2 text-center text-[7px] font-black uppercase tracking-[.02em] text-[#274f78] last:border-r-0"
+            >
+              {day}
+            </div>
+          ))}
+        </div>
 
-              <div className="divide-y divide-[#e5eef4]">
-                {dayMatches.map((match, index) => {
-                  const selected = selectedMatch === match;
-                  const logoLocal = getLogo(match.local);
-                  const logoVisitante = getLogo(match.visitante);
-                  return (
-                    <button
-                      key={matchKey(match, index)}
-                      type="button"
-                      onClick={() => onSelectMatch(match)}
-                      className={`grid w-full grid-cols-[minmax(0,1fr)_58px_minmax(0,1fr)] items-center gap-2 px-3 py-3 text-center transition ${selected ? "bg-[#e8f6fd]" : "bg-white hover:bg-[#f7fbfe]"}`}
-                    >
-                      <div className="min-w-0">
-                        <span className="mx-auto flex h-11 w-11 items-center justify-center overflow-hidden rounded-[8px] bg-[#edf6fb]">
-                          {logoLocal ? <img src={logoLocal} alt="" className="h-full w-full object-contain p-1" /> : <span className="text-[9px] font-black text-[#8ba8bc]">{shortTeamName(match.local)}</span>}
+        <div className="grid grid-cols-7">
+          {days.map((day, index) => {
+            const dayMatches = day.inCurrentMonth ? matchesByDay.get(day.key) || [] : [];
+            const firstMatch = dayMatches[0] || null;
+            const isSelectedDay = Boolean(
+              day.inCurrentMonth && selectedDate && dateKey(selectedDate) === day.key,
+            );
+            const logoLocal = firstMatch ? getLogo(firstMatch.local) : null;
+            const logoVisitante = firstMatch ? getLogo(firstMatch.visitante) : null;
+
+            return (
+              <div
+                key={`mobile-${day.key}`}
+                className={`relative aspect-square min-w-0 border-b border-r border-[#e2edf4] ${(index + 1) % 7 === 0 ? "border-r-0" : ""} ${index >= lastRowStart ? "border-b-0" : ""} ${
+                  !day.inCurrentMonth
+                    ? "bg-[#f8fbfd]"
+                    : isSelectedDay
+                      ? "bg-[#e9f6fd]"
+                      : "bg-white"
+                }`}
+              >
+                {day.inCurrentMonth ? (
+                  <>
+                    <span className="absolute left-1 top-1 z-10 text-[8px] font-black leading-none text-[#173b62]">
+                      {day.date.getDate()}
+                    </span>
+
+                    {firstMatch ? (
+                      <button
+                        type="button"
+                        onClick={() => onSelectMatch(firstMatch)}
+                        aria-label={`${firstMatch.local} ${firstMatch.resultado || "vs"} ${firstMatch.visitante}`}
+                        className={`absolute inset-x-[2px] bottom-[2px] top-[14px] grid min-w-0 grid-rows-[1fr_auto] items-center overflow-hidden rounded-[5px] border px-[2px] py-[2px] transition ${
+                          isSelectedDay
+                            ? "border-[#56afe2] bg-[#dff2fd]"
+                            : "border-[#d5e9f4] bg-[#f0f9fe]"
+                        }`}
+                      >
+                        <div className="grid min-w-0 grid-cols-[1fr_auto_1fr] items-center gap-[1px]">
+                          <span className="mx-auto flex h-3 w-3 items-center justify-center overflow-hidden rounded-[3px] bg-[#e4f0f7] min-[390px]:h-3.5 min-[390px]:w-3.5">
+                            {logoLocal ? (
+                              <img src={logoLocal} alt="" className="h-full w-full object-contain" />
+                            ) : (
+                              <span className="text-[4px] font-black text-[#8ba8bc]">{shortTeamName(firstMatch.local)}</span>
+                            )}
+                          </span>
+
+                          <strong className="max-w-[20px] truncate text-center text-[6px] font-black leading-none text-[#102f55] min-[390px]:text-[7px]">
+                            {firstMatch.resultado || "VS"}
+                          </strong>
+
+                          <span className="mx-auto flex h-3 w-3 items-center justify-center overflow-hidden rounded-[3px] bg-[#e4f0f7] min-[390px]:h-3.5 min-[390px]:w-3.5">
+                            {logoVisitante ? (
+                              <img src={logoVisitante} alt="" className="h-full w-full object-contain" />
+                            ) : (
+                              <span className="text-[4px] font-black text-[#8ba8bc]">{shortTeamName(firstMatch.visitante)}</span>
+                            )}
+                          </span>
+                        </div>
+
+                        <span className="truncate text-center text-[5px] font-black leading-none text-[#3c7eac] min-[390px]:text-[6px]">
+                          {dayMatches.length > 1
+                            ? `+${dayMatches.length - 1}`
+                            : firstMatch.resultado
+                              ? "FIN"
+                              : firstMatch.hora || "-"}
                         </span>
-                        <strong className="mt-1.5 block truncate text-[10px] font-black text-[#102f55]">{match.local}</strong>
-                      </div>
-
-                      <div className="min-w-0">
-                        <strong className="block truncate text-[15px] font-black text-[#102f55]">{match.resultado || "VS"}</strong>
-                        <span className="mt-1 block truncate text-[9px] font-black text-[#4382b1]">{match.resultado ? "Finalizado" : match.hora || "A confirmar"}</span>
-                      </div>
-
-                      <div className="min-w-0">
-                        <span className="mx-auto flex h-11 w-11 items-center justify-center overflow-hidden rounded-[8px] bg-[#edf6fb]">
-                          {logoVisitante ? <img src={logoVisitante} alt="" className="h-full w-full object-contain p-1" /> : <span className="text-[9px] font-black text-[#8ba8bc]">{shortTeamName(match.visitante)}</span>}
-                        </span>
-                        <strong className="mt-1.5 block truncate text-[10px] font-black text-[#102f55]">{match.visitante}</strong>
-                      </div>
-                    </button>
-                  );
-                })}
+                      </button>
+                    ) : null}
+                  </>
+                ) : null}
               </div>
-            </section>
-          );
-        }) : (
-          <div className="rounded-[10px] border border-[#d9e8f1] bg-white px-4 py-8 text-center">
-            <strong className="block text-[12px] font-black text-[#315f89]">Sin partidos este mes</strong>
-            <p className="mt-1.5 text-[11px] leading-5 text-[#7890a7]">Cambiá de mes o de filtro para ver otros encuentros.</p>
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
 
       {/* TABLET/DESKTOP: calendario mensual. */}
@@ -246,8 +272,10 @@ export default function FixtureCalendar({
         </div>
       </div>
 
-      {datedCount === 0 && mobileMatchDays.length === 0 ? (
-        <p className="mt-3 hidden rounded-[8px] border border-[#d9e8f1] bg-[#f8fcff] px-4 py-3 text-[11px] font-semibold text-[#6f879d] md:block">Todavía no hay partidos con una fecha calendario reconocible para este filtro.</p>
+      {datedCount === 0 ? (
+        <p className="mt-3 rounded-[8px] border border-[#d9e8f1] bg-[#f8fcff] px-4 py-3 text-[11px] font-semibold text-[#6f879d]">
+          Todavía no hay partidos con una fecha calendario reconocible para este filtro.
+        </p>
       ) : null}
     </section>
   );
