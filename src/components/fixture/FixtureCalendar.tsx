@@ -27,8 +27,8 @@ function matchKey(match: FixtureMatch, index: number) {
  * muestra como máximo 2 partidos compactos. Si hay más, aparece `+N partidos`.
  *
  * Si un día tiene UN solo encuentro, cambia automáticamente a modo destacado:
- * el partido usa prácticamente toda la celda, con escudos y resultado mucho
- * más grandes. No hace falta configurar nada para activar este comportamiento.
+ * el partido ocupa casi toda la celda, con escudos, resultado y estado más
+ * grandes. No hace falta configurar nada para activar este comportamiento.
  *
  * La grilla no fuerza seis semanas. Solo muestra las semanas necesarias del
  * mes seleccionado y las celdas pertenecientes al mes anterior/siguiente se
@@ -168,45 +168,45 @@ export default function FixtureCalendar({
                             key={matchKey(match, 0)}
                             type="button"
                             onClick={() => onSelectMatch(match)}
-                            className={`absolute inset-x-2.5 bottom-2.5 top-8 flex flex-col items-center justify-center rounded-[9px] border px-2 py-2 text-center transition ${
+                            className={`absolute inset-x-1.5 bottom-1.5 top-7 flex flex-col items-center justify-center rounded-[10px] border px-1.5 py-2 text-center transition ${
                               selected
-                                ? "border-[#56afe2] bg-[#dff2fd] shadow-[0_3px_12px_rgba(41,136,196,.14)]"
+                                ? "border-[#56afe2] bg-[#dff2fd] shadow-[0_4px_14px_rgba(41,136,196,.16)]"
                                 : "border-[#cbe4f2] bg-[#f0f9fe] hover:border-[#86c9ee] hover:bg-[#e7f6fd]"
                             }`}
                           >
-                            <div className="flex w-full min-w-0 items-center justify-center gap-2">
+                            <div className="flex w-full min-w-0 flex-1 items-center justify-center gap-1.5">
                               <div className="min-w-0 flex-1 text-center">
-                                <span className="mx-auto flex h-10 w-10 items-center justify-center overflow-hidden rounded-[6px] bg-[#e1eef6] sm:h-11 sm:w-11">
+                                <span className="mx-auto flex h-12 w-12 items-center justify-center overflow-hidden rounded-[7px] bg-[#e1eef6] xl:h-[52px] xl:w-[52px]">
                                   {logoLocal ? (
                                     <img src={logoLocal} alt="" className="h-full w-full object-contain p-[1px]" />
                                   ) : (
-                                    <span className="text-[9px] font-black text-[#8ba8bc]">{shortTeamName(match.local)}</span>
+                                    <span className="text-[10px] font-black text-[#8ba8bc]">{shortTeamName(match.local)}</span>
                                   )}
                                 </span>
-                                <strong className="mt-1 block truncate text-[9px] font-black text-[#102f55]">
+                                <strong className="mt-1.5 block truncate text-[10px] font-black leading-none text-[#102f55]">
                                   {shortTeamName(match.local)}
                                 </strong>
                               </div>
 
-                              <strong className="shrink-0 text-[12px] font-black text-[#102f55] sm:text-[13px]">
+                              <strong className="shrink-0 text-[15px] font-black leading-none text-[#102f55] xl:text-[17px]">
                                 {match.resultado || "VS"}
                               </strong>
 
                               <div className="min-w-0 flex-1 text-center">
-                                <span className="mx-auto flex h-10 w-10 items-center justify-center overflow-hidden rounded-[6px] bg-[#e1eef6] sm:h-11 sm:w-11">
+                                <span className="mx-auto flex h-12 w-12 items-center justify-center overflow-hidden rounded-[7px] bg-[#e1eef6] xl:h-[52px] xl:w-[52px]">
                                   {logoVisitante ? (
                                     <img src={logoVisitante} alt="" className="h-full w-full object-contain p-[1px]" />
                                   ) : (
-                                    <span className="text-[9px] font-black text-[#8ba8bc]">{shortTeamName(match.visitante)}</span>
+                                    <span className="text-[10px] font-black text-[#8ba8bc]">{shortTeamName(match.visitante)}</span>
                                   )}
                                 </span>
-                                <strong className="mt-1 block truncate text-[9px] font-black text-[#102f55]">
+                                <strong className="mt-1.5 block truncate text-[10px] font-black leading-none text-[#102f55]">
                                   {shortTeamName(match.visitante)}
                                 </strong>
                               </div>
                             </div>
 
-                            <div className="mt-1.5 text-[9px] font-black leading-none text-[#287bb8]">
+                            <div className="mt-1 flex min-h-5 items-center justify-center rounded-full bg-white/75 px-2.5 text-[10px] font-black leading-none text-[#287bb8]">
                               {match.resultado ? "Finalizado" : match.hora || "A confirmar"}
                             </div>
                           </button>
