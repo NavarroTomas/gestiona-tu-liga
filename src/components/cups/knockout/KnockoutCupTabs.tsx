@@ -1,25 +1,41 @@
 import Link from "next/link";
-import { COPA_ARGENTINA_CONFIG } from "@/config/copaArgentina";
 
+type KnockoutTab = {
+  id: string;
+  label: string;
+  href: string;
+};
+
+/**
+ * Barra de tabs compartida entre las copas de eliminación directa.
+ * Para agregar/quitar tabs o temporadas, modificá el config de la copa:
+ * este componente se actualiza automáticamente.
+ */
 export default function KnockoutCupTabs({
   season,
   onSeasonChange,
+  seasons,
+  tabs,
+  ariaLabel,
 }: {
   season: string;
   onSeasonChange: (season: string) => void;
+  seasons: readonly string[];
+  tabs: readonly KnockoutTab[];
+  ariaLabel: string;
 }) {
   return (
     <div className="border-b border-[#d7e6f0] bg-white/95">
       <div className="mx-auto flex w-full max-w-[1480px] items-end justify-between gap-5 px-5 sm:px-8 lg:px-12">
         <nav
           className="flex min-w-0 items-end gap-6 overflow-x-auto sm:gap-7"
-          aria-label="Secciones de Copa Argentina"
+          aria-label={ariaLabel}
         >
-          {COPA_ARGENTINA_CONFIG.tabs.map((tab) => {
+          {tabs.map((tab) => {
             const active = tab.label === "Cuadro";
             return (
               <Link
-                key={tab.label}
+                key={`${tab.id}-${tab.label}`}
                 href={tab.href}
                 className={`whitespace-nowrap border-b-[3px] px-1 py-3.5 text-[13px] transition sm:py-4 sm:text-sm ${
                   active
@@ -33,11 +49,6 @@ export default function KnockoutCupTabs({
           })}
         </nav>
 
-        {/*
-          SELECTOR DE TEMPORADA
-          Para agregar opciones no toques este componente: agregalas en
-          `src/config/copaArgentina.ts -> seasons` y aparecen automáticamente.
-        */}
         <label className="relative mb-2.5 hidden shrink-0 sm:block">
           <select
             value={season}
@@ -45,7 +56,7 @@ export default function KnockoutCupTabs({
             style={{ backgroundColor: "#eaf6fd", color: "#102f55", borderColor: "#d3e7f2" }}
             className="h-10 min-w-[145px] cursor-pointer appearance-none rounded-[8px] border px-3.5 pr-9 text-[12px] font-bold outline-none transition hover:border-[#56afe2] focus:border-[#56afe2]"
           >
-            {COPA_ARGENTINA_CONFIG.seasons.map((item) => (
+            {seasons.map((item) => (
               <option key={item} value={item} style={{ backgroundColor: "#f3fafe", color: "#102f55" }}>
                 {item}
               </option>

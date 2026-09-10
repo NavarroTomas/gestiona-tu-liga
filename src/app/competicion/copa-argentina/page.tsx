@@ -18,7 +18,8 @@ import { useCopaArgentina } from "@/hooks/useCopaArgentina";
  *
  * Si querés cambiar algo vos mismo:
  * - temporadas, textos, fondo y FORMATO POR TEMPORADA -> `src/config/copaArgentina.ts`
- * - datos/consultas de Supabase                       -> `src/hooks/useCopaArgentina.ts`
+ * - datos específicos de Copa Argentina              -> `src/hooks/useCopaArgentina.ts`
+ * - consultas/lógica compartida con Copa APA          -> `src/hooks/useKnockoutCup.ts`
  * - armado lógico de rondas                           -> `src/lib/cups/knockout.ts`
  * - aspecto del cuadro                                -> `src/components/cups/knockout/KnockoutBracket.tsx`
  *
@@ -32,8 +33,14 @@ export default function CopaArgentinaPage() {
 
   return (
     <main className="min-h-screen bg-[#f4f9fd] text-[#102f55]">
-      <KnockoutCupHero season={season} />
-      <KnockoutCupTabs season={season} onSeasonChange={setSeason} />
+      <KnockoutCupHero season={season} hero={COPA_ARGENTINA_CONFIG.hero} />
+      <KnockoutCupTabs
+        season={season}
+        onSeasonChange={setSeason}
+        seasons={COPA_ARGENTINA_CONFIG.seasons}
+        tabs={COPA_ARGENTINA_CONFIG.tabs}
+        ariaLabel="Secciones de Copa Argentina"
+      />
 
       <section className="mx-auto w-full max-w-[1480px] px-5 py-4 sm:px-8 sm:py-5 lg:px-12">
         {loading ? (

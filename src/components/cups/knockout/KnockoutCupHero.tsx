@@ -1,11 +1,26 @@
-import { COPA_ARGENTINA_CONFIG } from "@/config/copaArgentina";
+export type KnockoutCupHeroConfig = {
+  title: string;
+  subtitle: string;
+  image: string;
+  alt: string;
+};
 
-export default function KnockoutCupHero({ season }: { season: string }) {
+/**
+ * Hero compartido entre Copa Argentina, Copa APA y futuras copas knockout.
+ * Los textos y la imagen llegan desde el archivo de configuración de cada copa.
+ */
+export default function KnockoutCupHero({
+  season,
+  hero,
+}: {
+  season: string;
+  hero: KnockoutCupHeroConfig;
+}) {
   return (
     <section className="relative min-h-[170px] overflow-hidden border-b border-[#c9e3f1] sm:min-h-[190px]">
       <img
-        src={COPA_ARGENTINA_CONFIG.hero.image}
-        alt={COPA_ARGENTINA_CONFIG.hero.alt}
+        src={hero.image}
+        alt={hero.alt}
         className="absolute inset-0 h-full w-full object-cover object-center"
       />
       <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(244,249,253,.72)_0%,rgba(236,247,253,.58)_30%,rgba(205,235,250,.38)_58%,rgba(86,175,226,.18)_100%)]" />
@@ -14,10 +29,10 @@ export default function KnockoutCupHero({ season }: { season: string }) {
       <div className="relative z-10 mx-auto flex min-h-[170px] w-full max-w-[1480px] items-center px-5 py-7 sm:min-h-[190px] sm:px-8 lg:px-12">
         <div className="min-w-0">
           <h1 className="m-0 text-[clamp(31px,4vw,64px)] font-black uppercase leading-[.92] tracking-[-.055em] text-[#102f55]">
-            {COPA_ARGENTINA_CONFIG.hero.title}
+            {hero.title}
           </h1>
           <p className="mt-3 text-[clamp(14px,1.45vw,22px)] font-semibold text-[#214b77] sm:mt-4">
-            {COPA_ARGENTINA_CONFIG.hero.subtitle} · {season}
+            {hero.subtitle} · {season}
           </p>
         </div>
       </div>
