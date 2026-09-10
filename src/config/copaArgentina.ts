@@ -1,4 +1,10 @@
 import type { CupsTabId } from "./cups";
+import type { KnockoutRoundId } from "@/lib/cups/knockout";
+
+export type KnockoutSeasonFormat = {
+  rounds: readonly KnockoutRoundId[];
+  showThirdPlace: boolean;
+};
 
 /**
  * CONFIGURACIÓN CENTRAL DE COPA ARGENTINA
@@ -6,26 +12,39 @@ import type { CupsTabId } from "./cups";
  * Este es el archivo que deberías tocar para la mayoría de cambios futuros.
  * La página y el bracket leen estos valores automáticamente.
  *
- * COSAS QUE PODÉS CAMBIAR ACÁ:
+ * IMPORTANTE: el FORMATO ahora se define POR TEMPORADA.
+ * Eso permite que una temporada empiece en Cuartos y otra en Octavos sin
+ * duplicar páginas ni tocar el componente visual.
  *
- * 1) AGREGAR UNA TEMPORADA NUEVA
- *    seasons: ["Temporada 5", "Temporada 4"]
- *    defaultSeason: "Temporada 5"
+ * EJEMPLOS:
  *
- * 2) CAMBIAR EL HERO
+ * 1) TEMPORADA 4: Cuartos -> Semifinales -> Final
+ *    "Temporada 4": {
+ *      rounds: ["quarterfinals", "semifinals", "final"],
+ *      showThirdPlace: false,
+ *    }
+ *
+ * 2) TEMPORADA 5: Octavos -> Cuartos -> Semifinales -> Final
+ *    Primero agregá "Temporada 5" a `seasons` y después:
+ *    "Temporada 5": {
+ *      rounds: ["roundOf16", "quarterfinals", "semifinals", "final"],
+ *      showThirdPlace: false,
+ *    }
+ *
+ * 3) Si alguna temporada empezara directamente en Semifinales:
+ *    rounds: ["semifinals", "final"]
+ *
+ * 4) CAMBIAR EL HERO
  *    hero.title    -> título principal
  *    hero.subtitle -> subtítulo
  *    hero.image    -> imagen dentro de /public
  *
- * 3) CAMBIAR CÓMO SE LLAMAN LAS FASES EN SUPABASE
- *    Agregá palabras a `phaseKeywords`.
- *    Ejemplo: si guardás "8vos de final", ya está contemplado en roundOf16.
+ * 5) CAMBIAR CÓMO SE LLAMAN LAS FASES EN SUPABASE
+ *    Agregá palabras a `phaseKeywords`. No hace falta que la ronda esté
+ *    visible en todas las temporadas para que la lógica pueda reconocerla.
  *
- * 4) AGREGAR/QUITAR TABS
+ * 6) AGREGAR/QUITAR TABS
  *    Modificá el array `tabs` de abajo. El componente se actualiza solo.
- *
- * 5) TERCER PUESTO
- *    showThirdPlace: true lo habilita. Para el diseño actual lo dejamos false.
  *
  * IMPORTANTE:
  * `competitionKey`, `configTable` y `activationField` deben coincidir con
@@ -47,6 +66,17 @@ export const COPA_ARGENTINA_CONFIG = {
   },
 
   /**
+   * Formato visual/deportivo de cada temporada.
+   * Para cambiar el formato NO edites KnockoutBracket.tsx: hacelo acá.
+   */
+  formatsBySeason: {
+    "Temporada 4": {
+      rounds: ["quarterfinals", "semifinals", "final"],
+      showThirdPlace: false,
+    },
+  } satisfies Record<string, KnockoutSeasonFormat>,
+
+  /**
    * El bracket reconoce cualquiera de estas palabras dentro de `fase` o
    * `ronda` en la tabla partidos. Podés sumar variantes sin tocar la lógica.
    */
@@ -58,8 +88,6 @@ export const COPA_ARGENTINA_CONFIG = {
     thirdPlace: ["tercer", "3er", "3.º", "3°"],
   },
 
-  showThirdPlace: false,
-
   tabs: [
     { id: "resumen" as CupsTabId, label: "Resumen", href: "/competicion/copa-argentina" },
     { id: "grupos" as CupsTabId, label: "Cuadro", href: "/competicion/copa-argentina" },
@@ -68,3 +96,13 @@ export const COPA_ARGENTINA_CONFIG = {
     { id: "equipos" as CupsTabId, label: "Equipos", href: "/clubes" },
   ],
 } as const;
+
+/**
+ * Devuelve el formato de la temporada seleccionada.
+ * Si agregás una temporada a `seasons`, agregale también su entrada arriba.
+ * Como respaldo, usa el formato de la temporada por defecto.
+ */
+export function getCopaArgentinaSeasonFormat(season: string): KnockoutSeasonFormat {
+  const formats = COPA_ARGENTINA_CONFIG.formatsBySeason as Record<string, KnockoutSeasonFormat>;
+  return formats[season] || formats[COPA_ARGENTINA_CONFIG.defaultSeason];
+}
