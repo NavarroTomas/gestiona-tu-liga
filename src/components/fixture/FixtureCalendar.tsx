@@ -21,14 +21,13 @@ function matchKey(match: FixtureMatch, index: number) {
 /**
  * Calendario mensual del Fixture.
  *
- * IMPORTANTE SOBRE "TODOS LOS EQUIPOS":
- * En APA es normal que varios partidos se jueguen el mismo día y a la misma
- * hora. Para no achicar los escudos/textos hasta volverlos ilegibles, cada día
- * muestra como máximo 2 partidos compactos. Si hay más, aparece `+N partidos`.
+ * REGLA VISUAL:
+ * - 1 partido: ocupa casi toda la celda y se muestra grande.
+ * - 2 partidos: se reparten TODO el alto disponible de la celda.
+ * - 3 o más: se muestran 2 partidos repartidos en altura + un botón `+N partidos`.
  *
- * Si un día tiene UN solo encuentro, cambia automáticamente a modo destacado:
- * el partido ocupa casi toda la celda, con escudos, resultado y estado más
- * grandes. No hace falta configurar nada para activar este comportamiento.
+ * De esta forma, cuando varios equipos juegan el mismo día no quedan todas las
+ * tarjetas amontonadas arriba dejando un hueco enorme abajo.
  *
  * La grilla no fuerza seis semanas. Solo muestra las semanas necesarias del
  * mes seleccionado y las celdas pertenecientes al mes anterior/siguiente se
@@ -143,7 +142,7 @@ export default function FixtureCalendar({
               return (
                 <div
                   key={day.key}
-                  className={`relative min-h-[154px] border-b border-r border-[#e2edf4] p-2.5 transition ${(index + 1) % 7 === 0 ? "border-r-0" : ""} ${index >= lastRowStart ? "border-b-0" : ""} ${
+                  className={`relative min-h-[164px] border-b border-r border-[#e2edf4] p-2.5 transition ${(index + 1) % 7 === 0 ? "border-r-0" : ""} ${index >= lastRowStart ? "border-b-0" : ""} ${
                     !day.inCurrentMonth
                       ? "bg-[#f8fbfd]"
                       : isSelectedDay
@@ -211,8 +210,15 @@ export default function FixtureCalendar({
                             </div>
                           </button>
                         );
-                      })() : (
-                        <div className="mt-2 space-y-2">
+                      })() : dayMatches.length > 1 ? (
+                        <div
+                          className="absolute inset-x-1.5 bottom-1.5 top-7 grid gap-1.5"
+                          style={{
+                            gridTemplateRows: hiddenCount > 0
+                              ? `repeat(${visibleDayMatches.length}, minmax(0, 1fr)) 24px`
+                              : `repeat(${visibleDayMatches.length}, minmax(0, 1fr))`,
+                          }}
+                        >
                           {visibleDayMatches.map((match, matchIndex) => {
                             const logoLocal = getLogo(match.local);
                             const logoVisitante = getLogo(match.visitante);
@@ -223,14 +229,14 @@ export default function FixtureCalendar({
                                 key={matchKey(match, matchIndex)}
                                 type="button"
                                 onClick={() => onSelectMatch(match)}
-                                className={`w-full rounded-[8px] border px-1.5 py-2 text-left transition ${
+                                className={`flex min-h-0 w-full items-center rounded-[8px] border px-1.5 text-left transition ${
                                   selected
                                     ? "border-[#63b8eb] bg-[#dff2fd] shadow-[0_2px_8px_rgba(41,136,196,.10)]"
                                     : "border-[#d7eaf5] bg-[#f1f9fe] hover:border-[#9fd4f1] hover:bg-[#e8f6fd]"
                                 }`}
                               >
-                                <div className="flex min-w-0 items-center justify-center gap-1">
-                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-[5px] bg-[#e4f0f7]">
+                                <div className="flex w-full min-w-0 items-center gap-1.5">
+                                  <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center overflow-hidden rounded-[5px] bg-[#e4f0f7]">
                                     {logoLocal ? (
                                       <img src={logoLocal} alt="" className="h-full w-full object-contain p-[1px]" />
                                     ) : (
@@ -238,19 +244,24 @@ export default function FixtureCalendar({
                                     )}
                                   </span>
 
-                                  <strong className="min-w-0 truncate text-[9px] font-black text-[#102f55]">
-                                    {shortTeamName(match.local)}
-                                  </strong>
+                                  <div className="min-w-0 flex-1 text-center">
+                                    <div className="flex min-w-0 items-center justify-center gap-1">
+                                      <strong className="min-w-0 truncate text-[9px] font-black text-[#102f55]">
+                                        {shortTeamName(match.local)}
+                                      </strong>
+                                      <span className="shrink-0 text-[9px] font-black text-[#587d9d]">
+                                        {match.resultado || "vs"}
+                                      </span>
+                                      <strong className="min-w-0 truncate text-[9px] font-black text-[#102f55]">
+                                        {shortTeamName(match.visitante)}
+                                      </strong>
+                                    </div>
+                                    <div className="mt-0.5 truncate text-[8px] font-black leading-none text-[#287bb8]">
+                                      {match.resultado ? "Finalizado" : match.hora || "A confirmar"}
+                                    </div>
+                                  </div>
 
-                                  <span className="shrink-0 text-[8px] font-bold text-[#7591a8]">
-                                    {match.resultado || "vs"}
-                                  </span>
-
-                                  <strong className="min-w-0 truncate text-[9px] font-black text-[#102f55]">
-                                    {shortTeamName(match.visitante)}
-                                  </strong>
-
-                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-[5px] bg-[#e4f0f7]">
+                                  <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center overflow-hidden rounded-[5px] bg-[#e4f0f7]">
                                     {logoVisitante ? (
                                       <img src={logoVisitante} alt="" className="h-full w-full object-contain p-[1px]" />
                                     ) : (
@@ -258,28 +269,24 @@ export default function FixtureCalendar({
                                     )}
                                   </span>
                                 </div>
-
-                                <div className="mt-1.5 text-center text-[9px] font-black leading-none text-[#287bb8]">
-                                  {match.resultado ? "Finalizado" : match.hora || "A confirmar"}
-                                </div>
                               </button>
                             );
                           })}
-                        </div>
-                      )}
 
-                      {hiddenCount > 0 ? (
-                        <button
-                          type="button"
-                          onClick={() => onSelectMatch(dayMatches[visibleDayMatches.length])}
-                          title={dayMatches
-                            .slice(visibleDayMatches.length)
-                            .map((match) => `${match.local} vs ${match.visitante}`)
-                            .join(" · ")}
-                          className="absolute bottom-2 left-2.5 right-2.5 rounded-[6px] border border-[#d4e9f5] bg-white/95 px-2 py-1.5 text-center text-[9px] font-black text-[#3a78a6] transition hover:border-[#a9d5ee] hover:bg-[#edf8fd]"
-                        >
-                          +{hiddenCount} {hiddenCount === 1 ? "partido" : "partidos"}
-                        </button>
+                          {hiddenCount > 0 ? (
+                            <button
+                              type="button"
+                              onClick={() => onSelectMatch(dayMatches[visibleDayMatches.length])}
+                              title={dayMatches
+                                .slice(visibleDayMatches.length)
+                                .map((match) => `${match.local} vs ${match.visitante}`)
+                                .join(" · ")}
+                              className="rounded-[6px] border border-[#d4e9f5] bg-white/95 px-2 text-center text-[9px] font-black text-[#3a78a6] transition hover:border-[#a9d5ee] hover:bg-[#edf8fd]"
+                            >
+                              +{hiddenCount} {hiddenCount === 1 ? "partido" : "partidos"}
+                            </button>
+                          ) : null}
+                        </div>
                       ) : null}
                     </>
                   ) : null}
