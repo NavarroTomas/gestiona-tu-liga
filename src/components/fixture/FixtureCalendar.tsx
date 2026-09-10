@@ -22,7 +22,8 @@ function matchKey(match: FixtureMatch, index: number) {
  * Calendario mensual del Fixture.
  *
  * REGLA VISUAL:
- * - 1 partido: ocupa casi toda la celda y se muestra grande.
+ * - 1 partido: ocupa casi toda la celda, pero los escudos tienen un tamaño
+ *   máximo para no salirse cuando la columna del día es angosta.
  * - 2 partidos: se reparten TODO el alto disponible de la celda.
  * - 3 o más: se muestran 2 partidos repartidos en altura + un botón `+N partidos`.
  *
@@ -167,46 +168,48 @@ export default function FixtureCalendar({
                             key={matchKey(match, 0)}
                             type="button"
                             onClick={() => onSelectMatch(match)}
-                            className={`absolute inset-x-1.5 bottom-1.5 top-7 flex flex-col items-center justify-center rounded-[10px] border px-1.5 py-2 text-center transition ${
+                            className={`absolute inset-x-1.5 bottom-1.5 top-7 overflow-hidden rounded-[10px] border px-1.5 py-2 text-center transition ${
                               selected
                                 ? "border-[#56afe2] bg-[#dff2fd] shadow-[0_4px_14px_rgba(41,136,196,.16)]"
                                 : "border-[#cbe4f2] bg-[#f0f9fe] hover:border-[#86c9ee] hover:bg-[#e7f6fd]"
                             }`}
                           >
-                            <div className="flex w-full min-w-0 flex-1 items-center justify-center gap-1.5">
-                              <div className="min-w-0 flex-1 text-center">
-                                <span className="mx-auto flex h-12 w-12 items-center justify-center overflow-hidden rounded-[7px] bg-[#e1eef6] xl:h-[52px] xl:w-[52px]">
-                                  {logoLocal ? (
-                                    <img src={logoLocal} alt="" className="h-full w-full object-contain p-[1px]" />
-                                  ) : (
-                                    <span className="text-[10px] font-black text-[#8ba8bc]">{shortTeamName(match.local)}</span>
-                                  )}
-                                </span>
-                                <strong className="mt-1.5 block truncate text-[10px] font-black leading-none text-[#102f55]">
-                                  {shortTeamName(match.local)}
+                            <div className="grid h-full min-h-0 grid-rows-[1fr_auto] gap-1">
+                              <div className="grid min-h-0 w-full grid-cols-[minmax(0,1fr)_36px_minmax(0,1fr)] items-center gap-1">
+                                <div className="min-w-0 text-center">
+                                  <span className="mx-auto flex h-9 w-9 items-center justify-center overflow-hidden rounded-[7px] bg-[#e1eef6] 2xl:h-10 2xl:w-10">
+                                    {logoLocal ? (
+                                      <img src={logoLocal} alt="" className="h-full w-full object-contain p-[2px]" />
+                                    ) : (
+                                      <span className="text-[9px] font-black text-[#8ba8bc]">{shortTeamName(match.local)}</span>
+                                    )}
+                                  </span>
+                                  <strong className="mt-1 block truncate text-[9px] font-black leading-none text-[#102f55]">
+                                    {shortTeamName(match.local)}
+                                  </strong>
+                                </div>
+
+                                <strong className="min-w-0 truncate text-center text-[13px] font-black leading-none text-[#102f55] 2xl:text-[15px]">
+                                  {match.resultado || "VS"}
                                 </strong>
+
+                                <div className="min-w-0 text-center">
+                                  <span className="mx-auto flex h-9 w-9 items-center justify-center overflow-hidden rounded-[7px] bg-[#e1eef6] 2xl:h-10 2xl:w-10">
+                                    {logoVisitante ? (
+                                      <img src={logoVisitante} alt="" className="h-full w-full object-contain p-[2px]" />
+                                    ) : (
+                                      <span className="text-[9px] font-black text-[#8ba8bc]">{shortTeamName(match.visitante)}</span>
+                                    )}
+                                  </span>
+                                  <strong className="mt-1 block truncate text-[9px] font-black leading-none text-[#102f55]">
+                                    {shortTeamName(match.visitante)}
+                                  </strong>
+                                </div>
                               </div>
 
-                              <strong className="shrink-0 text-[15px] font-black leading-none text-[#102f55] xl:text-[17px]">
-                                {match.resultado || "VS"}
-                              </strong>
-
-                              <div className="min-w-0 flex-1 text-center">
-                                <span className="mx-auto flex h-12 w-12 items-center justify-center overflow-hidden rounded-[7px] bg-[#e1eef6] xl:h-[52px] xl:w-[52px]">
-                                  {logoVisitante ? (
-                                    <img src={logoVisitante} alt="" className="h-full w-full object-contain p-[1px]" />
-                                  ) : (
-                                    <span className="text-[10px] font-black text-[#8ba8bc]">{shortTeamName(match.visitante)}</span>
-                                  )}
-                                </span>
-                                <strong className="mt-1.5 block truncate text-[10px] font-black leading-none text-[#102f55]">
-                                  {shortTeamName(match.visitante)}
-                                </strong>
+                              <div className="mx-auto flex min-h-5 max-w-full items-center justify-center truncate rounded-full bg-white/75 px-2 text-[9px] font-black leading-none text-[#287bb8]">
+                                {match.resultado ? "Finalizado" : match.hora || "A confirmar"}
                               </div>
-                            </div>
-
-                            <div className="mt-1 flex min-h-5 items-center justify-center rounded-full bg-white/75 px-2.5 text-[10px] font-black leading-none text-[#287bb8]">
-                              {match.resultado ? "Finalizado" : match.hora || "A confirmar"}
                             </div>
                           </button>
                         );
