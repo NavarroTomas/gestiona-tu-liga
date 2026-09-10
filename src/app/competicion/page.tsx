@@ -3,23 +3,10 @@ import AplicarLayoutGuardado from "./AplicarLayoutGuardado";
 import SelectorCompeticiones from "./SelectorCompeticiones";
 import estilos from "./competicion.module.css";
 
-function IconoBuscar() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" width="27" height="27" fill="none">
-      <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="2.2" />
-      <path d="m16 16 4.4 4.4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 export default function PaginaCompeticion() {
   return (
     <>
       <style>{`
-        body:has(main[data-zona="competicion"]) > nav {
-          display: none !important;
-        }
-
         body:has(main[data-zona="competicion"]) {
           margin: 0;
           background: #102f55;
@@ -29,50 +16,6 @@ export default function PaginaCompeticion() {
       <AplicarLayoutGuardado />
 
       <main className={estilos.pagina} data-zona="competicion">
-        <header className={estilos.header}>
-          <div className={estilos.headerInterior}>
-            <a className={estilos.marca} href="/" aria-label="PSO Argentina - Inicio">
-              <span className={estilos.logoCaja}>
-                <Image
-                  src="/logo-apa.png"
-                  alt="Logo de PSO Argentina"
-                  fill
-                  priority
-                  sizes="64px"
-                  className={estilos.logo}
-                />
-              </span>
-
-              <span className={estilos.marcaTexto}>
-                <span className={estilos.pso}>PSO</span>
-                <span className={estilos.argentina}>Argentina</span>
-              </span>
-            </a>
-
-            <nav className={estilos.navegacion} aria-label="Navegación principal">
-              <a className={`${estilos.enlaceNav} ${estilos.enlaceActivo}`} href="/competicion">
-                Competición
-              </a>
-              <a className={estilos.enlaceNav} href="/clubes">Clubes</a>
-              <a className={estilos.enlaceNav} href="/noticias">Noticias</a>
-              <a className={estilos.enlaceNav} href="/guia">Guía</a>
-            </nav>
-
-            <div className={estilos.acciones} aria-label="Acciones del sitio">
-              <button className={estilos.buscar} type="button" aria-label="Buscar">
-                <IconoBuscar />
-              </button>
-
-              <span className={estilos.separadorHeader} aria-hidden="true" />
-
-              <button className={estilos.unite} type="button">
-                <span>Unite a APA</span>
-                <span className={estilos.flecha} aria-hidden="true">→</span>
-              </button>
-            </div>
-          </div>
-        </header>
-
         <section className={estilos.hero} aria-labelledby="titulo-competicion">
           <Image
             src="/themes/worldcup/backgrounds/Banderin.png"
