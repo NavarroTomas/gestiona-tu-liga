@@ -166,11 +166,12 @@ export default function DivisionesPage() {
               <select
                 value={temporada}
                 onChange={(e) => setTemporada(e.target.value)}
-                className="h-10 min-w-[160px] cursor-pointer appearance-none rounded-[8px] border border-[#56afe2] bg-[#56afe2] px-3.5 pr-9 text-[12px] font-bold text-white outline-none transition hover:border-[#3f9ed7] hover:bg-[#48a7de] focus:border-[#2f93cd] focus:ring-2 focus:ring-[#56afe2]/20 sm:h-11 sm:min-w-[170px] sm:text-sm"
+                style={{ backgroundColor: "#dff1fc", color: "#102f55", borderColor: "#b9dced" }}
+                className="h-10 min-w-[160px] cursor-pointer appearance-none rounded-[8px] border px-3.5 pr-9 text-[12px] font-bold outline-none transition hover:border-[#56afe2] focus:border-[#56afe2] focus:ring-2 focus:ring-[#56afe2]/20 sm:h-11 sm:min-w-[170px] sm:text-sm"
               >
-                {temporadas.map((temp) => <option key={temp} value={temp}>{temp}</option>)}
+                {temporadas.map((temp) => <option key={temp} value={temp} style={{ backgroundColor: "#f3fafe", color: "#102f55" }}>{temp}</option>)}
               </select>
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-white/90">⌄</span>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-[#459bd0]">⌄</span>
             </span>
           </label>
 
@@ -180,11 +181,12 @@ export default function DivisionesPage() {
               <select
                 value={division}
                 onChange={(e) => setDivision(e.target.value)}
-                className="h-10 min-w-[175px] cursor-pointer appearance-none rounded-[8px] border border-[#56afe2] bg-[#56afe2] px-3.5 pr-9 text-[12px] font-bold text-white outline-none transition hover:border-[#3f9ed7] hover:bg-[#48a7de] focus:border-[#2f93cd] focus:ring-2 focus:ring-[#56afe2]/20 sm:h-11 sm:min-w-[190px] sm:text-sm"
+                style={{ backgroundColor: "#dff1fc", color: "#102f55", borderColor: "#b9dced" }}
+                className="h-10 min-w-[175px] cursor-pointer appearance-none rounded-[8px] border px-3.5 pr-9 text-[12px] font-bold outline-none transition hover:border-[#56afe2] focus:border-[#56afe2] focus:ring-2 focus:ring-[#56afe2]/20 sm:h-11 sm:min-w-[190px] sm:text-sm"
               >
-                {divisiones.map((div) => <option key={div} value={div}>{div} División</option>)}
+                {divisiones.map((div) => <option key={div} value={div} style={{ backgroundColor: "#f3fafe", color: "#102f55" }}>{div} División</option>)}
               </select>
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-white/90">⌄</span>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-[#459bd0]">⌄</span>
             </span>
           </label>
         </div>
