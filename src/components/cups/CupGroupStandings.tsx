@@ -21,9 +21,12 @@ export default function CupGroupStandings({
 }) {
   return (
     <section className="overflow-hidden rounded-[10px] border border-[#d7e6f0] bg-white text-[#102f55]">
-      <header className="flex h-[58px] items-center justify-between border-b border-[#d7e6f0] bg-[#fbfdff] px-4 sm:px-5">
-        <h2 className="text-[20px] font-black tracking-[-.035em] text-[#102f55]">Grupo {group}</h2>
-        <span className="text-[10px] font-bold uppercase tracking-[.1em] text-[#7890a7]">PTS · DG · GF</span>
+      <header className="flex min-h-[56px] items-center justify-between gap-4 border-b border-[#d7e6f0] bg-[#fbfdff] px-4 py-3 sm:px-5">
+        <div className="min-w-0">
+          <p className="text-[8px] font-black uppercase tracking-[.17em] text-[#7890a7] sm:text-[9px]">Tabla de posiciones</p>
+          <h2 className="mt-0.5 text-[20px] font-black tracking-[-.035em] text-[#102f55] sm:text-[22px]">Grupo {group}</h2>
+        </div>
+        <span className="shrink-0 text-[9px] font-bold uppercase tracking-[.1em] text-[#7890a7] sm:text-[10px]">Orden: PTS · DG · GF</span>
       </header>
 
       <div className="overflow-x-auto">
