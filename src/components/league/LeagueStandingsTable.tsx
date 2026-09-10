@@ -1,3 +1,4 @@
+import TeamLink from "@/components/team/TeamLink";
 import type { FormResult, LeagueStanding } from "@/lib/league/types";
 import { normalizarDivision } from "@/lib/league/utils";
 
@@ -79,22 +80,27 @@ export default function LeagueStandingsTable({
                   </td>
 
                   <td className="min-w-0 px-2 sm:px-3">
-                    <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center sm:h-7 sm:w-7">
+                    <TeamLink
+                      name={equipo.nombre}
+                      className="group/team flex min-w-0 items-center gap-2 sm:gap-2.5"
+                    >
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center sm:h-7 sm:w-7">
                         {logos[equipo.nombre] ? (
                           <img
                             src={logos[equipo.nombre]}
                             alt={equipo.nombre}
-                            className="h-full w-full object-contain"
+                            className="h-full w-full object-contain transition-transform group-hover/team:scale-[1.04]"
                           />
                         ) : (
                           <span className="flex h-6 w-6 items-center justify-center rounded bg-[#edf5fa] text-[8px] font-black text-[#597895] sm:h-7 sm:w-7 sm:text-[9px]">
                             {equipo.nombre.slice(0, 2).toUpperCase()}
                           </span>
                         )}
-                      </div>
-                      <span className="truncate font-bold text-[#173e68]">{equipo.nombre}</span>
-                    </div>
+                      </span>
+                      <span className="truncate font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">
+                        {equipo.nombre}
+                      </span>
+                    </TeamLink>
                   </td>
 
                   <td className="px-1 text-center text-[#45698e]">{equipo.pj}</td>
@@ -126,18 +132,24 @@ export default function LeagueStandingsTable({
 
                   <td className="hidden px-3 xl:table-cell">
                     {rival ? (
-                      <div className="flex min-w-0 items-center gap-2">
-                        <div className="flex h-5 w-5 shrink-0 items-center justify-center">
+                      <TeamLink name={rival} className="group/team flex min-w-0 items-center gap-2">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center">
                           {logos[rival] ? (
-                            <img src={logos[rival]} alt={rival} className="h-5 w-5 object-contain" />
+                            <img
+                              src={logos[rival]}
+                              alt={rival}
+                              className="h-5 w-5 object-contain transition-transform group-hover/team:scale-[1.04]"
+                            />
                           ) : (
                             <span className="flex h-5 w-5 items-center justify-center rounded bg-[#edf5fa] text-[7px] font-black text-[#597895]">
                               {rival.slice(0, 2).toUpperCase()}
                             </span>
                           )}
-                        </div>
-                        <span className="truncate text-[10px] font-semibold text-[#355d83] 2xl:text-[11px]">{rival}</span>
-                      </div>
+                        </span>
+                        <span className="truncate text-[10px] font-semibold text-[#355d83] transition-colors group-hover/team:text-[#258fcf] 2xl:text-[11px]">
+                          {rival}
+                        </span>
+                      </TeamLink>
                     ) : (
                       <span className="text-[#9aabb9]">—</span>
                     )}
