@@ -154,7 +154,7 @@ function FixtureContent() {
                 Cargando fixture…
               </div>
             ) : (
-              <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
+              <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_390px] 2xl:grid-cols-[minmax(0,1fr)_410px]">
                 <FixtureCalendar
                   month={month}
                   onPreviousMonth={() => setMonth((current) => moveFixtureMonth(current, -1))}
