@@ -1,3 +1,4 @@
+import TeamLink from "@/components/team/TeamLink";
 import { CUPS_CONFIG, getCupDestination } from "@/config/cups";
 import type { CupStandingRow } from "@/lib/cups/types";
 import { formatCupDate, resultLabel } from "@/lib/cups/utils";
@@ -86,18 +87,24 @@ export default function CupGroupStandings({
                     </td>
 
                     <td className="min-w-0 px-3">
-                      <div className="flex min-w-0 items-center gap-2.5">
+                      <TeamLink name={row.equipo} className="group/team flex min-w-0 items-center gap-2.5">
                         <span className="flex h-7 w-7 shrink-0 items-center justify-center">
                           {logo ? (
-                            <img src={logo} alt={row.equipo} className="h-full w-full object-contain" />
+                            <img
+                              src={logo}
+                              alt={row.equipo}
+                              className="h-full w-full object-contain transition-transform group-hover/team:scale-[1.04]"
+                            />
                           ) : (
                             <span className="flex h-7 w-7 items-center justify-center rounded bg-[#edf5fa] text-[8px] font-black text-[#597895]">
                               {row.equipo.slice(0, 2).toUpperCase()}
                             </span>
                           )}
                         </span>
-                        <span className="truncate font-bold text-[#173e68]">{row.equipo}</span>
-                      </div>
+                        <span className="truncate font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">
+                          {row.equipo}
+                        </span>
+                      </TeamLink>
                     </td>
 
                     <td className="px-1 text-center text-[#45698e]">{row.pj}</td>
@@ -125,10 +132,14 @@ export default function CupGroupStandings({
 
                     <td className="px-3">
                       {row.proximoRival ? (
-                        <div className="flex min-w-0 items-center gap-2">
+                        <TeamLink name={row.proximoRival} className="group/team flex min-w-0 items-center gap-2">
                           <span className="flex h-6 w-6 shrink-0 items-center justify-center">
                             {rivalLogo ? (
-                              <img src={rivalLogo} alt={row.proximoRival} className="h-6 w-6 object-contain" />
+                              <img
+                                src={rivalLogo}
+                                alt={row.proximoRival}
+                                className="h-6 w-6 object-contain transition-transform group-hover/team:scale-[1.04]"
+                              />
                             ) : (
                               <span className="flex h-6 w-6 items-center justify-center rounded bg-[#edf5fa] text-[7px] font-black text-[#597895]">
                                 {row.proximoRival.slice(0, 2).toUpperCase()}
@@ -136,10 +147,12 @@ export default function CupGroupStandings({
                             )}
                           </span>
                           <span className="min-w-0">
-                            <span className="block truncate text-[10px] font-bold text-[#355d83]">{row.proximoRival}</span>
+                            <span className="block truncate text-[10px] font-bold text-[#355d83] transition-colors group-hover/team:text-[#258fcf]">
+                              {row.proximoRival}
+                            </span>
                             <span className="block text-[9px] font-semibold text-[#7d94aa]">{formatCupDate(row.proximoPartido)}</span>
                           </span>
-                        </div>
+                        </TeamLink>
                       ) : (
                         <span className="text-[#9aabb9]">—</span>
                       )}
