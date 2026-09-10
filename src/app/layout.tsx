@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./theme-worldcup-mural.css";
-import Navbar from "../components/Navbar";
+import APAHeader from "../components/APAHeader";
 import BienvenidaAPA from "../components/BienvenidaAPA";
 import IntroAPA from "../components/IntroAPA";
 import CookieConsent from "../components/CookieConsent";
@@ -61,7 +61,7 @@ export default function RootLayout({
       <body className={`${orbitron.className} text-white overflow-x-hidden`}>
         <IntroAPA />
         <BienvenidaAPA />
-        <Navbar />
+        <APAHeader />
         {children}
         <CookieConsent />
       </body>
