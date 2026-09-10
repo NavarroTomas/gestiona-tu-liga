@@ -50,28 +50,49 @@ function validLocalDate(year: number, monthIndex: number, day: number) {
 }
 
 /**
+ * Algunas copas guardan `dia` con el día de la semana adelante:
+ * "DOM 9/8", "SÁB 12/7", "VIE, 24/7", etc.
+ * Quitamos ese prefijo ANTES de interpretar la fecha para evitar que
+ * Date.parse invente años como 2001.
+ */
+function cleanFixtureDateCandidate(value: string) {
+  return value
+    .trim()
+    .replace(
+      /^(?:lun(?:es)?|mar(?:tes)?|mi[eé](?:rcoles)?|jue(?:ves)?|vie(?:rnes)?|s[aá]b(?:ado)?|dom(?:ingo)?)[,.]?\s+/i,
+      "",
+    )
+    .trim();
+}
+
+/**
  * Convierte los formatos de fecha más habituales del proyecto a Date.
  *
- * Supabase tiene muchos `dia` guardados como "12/7", "17/7", "1/8", etc.
- * Esos valores NO se pueden mandar directo a Date.parse porque JavaScript los
- * interpreta con formato estadounidense y puede terminar creando fechas del
- * año 2001. Por ejemplo, "1/8" podía aparecer como 8 de enero de 2001.
+ * Supabase usa varios formatos reales en `partidos.dia`:
+ * - Liga: "12/7", "17/7", "1/8"
+ * - Copas: "DOM 9/8", "DOM 6/9"
+ * - También pueden existir fechas completas: "12/7/2026"
  *
- * Para las fechas sin año usamos `calendarYearBySeason` de
- * `src/config/fixture.ts`. Así "12/7" + Temporada 4 = 12/07/2026.
+ * Los valores sin año NUNCA se mandan directo a Date.parse. Se interpretan
+ * como día/mes argentino y reciben el año desde `calendarYearBySeason` de
+ * `src/config/fixture.ts`. Así Temporada 4 siempre cae en 2026 y no en 2001.
  *
- * Si `fecha` es solamente un número de jornada (ej. "4"), se ignora.
- * Para sumar un formato nuevo, hacelo acá y no dentro del calendario visual.
+ * Si `fecha` es solamente un número de jornada o el nombre de una ronda
+ * ("4", "cuartos", "semifinal", etc.), se ignora como fecha calendario.
  */
 export function getFixtureMatchDate(match: FixtureMatch): Date | null {
   const candidates = [match.dia, match.fecha];
 
   for (const rawValue of candidates) {
     if (rawValue == null) continue;
-    const raw = String(rawValue).trim();
+
+    const original = String(rawValue).trim();
+    if (!original) continue;
+
+    const raw = cleanFixtureDateCandidate(original);
     if (!raw || /^\d{1,2}$/.test(raw) || /^fecha\s*\d+$/i.test(raw)) continue;
 
-    // Formato argentino corto sin año: 12/7, 1/8, 22-8, etc.
+    // Formato argentino corto sin año: 12/7, 1/8, 22-8, DOM 9/8, etc.
     const shortLatin = raw.match(/^(\d{1,2})[\/-](\d{1,2})(?:\s+.*)?$/);
     if (shortLatin) {
       const day = Number(shortLatin[1]);
@@ -90,6 +111,12 @@ export function getFixtureMatchDate(match: FixtureMatch): Date | null {
       const year = Number(latin[3].length === 2 ? `20${latin[3]}` : latin[3]);
       const parsed = validLocalDate(year, monthIndex, day);
       if (parsed) return parsed;
+      continue;
+    }
+
+    // No dejamos que cadenas con / o - ambiguas terminen en Date.parse.
+    // Si llegaron hasta acá y todavía parecen una fecha corta, se descartan.
+    if (/\d{1,2}[\/-]\d{1,2}/.test(raw) && !/^\d{4}-\d{2}-\d{2}/.test(raw)) {
       continue;
     }
 
