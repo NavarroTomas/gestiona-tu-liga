@@ -29,6 +29,16 @@ export type FixtureCompetitionDefinition = {
  *    seasons: ["Temporada 5", "Temporada 4"]
  *    defaultSeason: "Temporada 5"
  *
+ *    IMPORTANTE: si `partidos.dia` se guarda como "11/7" sin año, agregá
+ *    también el año calendario de esa temporada:
+ *    calendarYearBySeason: {
+ *      "Temporada 5": 2027,
+ *      "Temporada 4": 2026,
+ *    }
+ *
+ *    De esa forma "11/7" se interpreta como 11 de julio de 2026/2027 y NO
+ *    como una fecha ambigua que el navegador pueda convertir a 2001.
+ *
  * 2) Agregar una competencia al lateral:
  *    agregá un objeto dentro de `competitions` con el valor real que usa
  *    `partidos.competicion` en `competitionKey`.
@@ -50,6 +60,15 @@ export type FixtureCompetitionDefinition = {
 export const FIXTURE_CONFIG = {
   defaultSeason: "Temporada 4",
   seasons: ["Temporada 4"],
+
+  /**
+   * Año usado cuando Supabase tiene fechas cortas como "12/7" o "1/8".
+   * Temporada 4 se disputó durante 2026, por eso todos esos días se ubican en
+   * julio/agosto de 2026. Para cada temporada futura agregá su año acá.
+   */
+  calendarYearBySeason: {
+    "Temporada 4": 2026,
+  },
 
   defaultCompetition: "liga" as FixtureCompetitionId,
 
@@ -108,4 +127,15 @@ export function getFixtureCompetition(id: FixtureCompetitionId) {
     FIXTURE_CONFIG.competitions.find((competition) => competition.id === id) ||
     FIXTURE_CONFIG.competitions[0]
   );
+}
+
+/**
+ * Devuelve el año calendario asociado a una temporada.
+ * Solo se usa para fechas sin año (ej. "12/7"). Las fechas completas que ya
+ * traen 2026/2027 conservan su propio año.
+ */
+export function getFixtureSeasonYear(season?: string | null) {
+  if (!season) return new Date().getFullYear();
+  const years = FIXTURE_CONFIG.calendarYearBySeason as Record<string, number>;
+  return years[season] ?? new Date().getFullYear();
 }
