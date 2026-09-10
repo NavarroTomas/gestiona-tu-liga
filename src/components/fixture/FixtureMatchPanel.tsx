@@ -33,13 +33,15 @@ function Shield({ name, logo, large = false }: { name?: string | null; logo: str
   return (
     <span
       className={`flex shrink-0 items-center justify-center overflow-hidden bg-[#eef6fb] ${
-        large ? "h-[76px] w-[76px] rounded-[12px] sm:h-[88px] sm:w-[88px]" : "h-7 w-7 rounded-[5px]"
+        large
+          ? "h-[76px] w-[76px] rounded-[12px] sm:h-[88px] sm:w-[88px]"
+          : "h-9 w-9 rounded-[7px]"
       }`}
     >
       {logo ? (
         <img src={logo} alt={name || "Escudo"} className="h-full w-full object-contain p-1" />
       ) : (
-        <span className={`${large ? "text-lg" : "text-[8px]"} font-black text-[#9bb4c6]`}>
+        <span className={`${large ? "text-lg" : "text-[9px]"} font-black text-[#9bb4c6]`}>
           {shortTeamName(name)}
         </span>
       )}
@@ -47,7 +49,11 @@ function Shield({ name, logo, large = false }: { name?: string | null; logo: str
   );
 }
 
-/** Partido seleccionado + próximos partidos, inspirado en el panel de la referencia. */
+/**
+ * Partido seleccionado + próximos partidos.
+ * El panel lateral tiene un ancho propio mayor para que no se sienta como una
+ * columna secundaria demasiado chica frente al calendario.
+ */
 export default function FixtureMatchPanel({
   selectedMatch,
   matches,
@@ -71,12 +77,12 @@ export default function FixtureMatchPanel({
     .slice(0, 5);
 
   return (
-    <aside className="space-y-3">
-      <section className="overflow-hidden rounded-[9px] border border-[#cfe4f0] bg-white">
+    <aside className="space-y-4">
+      <section className="overflow-hidden rounded-[10px] border border-[#cfe4f0] bg-white">
         {selectedMatch ? (
           <>
-            <div className="flex items-start justify-between gap-3 border-b border-[#dfebf2] px-4 py-3.5">
-              <strong className="text-[12px] font-black uppercase text-[#102f55]">
+            <div className="flex items-start justify-between gap-3 border-b border-[#dfebf2] px-5 py-4">
+              <strong className="text-[13px] font-black uppercase text-[#102f55]">
                 {readableDate(selectedMatch)}
               </strong>
               <span className="text-[10px] font-bold uppercase text-[#3f6c94]">
@@ -84,35 +90,35 @@ export default function FixtureMatchPanel({
               </span>
             </div>
 
-            <div className="px-4 pb-4 pt-5">
-              <div className="grid grid-cols-[1fr_54px_1fr] items-start gap-2">
+            <div className="px-5 pb-5 pt-5">
+              <div className="grid grid-cols-[1fr_58px_1fr] items-start gap-3">
                 <div className="flex min-w-0 flex-col items-center text-center">
                   <Shield name={selectedMatch.local} logo={getLogo(selectedMatch.local)} large />
-                  <strong className="mt-2.5 max-w-full text-[13px] font-black leading-4 text-[#102f55]">
+                  <strong className="mt-2.5 max-w-full text-[14px] font-black leading-4 text-[#102f55]">
                     {selectedMatch.local}
                   </strong>
                 </div>
 
-                <div className="flex min-h-[88px] items-center justify-center text-[18px] font-black text-[#102f55]">
+                <div className="flex min-h-[88px] items-center justify-center text-[20px] font-black text-[#102f55]">
                   {selectedMatch.resultado || "VS"}
                 </div>
 
                 <div className="flex min-w-0 flex-col items-center text-center">
                   <Shield name={selectedMatch.visitante} logo={getLogo(selectedMatch.visitante)} large />
-                  <strong className="mt-2.5 max-w-full text-[13px] font-black leading-4 text-[#102f55]">
+                  <strong className="mt-2.5 max-w-full text-[14px] font-black leading-4 text-[#102f55]">
                     {selectedMatch.visitante}
                   </strong>
                 </div>
               </div>
 
-              <div className="mt-5 grid grid-cols-2 border-y border-[#e3edf3] py-3 text-center">
+              <div className="mt-5 grid grid-cols-2 border-y border-[#e3edf3] py-3.5 text-center">
                 <div className="border-r border-[#e3edf3]">
                   <span className="block text-[9px] font-bold uppercase tracking-[.12em] text-[#8aa0b2]">Hora</span>
-                  <strong className="mt-1 block text-[12px] text-[#244b72]">{selectedMatch.hora || "A confirmar"}</strong>
+                  <strong className="mt-1 block text-[13px] text-[#244b72]">{selectedMatch.hora || "A confirmar"}</strong>
                 </div>
                 <div>
                   <span className="block text-[9px] font-bold uppercase tracking-[.12em] text-[#8aa0b2]">Competición</span>
-                  <strong className="mt-1 block truncate px-2 text-[12px] capitalize text-[#244b72]">
+                  <strong className="mt-1 block truncate px-2 text-[13px] capitalize text-[#244b72]">
                     {String(selectedMatch.competicion || "APA").replaceAll("_", " ")}
                   </strong>
                 </div>
@@ -121,7 +127,7 @@ export default function FixtureMatchPanel({
               {matchHref(selectedMatch) ? (
                 <Link
                   href={matchHref(selectedMatch)!}
-                  className="mt-4 flex h-11 items-center justify-center rounded-full bg-[#2a9eea] px-4 text-[11px] font-black text-white transition hover:bg-[#1889d1]"
+                  className="mt-4 flex h-12 items-center justify-center rounded-full bg-[#2a9eea] px-4 text-[12px] font-black text-white transition hover:bg-[#1889d1]"
                 >
                   Ver detalles del partido →
                 </Link>
@@ -138,45 +144,47 @@ export default function FixtureMatchPanel({
         )}
       </section>
 
-      <section className="overflow-hidden rounded-[9px] border border-[#cfe4f0] bg-white">
-        <div className="border-b border-[#dfebf2] px-4 py-3.5">
-          <strong className="text-[11px] font-black uppercase text-[#102f55]">Próximos partidos</strong>
+      <section className="overflow-hidden rounded-[10px] border border-[#cfe4f0] bg-white">
+        <div className="border-b border-[#dfebf2] px-5 py-4">
+          <strong className="text-[12px] font-black uppercase tracking-[.02em] text-[#102f55]">
+            Próximos partidos
+          </strong>
         </div>
 
         {upcoming.length ? (
-          <div className="divide-y divide-[#e5eef4] px-4">
+          <div className="divide-y divide-[#e5eef4] px-5">
             {upcoming.map((match, index) => (
               <button
                 key={String(match.partido_id || match.id || index)}
                 type="button"
                 onClick={() => onSelectMatch(match)}
-                className="grid w-full grid-cols-[56px_1fr] items-center gap-2 py-3 text-left transition hover:bg-[#f8fcff]"
+                className="grid w-full grid-cols-[78px_minmax(0,1fr)] items-center gap-3 py-4 text-left transition hover:bg-[#f8fcff]"
               >
                 <div>
-                  <strong className="block text-[9px] font-black uppercase text-[#244b72]">
+                  <strong className="block text-[10px] font-black uppercase leading-4 text-[#244b72]">
                     {readableDate(match).split(" ").slice(0, 2).join(" ")}
                   </strong>
-                  <span className="mt-0.5 block text-[9px] font-semibold text-[#4d79a0]">
+                  <span className="mt-0.5 block text-[10px] font-bold text-[#4d79a0]">
                     {match.hora || "--:--"}
                   </span>
                 </div>
 
-                <div className="flex min-w-0 items-center justify-end gap-1.5">
+                <div className="grid min-w-0 grid-cols-[36px_minmax(34px,1fr)_20px_minmax(34px,1fr)_36px] items-center gap-2">
                   <Shield name={match.local} logo={getLogo(match.local)} />
-                  <span className="w-8 truncate text-center text-[9px] font-black text-[#315f89]">
+                  <span className="truncate text-center text-[10px] font-black text-[#315f89]">
                     {shortTeamName(match.local)}
                   </span>
-                  <span className="text-[8px] font-bold text-[#98acbb]">vs</span>
-                  <Shield name={match.visitante} logo={getLogo(match.visitante)} />
-                  <span className="w-8 truncate text-center text-[9px] font-black text-[#315f89]">
+                  <span className="text-center text-[9px] font-bold text-[#98acbb]">vs</span>
+                  <span className="truncate text-center text-[10px] font-black text-[#315f89]">
                     {shortTeamName(match.visitante)}
                   </span>
+                  <Shield name={match.visitante} logo={getLogo(match.visitante)} />
                 </div>
               </button>
             ))}
           </div>
         ) : (
-          <p className="px-4 py-7 text-center text-[11px] font-semibold text-[#7890a7]">
+          <p className="px-5 py-8 text-center text-[12px] font-semibold text-[#7890a7]">
             No hay más partidos para mostrar.
           </p>
         )}
