@@ -1,4 +1,5 @@
 import Link from "next/link";
+import TeamLink from "@/components/team/TeamLink";
 import { stableMatchId } from "@/lib/competitionData";
 import {
   fixtureRoundLabel,
@@ -41,8 +42,8 @@ function Shield({ name, logo, large = false }: { name?: string | null; logo: str
 
 /**
  * Detalle del encuentro + todos los partidos de la misma fecha.
- * En mobile reduce tamaños y cambia las filas a una composición vertical para
- * que nunca haya contenido cortado ni scroll horizontal.
+ * Equipo/escudo abre la ficha del club; resultado y datos del encuentro siguen
+ * abriendo/seleccionando el partido. Así no mezclamos dos destinos distintos.
  */
 export default function FixtureMatchPanel({
   selectedMatch,
@@ -72,17 +73,37 @@ export default function FixtureMatchPanel({
 
             <div className="px-4 pb-4 pt-4 sm:px-5 sm:pb-5 sm:pt-5">
               <div className="grid grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)] items-start gap-1.5 sm:grid-cols-[1fr_54px_1fr] sm:gap-3">
-                <div className="flex min-w-0 flex-col items-center text-center">
-                  <Shield name={selectedMatch.local} logo={getLogo(selectedMatch.local)} large />
-                  <strong className="mt-2 line-clamp-2 max-w-full text-[11px] font-black leading-3.5 text-[#102f55] sm:text-[13px] sm:leading-4">{selectedMatch.local}</strong>
-                </div>
+                <TeamLink
+                  name={selectedMatch.local}
+                  className="group/team flex min-w-0 flex-col items-center text-center"
+                >
+                  <span className="transition-transform group-hover/team:scale-[1.04]">
+                    <Shield name={selectedMatch.local} logo={getLogo(selectedMatch.local)} large />
+                  </span>
+                  <strong className="mt-2 line-clamp-2 max-w-full text-[11px] font-black leading-3.5 text-[#102f55] transition-colors group-hover/team:text-[#258fcf] sm:text-[13px] sm:leading-4">{selectedMatch.local}</strong>
+                </TeamLink>
 
-                <div className="flex min-h-[60px] items-center justify-center text-[17px] font-black text-[#102f55] sm:min-h-[74px] sm:text-[20px]">{selectedMatch.resultado || "VS"}</div>
+                {matchHref(selectedMatch) ? (
+                  <Link
+                    href={matchHref(selectedMatch)!}
+                    className="flex min-h-[60px] items-center justify-center text-[17px] font-black text-[#102f55] transition-colors hover:text-[#258fcf] sm:min-h-[74px] sm:text-[20px]"
+                    aria-label={`Ver estadísticas de ${selectedMatch.local} vs ${selectedMatch.visitante}`}
+                  >
+                    {selectedMatch.resultado || "VS"}
+                  </Link>
+                ) : (
+                  <div className="flex min-h-[60px] items-center justify-center text-[17px] font-black text-[#102f55] sm:min-h-[74px] sm:text-[20px]">{selectedMatch.resultado || "VS"}</div>
+                )}
 
-                <div className="flex min-w-0 flex-col items-center text-center">
-                  <Shield name={selectedMatch.visitante} logo={getLogo(selectedMatch.visitante)} large />
-                  <strong className="mt-2 line-clamp-2 max-w-full text-[11px] font-black leading-3.5 text-[#102f55] sm:text-[13px] sm:leading-4">{selectedMatch.visitante}</strong>
-                </div>
+                <TeamLink
+                  name={selectedMatch.visitante}
+                  className="group/team flex min-w-0 flex-col items-center text-center"
+                >
+                  <span className="transition-transform group-hover/team:scale-[1.04]">
+                    <Shield name={selectedMatch.visitante} logo={getLogo(selectedMatch.visitante)} large />
+                  </span>
+                  <strong className="mt-2 line-clamp-2 max-w-full text-[11px] font-black leading-3.5 text-[#102f55] transition-colors group-hover/team:text-[#258fcf] sm:text-[13px] sm:leading-4">{selectedMatch.visitante}</strong>
+                </TeamLink>
               </div>
 
               <div className="mt-4 grid grid-cols-2 border-y border-[#e3edf3] py-3 text-center sm:mt-5 sm:py-3.5">
@@ -121,25 +142,47 @@ export default function FixtureMatchPanel({
               const played = Boolean(match.resultado);
               const isSelected = match === selectedMatch;
               return (
-                <button
+                <div
                   key={String(match.partido_id || match.id || index)}
-                  type="button"
-                  onClick={() => onSelectMatch(match)}
                   className={`grid w-full grid-cols-1 gap-2 px-1 py-3 text-left transition sm:grid-cols-[72px_minmax(0,1fr)] sm:items-center sm:gap-3 sm:px-2 sm:py-4 xl:min-h-[82px] ${isSelected ? "bg-[#eef8fd] shadow-[inset_3px_0_0_#56afe2]" : "hover:bg-[#f8fcff]"}`}
                 >
-                  <div className="flex items-center justify-between gap-2 sm:block">
+                  <button
+                    type="button"
+                    onClick={() => onSelectMatch(match)}
+                    className="flex items-center justify-between gap-2 text-left outline-none sm:block"
+                    aria-label={`Seleccionar ${match.local} vs ${match.visitante}`}
+                  >
                     <strong className="text-[9px] font-black uppercase leading-4 text-[#244b72] sm:block sm:text-[11px]">{readableDate(match).split(" ").slice(0, 2).join(" ")}</strong>
                     <span className="text-[9px] font-bold text-[#4d79a0] sm:mt-1 sm:block sm:text-[11px]">{match.hora || "--:--"}</span>
-                  </div>
+                  </button>
 
                   <div className="grid min-w-0 grid-cols-[36px_minmax(30px,1fr)_44px_minmax(30px,1fr)_36px] items-center gap-1.5 sm:grid-cols-[44px_minmax(38px,1fr)_48px_minmax(38px,1fr)_44px] sm:gap-2.5">
-                    <Shield name={match.local} logo={getLogo(match.local)} />
-                    <span className="truncate text-center text-[10px] font-black text-[#315f89] sm:text-[11px]">{shortTeamName(match.local)}</span>
-                    <span className={`flex min-h-7 items-center justify-center rounded-[7px] px-1 text-center font-black ${played ? "bg-[#e3f3fd] text-[11px] text-[#102f55] sm:text-[12px]" : "text-[9px] text-[#98acbb] sm:text-[10px]"}`}>{match.resultado || "vs"}</span>
-                    <span className="truncate text-center text-[10px] font-black text-[#315f89] sm:text-[11px]">{shortTeamName(match.visitante)}</span>
-                    <Shield name={match.visitante} logo={getLogo(match.visitante)} />
+                    <TeamLink name={match.local} className="group/team flex justify-center">
+                      <span className="transition-transform group-hover/team:scale-[1.04]">
+                        <Shield name={match.local} logo={getLogo(match.local)} />
+                      </span>
+                    </TeamLink>
+                    <TeamLink name={match.local} className="truncate text-center text-[10px] font-black text-[#315f89] transition-colors hover:text-[#258fcf] sm:text-[11px]">
+                      {shortTeamName(match.local)}
+                    </TeamLink>
+                    <button
+                      type="button"
+                      onClick={() => onSelectMatch(match)}
+                      className={`flex min-h-7 items-center justify-center rounded-[7px] px-1 text-center font-black outline-none transition-colors hover:text-[#258fcf] focus-visible:ring-2 focus-visible:ring-[#56afe2] ${played ? "bg-[#e3f3fd] text-[11px] text-[#102f55] sm:text-[12px]" : "text-[9px] text-[#98acbb] sm:text-[10px]"}`}
+                      aria-label={`Seleccionar ${match.local} vs ${match.visitante}`}
+                    >
+                      {match.resultado || "vs"}
+                    </button>
+                    <TeamLink name={match.visitante} className="truncate text-center text-[10px] font-black text-[#315f89] transition-colors hover:text-[#258fcf] sm:text-[11px]">
+                      {shortTeamName(match.visitante)}
+                    </TeamLink>
+                    <TeamLink name={match.visitante} className="group/team flex justify-center">
+                      <span className="transition-transform group-hover/team:scale-[1.04]">
+                        <Shield name={match.visitante} logo={getLogo(match.visitante)} />
+                      </span>
+                    </TeamLink>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
