@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { COMPETITION_HEADER_MENU } from "@/config/navigation";
 import estilos from "./APAHeader.module.css";
 
 function IconoBuscar() {
@@ -64,6 +65,11 @@ function seccionActiva(pathname: string, seccion: "competicion" | "clubes" | "no
   return pathname.startsWith(`/${seccion}`);
 }
 
+function menuItemActivo(pathname: string, href: string) {
+  if (href === "/competicion") return pathname === "/competicion";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export default function APAHeader() {
   const pathname = usePathname();
 
@@ -89,12 +95,42 @@ export default function APAHeader() {
         </Link>
 
         <nav className={estilos.navegacion} aria-label="Navegación principal">
-          <Link
-            className={`${estilos.enlace} ${seccionActiva(pathname, "competicion") ? estilos.activo : ""}`}
-            href="/competicion"
-          >
-            Competición
-          </Link>
+          <div className={estilos.menuGrupo}>
+            <Link
+              className={`${estilos.enlace} ${estilos.enlaceConMenu} ${seccionActiva(pathname, "competicion") ? estilos.activo : ""}`}
+              href="/competicion"
+              aria-haspopup="menu"
+            >
+              <span>Competición</span>
+              <span className={estilos.indicadorMenu} aria-hidden="true">⌄</span>
+            </Link>
+
+            <div className={estilos.dropdown} role="menu" aria-label="Menú de Competición">
+              <div className={estilos.dropdownCabecera}>
+                <strong>Competición</strong>
+                <span>Accesos rápidos APA</span>
+              </div>
+
+              <div className={estilos.dropdownLista}>
+                {COMPETITION_HEADER_MENU.map((item) => {
+                  const active = menuItemActivo(pathname, item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      role="menuitem"
+                      aria-current={active ? "page" : undefined}
+                      className={`${estilos.dropdownItem} ${active ? estilos.dropdownItemActivo : ""}`}
+                    >
+                      <strong>{item.label}</strong>
+                      <span>{item.description}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
           <Link
             className={`${estilos.enlace} ${seccionActiva(pathname, "clubes") ? estilos.activo : ""}`}
             href="/clubes"
