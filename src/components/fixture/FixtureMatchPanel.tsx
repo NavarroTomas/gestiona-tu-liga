@@ -35,13 +35,13 @@ function Shield({ name, logo, large = false }: { name?: string | null; logo: str
       className={`flex shrink-0 items-center justify-center overflow-hidden bg-[#eef6fb] ${
         large
           ? "h-[76px] w-[76px] rounded-[12px] sm:h-[88px] sm:w-[88px]"
-          : "h-9 w-9 rounded-[7px]"
+          : "h-11 w-11 rounded-[8px]"
       }`}
     >
       {logo ? (
         <img src={logo} alt={name || "Escudo"} className="h-full w-full object-contain p-1" />
       ) : (
-        <span className={`${large ? "text-lg" : "text-[9px]"} font-black text-[#9bb4c6]`}>
+        <span className={`${large ? "text-lg" : "text-[10px]"} font-black text-[#9bb4c6]`}>
           {shortTeamName(name)}
         </span>
       )}
@@ -51,8 +51,10 @@ function Shield({ name, logo, large = false }: { name?: string | null; logo: str
 
 /**
  * Partido seleccionado + próximos partidos.
- * El panel lateral tiene un ancho propio mayor para que no se sienta como una
- * columna secundaria demasiado chica frente al calendario.
+ *
+ * El segundo panel usa todo el alto libre de la columna. Como el calendario
+ * suele ser bastante alto, repartimos ese espacio entre los próximos partidos
+ * para evitar que queden cinco filas diminutas arriba y un bloque vacío abajo.
  */
 export default function FixtureMatchPanel({
   selectedMatch,
@@ -77,8 +79,8 @@ export default function FixtureMatchPanel({
     .slice(0, 5);
 
   return (
-    <aside className="space-y-4">
-      <section className="overflow-hidden rounded-[10px] border border-[#cfe4f0] bg-white">
+    <aside className="flex h-full min-h-0 flex-col gap-4">
+      <section className="shrink-0 overflow-hidden rounded-[10px] border border-[#cfe4f0] bg-white">
         {selectedMatch ? (
           <>
             <div className="flex items-start justify-between gap-3 border-b border-[#dfebf2] px-5 py-4">
@@ -144,38 +146,41 @@ export default function FixtureMatchPanel({
         )}
       </section>
 
-      <section className="overflow-hidden rounded-[10px] border border-[#cfe4f0] bg-white">
-        <div className="border-b border-[#dfebf2] px-5 py-4">
-          <strong className="text-[12px] font-black uppercase tracking-[.02em] text-[#102f55]">
+      <section className="flex min-h-[390px] flex-1 flex-col overflow-hidden rounded-[10px] border border-[#cfe4f0] bg-white">
+        <div className="shrink-0 border-b border-[#dfebf2] px-5 py-4.5">
+          <strong className="text-[13px] font-black uppercase tracking-[.02em] text-[#102f55]">
             Próximos partidos
           </strong>
         </div>
 
         {upcoming.length ? (
-          <div className="divide-y divide-[#e5eef4] px-5">
+          <div
+            className="grid min-h-0 flex-1 divide-y divide-[#e5eef4] px-5"
+            style={{ gridTemplateRows: `repeat(${upcoming.length}, minmax(76px, 1fr))` }}
+          >
             {upcoming.map((match, index) => (
               <button
                 key={String(match.partido_id || match.id || index)}
                 type="button"
                 onClick={() => onSelectMatch(match)}
-                className="grid w-full grid-cols-[78px_minmax(0,1fr)] items-center gap-3 py-4 text-left transition hover:bg-[#f8fcff]"
+                className="grid h-full w-full grid-cols-[86px_minmax(0,1fr)] items-center gap-4 py-4 text-left transition hover:bg-[#f8fcff]"
               >
                 <div>
-                  <strong className="block text-[10px] font-black uppercase leading-4 text-[#244b72]">
+                  <strong className="block text-[11px] font-black uppercase leading-4 text-[#244b72]">
                     {readableDate(match).split(" ").slice(0, 2).join(" ")}
                   </strong>
-                  <span className="mt-0.5 block text-[10px] font-bold text-[#4d79a0]">
+                  <span className="mt-1 block text-[11px] font-bold text-[#4d79a0]">
                     {match.hora || "--:--"}
                   </span>
                 </div>
 
-                <div className="grid min-w-0 grid-cols-[36px_minmax(34px,1fr)_20px_minmax(34px,1fr)_36px] items-center gap-2">
+                <div className="grid min-w-0 grid-cols-[44px_minmax(38px,1fr)_24px_minmax(38px,1fr)_44px] items-center gap-2.5">
                   <Shield name={match.local} logo={getLogo(match.local)} />
-                  <span className="truncate text-center text-[10px] font-black text-[#315f89]">
+                  <span className="truncate text-center text-[11px] font-black text-[#315f89]">
                     {shortTeamName(match.local)}
                   </span>
-                  <span className="text-center text-[9px] font-bold text-[#98acbb]">vs</span>
-                  <span className="truncate text-center text-[10px] font-black text-[#315f89]">
+                  <span className="text-center text-[10px] font-bold text-[#98acbb]">vs</span>
+                  <span className="truncate text-center text-[11px] font-black text-[#315f89]">
                     {shortTeamName(match.visitante)}
                   </span>
                   <Shield name={match.visitante} logo={getLogo(match.visitante)} />
@@ -184,9 +189,11 @@ export default function FixtureMatchPanel({
             ))}
           </div>
         ) : (
-          <p className="px-5 py-8 text-center text-[12px] font-semibold text-[#7890a7]">
-            No hay más partidos para mostrar.
-          </p>
+          <div className="flex flex-1 items-center justify-center px-5 py-8 text-center">
+            <p className="text-[12px] font-semibold text-[#7890a7]">
+              No hay más partidos para mostrar.
+            </p>
+          </div>
         )}
       </section>
     </aside>
