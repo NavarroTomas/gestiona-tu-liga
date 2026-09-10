@@ -37,11 +37,8 @@ const competiciones = [
 export default function SelectorCompeticiones() {
   return (
     <ul className={estilos.menu} role="list">
-      {competiciones.map((competicion, indice) => (
-        <li
-          key={competicion.titulo}
-          className={`${estilos.item} ${indice === 0 ? estilos.itemActivo : ""}`}
-        >
+      {competiciones.map((competicion) => (
+        <li key={competicion.titulo} className={estilos.item}>
           <Link
             className={estilos.botonCompeticion}
             href={competicion.href}
