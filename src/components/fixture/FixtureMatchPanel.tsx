@@ -53,12 +53,13 @@ function Shield({ name, logo, large = false }: { name?: string | null; logo: str
 /**
  * Partido seleccionado + partidos del mismo día.
  *
- * Cuando el usuario hace click en un partido del calendario, el panel inferior
- * deja de mezclar encuentros de fechas posteriores: muestra únicamente los
- * otros partidos que se jugaron/se jugarán ese mismo día.
+ * IMPORTANTE:
+ * El listado inferior incluye TODOS los encuentros de la fecha seleccionada,
+ * incluido el que está abierto arriba. Así, si el 26 hubo dos partidos, el
+ * panel "Partidos del día" muestra dos filas y no solamente el otro encuentro.
  *
- * Si el partido seleccionado no tiene una fecha reconocible, se conserva un
- * fallback con los primeros encuentros disponibles para no dejar el panel roto.
+ * El partido seleccionado se resalta dentro de esa lista y el usuario puede
+ * cambiar de encuentro sin abandonar la fecha.
  */
 export default function FixtureMatchPanel({
   selectedMatch,
@@ -74,10 +75,8 @@ export default function FixtureMatchPanel({
   const selectedDate = selectedMatch ? getFixtureMatchDate(selectedMatch) : null;
 
   const dayMatches = selectedDate
-    ? matches.filter(
-        (match) => match !== selectedMatch && sameFixtureDay(getFixtureMatchDate(match), selectedDate),
-      )
-    : matches.filter((match) => match !== selectedMatch).slice(0, 5);
+    ? matches.filter((match) => sameFixtureDay(getFixtureMatchDate(match), selectedDate))
+    : matches.slice(0, 5);
 
   return (
     <aside className="flex h-full min-h-0 flex-col gap-4">
@@ -166,13 +165,18 @@ export default function FixtureMatchPanel({
           >
             {dayMatches.map((match, index) => {
               const played = Boolean(match.resultado);
+              const isSelected = match === selectedMatch;
 
               return (
                 <button
                   key={String(match.partido_id || match.id || index)}
                   type="button"
                   onClick={() => onSelectMatch(match)}
-                  className="grid h-full w-full grid-cols-[86px_minmax(0,1fr)] items-center gap-4 py-4 text-left transition hover:bg-[#f8fcff]"
+                  className={`grid h-full w-full grid-cols-[86px_minmax(0,1fr)] items-center gap-4 px-2 py-4 text-left transition ${
+                    isSelected
+                      ? "bg-[#eef8fd] shadow-[inset_3px_0_0_#56afe2]"
+                      : "hover:bg-[#f8fcff]"
+                  }`}
                 >
                   <div>
                     <strong className="block text-[11px] font-black uppercase leading-4 text-[#244b72]">
@@ -212,7 +216,7 @@ export default function FixtureMatchPanel({
           <div className="flex flex-1 items-center justify-center px-5 py-8 text-center">
             <p className="max-w-[280px] text-[12px] font-semibold leading-5 text-[#7890a7]">
               {selectedDate
-                ? "No hay otros partidos cargados para este mismo día."
+                ? "No hay partidos cargados para este mismo día."
                 : "No hay más partidos para mostrar."}
             </p>
           </div>
