@@ -16,12 +16,47 @@ export type CompetitionDefinition = {
 };
 
 /**
- * Fuente única del menú de competiciones.
+ * CONFIGURACIÓN GENERAL DE LA ZONA COMPETICIÓN
+ * ---------------------------------------------
+ * Este archivo controla la PORTADA / MENÚ que reúne todas las competiciones.
+ * No define las reglas internas de Liga, Copas o Playoffs: cada torneo tiene
+ * su propio archivo de configuración dentro de `src/config/`.
  *
- * Para agregar una competición nueva al menú:
- * 1. agregá un objeto a este array;
- * 2. creá la página indicada en `href`;
- * 3. dejá `enabled: true` cuando quieras mostrarla.
+ * AGREGAR UNA COMPETICIÓN NUEVA
+ * 1. agregá un objeto a `COMPETITIONS`;
+ * 2. usá un `id` único;
+ * 3. indicá la ruta en `href`;
+ * 4. creá esa página dentro de `src/app/`;
+ * 5. usá `enabled: true` cuando quieras mostrarla en el selector.
+ *
+ * Ejemplo:
+ * {
+ *   id: "supercopa",
+ *   titulo: "Supercopa APA",
+ *   subtitulo: "Campeones de la temporada",
+ *   href: "/competicion/supercopa",
+ *   enabled: true,
+ * }
+ *
+ * OCULTAR TEMPORALMENTE UNA COMPETICIÓN
+ * Cambiá solamente:
+ *   enabled: false
+ * No hace falta borrar la página ni la configuración.
+ *
+ * CAMBIAR LA PORTADA DE /competicion
+ * `COMPETITION_LANDING_CONFIG` controla temporada visible, título, imagen del
+ * hero y contenido del footer de esa portada.
+ *
+ * DÓNDE CONFIGURAR CADA TORNEO
+ * - Liga:                  `src/config/league.ts`
+ * - Clasificación a Copas: `src/config/cups.ts`
+ * - Copa Argentina:        `src/config/copaArgentina.ts`
+ * - Copa APA:              `src/config/copaApa.ts`
+ * - Playoffs de Ascenso:   `src/config/playoffs.ts`
+ * - Copa de Campeones:     `src/config/copaCampeones.ts`
+ *
+ * IMPORTANTE: cambiar un subtítulo acá solo modifica el menú de competiciones;
+ * no cambia el formato deportivo ni los datos del torneo correspondiente.
  */
 export const COMPETITIONS: CompetitionDefinition[] = [
   {
@@ -68,6 +103,10 @@ export const COMPETITIONS: CompetitionDefinition[] = [
   },
 ];
 
+/**
+ * Configuración visual/textual exclusiva de la portada `/competicion`.
+ * Las imágenes se referencian desde `/public`, por eso la ruta empieza con `/`.
+ */
 export const COMPETITION_LANDING_CONFIG = {
   temporada: "Temporada 4",
   titulo: "Competición Oficial",
@@ -86,6 +125,7 @@ export const COMPETITION_LANDING_CONFIG = {
   },
 } as const;
 
+/** Devuelve únicamente las competiciones visibles en el selector público. */
 export function getEnabledCompetitions() {
   return COMPETITIONS.filter((competition) => competition.enabled);
 }
