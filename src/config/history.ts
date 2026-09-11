@@ -2,8 +2,12 @@ export const HISTORY_CONFIG = {
   /**
    * Temporada inicial mientras la base todavía no expone una temporada más nueva.
    * La página detecta automáticamente las temporadas disponibles en `partidos`.
+   *
+   * Se tipa como `string` a propósito: Historia puede cambiar dinámicamente
+   * entre Temporada 1, 2, 3, 4, etc. y no debe quedar limitada al literal
+   * "Temporada 4" por la inferencia de `as const`.
    */
-  defaultSeason: "Temporada 4",
+  defaultSeason: "Temporada 4" as string,
 
   hero: {
     eyebrow: "Historia",
