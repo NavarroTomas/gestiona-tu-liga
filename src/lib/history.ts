@@ -1,0 +1,558 @@
+import { calcularTablaLiga } from "@/lib/league/calculateStandings";
+import type {
+  LeagueClubSeason,
+  LeagueMatch,
+  LeagueSanction,
+  LeagueStanding,
+} from "@/lib/league/types";
+import { normalizarDivision, parseResultado } from "@/lib/league/utils";
+
+export type HistoryMatch = LeagueMatch & {
+  competicion?: string | null;
+  grupo?: string | null;
+  fase?: string | null;
+  ronda?: string | null;
+  orden?: number | null;
+  llave?: string | null;
+  estado?: string | null;
+};
+
+export type HistoryClub = LeagueClubSeason & {
+  slug?: string | null;
+};
+
+export type HistoryPlayerRow = {
+  temporada?: string | null;
+  division?: string | null;
+  playerId?: string | null;
+  nombre?: string | null;
+  equipo?: string | null;
+  posicion?: string | null;
+  partidos_jugados?: number | string | null;
+  goals?: number | string | null;
+  assists?: number | string | null;
+  mvp?: number | string | null;
+  gKSaves?: number | string | null;
+  rating_apa_promedio?: number | string | null;
+  score_total?: number | string | null;
+};
+
+export type HistoryAwardRow = {
+  temporada?: string | null;
+  division?: string | null;
+  premio?: string | null;
+  playerid?: string | null;
+  nombre?: string | null;
+  equipo?: string | null;
+  puntos?: number | string | null;
+  posicion?: number | null;
+};
+
+export type HistorySanction = LeagueSanction & {
+  temporada?: string | null;
+};
+
+export type PlayerAggregate = {
+  key: string;
+  playerId: string;
+  nombre: string;
+  equipo: string;
+  posicion: string;
+  partidos: number;
+  goles: number;
+  asistencias: number;
+  mvps: number;
+  atajadas: number;
+  score: number;
+  ratingPromedio: number;
+};
+
+export type TeamRecord = {
+  nombre: string;
+  gf: number;
+  gc: number;
+  pj: number;
+};
+
+export type KnockoutWinner = {
+  champion: string;
+  runnerUp: string;
+  result: string;
+} | null;
+
+function normalize(value?: string | null) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+function numericId(value: string | number) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
+export function aggregatePlayers(rows: HistoryPlayerRow[]) {
+  const map = new Map<string, PlayerAggregate & { ratingWeighted: number }>();
+
+  rows.forEach((row) => {
+    const nombre = String(row.nombre || "").trim();
+    const playerId = String(row.playerId || "").trim();
+    if (!nombre && !playerId) return;
+
+    const key = playerId || normalize(nombre);
+    const partidos = Number(row.partidos_jugados || 0);
+    const rating = Number(row.rating_apa_promedio || 0);
+    const current = map.get(key) || {
+      key,
+      playerId,
+      nombre: nombre || playerId,
+      equipo: String(row.equipo || "Sin club"),
+      posicion: String(row.posicion || ""),
+      partidos: 0,
+      goles: 0,
+      asistencias: 0,
+      mvps: 0,
+      atajadas: 0,
+      score: 0,
+      ratingPromedio: 0,
+      ratingWeighted: 0,
+    };
+
+    current.partidos += partidos;
+    current.goles += Number(row.goals || 0);
+    current.asistencias += Number(row.assists || 0);
+    current.mvps += Number(row.mvp || 0);
+    current.atajadas += Number(row.gKSaves || 0);
+    current.score += Number(row.score_total || 0);
+    current.ratingWeighted += rating * partidos;
+
+    if (nombre) current.nombre = nombre;
+    if (row.equipo) current.equipo = String(row.equipo);
+    if (row.posicion) current.posicion = String(row.posicion);
+    if (playerId) current.playerId = playerId;
+
+    map.set(key, current);
+  });
+
+  return Array.from(map.values()).map(({ ratingWeighted, ...player }) => ({
+    ...player,
+    ratingPromedio:
+      player.partidos > 0
+        ? Math.round((ratingWeighted / player.partidos) * 10) / 10
+        : 0,
+  }));
+}
+
+export function buildLeagueTables({
+  matches,
+  clubs,
+  sanctions,
+}: {
+  matches: HistoryMatch[];
+  clubs: HistoryClub[];
+  sanctions: HistorySanction[];
+}) {
+  const leagueMatches = matches.filter((match) => {
+    const competition = normalize(match.competicion);
+    return competition === "liga" || competition === "";
+  });
+  const leagueSanctions = sanctions.filter((sanction) => {
+    const competition = normalize(sanction.competicion);
+    return competition === "liga" || competition === "";
+  });
+
+  const primera = calcularTablaLiga({
+    partidos: leagueMatches,
+    clubes: clubs,
+    sanciones: leagueSanctions,
+    division: "Primera",
+  }).tabla;
+
+  const segunda = calcularTablaLiga({
+    partidos: leagueMatches,
+    clubes: clubs,
+    sanciones: leagueSanctions,
+    division: "Segunda",
+  }).tabla;
+
+  return { primera, segunda };
+}
+
+function isFinal(match: HistoryMatch) {
+  const phase = normalize(match.fase || match.ronda);
+  return phase === "final" || phase === "finales";
+}
+
+export function getKnockoutWinner(
+  matches: HistoryMatch[],
+  competition: string,
+): KnockoutWinner {
+  const candidates = matches
+    .filter(
+      (match) =>
+        normalize(match.competicion) === normalize(competition) &&
+        isFinal(match) &&
+        Boolean(parseResultado(match.resultado)),
+    )
+    .sort((a, b) => numericId(a.id) - numericId(b.id));
+
+  const match = candidates.at(-1);
+  if (!match) return null;
+
+  const score = parseResultado(match.resultado);
+  if (!score || score.local === score.visitante) return null;
+
+  return score.local > score.visitante
+    ? {
+        champion: match.local,
+        runnerUp: match.visitante,
+        result: `${score.local}-${score.visitante}`,
+      }
+    : {
+        champion: match.visitante,
+        runnerUp: match.local,
+        result: `${score.local}-${score.visitante}`,
+      };
+}
+
+export function seasonSummary(matches: HistoryMatch[], clubs: HistoryClub[]) {
+  let goals = 0;
+  let completed = 0;
+  const teams = new Set<string>();
+
+  matches.forEach((match) => {
+    if (match.local) teams.add(match.local);
+    if (match.visitante) teams.add(match.visitante);
+    const score = parseResultado(match.resultado);
+    if (!score) return;
+    completed += 1;
+    goals += score.local + score.visitante;
+  });
+
+  clubs.forEach((club) => {
+    if (club.nombre) teams.add(club.nombre);
+  });
+
+  return {
+    teams: teams.size,
+    matches: completed,
+    goals,
+    goalsPerMatch: completed > 0 ? goals / completed : 0,
+  };
+}
+
+export function buildTeamRecords(matches: HistoryMatch[]) {
+  const map = new Map<string, TeamRecord>();
+
+  const get = (name: string) => {
+    const current = map.get(name) || { nombre: name, gf: 0, gc: 0, pj: 0 };
+    map.set(name, current);
+    return current;
+  };
+
+  matches.forEach((match) => {
+    const score = parseResultado(match.resultado);
+    if (!score || !match.local || !match.visitante) return;
+
+    const local = get(match.local);
+    const visitante = get(match.visitante);
+    local.pj += 1;
+    visitante.pj += 1;
+    local.gf += score.local;
+    local.gc += score.visitante;
+    visitante.gf += score.visitante;
+    visitante.gc += score.local;
+  });
+
+  return Array.from(map.values());
+}
+
+function bestResultMatch(matches: HistoryMatch[], mode: "margin" | "total") {
+  let best: { match: HistoryMatch; value: number; score: { local: number; visitante: number } } | null = null;
+
+  matches.forEach((match) => {
+    const score = parseResultado(match.resultado);
+    if (!score) return;
+    const value =
+      mode === "margin"
+        ? Math.abs(score.local - score.visitante)
+        : score.local + score.visitante;
+
+    if (!best || value > best.value) best = { match, value, score };
+  });
+
+  return best;
+}
+
+export function longestWinStreak(matches: HistoryMatch[]) {
+  const ordered = [...matches].sort((a, b) => numericId(a.id) - numericId(b.id));
+  const current = new Map<string, number>();
+  let best = { team: "", value: 0 };
+
+  const set = (team: string, won: boolean) => {
+    const value = won ? (current.get(team) || 0) + 1 : 0;
+    current.set(team, value);
+    if (value > best.value) best = { team, value };
+  };
+
+  ordered.forEach((match) => {
+    const score = parseResultado(match.resultado);
+    if (!score || !match.local || !match.visitante) return;
+    if (score.local > score.visitante) {
+      set(match.local, true);
+      set(match.visitante, false);
+    } else if (score.visitante > score.local) {
+      set(match.visitante, true);
+      set(match.local, false);
+    } else {
+      set(match.local, false);
+      set(match.visitante, false);
+    }
+  });
+
+  return best;
+}
+
+export function buildSeasonRecords(
+  matches: HistoryMatch[],
+  players: PlayerAggregate[],
+) {
+  const teams = buildTeamRecords(matches);
+  const biggest = bestResultMatch(matches, "margin");
+  const highest = bestResultMatch(matches, "total");
+  const streak = longestWinStreak(matches);
+  const mostGoals = [...teams].sort((a, b) => b.gf - a.gf)[0] || null;
+  const bestDefense = [...teams]
+    .filter((team) => team.pj > 0)
+    .sort((a, b) => a.gc - b.gc || b.pj - a.pj)[0] || null;
+  const scorer = [...players].sort((a, b) => b.goles - a.goles)[0] || null;
+
+  return [
+    {
+      label: "Mayor goleada",
+      value: biggest
+        ? `${biggest.score.local}-${biggest.score.visitante}`
+        : "—",
+      detail: biggest ? `${biggest.match.local} vs ${biggest.match.visitante}` : "Sin datos",
+    },
+    {
+      label: "Partido con más goles",
+      value: highest
+        ? `${highest.score.local}-${highest.score.visitante}`
+        : "—",
+      detail: highest ? `${highest.match.local} vs ${highest.match.visitante}` : "Sin datos",
+    },
+    {
+      label: "Mayor racha de victorias",
+      value: streak.value ? String(streak.value) : "—",
+      detail: streak.team || "Sin datos",
+    },
+    {
+      label: "Equipo más goleador",
+      value: mostGoals ? String(mostGoals.gf) : "—",
+      detail: mostGoals?.nombre || "Sin datos",
+    },
+    {
+      label: "Menos goles recibidos",
+      value: bestDefense ? String(bestDefense.gc) : "—",
+      detail: bestDefense?.nombre || "Sin datos",
+    },
+    {
+      label: "Jugador con más goles",
+      value: scorer ? String(scorer.goles) : "—",
+      detail: scorer?.nombre || "Sin datos",
+    },
+  ];
+}
+
+function titleCounts(
+  allMatches: HistoryMatch[],
+  allSanctions: HistorySanction[],
+) {
+  const seasons = Array.from(
+    new Set(allMatches.map((match) => String(match.temporada || "")).filter(Boolean)),
+  );
+  const counts = new Map<string, number>();
+  const add = (team?: string | null) => {
+    const name = String(team || "").trim();
+    if (!name) return;
+    counts.set(name, (counts.get(name) || 0) + 1);
+  };
+
+  seasons.forEach((season) => {
+    const seasonMatches = allMatches.filter((match) => match.temporada === season);
+    const sanctions = allSanctions.filter((sanction) => sanction.temporada === season);
+    const emptyClubs: HistoryClub[] = [];
+    const tables = buildLeagueTables({ matches: seasonMatches, clubs: emptyClubs, sanctions });
+    add(tables.primera[0]?.nombre);
+    add(tables.segunda[0]?.nombre);
+    add(getKnockoutWinner(seasonMatches, "copa_argentina")?.champion);
+    add(getKnockoutWinner(seasonMatches, "copa_apa")?.champion);
+    add(getKnockoutWinner(seasonMatches, "copa_campeones")?.champion);
+  });
+
+  return Array.from(counts.entries())
+    .map(([team, titles]) => ({ team, titles }))
+    .sort((a, b) => b.titles - a.titles || a.team.localeCompare(b.team));
+}
+
+export function buildHistoricalRecords({
+  allMatches,
+  allPlayers,
+  allSanctions,
+}: {
+  allMatches: HistoryMatch[];
+  allPlayers: PlayerAggregate[];
+  allSanctions: HistorySanction[];
+}) {
+  const scorer = [...allPlayers].sort((a, b) => b.goles - a.goles)[0] || null;
+  const appearances = [...allPlayers].sort((a, b) => b.partidos - a.partidos)[0] || null;
+  const titles = titleCounts(allMatches, allSanctions)[0] || null;
+  const biggest = bestResultMatch(allMatches, "margin");
+  const streak = longestWinStreak(allMatches);
+
+  return [
+    {
+      label: "Máximo goleador histórico",
+      value: scorer ? String(scorer.goles) : "—",
+      detail: scorer?.nombre || "Sin datos",
+    },
+    {
+      label: "Más partidos",
+      value: appearances ? String(appearances.partidos) : "—",
+      detail: appearances?.nombre || "Sin datos",
+    },
+    {
+      label: "Más títulos",
+      value: titles ? String(titles.titles) : "—",
+      detail: titles?.team || "Sin datos",
+    },
+    {
+      label: "Mayor goleada",
+      value: biggest
+        ? `${biggest.score.local}-${biggest.score.visitante}`
+        : "—",
+      detail: biggest ? `${biggest.match.local} vs ${biggest.match.visitante}` : "Sin datos",
+    },
+    {
+      label: "Mayor racha de victorias",
+      value: streak.value ? String(streak.value) : "—",
+      detail: streak.team || "Sin datos",
+    },
+  ];
+}
+
+export function highlightedStats(
+  tables: { primera: LeagueStanding[]; segunda: LeagueStanding[] },
+  players: PlayerAggregate[],
+) {
+  const scorer = [...players].sort((a, b) => b.goles - a.goles)[0] || null;
+  const assists = [...players].sort((a, b) => b.asistencias - a.asistencias)[0] || null;
+  const mvp = [...players].sort((a, b) => b.mvps - a.mvps)[0] || null;
+  const teams = [...tables.primera, ...tables.segunda].filter((team) => team.pj > 0);
+  const attack = [...teams].sort((a, b) => b.gf - a.gf)[0] || null;
+  const defense = [...teams].sort((a, b) => a.gc - b.gc || b.pj - a.pj)[0] || null;
+
+  return { scorer, assists, mvp, attack, defense };
+}
+
+function firstAward(rows: HistoryAwardRow[], keys: string[]) {
+  return rows.find((row) => keys.includes(normalize(row.premio))) || null;
+}
+
+export function buildAwards(
+  rows: HistoryAwardRow[],
+  players: PlayerAggregate[],
+) {
+  const scorer = [...players].sort((a, b) => b.goles - a.goles)[0] || null;
+  const mvpLeader = [...players].sort((a, b) => b.mvps - a.mvps || b.score - a.score)[0] || null;
+  const goalkeepers = players.filter((player) => {
+    const position = normalize(player.posicion);
+    return position.includes("gk") || position.includes("arq") || position.includes("port");
+  });
+  const goalkeeperLeader = [...(goalkeepers.length ? goalkeepers : players)]
+    .sort((a, b) => b.atajadas - a.atajadas || b.ratingPromedio - a.ratingPromedio)[0] || null;
+
+  const mvpAward = firstAward(rows, ["balon_oro", "balon de oro", "mvp"]);
+  const scorerAward = firstAward(rows, ["bota_oro", "bota de oro", "goleador"]);
+  const goalkeeperAward = firstAward(rows, ["raiko_trophy", "raiko trophy", "arquero_del_ano", "arquero del ano"]);
+
+  return [
+    {
+      key: "mvp",
+      label: "MVP",
+      nombre: mvpAward?.nombre || mvpLeader?.nombre || "Sin definir",
+      equipo: mvpAward?.equipo || mvpLeader?.equipo || "",
+    },
+    {
+      key: "scorer",
+      label: "Goleador",
+      nombre: scorerAward?.nombre || scorer?.nombre || "Sin definir",
+      equipo: scorerAward?.equipo || scorer?.equipo || "",
+    },
+    {
+      key: "goalkeeper",
+      label: "Arquero del Año",
+      nombre: goalkeeperAward?.nombre || goalkeeperLeader?.nombre || "Sin definir",
+      equipo: goalkeeperAward?.equipo || goalkeeperLeader?.equipo || "",
+    },
+  ];
+}
+
+export function competitionSummary(
+  matches: HistoryMatch[],
+  tables: { primera: LeagueStanding[]; segunda: LeagueStanding[] },
+) {
+  return [
+    {
+      key: "liga",
+      label: "Torneo de Liga",
+      rows: [
+        { label: "Campeón Primera", team: tables.primera[0]?.nombre || "Por definir" },
+        { label: "Campeón Segunda", team: tables.segunda[0]?.nombre || "Por definir" },
+      ],
+    },
+    {
+      key: "copa_argentina",
+      label: "Copa Argentina",
+      rows: (() => {
+        const winner = getKnockoutWinner(matches, "copa_argentina");
+        return [
+          { label: "Campeón", team: winner?.champion || "Por definir" },
+          { label: "Subcampeón", team: winner?.runnerUp || "Por definir" },
+        ];
+      })(),
+    },
+    {
+      key: "copa_apa",
+      label: "Copa APA",
+      rows: (() => {
+        const winner = getKnockoutWinner(matches, "copa_apa");
+        return [
+          { label: "Campeón", team: winner?.champion || "Por definir" },
+          { label: "Subcampeón", team: winner?.runnerUp || "Por definir" },
+        ];
+      })(),
+    },
+    {
+      key: "copa_campeones",
+      label: "Copa de Campeones",
+      rows: (() => {
+        const winner = getKnockoutWinner(matches, "copa_campeones");
+        return [
+          { label: "Campeón", team: winner?.champion || "Por definir" },
+          { label: "Subcampeón", team: winner?.runnerUp || "Por definir" },
+        ];
+      })(),
+    },
+  ];
+}
+
+export function divisionLabel(division?: string | null) {
+  const normalized = normalizarDivision(String(division || ""));
+  if (normalized === "primera") return "Primera División";
+  if (normalized === "segunda") return "Segunda División";
+  return division || "División";
+}
