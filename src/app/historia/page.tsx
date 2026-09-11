@@ -1,8 +1,8 @@
 "use client";
 
-import { useHistory } from "@/hooks/useHistory";
+import { seasonSummary } from "@/lib/history";
 
 export default function HistoriaPage() {
-  const hookDisponible = Boolean(useHistory);
-  return <main className="min-h-screen bg-[#f5fbfe]">{hookDisponible ? "Historia" : ""}</main>;
+  const summary = seasonSummary([], []);
+  return <main className="min-h-screen bg-[#f5fbfe]">{summary.matches}</main>;
 }
