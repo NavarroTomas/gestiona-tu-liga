@@ -2,989 +2,557 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import TeamLink from "@/components/team/TeamLink";
 import { supabase } from "@/lib/supabase";
 
-interface Jugador {
+type RankingTab = "general" | "goles" | "asistencias" | "mvps" | "rating";
+type RankingMode = "temporada" | "historico";
+
+type RankingJugadorRow = {
+  temporada?: string | null;
+  division?: string | null;
+  playerId?: string | null;
+  nombre?: string | null;
+  equipo?: string | null;
+  posicion?: string | null;
+  partidos_jugados?: number | string | null;
+  goals?: number | string | null;
+  assists?: number | string | null;
+  mvp?: number | string | null;
+  rating_apa_promedio?: number | string | null;
+  score_total?: number | string | null;
+};
+
+type Jugador = {
   nombre: string;
   playerId: string;
   equipo: string;
+  posicion: string;
+  partidos: number;
   goles: number;
   asistencias: number;
   mvps: number;
   score: number;
-  pases: number;
-  tackles: number;
   ratingTotal: number;
-  partidos: number;
-  atajadas: number;
-  atrapadas: number;
-}
-
-type RankingTipo =
-  | "goles"
-  | "asistencias"
-  | "mvps"
-  | "score"
-  | "pases"
-  | "tackles"
-  | "rating"
-  | "atajadas"
-  | "atrapadas";
-
-type RankingJugadorRow = {
-  temporada: string | null;
-  division: string | null;
-  playerId: string | null;
-  nombre: string | null;
-  equipo: string | null;
-  partidos_jugados: number | null;
-  goals: number | null;
-  assists: number | null;
-  passes: number | null;
-  tackles: number | null;
-  gKSaves: number | null;
-  mvp: number | null;
-  rating_apa_promedio: number | null;
-  score_total: number | null;
+  avatarUrl?: string | null;
 };
 
 type ClubInfo = {
   nombre: string;
-  logo_url: string | null;
+  slug?: string | null;
+  logo_url?: string | null;
 };
+
+const selectStyle = {
+  backgroundColor: "#ffffff",
+  color: "#102f55",
+  borderColor: "#c9e3f1",
+} as const;
+
+function normalizeText(value?: string | null) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+function normalizeDivision(value?: string | null) {
+  const normalized = normalizeText(value);
+  if (normalized.includes("primera")) return "primera";
+  if (normalized.includes("segunda")) return "segunda";
+  return normalized;
+}
+
+function seasonNumber(value: string) {
+  return Number(value.match(/(\d+)/)?.[1] || 0);
+}
+
+function PlayerAvatar({ player, size = "md" }: { player: Jugador; size?: "sm" | "md" | "lg" }) {
+  const sizes = {
+    sm: "h-8 w-8",
+    md: "h-11 w-11",
+    lg: "h-24 w-24 sm:h-28 sm:w-28",
+  };
+
+  return (
+    <span className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#d3e6f1] bg-[#edf5f9] ${sizes[size]}`}>
+      {player.avatarUrl ? (
+        <img src={player.avatarUrl} alt="" className="h-full w-full object-cover" />
+      ) : (
+        <svg viewBox="0 0 24 24" className="h-[58%] w-[58%] fill-[#9fb0bc]" aria-hidden="true">
+          <path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4.7 0-8.5 2.4-8.5 5.4 0 .9.7 1.6 1.6 1.6h13.8c.9 0 1.6-.7 1.6-1.6 0-3-3.8-5.4-8.5-5.4Z" />
+        </svg>
+      )}
+    </span>
+  );
+}
+
+function MetricIcon({ type }: { type: RankingTab }) {
+  if (type === "goles") {
+    return (
+      <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.8" aria-hidden="true">
+        <circle cx="12" cy="12" r="8" /><path d="m12 8 3 2-1 4h-4l-1-4 3-2Zm-7 2 4 .5M15 10.5l4-1M8 16l2-2m4 0 2 2" />
+      </svg>
+    );
+  }
+  if (type === "asistencias") {
+    return (
+      <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.8" aria-hidden="true">
+        <path d="M4 12h13m-4-4 4 4-4 4" /><path d="M4 7v10" />
+      </svg>
+    );
+  }
+  if (type === "mvps") {
+    return (
+      <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.8" aria-hidden="true">
+        <path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.8 1-6.1-4.4-4.3 6.1-.9L12 3Z" />
+      </svg>
+    );
+  }
+  if (type === "rating") {
+    return (
+      <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.8" aria-hidden="true">
+        <path d="M5 19V9m7 10V4m7 15v-7" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.8" aria-hidden="true">
+      <path d="M7 4h10v4c0 3-2.2 5-5 5s-5-2-5-5V4Z" /><path d="M9 13v3h6v-3M7 20h10M7 6H4v1c0 2 1.2 3 3 3m10-4h3v1c0 2-1.2 3-3 3" />
+    </svg>
+  );
+}
 
 export default function JugadoresPage() {
   const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Primera");
-  const [modo, setModo] = useState<"temporada" | "historico">("temporada");
-
-  const temporadas = ["Temporada 4"];
-  const divisiones = [
-    { nombre: "Primera", icon: "🏆" },
-    { nombre: "Segunda", icon: "🥈" },
-  ];
-
+  const [modo, setModo] = useState<RankingMode>("temporada");
+  const [clubFilter, setClubFilter] = useState("Todos");
+  const [activeTab, setActiveTab] = useState<RankingTab>("general");
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
   const [clubesInfo, setClubesInfo] = useState<ClubInfo[]>([]);
+  const [temporadas, setTemporadas] = useState<string[]>(["Temporada 4"]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelado = false;
+    let cancelled = false;
+    async function loadSeasons() {
+      const { data } = await supabase.from("v_ranking_jugadores").select("temporada");
+      if (cancelled) return;
+      const values = Array.from(new Set((data || []).map((row: any) => String(row.temporada || "")).filter(Boolean)))
+        .sort((a, b) => seasonNumber(a) - seasonNumber(b));
+      if (values.length) {
+        setTemporadas(values);
+        if (!values.includes(temporada)) setTemporada(values[values.length - 1]);
+      }
+    }
+    loadSeasons();
+    return () => { cancelled = true; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    async function cargarJugadores() {
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPlayers() {
       setLoading(true);
       setErrorMsg(null);
 
       let rankingQuery = supabase
         .from("v_ranking_jugadores")
-        .select(`
-          temporada,
-          division,
-          playerId,
-          nombre,
-          equipo,
-          partidos_jugados,
-          goals,
-          assists,
-          passes,
-          tackles,
-          gKSaves,
-          mvp,
-          rating_apa_promedio,
-          score_total
-        `);
+        .select("temporada,division,playerId,nombre,equipo,posicion,partidos_jugados,goals,assists,mvp,rating_apa_promedio,score_total");
 
-      if (modo === "temporada") {
-        rankingQuery = rankingQuery
+      if (modo === "temporada") rankingQuery = rankingQuery.eq("temporada", temporada);
+
+      const [rankingResult, clubsResult] = await Promise.all([
+        rankingQuery,
+        supabase
+          .from("v_clubes_temporada_public")
+          .select("nombre,slug,logo_url,division,temporada,activo")
           .eq("temporada", temporada)
-          .eq("division", division);
-      }
+          .eq("activo", true),
+      ]);
 
-      const { data, error } = await rankingQuery;
+      if (cancelled) return;
 
-      if (cancelado) return;
-
-      if (error) {
-        console.error("Error cargando ranking de jugadores:", error);
+      if (rankingResult.error) {
+        console.error("Error cargando ranking de jugadores:", rankingResult.error);
         setJugadores([]);
-        setClubesInfo([]);
         setErrorMsg("No se pudieron cargar los rankings de jugadores.");
         setLoading(false);
         return;
       }
 
-      const mapa: Record<string, Jugador> = {};
+      if (clubsResult.error) console.error("Error cargando clubes del ranking:", clubsResult.error);
 
-      ((data || []) as unknown as RankingJugadorRow[]).forEach((j) => {
-        const nombre = String(j.nombre || "").trim();
-        const playerId = String(j.playerId || "").trim();
-
-        if (!nombre && !playerId) return;
-
-        const clave = playerId || nombre;
-        const partidos = Number(j.partidos_jugados || 0);
-        const ratingPromedio = Number(j.rating_apa_promedio || 0);
-
-        if (!mapa[clave]) {
-          mapa[clave] = {
-            nombre: nombre || "Sin nombre",
-            playerId,
-            equipo: j.equipo || "Sin Club",
-            goles: 0,
-            asistencias: 0,
-            mvps: 0,
-            score: 0,
-            pases: 0,
-            tackles: 0,
-            ratingTotal: 0,
-            partidos: 0,
-            atajadas: 0,
-            atrapadas: 0,
-          };
-        }
-
-        mapa[clave].goles += Number(j.goals || 0);
-        mapa[clave].asistencias += Number(j.assists || 0);
-        mapa[clave].mvps += Number(j.mvp || 0);
-        mapa[clave].score += Number(j.score_total || 0);
-        mapa[clave].pases += Number(j.passes || 0);
-        mapa[clave].tackles += Number(j.tackles || 0);
-        mapa[clave].ratingTotal += ratingPromedio * partidos;
-        mapa[clave].partidos += partidos;
-        mapa[clave].atajadas += Number(j.gKSaves || 0);
-
-        if (j.equipo) mapa[clave].equipo = j.equipo;
-        if (nombre) mapa[clave].nombre = nombre;
-        if (playerId) mapa[clave].playerId = playerId;
-      });
-
-      const listaBase = Object.values(mapa);
-      const playerIds = listaBase
-        .map((j) => String(j.playerId || "").trim())
-        .filter(Boolean);
-
-      const mapaClubActual: Record<string, string> = {};
-      const atrapadasPorJugador: Record<string, number> = {};
-
-      const consultasExtra: Array<PromiseLike<any>> = [];
-
-      if (playerIds.length > 0) {
-        let plantillasQuery = supabase
-          .from("plantillas")
-          .select("playerid, equipo, temporada, division, estado")
-          .in("playerid", playerIds)
-          .neq("estado", "baja");
-
-        if (modo === "temporada") {
-          plantillasQuery = plantillasQuery
-            .eq("temporada", temporada)
-            .eq("division", division);
-        }
-
-        let atrapadasQuery = supabase
-          .from("estadisticas_jugadores")
-          .select("playerId, gKCatches")
-          .in("playerId", playerIds);
-
-        if (modo === "temporada") {
-          atrapadasQuery = atrapadasQuery
-            .eq("temporada", temporada)
-            .eq("division", division);
-        }
-
-        consultasExtra.push(plantillasQuery, atrapadasQuery);
-      }
-
-      const [plantillasResult, atrapadasResult] = consultasExtra.length
-        ? await Promise.all(consultasExtra)
-        : [];
-
-      if (cancelado) return;
-
-      if (plantillasResult?.error) {
-        console.error("Error cargando plantillas:", plantillasResult.error);
-      } else {
-        (plantillasResult?.data || []).forEach((p: any) => {
-          const pid = String(p.playerid || "").trim();
-          if (!pid || !p.equipo) return;
-          mapaClubActual[pid] = p.equipo;
-        });
-      }
-
-      if (atrapadasResult?.error) {
-        console.error("Error cargando atrapadas:", atrapadasResult.error);
-      } else {
-        (atrapadasResult?.data || []).forEach((row: any) => {
-          const pid = String(row.playerId || "").trim();
-          if (!pid) return;
-          atrapadasPorJugador[pid] =
-            (atrapadasPorJugador[pid] || 0) + Number(row.gKCatches || 0);
-        });
-      }
-
-      const lista = listaBase.map((j) => ({
-        ...j,
-        equipo: mapaClubActual[j.playerId] || j.equipo,
-        atrapadas: atrapadasPorJugador[j.playerId] || 0,
-      }));
-
-      const nombresEquipos = Array.from(
-        new Set(lista.map((j) => j.equipo).filter(Boolean)),
+      const divisionKey = normalizeDivision(division);
+      const baseRows = ((rankingResult.data || []) as RankingJugadorRow[]).filter((row) =>
+        modo === "historico" || normalizeDivision(row.division) === divisionKey,
       );
 
-      let clubesData: ClubInfo[] = [];
-
-      if (nombresEquipos.length > 0) {
-        const { data: clubes, error: clubesError } = await supabase
-          .from("clubes_info")
-          .select("nombre, logo_url")
-          .in("nombre", nombresEquipos);
-
-        if (clubesError) {
-          console.error("Error cargando logos de clubes:", clubesError);
-        }
-
-        clubesData = (clubes || []) as unknown as ClubInfo[];
+      const map = new Map<string, Jugador>();
+      for (const row of baseRows) {
+        const name = String(row.nombre || "").trim();
+        const playerId = String(row.playerId || "").trim();
+        if (!name && !playerId) continue;
+        const key = playerId || `${normalizeText(name)}-${normalizeText(row.equipo)}`;
+        const matches = Number(row.partidos_jugados || 0);
+        const rating = Number(row.rating_apa_promedio || 0);
+        const current = map.get(key) || {
+          nombre: name || "Sin nombre",
+          playerId,
+          equipo: String(row.equipo || "Sin Club"),
+          posicion: String(row.posicion || "Sin posición"),
+          partidos: 0,
+          goles: 0,
+          asistencias: 0,
+          mvps: 0,
+          score: 0,
+          ratingTotal: 0,
+          avatarUrl: null,
+        };
+        current.partidos += matches;
+        current.goles += Number(row.goals || 0);
+        current.asistencias += Number(row.assists || 0);
+        current.mvps += Number(row.mvp || 0);
+        current.score += Number(row.score_total || 0);
+        current.ratingTotal += rating * matches;
+        if (name) current.nombre = name;
+        if (playerId) current.playerId = playerId;
+        if (row.equipo) current.equipo = String(row.equipo);
+        if (row.posicion) current.posicion = String(row.posicion);
+        map.set(key, current);
       }
 
-      if (cancelado) return;
+      let list = Array.from(map.values());
+      const playerIds = list.map((player) => player.playerId).filter(Boolean);
 
-      setClubesInfo(clubesData);
-      setJugadores(lista);
-      setLoading(false);
+      if (playerIds.length) {
+        const [profilesResult, rostersResult] = await Promise.all([
+          supabase.from("public_profiles").select("playerid,avatar_url").in("playerid", playerIds),
+          supabase.from("plantillas").select("playerid,equipo,temporada,division,estado").in("playerid", playerIds).neq("estado", "baja"),
+        ]);
+        if (!cancelled) {
+          const avatarMap = new Map<string, string | null>();
+          (profilesResult.data || []).forEach((row: any) => avatarMap.set(String(row.playerid || ""), row.avatar_url || null));
+          const clubMap = new Map<string, string>();
+          (rostersResult.data || [])
+            .filter((row: any) => modo === "historico" || (row.temporada === temporada && normalizeDivision(row.division) === divisionKey))
+            .forEach((row: any) => {
+              if (row.playerid && row.equipo) clubMap.set(String(row.playerid), String(row.equipo));
+            });
+          list = list.map((player) => ({
+            ...player,
+            equipo: clubMap.get(player.playerId) || player.equipo,
+            avatarUrl: avatarMap.get(player.playerId) || null,
+          }));
+        }
+      }
+
+      const filteredClubs = ((clubsResult.data || []) as any[])
+        .filter((club) => normalizeDivision(club.division) === divisionKey)
+        .map((club) => ({ nombre: String(club.nombre), slug: club.slug, logo_url: club.logo_url })) as ClubInfo[];
+
+      if (!cancelled) {
+        setJugadores(list);
+        setClubesInfo(filteredClubs);
+        setLoading(false);
+      }
     }
 
-    cargarJugadores();
-
-    return () => {
-      cancelado = true;
-    };
+    loadPlayers();
+    return () => { cancelled = true; };
   }, [temporada, division, modo]);
 
-  const logosPorEquipo = useMemo(() => {
-    const mapa = new Map<string, string | null>();
-
-    clubesInfo.forEach((club) => {
-      mapa.set(String(club.nombre || "").toLowerCase().trim(), club.logo_url);
-    });
-
-    return mapa;
+  const clubMap = useMemo(() => {
+    const map = new Map<string, ClubInfo>();
+    clubesInfo.forEach((club) => map.set(normalizeText(club.nombre), club));
+    return map;
   }, [clubesInfo]);
 
-  function logoEquipo(nombre?: string) {
-    if (!nombre) return null;
-    return logosPorEquipo.get(String(nombre).toLowerCase().trim()) || null;
+  const clubs = useMemo(
+    () => Array.from(new Set(jugadores.map((player) => player.equipo).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
+    [jugadores],
+  );
+
+  useEffect(() => {
+    if (clubFilter !== "Todos" && !clubs.includes(clubFilter)) setClubFilter("Todos");
+  }, [clubs, clubFilter]);
+
+  const filteredPlayers = useMemo(
+    () => clubFilter === "Todos" ? jugadores : jugadores.filter((player) => player.equipo === clubFilter),
+    [jugadores, clubFilter],
+  );
+
+  function rating(player: Jugador) {
+    return player.partidos ? Number((player.ratingTotal / player.partidos).toFixed(1)) : 0;
   }
 
-  function EscudoEquipo({
-    nombre,
-    size = "md",
-  }: {
-    nombre?: string;
-    size?: "sm" | "md" | "lg";
-  }) {
-    const logo = logoEquipo(nombre);
-
-    const sizes = {
-      sm: "h-10 w-10 rounded-xl text-[10px]",
-      md: "h-12 w-12 rounded-2xl text-xs",
-      lg: "h-16 w-16 rounded-3xl text-base",
-    };
-
-    return (
-      <div
-        className={`flex shrink-0 items-center justify-center overflow-hidden border border-sky-400/30 bg-gradient-to-br from-sky-500 to-blue-950 font-black shadow-[0_0_16px_rgba(56,189,248,.35)] ${sizes[size]}`}
-      >
-        {logo ? (
-          <img
-            src={logo}
-            alt={nombre || "Club"}
-            className="h-full w-full object-contain p-1.5"
-            loading="lazy"
-          />
-        ) : (
-          nombre?.slice(0, 2).toUpperCase() || "CL"
-        )}
-      </div>
-    );
+  function metricValue(player: Jugador, tab: RankingTab) {
+    if (tab === "goles") return player.goles;
+    if (tab === "asistencias") return player.asistencias;
+    if (tab === "mvps") return player.mvps;
+    if (tab === "rating") return rating(player);
+    return player.score;
   }
 
-  function valorJugador(j: Jugador, tipo: RankingTipo) {
-    if (tipo === "rating") {
-      return j.partidos > 0
-        ? Number((j.ratingTotal / j.partidos).toFixed(1))
-        : 0;
-    }
-
-    return Number(j[tipo]) || 0;
+  function ranking(tab: RankingTab, limit?: number) {
+    const sorted = [...filteredPlayers]
+      .filter((player) => tab === "general" || metricValue(player, tab) > 0)
+      .sort((a, b) => metricValue(b, tab) - metricValue(a, tab) || b.goles - a.goles || b.asistencias - a.asistencias);
+    return typeof limit === "number" ? sorted.slice(0, limit) : sorted;
   }
 
-  function top(tipo: RankingTipo, cantidad = 10) {
-    return [...jugadores]
-      .filter((j) => valorJugador(j, tipo) > 0)
-      .sort((a, b) => valorJugador(b, tipo) - valorJugador(a, tipo))
-      .slice(0, cantidad);
-  }
+  const generalRanking = useMemo(() => ranking("general"), [filteredPlayers]); // eslint-disable-line react-hooks/exhaustive-deps
+  const activeRanking = useMemo(() => ranking(activeTab, 10), [filteredPlayers, activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+  const topScorers = useMemo(() => ranking("goles", 5), [filteredPlayers]); // eslint-disable-line react-hooks/exhaustive-deps
+  const topAssists = useMemo(() => ranking("asistencias", 5), [filteredPlayers]); // eslint-disable-line react-hooks/exhaustive-deps
+  const featured = generalRanking[0] || null;
 
-  const totalJugadores = jugadores.length;
-  const totalGoles = jugadores.reduce((acc, j) => acc + j.goles, 0);
-  const totalAsistencias = jugadores.reduce((acc, j) => acc + j.asistencias, 0);
-  const totalMvps = jugadores.reduce((acc, j) => acc + j.mvps, 0);
+  const tabLabels: Array<{ key: RankingTab; label: string }> = [
+    { key: "general", label: "General" },
+    { key: "goles", label: "Goleadores" },
+    { key: "asistencias", label: "Asistencias" },
+    { key: "mvps", label: "MVP" },
+    { key: "rating", label: "Promedio" },
+  ];
 
-  const maxGoleador = top("goles", 1)[0];
-  const maxAsistidor = top("asistencias", 1)[0];
-  const maxMvp = top("mvps", 1)[0];
-  const mejorRating = top("rating", 1)[0];
-  const mejorArquero = top("atajadas", 1)[0];
-
-  const jugadorDestacado =
-    [...jugadores]
-      .sort((a, b) => {
-        const valorA =
-          a.goles * 4 +
-          a.asistencias * 3 +
-          a.mvps * 6 +
-          valorJugador(a, "rating") * 2 +
-          a.atajadas * 0.25;
-
-        const valorB =
-          b.goles * 4 +
-          b.asistencias * 3 +
-          b.mvps * 6 +
-          valorJugador(b, "rating") * 2 +
-          b.atajadas * 0.25;
-
-        return valorB - valorA;
-      })[0] || null;
-
-  function LeyendaCard({
-    titulo,
-    subtitulo,
-    jugador,
-    tipo,
-    color,
-    icono,
-  }: {
-    titulo: string;
-    subtitulo: string;
-    jugador?: Jugador;
-    tipo: RankingTipo;
-    color: string;
-    icono: string;
-  }) {
-    const valor = jugador ? valorJugador(jugador, tipo) : 0;
-
-    const contenido = (
-      <>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,.10),transparent_40%)]" />
-
-        <div className="relative z-10">
-          <div className="mb-5 flex items-center justify-between gap-3 sm:mb-8 sm:gap-4">
-            <p
-              className={`text-xs font-black uppercase tracking-[0.28em] ${color}`}
-            >
-              {titulo}
-            </p>
-
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center sm:h-14 sm:w-14 rounded-2xl border border-white/10 bg-black/35 text-3xl">
-              {icono}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <EscudoEquipo nombre={jugador?.equipo} size="lg" />
-
-            <div className="min-w-0">
-              <h3 className="break-words text-xl font-black uppercase sm:text-2xl leading-tight sm:truncate sm:text-3xl">
-                {jugador?.nombre || "-"}
-              </h3>
-
-              <p className="mt-2 truncate text-sm uppercase tracking-[0.12em] text-zinc-500">
-                {jugador?.equipo || "Sin datos"} · {jugador?.partidos || 0} PJ
+  return (
+    <main className="min-h-screen bg-[#f5fbfe] text-[#102f55]">
+      <section className="border-b border-[#cfe5f1] bg-[#eef8fd]">
+        <div className="mx-auto max-w-[1680px] px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
+          <p className="text-[11px] font-black uppercase tracking-[.18em] text-[#2b79aa]">Competición · Jugadores</p>
+          <div className="mt-2 grid gap-7 lg:grid-cols-[minmax(0,1fr)_620px] lg:items-end">
+            <div>
+              <h1 className="text-[clamp(2.6rem,7vw,5rem)] font-black uppercase leading-[.9] tracking-[-.045em] text-[#102f55]">
+                Jugadores <span className="text-[#32a9df]">APA</span>
+              </h1>
+              <p className="mt-4 max-w-2xl text-[14px] font-semibold leading-6 text-[#466a85] sm:text-[16px]">
+                Conocé el rendimiento de los jugadores de APA PSO Argentina. Explorá estadísticas, rankings y las figuras de cada temporada.
               </p>
             </div>
-          </div>
 
-          <div className="mt-7 flex items-end justify-between gap-4">
-            <p className={`text-5xl font-black sm:text-6xl ${color}`}>{valor || 0}</p>
-
-            <p className="text-right text-xs uppercase tracking-[0.2em] text-zinc-500">
-              {subtitulo}
-            </p>
-          </div>
-        </div>
-      </>
-    );
-
-    if (!jugador?.playerId) {
-      return (
-        <div className="relative overflow-hidden rounded-[26px] border border-white/10 bg-[#020714] p-4 sm:rounded-[34px] sm:p-6 shadow-[0_0_35px_rgba(0,120,255,.10)]">
-          {contenido}
-        </div>
-      );
-    }
-
-    return (
-      <Link
-        href={`/jugadores/${encodeURIComponent(jugador.playerId)}`}
-        className="relative block overflow-hidden rounded-[26px] border border-white/10 bg-[#020714] p-4 sm:rounded-[34px] sm:p-6 shadow-[0_0_35px_rgba(0,120,255,.10)] transition hover:border-sky-400/45 hover:scale-[1.01]"
-      >
-        {contenido}
-      </Link>
-    );
-  }
-
-  function Ranking({
-    titulo,
-    tipo,
-    color,
-    icono = "🏆",
-  }: {
-    titulo: string;
-    tipo: RankingTipo;
-    color: string;
-    icono?: string;
-  }) {
-    const ordenados = top(tipo, 10);
-
-    return (
-      <section className="relative overflow-hidden rounded-[34px] border border-sky-500/20 bg-[#020714] p-6 shadow-[0_0_30px_rgba(0,120,255,.10)]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.10),transparent_38%)]" />
-
-        <div className="relative z-10">
-          <div className="mb-5 flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-400/25 bg-sky-400/10 text-2xl">
-              {icono}
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-2">
+              <label className="block">
+                <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-[#567b96]">Vista</span>
+                <select value={modo} onChange={(e) => setModo(e.target.value as RankingMode)} style={selectStyle} className="h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
+                  <option value="temporada" style={selectStyle}>Temporada</option>
+                  <option value="historico" style={selectStyle}>Histórico</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-[#567b96]">Club</span>
+                <select value={clubFilter} onChange={(e) => setClubFilter(e.target.value)} style={selectStyle} className="h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
+                  <option value="Todos" style={selectStyle}>Todos los clubes</option>
+                  {clubs.map((club) => <option key={club} value={club} style={selectStyle}>{club}</option>)}
+                </select>
+              </label>
+              {modo === "temporada" ? (
+                <>
+                  <label className="block">
+                    <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-[#567b96]">Temporada</span>
+                    <select value={temporada} onChange={(e) => setTemporada(e.target.value)} style={selectStyle} className="h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
+                      {temporadas.map((season) => <option key={season} value={season} style={selectStyle}>{season}</option>)}
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-[#567b96]">Categoría</span>
+                    <select value={division} onChange={(e) => setDivision(e.target.value)} style={selectStyle} className="h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
+                      <option value="Primera" style={selectStyle}>Primera División</option>
+                      <option value="Segunda" style={selectStyle}>Segunda División</option>
+                    </select>
+                  </label>
+                </>
+              ) : null}
             </div>
-
-            <h2 className="text-xl font-black uppercase sm:text-2xl">{titulo}</h2>
-          </div>
-
-          <div className="space-y-3">
-            {ordenados.length === 0 ? (
-              <p className="rounded-2xl border border-white/5 bg-black/30 p-5 text-zinc-500">
-                No hay datos todavía.
-              </p>
-            ) : (
-              ordenados.map((jugador, index) => {
-                const contenido = (
-                  <>
-                    <div className="flex items-center gap-4 min-w-0">
-                      <div
-                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl font-black ${
-                          index === 0
-                            ? "bg-yellow-400 text-black shadow-[0_0_18px_rgba(250,204,21,.35)]"
-                            : index === 1
-                              ? "bg-zinc-200 text-black"
-                              : index === 2
-                                ? "bg-orange-500 text-black"
-                                : "bg-white/[0.06] text-zinc-400"
-                        }`}
-                      >
-                        {index + 1}
-                      </div>
-
-                      <EscudoEquipo nombre={jugador.equipo} size="sm" />
-
-                      <div className="min-w-0">
-                        <p className="truncate font-black uppercase text-white">
-                          {jugador.nombre}
-                        </p>
-
-                        <p className="truncate text-sm text-zinc-500">
-                          {jugador.equipo} · {jugador.partidos} PJ
-                        </p>
-                      </div>
-                    </div>
-
-                    <p className={`shrink-0 text-2xl font-black sm:text-3xl ${color}`}>
-                      {valorJugador(jugador, tipo)}
-                    </p>
-                  </>
-                );
-
-                const className =
-                  "flex items-center justify-between gap-3 rounded-2xl border border-sky-500/10 bg-black/35 p-3 sm:p-4 transition hover:border-sky-400/45 hover:bg-sky-400/10";
-
-                if (!jugador.playerId) {
-                  return (
-                    <div
-                      key={`${tipo}-${jugador.nombre}-${index}`}
-                      className={className}
-                    >
-                      {contenido}
-                    </div>
-                  );
-                }
-
-                return (
-                  <Link
-                    key={`${tipo}-${jugador.playerId}-${index}`}
-                    href={`/jugadores/${encodeURIComponent(jugador.playerId)}`}
-                    className={className}
-                  >
-                    {contenido}
-                  </Link>
-                );
-              })
-            )}
           </div>
         </div>
       </section>
-    );
-  }
 
-  return (
-    <main className="min-h-screen overflow-x-hidden text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
-      <div className="mx-auto max-w-[1500px] space-y-6 px-3 py-5 sm:px-4 md:space-y-8 md:px-8 md:py-8">
-        <section className="relative overflow-hidden rounded-[26px] border border-sky-500/30 bg-[#020714] p-5 sm:rounded-[38px] md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_42%)]" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/20" />
+      {errorMsg ? (
+        <div className="mx-auto max-w-[1680px] px-5 pt-4 sm:px-8 lg:px-10">
+          <div className="rounded-[8px] border border-[#efcaca] bg-[#fff6f6] px-4 py-3 text-[13px] font-bold text-[#934747]">{errorMsg}</div>
+        </div>
+      ) : null}
 
-          <div className="relative z-10">
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-400 sm:text-xs sm:tracking-[0.45em]">
-              Jugadores APA · Rankings oficiales
-            </p>
+      <section className="mx-auto max-w-[1680px] px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
+        {loading ? (
+          <div className="rounded-[10px] border border-[#d7e9f3] bg-white px-5 py-16 text-center text-[13px] font-bold text-[#708da1]">Cargando rankings...</div>
+        ) : (
+          <div className="grid gap-5 xl:grid-cols-[355px_minmax(0,1fr)]">
+            <div className="space-y-4">
+              <section className="rounded-[12px] bg-[#07375d] p-5 text-white sm:p-6">
+                <p className="text-[10px] font-black uppercase tracking-[.16em] text-[#7dc8ee]">Jugador destacado</p>
+                <h2 className="mt-1 text-[25px] font-black uppercase leading-tight">Líder de la temporada</h2>
 
-            <h1 className="mt-4 text-[clamp(2.7rem,10vw,5rem)] font-black uppercase italic leading-none">
-              <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
-                Rankings
-              </span>
+                {featured ? (
+                  <>
+                    <div className="mt-6 flex items-center gap-4">
+                      <PlayerAvatar player={featured} size="lg" />
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-black uppercase tracking-wide text-[#7dc8ee]">#1 Ranking general</p>
+                        {featured.playerId ? (
+                          <Link href={`/jugadores/${encodeURIComponent(featured.playerId)}`} className="mt-1 block truncate text-[24px] font-black hover:underline">{featured.nombre}</Link>
+                        ) : (
+                          <strong className="mt-1 block truncate text-[24px] font-black">{featured.nombre}</strong>
+                        )}
+                        <div className="mt-1 text-[12px] font-semibold text-white/70">
+                          <TeamLink name={featured.equipo} slug={clubMap.get(normalizeText(featured.equipo))?.slug} className="text-white/70 hover:text-white">{featured.equipo}</TeamLink>
+                        </div>
+                        <p className="mt-1 text-[11px] font-semibold text-white/55">{featured.posicion}</p>
+                      </div>
+                    </div>
 
-              <span className="block text-sky-400 drop-shadow-[0_0_18px_rgba(56,189,248,.65)]">
-                de Jugadores
-              </span>
-            </h1>
+                    <div className="mt-6 grid grid-cols-4 divide-x divide-white/15 rounded-[8px] border border-white/10 bg-white/[.04] py-3 text-center">
+                      <div><strong className="block text-xl text-[#62c4ed]">{featured.goles}</strong><span className="text-[8px] font-bold uppercase text-white/55">Goles</span></div>
+                      <div><strong className="block text-xl text-[#62c4ed]">{featured.asistencias}</strong><span className="text-[8px] font-bold uppercase text-white/55">Asist.</span></div>
+                      <div><strong className="block text-xl text-[#62c4ed]">{featured.partidos}</strong><span className="text-[8px] font-bold uppercase text-white/55">PJ</span></div>
+                      <div><strong className="block text-xl text-[#62c4ed]">{rating(featured)}</strong><span className="text-[8px] font-bold uppercase text-white/55">Prom.</span></div>
+                    </div>
 
-            <p className="mt-6 max-w-2xl text-sm leading-7 text-zinc-300 sm:text-base md:text-lg md:leading-8">
-              Goleadores, asistidores, MVPs, arqueros y estadísticas oficiales
-              de APA PSO Argentina UE5 agrupadas por Player ID.
-            </p>
+                    {featured.playerId ? (
+                      <Link href={`/jugadores/${encodeURIComponent(featured.playerId)}`} className="mt-5 flex h-11 items-center justify-center rounded-[7px] bg-[#56afe2] text-[12px] font-black text-[#062f50] transition hover:bg-[#73c2ec]">Ver perfil del jugador →</Link>
+                    ) : null}
+                  </>
+                ) : (
+                  <p className="mt-6 text-[13px] text-white/60">No hay jugadores disponibles para estos filtros.</p>
+                )}
+              </section>
 
-            <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-              <div className="rounded-2xl border border-sky-500/20 bg-black/35 p-4">
-                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
-                  Jugadores
-                </p>
-                <p className="mt-2 text-3xl font-black text-sky-300">
-                  {totalJugadores}
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-emerald-500/20 bg-black/35 p-4">
-                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
-                  Goles
-                </p>
-                <p className="mt-2 text-3xl font-black text-emerald-400">
-                  {totalGoles}
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-sky-500/20 bg-black/35 p-4">
-                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
-                  Asistencias
-                </p>
-                <p className="mt-2 text-3xl font-black text-sky-300">
-                  {totalAsistencias}
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-yellow-500/20 bg-black/35 p-4">
-                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.25em] font-black">
-                  MVPs
-                </p>
-                <p className="mt-2 text-3xl font-black text-yellow-300">
-                  {totalMvps}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="rounded-[26px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] md:p-8 shadow-[0_0_35px_rgba(0,120,255,.12)]">
-          <div className="grid gap-7">
-            <div>
-              <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
-                Modo
-              </p>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <button
-                  onClick={() => setModo("temporada")}
-                  className={`rounded-2xl border px-4 py-3 text-xs font-black uppercase sm:px-5 sm:py-4 sm:text-sm transition-all ${
-                    modo === "temporada"
-                      ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
-                      : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
-                  }`}
-                >
-                  Temporada actual
-                </button>
-
-                <button
-                  onClick={() => setModo("historico")}
-                  className={`rounded-2xl border px-4 py-3 text-xs font-black uppercase sm:px-5 sm:py-4 sm:text-sm transition-all ${
-                    modo === "historico"
-                      ? "border-yellow-300 bg-gradient-to-r from-yellow-400 to-amber-600 text-black shadow-[0_0_20px_rgba(250,204,21,.35)]"
-                      : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
-                  }`}
-                >
-                  Archivo APA
-                </button>
-              </div>
+              {featured ? (
+                <section className="rounded-[10px] border border-[#d6e9f3] bg-white px-5 py-2">
+                  {[
+                    ["Posición en ranking", "#1"],
+                    ["Puntos totales", featured.score.toLocaleString("es-AR")],
+                    ["Club", featured.equipo],
+                    ["Rol principal", featured.posicion],
+                  ].map(([label, value]) => (
+                    <div key={label} className="border-b border-[#e3edf3] py-3 last:border-0">
+                      <span className="block text-[9px] font-bold uppercase tracking-wide text-[#7892a5]">{label}</span>
+                      <strong className="mt-0.5 block truncate text-[14px] font-black text-[#102f55]">{value}</strong>
+                    </div>
+                  ))}
+                </section>
+              ) : null}
             </div>
 
-            {modo === "temporada" && (
-              <>
-                <div>
-                  <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
-                    Temporada
-                  </p>
-
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    {temporadas.map((temp) => (
-                      <button
-                        key={temp}
-                        onClick={() => setTemporada(temp)}
-                        className={`rounded-2xl border px-3 py-3 text-xs font-black uppercase sm:px-4 sm:py-4 sm:text-sm transition-all ${
-                          temporada === temp
-                            ? "border-sky-300 bg-gradient-to-b from-sky-400 to-blue-700 text-white shadow-[0_0_20px_rgba(56,189,248,.45)]"
-                            : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
-                        }`}
-                      >
-                        {temp}
-                      </button>
-                    ))}
-                  </div>
+            <div className="min-w-0 space-y-4">
+              <section className="overflow-hidden rounded-[10px] border border-[#cfe4f0] bg-white">
+                <div className="grid grid-cols-3 border-b border-[#d8e9f2] sm:grid-cols-5">
+                  {tabLabels.map((tab) => (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      onClick={() => setActiveTab(tab.key)}
+                      className={`flex min-h-14 items-center justify-center gap-2 border-r border-[#e2edf3] px-2 text-[10px] font-black uppercase transition last:border-r-0 sm:text-[11px] ${activeTab === tab.key ? "bg-[#e9f7fd] text-[#136fa6]" : "bg-white text-[#355d7b] hover:bg-[#f6fbfe]"}`}
+                    >
+                      <MetricIcon type={tab.key} />
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
                 </div>
 
-                <div>
-                  <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
-                    División
-                  </p>
-
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {divisiones.map((div) => (
-                      <button
-                        key={div.nombre}
-                        onClick={() => setDivision(div.nombre)}
-                        className={`rounded-2xl border px-3 py-3 text-xs font-black uppercase sm:px-4 sm:py-4 sm:text-sm transition-all ${
-                          division === div.nombre
-                            ? "border-sky-300 bg-sky-400 text-black shadow-[0_0_20px_rgba(56,189,248,.35)]"
-                            : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
-                        }`}
-                      >
-                        {div.icon} {div.nombre}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </section>
-
-        <section>
-          <p className="text-sky-300 uppercase tracking-[0.35em] text-xs font-black">
-            Selección actual
-          </p>
-
-          <h2 className="mt-3 text-[clamp(1.8rem,7vw,3rem)] font-black uppercase">
-            {modo === "historico" ? (
-              "Archivo APA"
-            ) : (
-              <>
-                {temporada}
-                <span className="text-sky-400"> / </span>
-                {division}
-              </>
-            )}
-          </h2>
-
-          <p className="mt-3 text-zinc-500">
-            {loading
-              ? "Cargando jugadores..."
-              : `${totalJugadores} jugadores encontrados en esta selección.`}
-          </p>
-        </section>
-
-        {errorMsg && (
-          <section className="rounded-[26px] border border-red-500/30 bg-red-500/10 p-6 text-center text-red-200 sm:rounded-[34px]">
-            {errorMsg}
-          </section>
-        )}
-
-        {loading && (
-          <section className="rounded-[26px] border border-sky-500/20 bg-[#020714] p-8 text-center text-zinc-500 sm:rounded-[34px]">
-            Cargando rankings de jugadores...
-          </section>
-        )}
-
-        {jugadorDestacado && (
-          <section className="relative overflow-hidden rounded-[28px] border border-yellow-400/25 bg-gradient-to-br from-yellow-400/12 via-[#020714] to-black p-5 sm:rounded-[36px] sm:p-6 shadow-[0_0_40px_rgba(250,204,21,.10)] md:p-8">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,.18),transparent_40%)]" />
-
-            <div className="relative z-10 grid gap-7 xl:grid-cols-[minmax(0,1fr)_minmax(320px,420px)] xl:items-center">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-300">
-                  Jugador destacado
-                </p>
-
-                <h2 className="mt-3 text-[clamp(2rem,7vw,3.75rem)] font-black uppercase">
-                  ⭐ Figura del ranking
-                </h2>
-
-                <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-400">
-                  Selección automática según goles, asistencias, MVP, rating y
-                  estadísticas principales del modo actual.
-                </p>
-              </div>
-
-              <Link
-                href={
-                  jugadorDestacado.playerId
-                    ? `/jugadores/${encodeURIComponent(jugadorDestacado.playerId)}`
-                    : "#"
-                }
-                className="group rounded-[26px] border border-yellow-400/20 bg-black/35 p-4 sm:rounded-[30px] sm:p-5 transition hover:border-yellow-300/45 hover:bg-yellow-400/10"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex min-w-0 items-center gap-4">
-                    <EscudoEquipo nombre={jugadorDestacado.equipo} size="lg" />
-
-                    <div className="min-w-0">
-                      <h3 className="break-words text-xl font-black uppercase sm:text-2xl leading-tight sm:truncate sm:text-3xl transition group-hover:text-yellow-300">
-                        {jugadorDestacado.nombre}
-                      </h3>
-
-                      <p className="mt-2 truncate text-sm font-bold uppercase tracking-[0.16em] text-zinc-500">
-                        {jugadorDestacado.equipo} · {jugadorDestacado.partidos} PJ
+                <div className="px-4 py-4 sm:px-5">
+                  <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <h2 className="text-[20px] font-black uppercase text-[#102f55] sm:text-[23px]">Ranking de jugadores</h2>
+                      <p className="mt-1 text-[11px] font-semibold text-[#6b879b]">
+                        {modo === "historico" ? "Archivo histórico APA" : `${temporada} · ${division} División`}
                       </p>
                     </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-[#7790a2]">{filteredPlayers.length} jugadores</span>
                   </div>
 
-                  <div className="hidden h-16 w-16 shrink-0 items-center justify-center sm:flex rounded-3xl border border-yellow-400/25 bg-yellow-400/10 text-3xl">
-                    ⭐
+                  <div className="hidden overflow-hidden rounded-[7px] border border-[#dbe9f1] md:block">
+                    <table className="w-full border-collapse text-left">
+                      <thead className="bg-[#07375d] text-[9px] font-black uppercase tracking-wide text-white">
+                        <tr>
+                          <th className="px-3 py-2.5 text-center">#</th>
+                          <th className="px-3 py-2.5">Jugador</th>
+                          <th className="px-3 py-2.5">Club</th>
+                          <th className="px-3 py-2.5 text-center">PJ</th>
+                          <th className="px-3 py-2.5 text-center">G</th>
+                          <th className="px-3 py-2.5 text-center">A</th>
+                          <th className="px-3 py-2.5 text-center">MVP</th>
+                          <th className="px-3 py-2.5 text-center">{activeTab === "rating" ? "Prom." : activeTab === "general" ? "Puntos" : "Valor"}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {activeRanking.map((player, index) => {
+                          const club = clubMap.get(normalizeText(player.equipo));
+                          return (
+                            <tr key={`${player.playerId}-${player.nombre}`} className="border-t border-[#e1edf3] text-[11px] font-semibold text-[#173b62] even:bg-[#f7fbfd] hover:bg-[#eef8fd]">
+                              <td className="px-3 py-2.5 text-center font-black">{index + 1}</td>
+                              <td className="px-3 py-2">
+                                <div className="flex min-w-0 items-center gap-2">
+                                  <PlayerAvatar player={player} size="sm" />
+                                  {player.playerId ? <Link href={`/jugadores/${encodeURIComponent(player.playerId)}`} className="truncate font-black hover:text-[#258fcf]">{player.nombre}</Link> : <strong className="truncate">{player.nombre}</strong>}
+                                </div>
+                              </td>
+                              <td className="max-w-[180px] px-3 py-2"><TeamLink name={player.equipo} slug={club?.slug} className="block truncate text-[#315f89]">{player.equipo}</TeamLink></td>
+                              <td className="px-3 py-2 text-center">{player.partidos}</td>
+                              <td className="px-3 py-2 text-center">{player.goles}</td>
+                              <td className="px-3 py-2 text-center">{player.asistencias}</td>
+                              <td className="px-3 py-2 text-center">{player.mvps}</td>
+                              <td className="px-3 py-2 text-center text-[13px] font-black text-[#102f55]">{metricValue(player, activeTab).toLocaleString("es-AR")}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="divide-y divide-[#e1edf3] rounded-[7px] border border-[#dbe9f1] md:hidden">
+                    {activeRanking.map((player, index) => (
+                      <div key={`${player.playerId}-${player.nombre}`} className="grid grid-cols-[28px_1fr_auto] items-center gap-2 px-3 py-3">
+                        <strong className="text-center text-[12px] text-[#51738c]">{index + 1}</strong>
+                        <div className="flex min-w-0 items-center gap-2">
+                          <PlayerAvatar player={player} size="sm" />
+                          <div className="min-w-0">
+                            {player.playerId ? <Link href={`/jugadores/${encodeURIComponent(player.playerId)}`} className="block truncate text-[13px] font-black">{player.nombre}</Link> : <strong className="block truncate text-[13px]">{player.nombre}</strong>}
+                            <span className="block truncate text-[10px] font-semibold text-[#718b9e]">{player.equipo} · {player.partidos} PJ</span>
+                          </div>
+                        </div>
+                        <strong className="text-[16px] font-black text-[#146f9f]">{metricValue(player, activeTab).toLocaleString("es-AR")}</strong>
+                      </div>
+                    ))}
                   </div>
                 </div>
+              </section>
 
-                <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-                  <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
-                    <p className="text-[10px] font-black uppercase text-zinc-500">
-                      Goles
-                    </p>
-                    <p className="mt-2 text-3xl font-black text-yellow-300">
-                      {jugadorDestacado.goles}
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
-                    <p className="text-[10px] font-black uppercase text-zinc-500">
-                      Asist.
-                    </p>
-                    <p className="mt-2 text-3xl font-black text-sky-300">
-                      {jugadorDestacado.asistencias}
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
-                    <p className="text-[10px] font-black uppercase text-zinc-500">
-                      MVP
-                    </p>
-                    <p className="mt-2 text-3xl font-black text-purple-300">
-                      {jugadorDestacado.mvps}
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
-                    <p className="text-[10px] font-black uppercase text-zinc-500">
-                      Rating
-                    </p>
-                    <p className="mt-2 text-3xl font-black text-green-400">
-                      {valorJugador(jugadorDestacado, "rating")}
-                    </p>
-                  </div>
-                </div>
-              </Link>
+              <div className="grid gap-4 lg:grid-cols-2">
+                {[
+                  { title: "Máximos goleadores", tab: "goles" as const, players: topScorers, unit: "Goles" },
+                  { title: "Máximas asistencias", tab: "asistencias" as const, players: topAssists, unit: "Asist." },
+                ].map((panel) => (
+                  <section key={panel.title} className="overflow-hidden rounded-[10px] border border-[#cfe4f0] bg-white">
+                    <div className="flex items-center justify-between border-b border-[#dceaf2] px-4 py-3">
+                      <div className="flex items-center gap-2 text-[#146f9f]"><MetricIcon type={panel.tab} /><h3 className="text-[13px] font-black uppercase text-[#102f55]">{panel.title}</h3></div>
+                      <button type="button" onClick={() => setActiveTab(panel.tab)} className="text-[10px] font-black text-[#278ec7]">Ver todos →</button>
+                    </div>
+                    <div className="px-3 py-2">
+                      {panel.players.map((player, index) => {
+                        const club = clubMap.get(normalizeText(player.equipo));
+                        return (
+                          <div key={`${panel.tab}-${player.playerId}-${index}`} className="grid grid-cols-[24px_1fr_auto] items-center gap-2 border-b border-[#e4edf2] py-2 last:border-0">
+                            <strong className="text-center text-[11px] text-[#5c7c94]">{index + 1}</strong>
+                            <div className="min-w-0">
+                              {player.playerId ? <Link href={`/jugadores/${encodeURIComponent(player.playerId)}`} className="block truncate text-[11px] font-black text-[#102f55] hover:text-[#258fcf]">{player.nombre}</Link> : <strong className="block truncate text-[11px]">{player.nombre}</strong>}
+                              <TeamLink name={player.equipo} slug={club?.slug} className="block truncate text-[9px] font-semibold text-[#7890a1]">{player.equipo}</TeamLink>
+                            </div>
+                            <div className="text-right"><strong className="block text-[15px] font-black text-[#146f9f]">{metricValue(player, panel.tab)}</strong><span className="text-[7px] font-bold uppercase text-[#8aa0b0]">{panel.unit}</span></div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
+              </div>
             </div>
-          </section>
+          </div>
         )}
-
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 xl:gap-5">
-          <LeyendaCard
-            titulo="Goleador"
-            subtitulo="goles"
-            jugador={maxGoleador}
-            tipo="goles"
-            color="text-emerald-400"
-            icono="⚽"
-          />
-
-          <LeyendaCard
-            titulo="Asistidor"
-            subtitulo="asistencias"
-            jugador={maxAsistidor}
-            tipo="asistencias"
-            color="text-sky-300"
-            icono="🎯"
-          />
-
-          <LeyendaCard
-            titulo="Rey MVP"
-            subtitulo="MVPs"
-            jugador={maxMvp}
-            tipo="mvps"
-            color="text-yellow-300"
-            icono="👑"
-          />
-
-          <LeyendaCard
-            titulo="Mejor rating"
-            subtitulo="promedio"
-            jugador={mejorRating}
-            tipo="rating"
-            color="text-green-400"
-            icono="⭐"
-          />
-
-          <LeyendaCard
-            titulo="Muro"
-            subtitulo="atajadas"
-            jugador={mejorArquero}
-            tipo="atajadas"
-            color="text-cyan-300"
-            icono="🧤"
-          />
-        </section>
-
-        <section>
-          <p className="text-sky-300 uppercase tracking-[0.35em] text-xs font-black">
-            Rankings oficiales
-          </p>
-
-          <h2 className="mt-3 text-[clamp(1.8rem,7vw,3rem)] font-black uppercase">
-            Líderes de la competición
-          </h2>
-
-          <p className="mt-3 text-base leading-7 text-zinc-400">
-            Rankings ordenados por categoría para que la lectura sea más rápida.
-          </p>
-        </section>
-
-        <section className="space-y-8">
-          <div>
-            <div className="mb-5">
-              <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-300">
-                Grupo 1
-              </p>
-              <h3 className="mt-2 text-xl font-black uppercase sm:text-2xl sm:text-3xl">
-                🏆 Principales
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-8">
-              <Ranking
-                titulo={modo === "historico" ? "Goleadores registrados" : "Goleadores"}
-                tipo="goles"
-                color="text-emerald-400"
-                icono="⚽"
-              />
-
-              <Ranking
-                titulo={
-                  modo === "historico" ? "Asistidores registrados" : "Asistencias"
-                }
-                tipo="asistencias"
-                color="text-sky-400"
-                icono="🎯"
-              />
-
-              <Ranking
-                titulo={modo === "historico" ? "MVPs registrados" : "MVPs"}
-                tipo="mvps"
-                color="text-yellow-300"
-                icono="👑"
-              />
-
-              <Ranking
-                titulo={
-                  modo === "historico"
-                    ? "Rating promedio registrado"
-                    : "Rating promedio"
-                }
-                tipo="rating"
-                color="text-green-400"
-                icono="⭐"
-              />
-            </div>
-          </div>
-
-          <div>
-            <div className="mb-5">
-              <p className="text-xs font-black uppercase tracking-[0.35em] text-sky-300">
-                Grupo 2
-              </p>
-              <h3 className="mt-2 text-xl font-black uppercase sm:text-2xl sm:text-3xl">
-                📊 Avanzadas
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-8">
-              <Ranking
-                titulo={modo === "historico" ? "Score registrado" : "Score"}
-                tipo="score"
-                color="text-yellow-300"
-                icono="📊"
-              />
-
-              <Ranking
-                titulo={modo === "historico" ? "Pases registrados" : "Pases"}
-                tipo="pases"
-                color="text-sky-300"
-                icono="👟"
-              />
-
-              <Ranking
-                titulo={modo === "historico" ? "Tackles registrados" : "Tackles"}
-                tipo="tackles"
-                color="text-red-400"
-                icono="🛡️"
-              />
-            </div>
-          </div>
-
-          <div>
-            <div className="mb-5">
-              <p className="text-xs font-black uppercase tracking-[0.35em] text-cyan-300">
-                Grupo 3
-              </p>
-              <h3 className="mt-2 text-xl font-black uppercase sm:text-2xl sm:text-3xl">
-                🧤 Arqueros
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-8">
-              <Ranking
-                titulo={
-                  modo === "historico" ? "Atajadas registradas" : "Atajadas"
-                }
-                tipo="atajadas"
-                color="text-cyan-400"
-                icono="🧤"
-              />
-
-              <Ranking
-                titulo={
-                  modo === "historico" ? "Atrapadas registradas" : "Atrapadas"
-                }
-                tipo="atrapadas"
-                color="text-indigo-300"
-                icono="🤲"
-              />
-            </div>
-          </div>
-        </section>
-      </div>
+      </section>
     </main>
   );
 }
