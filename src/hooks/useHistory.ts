@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { HISTORY_CONFIG, sortSeasons } from "@/config/history";
 import { supabase } from "@/lib/supabase";
-import { sortSeasons } from "@/config/history";
 import {
   aggregatePlayers,
   buildAwards,
@@ -19,10 +19,21 @@ import {
   type HistorySanction,
 } from "@/lib/history";
 
-export function useHistory(season: string) {
+/**
+ * Fuente única de datos de /historia.
+ *
+ * La página no conoce Supabase ni hace cálculos: este hook detecta temporadas,
+ * carga la temporada activa y el historial global, y devuelve el view-model ya
+ * preparado para los componentes visuales.
+ */
+export function useHistory(initialSeason: string = HISTORY_CONFIG.defaultSeason) {
+  const [season, setSeason] = useState<string>(initialSeason);
+  const initializedSeason = useRef(false);
+
   const [loading, setLoading] = useState(true);
   const [globalLoading, setGlobalLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [seasonError, setSeasonError] = useState<string | null>(null);
+  const [globalError, setGlobalError] = useState<string | null>(null);
 
   const [seasonMatches, setSeasonMatches] = useState<HistoryMatch[]>([]);
   const [clubs, setClubs] = useState<HistoryClub[]>([]);
@@ -39,6 +50,7 @@ export function useHistory(season: string) {
 
     async function loadGlobalHistory() {
       setGlobalLoading(true);
+      setGlobalError(null);
 
       const [matchesResult, playersResult, sanctionsResult] = await Promise.all([
         supabase
@@ -62,7 +74,7 @@ export function useHistory(season: string) {
       const firstError = matchesResult.error || playersResult.error || sanctionsResult.error;
       if (firstError) {
         console.error("Error cargando historial global:", firstError);
-        setError("No pudimos cargar todos los registros históricos.");
+        setGlobalError("No pudimos cargar todos los registros históricos.");
       }
 
       setAllMatches((matchesResult.data || []) as HistoryMatch[]);
@@ -82,7 +94,7 @@ export function useHistory(season: string) {
 
     async function loadSeason() {
       setLoading(true);
-      setError(null);
+      setSeasonError(null);
 
       const [matchesResult, clubsResult, playersResult, awardsResult, sanctionsResult] =
         await Promise.all([
@@ -106,9 +118,7 @@ export function useHistory(season: string) {
             .eq("temporada", season),
           supabase
             .from("premios_apa")
-            .select(
-              "temporada, division, premio, playerid, nombre, equipo, puntos, posicion",
-            )
+            .select("temporada, division, premio, playerid, nombre, equipo, puntos, posicion")
             .eq("temporada", season)
             .order("posicion", { ascending: true, nullsFirst: false }),
           supabase
@@ -128,7 +138,7 @@ export function useHistory(season: string) {
 
       if (firstError) {
         console.error("Error cargando temporada histórica:", firstError);
-        setError("No pudimos cargar todos los datos de esta temporada.");
+        setSeasonError("No pudimos cargar todos los datos de esta temporada.");
       }
 
       setSeasonMatches((matchesResult.data || []) as HistoryMatch[]);
@@ -152,6 +162,13 @@ export function useHistory(season: string) {
     return sortSeasons(values);
   }, [allMatches]);
 
+  // La temporada más nueva disponible pasa a ser la activa automáticamente.
+  useEffect(() => {
+    if (initializedSeason.current || seasons.length === 0) return;
+    initializedSeason.current = true;
+    setSeason(seasons[seasons.length - 1]);
+  }, [seasons]);
+
   const players = useMemo(() => aggregatePlayers(seasonPlayers), [seasonPlayers]);
   const historicalPlayers = useMemo(() => aggregatePlayers(allPlayers), [allPlayers]);
 
@@ -165,31 +182,17 @@ export function useHistory(season: string) {
     [seasonMatches, clubs, seasonSanctions],
   );
 
-  const summary = useMemo(
-    () => seasonSummary(seasonMatches, clubs),
-    [seasonMatches, clubs],
-  );
-
-  const highlighted = useMemo(
-    () => highlightedStats(tables, players),
-    [tables, players],
-  );
-
+  const summary = useMemo(() => seasonSummary(seasonMatches, clubs), [seasonMatches, clubs]);
+  const highlighted = useMemo(() => highlightedStats(tables, players), [tables, players]);
   const competitions = useMemo(
     () => competitionSummary(seasonMatches, tables),
     [seasonMatches, tables],
   );
-
-  const awards = useMemo(
-    () => buildAwards(seasonAwards, players),
-    [seasonAwards, players],
-  );
-
+  const awards = useMemo(() => buildAwards(seasonAwards, players), [seasonAwards, players]);
   const seasonRecords = useMemo(
     () => buildSeasonRecords(seasonMatches, players),
     [seasonMatches, players],
   );
-
   const historicalRecords = useMemo(
     () =>
       buildHistoricalRecords({
@@ -200,15 +203,67 @@ export function useHistory(season: string) {
     [allMatches, historicalPlayers, allSanctions],
   );
 
+  const highlights = useMemo(
+    () => [
+      {
+        label: "Máximo goleador",
+        value: highlighted.scorer?.goles ?? 0,
+        unit: "goles",
+        person: highlighted.scorer?.nombre || "Sin datos",
+        team: highlighted.scorer?.equipo || "",
+      },
+      {
+        label: "Más asistencias",
+        value: highlighted.assists?.asistencias ?? 0,
+        unit: "asistencias",
+        person: highlighted.assists?.nombre || "Sin datos",
+        team: highlighted.assists?.equipo || "",
+      },
+      {
+        label: "Más MVP",
+        value: highlighted.mvp?.mvps ?? 0,
+        unit: "MVP",
+        person: highlighted.mvp?.nombre || "Sin datos",
+        team: highlighted.mvp?.equipo || "",
+      },
+      {
+        label: "Mejor ataque",
+        value: highlighted.attack?.gf ?? 0,
+        unit: "goles",
+        person: highlighted.attack?.nombre || "Sin datos",
+        team: highlighted.attack?.nombre || "",
+      },
+      {
+        label: "Mejor defensa",
+        value: highlighted.defense?.gc ?? 0,
+        unit: "goles recibidos",
+        person: highlighted.defense?.nombre || "Sin datos",
+        team: highlighted.defense?.nombre || "",
+      },
+    ],
+    [highlighted],
+  );
+
+  const champions = useMemo(
+    () => [
+      { division: "Primera División", team: tables.primera[0]?.nombre || "Por definir" },
+      { division: "Segunda División", team: tables.segunda[0]?.nombre || "Por definir" },
+    ],
+    [tables],
+  );
+
   return {
+    season,
+    setSeason,
+    seasons,
     loading,
     globalLoading,
-    error,
-    seasons,
+    error: seasonError || globalError,
     clubs,
     summary,
     tables,
-    highlighted,
+    highlights,
+    champions,
     competitions,
     awards,
     seasonRecords,
