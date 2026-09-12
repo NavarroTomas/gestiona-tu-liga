@@ -5,8 +5,8 @@ export type HeaderDropdownItem = {
 };
 
 /**
- * MENÚ DESPLEGABLE DEL HEADER
- * ---------------------------
+ * MENÚ DESPLEGABLE DE COMPETICIÓN
+ * -------------------------------
  * Acá podés cambiar los accesos que aparecen al pasar por "Competición"
  * sin tocar el componente visual del header.
  *
@@ -38,5 +38,30 @@ export const COMPETITION_HEADER_MENU: HeaderDropdownItem[] = [
     label: "Historia",
     description: "Leyendas y récords",
     href: "/historia",
+  },
+];
+
+/**
+ * MENÚ DESPLEGABLE DE CLUBES
+ * --------------------------
+ * Agrupa las tres zonas que forman el bloque de clubes y jugadores.
+ * Si en el futuro aparece otra sección relacionada, se agrega acá y el
+ * header la toma automáticamente.
+ */
+export const CLUBS_HEADER_MENU: HeaderDropdownItem[] = [
+  {
+    label: "Clubes",
+    description: "Instituciones y perfiles",
+    href: "/clubes",
+  },
+  {
+    label: "Plantillas",
+    description: "Planteles oficiales",
+    href: "/plantillas",
+  },
+  {
+    label: "Jugadores",
+    description: "Rankings y estadísticas",
+    href: "/jugadores",
   },
 ];
