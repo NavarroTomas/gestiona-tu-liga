@@ -37,13 +37,13 @@
   flex: 0 0 auto;
   overflow: hidden;
   border-radius: 4px;
-  background: #fff;
-  border: 1px solid rgba(16, 47, 85, 0.16);
-  box-shadow: 0 4px 14px rgba(16, 47, 85, 0.12);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
 .logo {
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .marcaTexto {
