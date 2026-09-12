@@ -2,233 +2,205 @@
 
 import Link from "next/link";
 
+const opciones = [
+  {
+    href: "/entretenimiento/predicciones",
+    eyebrow: "Pronósticos",
+    title: "Predicciones",
+    description:
+      "Pronosticá partidos oficiales, acertá ganadores o marcadores exactos y sumá puntos en el ranking de la comunidad.",
+    statLabel: "Puntaje",
+    stats: [
+      ["Ganador", "+1"],
+      ["Exacto", "+3"],
+    ],
+    tone: "light" as const,
+  },
+  {
+    href: "/entretenimiento/dream-team",
+    eyebrow: "Equipo ideal",
+    title: "Dream Team",
+    description:
+      "Armá tu ocho ideal de cada fecha con los jugadores habilitados para ese contexto competitivo.",
+    statLabel: "Formación",
+    stats: [
+      ["Jugadores", "8"],
+      ["Sistema", "8v8"],
+    ],
+    tone: "blue" as const,
+  },
+  {
+    href: "/entretenimiento/premios",
+    eyebrow: "Reconocimientos",
+    title: "Premios APA",
+    description:
+      "Consultá los premios de fecha y de temporada construidos a partir de las estadísticas oficiales de APA.",
+    statLabel: "Categorías",
+    stats: [
+      ["Fecha", "MVP"],
+      ["Temporada", "APA"],
+    ],
+    tone: "light" as const,
+  },
+];
+
 export default function EntretenimientoPage() {
   return (
-    <main className="min-h-screen text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
-      <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-8 space-y-8">
-        <section className="relative overflow-hidden rounded-[38px] border border-sky-500/30 bg-[#020714] p-7 md:p-10 shadow-[0_0_55px_rgba(0,120,255,.22)]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.16),transparent_42%)]" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/20" />
-
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-            <div>
-              <p className="text-sky-400 text-xs uppercase tracking-[0.45em] font-black">
-                APA PSO ARGENTINA
-              </p>
-
-              <h1 className="mt-4 max-w-[900px] text-[clamp(2.15rem,6vw,4.4rem)] font-black uppercase italic leading-[0.92]">
-                <span className="block bg-gradient-to-b from-white via-zinc-300 to-zinc-600 bg-clip-text text-transparent">
-                  Entretenimiento
-                </span>
-
-                <span className="block text-sky-400 drop-shadow-[0_0_18px_rgba(56,189,248,.65)]">
-                  Comunidad
-                </span>
-              </h1>
-
-              <p className="mt-5 max-w-3xl text-sm leading-7 text-zinc-400 md:text-base">
-                Zona interactiva de APA PSO Argentina UE5. Pronosticá partidos,
-                armá tu Dream Team 8v8, descubrí los premios de la fecha y
-                participá con la comunidad.
-              </p>
-            </div>
-
-            <div className="hidden lg:flex h-40 w-40 items-center justify-center rounded-full border border-sky-400/40 bg-black/40 shadow-[0_0_35px_rgba(0,120,255,.45)]">
-              <span className="text-6xl">🎮</span>
-            </div>
+    <main className="min-h-screen bg-[#f3fafe] text-[#102f55]">
+      <section className="border-b border-[#1f547d] bg-[#0f355a] text-white">
+        <div className="mx-auto grid min-h-[290px] max-w-[1680px] items-end gap-8 px-5 py-10 sm:px-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-10 lg:py-14">
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[.16em] text-[#79c8ef]">
+              Comunidad APA
+            </p>
+            <h1 className="mt-3 max-w-[900px] text-[clamp(3rem,7vw,6.2rem)] font-black uppercase leading-[.88] tracking-[-.055em]">
+              Entretenimiento
+            </h1>
+            <p className="mt-5 max-w-3xl text-[15px] font-semibold leading-7 text-[#d5e8f4] sm:text-[17px]">
+              Tres formas de participar más allá de los resultados: pronosticá,
+              armá tu equipo ideal y seguí los reconocimientos oficiales.
+            </p>
           </div>
-        </section>
 
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Link
-            href="/entretenimiento/predicciones"
-            className="group relative overflow-hidden rounded-[38px] border border-yellow-400/30 bg-[#020714] p-7 md:p-8 min-h-[360px] transition hover:scale-[1.01] hover:border-yellow-300/70 hover:shadow-[0_0_45px_rgba(250,204,21,.16)]"
-          >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,.18),transparent_42%)]" />
-            <div className="absolute -right-10 -bottom-10 text-[180px] opacity-10">
-              🎯
-            </div>
+          <div className="border-t border-[#2a5c82] pt-5 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
+            <p className="text-[10px] font-black uppercase tracking-[.14em] text-[#79c8ef]">
+              Elegí una experiencia
+            </p>
+            <p className="mt-3 text-[18px] font-black uppercase leading-7">
+              Predicciones · Dream Team · Premios APA
+            </p>
+            <p className="mt-3 text-[12px] font-semibold leading-6 text-[#bfd9e8]">
+              Cada módulo conserva sus reglas y datos, pero ahora comparte una
+              entrada visual más simple y consistente con el resto del sitio.
+            </p>
+          </div>
+        </div>
+      </section>
 
-            <div className="relative z-10 flex h-full flex-col justify-between">
-              <div>
-                <p className="text-yellow-300 text-xs uppercase tracking-[0.35em] font-black">
-                  Marcador Exacto
-                </p>
+      <section className="bg-white">
+        <div className="mx-auto max-w-[1680px] px-5 py-10 sm:px-8 lg:px-10 lg:py-14">
+          <div className="grid gap-5 lg:grid-cols-3">
+            {opciones.map((opcion, index) => {
+              const blue = opcion.tone === "blue";
 
-                <h2 className="mt-5 text-4xl md:text-5xl font-black uppercase italic leading-none">
-                  Predicciones
-                </h2>
+              return (
+                <Link
+                  key={opcion.href}
+                  href={opcion.href}
+                  className={`group flex min-h-[340px] flex-col justify-between overflow-hidden rounded-[10px] border p-6 transition sm:p-7 lg:p-8 ${
+                    blue
+                      ? "border-[#174b77] bg-[#0f355a] text-white hover:bg-[#123f68]"
+                      : "border-[#cfe4f0] bg-[#f7fbfe] text-[#102f55] hover:border-[#8fc8e8] hover:bg-white"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-5">
+                      <div>
+                        <p
+                          className={`text-[10px] font-black uppercase tracking-[.15em] ${
+                            blue ? "text-[#79c8ef]" : "text-[#2d98d4]"
+                          }`}
+                        >
+                          {opcion.eyebrow}
+                        </p>
+                        <h2 className="mt-3 text-[clamp(2rem,3.6vw,3.4rem)] font-black uppercase leading-[.92] tracking-[-.04em]">
+                          {opcion.title}
+                        </h2>
+                      </div>
 
-                <p className="mt-5 text-zinc-400 max-w-xl">
-                  Pronosticá ganador o marcador exacto. Ganador correcto suma 1
-                  punto y marcador exacto suma 3 puntos.
-                </p>
-              </div>
+                      <span
+                        className={`text-[52px] font-black leading-none tracking-[-.08em] ${
+                          blue ? "text-[#2f648d]" : "text-[#d4eaf6]"
+                        }`}
+                        aria-hidden="true"
+                      >
+                        0{index + 1}
+                      </span>
+                    </div>
 
-              <div className="mt-8 rounded-3xl border border-yellow-400/25 bg-yellow-400/10 p-5">
-                <div className="grid grid-cols-3 gap-3 text-center">
-                  <div className="rounded-2xl bg-black/35 p-4">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
-                      Local
+                    <p
+                      className={`mt-6 max-w-xl text-[14px] font-semibold leading-7 ${
+                        blue ? "text-[#c9deeb]" : "text-[#5d788e]"
+                      }`}
+                    >
+                      {opcion.description}
                     </p>
-                    <p className="mt-2 text-2xl font-black text-yellow-300">1</p>
                   </div>
 
-                  <div className="rounded-2xl bg-black/35 p-4">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
-                      Empate
-                    </p>
-                    <p className="mt-2 text-2xl font-black text-yellow-300">X</p>
+                  <div className="mt-10">
+                    <div
+                      className={`border-y py-4 ${
+                        blue ? "border-[#2b5a7f]" : "border-[#d5e7f1]"
+                      }`}
+                    >
+                      <p
+                        className={`text-[9px] font-black uppercase tracking-[.14em] ${
+                          blue ? "text-[#79c8ef]" : "text-[#2d98d4]"
+                        }`}
+                      >
+                        {opcion.statLabel}
+                      </p>
+                      <div className="mt-3 grid grid-cols-2 divide-x divide-[#c8dfec]/70">
+                        {opcion.stats.map(([label, value]) => (
+                          <div key={label} className="pr-4 second:pl-4">
+                            <p className="text-[11px] font-bold uppercase tracking-[.05em] opacity-70">
+                              {label}
+                            </p>
+                            <p className="mt-1 text-[24px] font-black uppercase leading-none">
+                              {value}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="mt-5 flex items-center justify-between">
+                      <span className="text-[12px] font-black uppercase tracking-[.08em]">
+                        Abrir sección
+                      </span>
+                      <span
+                        className={`h-[2px] w-16 transition-all group-hover:w-24 ${
+                          blue ? "bg-[#79c8ef]" : "bg-[#56afe2]"
+                        }`}
+                        aria-hidden="true"
+                      />
+                    </div>
                   </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
-                  <div className="rounded-2xl bg-black/35 p-4">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
-                      Visita
-                    </p>
-                    <p className="mt-2 text-2xl font-black text-yellow-300">2</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 flex items-center justify-between rounded-2xl border border-yellow-400/25 bg-black/35 px-5 py-4">
-                <span className="text-yellow-300 text-sm font-black uppercase tracking-[0.22em]">
-                  Entrar
-                </span>
-                <span className="text-yellow-300 text-2xl transition group-hover:translate-x-1">
-                  →
-                </span>
-              </div>
-            </div>
-          </Link>
-
-          <Link
-            href="/entretenimiento/dream-team"
-            className="group relative overflow-hidden rounded-[38px] border border-sky-400/30 bg-[#020714] p-7 md:p-8 min-h-[360px] transition hover:scale-[1.01] hover:border-sky-300/70 hover:shadow-[0_0_45px_rgba(56,189,248,.16)]"
-          >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.18),transparent_42%)]" />
-            <div className="absolute -right-10 -bottom-10 text-[180px] opacity-10">
-              ⭐
-            </div>
-
-            <div className="relative z-10 flex h-full flex-col justify-between">
-              <div>
-                <p className="text-sky-300 text-xs uppercase tracking-[0.35em] font-black">
-                  Formación 8v8
-                </p>
-
-                <h2 className="mt-5 text-4xl md:text-5xl font-black uppercase italic leading-none">
-                  Dream Team
-                </h2>
-
-                <p className="mt-5 text-zinc-400 max-w-xl">
-                  Armá el equipo ideal de cada fecha con la formación oficial:
-                  GK, LB, CB, RB, LCM, RCM, LST y RST.
-                </p>
-              </div>
-
-              <div className="mt-8 rounded-3xl border border-sky-400/25 bg-sky-400/10 p-5">
-                <div className="rounded-[28px] border border-white/10 bg-gradient-to-b from-green-900/40 to-green-950/20 p-5">
-                  <div className="grid grid-cols-2 gap-3 max-w-[260px] mx-auto">
-                    <div className="rounded-xl bg-black/45 p-2 text-center text-xs font-black text-sky-300">LST</div>
-                    <div className="rounded-xl bg-black/45 p-2 text-center text-xs font-black text-sky-300">RST</div>
-                  </div>
-
-                  <div className="mt-6 grid grid-cols-2 gap-3 max-w-[210px] mx-auto">
-                    <div className="rounded-xl bg-black/45 p-2 text-center text-xs font-black text-sky-300">LCM</div>
-                    <div className="rounded-xl bg-black/45 p-2 text-center text-xs font-black text-sky-300">RCM</div>
-                  </div>
-
-                  <div className="mt-6 grid grid-cols-3 gap-3 max-w-[330px] mx-auto">
-                    <div className="rounded-xl bg-black/45 p-2 text-center text-xs font-black text-sky-300">LB</div>
-                    <div className="rounded-xl bg-black/45 p-2 text-center text-xs font-black text-sky-300">CB</div>
-                    <div className="rounded-xl bg-black/45 p-2 text-center text-xs font-black text-sky-300">RB</div>
-                  </div>
-
-                  <div className="mt-6 max-w-[90px] mx-auto rounded-xl bg-black/45 p-2 text-center text-xs font-black text-yellow-300">
-                    GK
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 flex items-center justify-between rounded-2xl border border-sky-400/25 bg-black/35 px-5 py-4">
-                <span className="text-sky-300 text-sm font-black uppercase tracking-[0.22em]">
-                  Entrar
-                </span>
-                <span className="text-sky-300 text-2xl transition group-hover:translate-x-1">
-                  →
-                </span>
-              </div>
-            </div>
-          </Link>
-
-          <Link
-            href="/entretenimiento/premios"
-            className="group relative overflow-hidden rounded-[38px] border border-orange-400/30 bg-[#020714] p-7 md:p-8 min-h-[360px] transition hover:scale-[1.01] hover:border-orange-300/70 hover:shadow-[0_0_45px_rgba(251,146,60,.16)]"
-          >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,146,60,.18),transparent_42%)]" />
-            <div className="absolute -right-10 -bottom-10 text-[180px] opacity-10">
-              🏆
-            </div>
-
-            <div className="relative z-10 flex h-full flex-col justify-between">
-              <div>
-                <p className="text-orange-300 text-xs uppercase tracking-[0.35em] font-black">
-                  Estadísticas Automáticas
-                </p>
-
-                <h2 className="mt-5 text-4xl md:text-5xl font-black uppercase italic leading-none">
-                  Premios de la Fecha
-                </h2>
-
-                <p className="mt-5 text-zinc-400 max-w-xl">
-                  Reconocimientos automáticos otorgados a los mejores jugadores de cada fecha según las estadísticas oficiales.
-                </p>
-              </div>
-
-              <div className="mt-8 rounded-3xl border border-orange-400/25 bg-orange-400/10 p-5">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-2xl bg-black/35 p-4 text-center">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
-                      MVP
-                    </p>
-                    <p className="mt-2 text-2xl font-black text-orange-300">⭐</p>
-                  </div>
-
-                  <div className="rounded-2xl bg-black/35 p-4 text-center">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
-                      Goleador
-                    </p>
-                    <p className="mt-2 text-2xl font-black text-orange-300">⚽</p>
-                  </div>
-
-                  <div className="rounded-2xl bg-black/35 p-4 text-center">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
-                      Arquero
-                    </p>
-                    <p className="mt-2 text-2xl font-black text-orange-300">🧤</p>
-                  </div>
-
-                  <div className="rounded-2xl bg-black/35 p-4 text-center">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
-                      Defensa
-                    </p>
-                    <p className="mt-2 text-2xl font-black text-orange-300">🛡️</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 flex items-center justify-between rounded-2xl border border-orange-400/25 bg-black/35 px-5 py-4">
-                <span className="text-orange-300 text-sm font-black uppercase tracking-[0.22em]">
-                  Entrar
-                </span>
-                <span className="text-orange-300 text-2xl transition group-hover:translate-x-1">
-                  →
-                </span>
-              </div>
-            </div>
-          </Link>
-        </section>
-      </div>
+      <section className="border-y border-[#cfe4f0] bg-[#eaf6fd]">
+        <div className="mx-auto grid max-w-[1680px] gap-6 px-5 py-8 sm:px-8 md:grid-cols-3 lg:px-10">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[.14em] text-[#2d98d4]">
+              Predicciones
+            </p>
+            <p className="mt-2 text-[14px] font-semibold leading-6 text-[#58748b]">
+              Tus puntos se calculan cuando el resultado oficial queda cargado.
+            </p>
+          </div>
+          <div className="border-[#c9e3f1] md:border-l md:pl-7">
+            <p className="text-[10px] font-black uppercase tracking-[.14em] text-[#2d98d4]">
+              Dream Team
+            </p>
+            <p className="mt-2 text-[14px] font-semibold leading-6 text-[#58748b]">
+              Los candidatos dependen de la fecha y del contexto competitivo.
+            </p>
+          </div>
+          <div className="border-[#c9e3f1] md:border-l md:pl-7">
+            <p className="text-[10px] font-black uppercase tracking-[.14em] text-[#2d98d4]">
+              Premios APA
+            </p>
+            <p className="mt-2 text-[14px] font-semibold leading-6 text-[#58748b]">
+              Los reconocimientos parten de estadísticas oficiales de partidos.
+            </p>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
