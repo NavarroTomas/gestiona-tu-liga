@@ -1,0 +1,151 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CLUBS_CONFIG, clubDivisionLabel, sortClubDivisions, sortClubSeasons } from "@/config/clubs";
+import { buildClubsViewModel } from "@/lib/clubs";
+import type { ClubPlayerRow, ClubRecord } from "@/lib/clubs/types";
+import type { FixtureMatch } from "@/lib/fixture";
+import type { LeagueSanction } from "@/lib/league/types";
+import { supabase } from "@/lib/supabase";
+
+export function useClubs() {
+  const [season, setSeason] = useState<string>(CLUBS_CONFIG.defaultSeason);
+  const [division, setDivision] = useState<string>(CLUBS_CONFIG.defaultDivision);
+  const [catalog, setCatalog] = useState<ClubRecord[]>([]);
+  const [clubs, setClubs] = useState<ClubRecord[]>([]);
+  const [matches, setMatches] = useState<FixtureMatch[]>([]);
+  const [sanctions, setSanctions] = useState<LeagueSanction[]>([]);
+  const [players, setPlayers] = useState<ClubPlayerRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const initializedSeason = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCatalog() {
+      const { data, error: catalogError } = await supabase
+        .from("v_clubes_temporada_public")
+        .select("club_id, nombre, slug, logo_url, division, temporada, activo, color_principal")
+        .eq("activo", true)
+        .order("temporada", { ascending: true })
+        .order("nombre", { ascending: true });
+
+      if (cancelled) return;
+      if (catalogError) {
+        console.error("Error cargando catálogo de clubes:", catalogError);
+        setError("No pudimos cargar el catálogo completo de clubes.");
+        return;
+      }
+
+      setCatalog((data || []) as ClubRecord[]);
+    }
+
+    loadCatalog();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const seasons = useMemo(() => {
+    const values = Array.from(
+      new Set(catalog.map((club) => String(club.temporada || "")).filter(Boolean)),
+    );
+    return sortClubSeasons(values);
+  }, [catalog]);
+
+  useEffect(() => {
+    if (initializedSeason.current || seasons.length === 0) return;
+    initializedSeason.current = true;
+    setSeason(seasons[seasons.length - 1]);
+  }, [seasons]);
+
+  const divisions = useMemo(() => {
+    const values = Array.from(
+      new Set(
+        catalog
+          .filter((club) => club.temporada === season)
+          .map((club) => clubDivisionLabel(String(club.division || "")))
+          .filter(Boolean),
+      ),
+    );
+    return sortClubDivisions(values.length ? values : [CLUBS_CONFIG.defaultDivision]);
+  }, [catalog, season]);
+
+  useEffect(() => {
+    if (divisions.length === 0 || divisions.includes(division)) return;
+    setDivision(divisions[0]);
+  }, [divisions, division]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSeason() {
+      setLoading(true);
+      setError(null);
+
+      const [clubsResult, matchesResult, sanctionsResult, playersResult] = await Promise.all([
+        supabase
+          .from("v_clubes_temporada_public")
+          .select("club_id, nombre, slug, logo_url, division, temporada, activo, color_principal")
+          .eq("temporada", season)
+          .eq("activo", true)
+          .order("nombre", { ascending: true }),
+        supabase
+          .from("partidos")
+          .select(
+            "id, partido_id, local, visitante, resultado, fecha, temporada, division, dia, hora, competicion, grupo, fase, ronda",
+          )
+          .eq("temporada", season)
+          .order("id", { ascending: true }),
+        supabase
+          .from("sanciones_equipos")
+          .select("equipo, puntos_descontados, competicion")
+          .eq("temporada", season)
+          .eq("competicion", "liga"),
+        supabase
+          .from("v_ranking_jugadores")
+          .select("playerId, nombre, equipo, division, temporada")
+          .eq("temporada", season),
+      ]);
+
+      if (cancelled) return;
+
+      const firstError =
+        clubsResult.error || matchesResult.error || sanctionsResult.error || playersResult.error;
+      if (firstError) {
+        console.error("Error cargando Clubes:", firstError);
+        setError("No pudimos cargar todos los datos de clubes.");
+      }
+
+      setClubs((clubsResult.data || []) as ClubRecord[]);
+      setMatches((matchesResult.data || []) as FixtureMatch[]);
+      setSanctions((sanctionsResult.data || []) as LeagueSanction[]);
+      setPlayers((playersResult.data || []) as ClubPlayerRow[]);
+      setLoading(false);
+    }
+
+    loadSeason();
+    return () => {
+      cancelled = true;
+    };
+  }, [season]);
+
+  const view = useMemo(
+    () => buildClubsViewModel({ matches, clubs, sanctions, players, division }),
+    [matches, clubs, sanctions, players, division],
+  );
+
+  return {
+    season,
+    setSeason,
+    seasons,
+    division,
+    setDivision,
+    divisions,
+    loading,
+    error,
+    clubs,
+    ...view,
+  };
+}
