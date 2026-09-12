@@ -3,10 +3,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { SQUADS_CONFIG, normalizeSquadDivision, sortSquadSeasons } from "@/config/squads";
 import { supabase } from "@/lib/supabase";
-import type { SquadClub, SquadPlayer, SquadPlayerView, SquadRankingRow } from "@/lib/squads/types";
+import type {
+  SquadClub,
+  SquadPlayer,
+  SquadPlayerView,
+  SquadPublicProfile,
+  SquadRankingRow,
+} from "@/lib/squads/types";
 
 function normalizeName(value?: string | null) {
-  return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
 }
 
 export function useSquads() {
@@ -18,53 +28,103 @@ export function useSquads() {
   const [error, setError] = useState<string | null>(null);
   const [players, setPlayers] = useState<SquadPlayer[]>([]);
   const [rankings, setRankings] = useState<SquadRankingRow[]>([]);
+  const [profiles, setProfiles] = useState<SquadPublicProfile[]>([]);
   const [clubs, setClubs] = useState<SquadClub[]>([]);
   const [allSeasons, setAllSeasons] = useState<string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
+
     async function loadSeasons() {
       const { data } = await supabase.from("plantillas").select("temporada");
       if (cancelled) return;
-      const values = Array.from(new Set((data || []).map((row: any) => String(row.temporada || "")).filter(Boolean)));
+
+      const values = Array.from(
+        new Set((data || []).map((row: any) => String(row.temporada || "")).filter(Boolean)),
+      );
       setAllSeasons(sortSquadSeasons(values));
     }
+
     loadSeasons();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     let cancelled = false;
+
     async function load() {
       setLoading(true);
       setError(null);
-      const [playersRes, clubsRes, rankingsRes] = await Promise.all([
-        supabase.from("plantillas").select("id,jugador,equipo,posicion,estado,temporada,division,playerid").eq("temporada", season),
-        supabase.from("v_clubes_temporada_public").select("club_id,nombre,slug,logo_url,banner_url,descripcion,color_principal,temporada,division,activo").eq("temporada", season).eq("activo", true),
-        supabase.from("v_ranking_jugadores").select("temporada,division,playerId,nombre,equipo,posicion,partidos_jugados,goals,assists,mvp,rating_apa_promedio").eq("temporada", season),
+
+      const [playersRes, clubsRes, rankingsRes, profilesRes] = await Promise.all([
+        supabase
+          .from("plantillas")
+          .select("id,jugador,equipo,posicion,estado,temporada,division,playerid,profile_id")
+          .eq("temporada", season),
+        supabase
+          .from("v_clubes_temporada_public")
+          .select("club_id,nombre,slug,logo_url,banner_url,descripcion,color_principal,temporada,division,activo")
+          .eq("temporada", season)
+          .eq("activo", true),
+        supabase
+          .from("v_ranking_jugadores")
+          .select("temporada,division,playerId,nombre,equipo,posicion,partidos_jugados,goals,assists,mvp,rating_apa_promedio")
+          .eq("temporada", season),
+        supabase.from("public_profiles").select("id,playerid,avatar_url"),
       ]);
+
       if (cancelled) return;
+
       const firstError = playersRes.error || clubsRes.error || rankingsRes.error;
       if (firstError) {
         console.error("Error cargando plantillas:", firstError);
         setError("No pudimos cargar todos los datos de plantillas.");
       }
+
+      // Los avatares son un dato complementario: si esta vista pública falla,
+      // la plantilla sigue funcionando con el placeholder gris.
+      if (profilesRes.error) {
+        console.error("No se pudieron cargar avatares públicos:", profilesRes.error);
+      }
+
       const divisionKey = normalizeSquadDivision(division);
-      setPlayers(((playersRes.data || []) as SquadPlayer[]).filter((p) => normalizeSquadDivision(p.division) === divisionKey));
-      setClubs(((clubsRes.data || []) as SquadClub[]).filter((c) => normalizeSquadDivision(c.division) === divisionKey));
-      setRankings(((rankingsRes.data || []) as SquadRankingRow[]).filter((r) => normalizeSquadDivision(r.division) === divisionKey));
+      setPlayers(
+        ((playersRes.data || []) as SquadPlayer[]).filter(
+          (player) => normalizeSquadDivision(player.division) === divisionKey,
+        ),
+      );
+      setClubs(
+        ((clubsRes.data || []) as SquadClub[]).filter(
+          (club) => normalizeSquadDivision(club.division) === divisionKey,
+        ),
+      );
+      setRankings(
+        ((rankingsRes.data || []) as SquadRankingRow[]).filter(
+          (row) => normalizeSquadDivision(row.division) === divisionKey,
+        ),
+      );
+      setProfiles((profilesRes.data || []) as SquadPublicProfile[]);
       setLoading(false);
     }
+
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [season, division]);
 
   useEffect(() => {
-    if (clubName !== "Todos" && !clubs.some((club) => club.nombre === clubName)) setClubName("Todos");
+    if (clubName !== "Todos" && !clubs.some((club) => club.nombre === clubName)) {
+      setClubName("Todos");
+    }
   }, [clubs, clubName]);
 
   const divisions = useMemo(() => {
-    const values = Array.from(new Set(clubs.map((club) => String(club.division || "")).filter(Boolean)));
+    const values = Array.from(
+      new Set(clubs.map((club) => String(club.division || "")).filter(Boolean)),
+    );
     return values.length ? values : ["Primera", "Segunda"];
   }, [clubs]);
 
@@ -77,21 +137,49 @@ export function useSquads() {
     return map;
   }, [rankings]);
 
-  const playerViews = useMemo<SquadPlayerView[]>(() => players.map((player) => {
-    const ranking = rankingByPlayer.get(String(player.playerid || "")) || rankingByPlayer.get(normalizeName(player.jugador));
-    return {
-      ...player,
-      playerId: String(player.playerid || ranking?.playerId || ""),
-      pj: Number(ranking?.partidos_jugados || 0),
-      goles: Number(ranking?.goals || 0),
-      asistencias: Number(ranking?.assists || 0),
-      mvps: Number(ranking?.mvp || 0),
-      rating: Number(ranking?.rating_apa_promedio || 0),
-    };
-  }), [players, rankingByPlayer]);
+  const profileByPlayer = useMemo(() => {
+    const byPlayerId = new Map<string, SquadPublicProfile>();
+    const byProfileId = new Map<string, SquadPublicProfile>();
+
+    profiles.forEach((profile) => {
+      const playerId = String(profile.playerid || "").trim();
+      const profileId = String(profile.id || "").trim();
+      if (playerId) byPlayerId.set(playerId, profile);
+      if (profileId) byProfileId.set(profileId, profile);
+    });
+
+    return { byPlayerId, byProfileId };
+  }, [profiles]);
+
+  const playerViews = useMemo<SquadPlayerView[]>(
+    () =>
+      players.map((player) => {
+        const ranking =
+          rankingByPlayer.get(String(player.playerid || "")) ||
+          rankingByPlayer.get(normalizeName(player.jugador));
+        const resolvedPlayerId = String(player.playerid || ranking?.playerId || "").trim();
+        const profile =
+          profileByPlayer.byPlayerId.get(resolvedPlayerId) ||
+          profileByPlayer.byProfileId.get(String(player.profile_id || "").trim());
+
+        return {
+          ...player,
+          playerId: resolvedPlayerId,
+          avatar_url: profile?.avatar_url || null,
+          pj: Number(ranking?.partidos_jugados || 0),
+          goles: Number(ranking?.goals || 0),
+          asistencias: Number(ranking?.assists || 0),
+          mvps: Number(ranking?.mvp || 0),
+          rating: Number(ranking?.rating_apa_promedio || 0),
+        };
+      }),
+    [players, rankingByPlayer, profileByPlayer],
+  );
 
   const selectedClub = useMemo(() => {
-    if (clubName !== "Todos") return clubs.find((club) => club.nombre === clubName) || null;
+    if (clubName !== "Todos") {
+      return clubs.find((club) => club.nombre === clubName) || null;
+    }
     return clubs[0] || null;
   }, [clubName, clubs]);
 
@@ -99,21 +187,33 @@ export function useSquads() {
     const term = normalizeName(search);
     return playerViews.filter((player) => {
       if (clubName !== "Todos" && player.equipo !== clubName) return false;
-      if (term && !normalizeName(player.jugador).includes(term) && !normalizeName(player.playerId).includes(term)) return false;
+      if (
+        term &&
+        !normalizeName(player.jugador).includes(term) &&
+        !normalizeName(player.playerId).includes(term)
+      ) {
+        return false;
+      }
       return true;
     });
   }, [playerViews, clubName, search]);
 
-  const displayedClubName = clubName === "Todos" ? selectedClub?.nombre || "Todos" : clubName;
-  const displayedPlayers = clubName === "Todos"
-    ? filteredPlayers.filter((player) => player.equipo === displayedClubName)
-    : filteredPlayers;
+  const displayedClubName =
+    clubName === "Todos" ? selectedClub?.nombre || "Todos" : clubName;
+  const displayedPlayers =
+    clubName === "Todos"
+      ? filteredPlayers.filter((player) => player.equipo === displayedClubName)
+      : filteredPlayers;
 
   return {
-    season, setSeason,
-    division, setDivision,
-    clubName, setClubName,
-    search, setSearch,
+    season,
+    setSeason,
+    division,
+    setDivision,
+    clubName,
+    setClubName,
+    search,
+    setSearch,
     seasons: allSeasons.length ? allSeasons : [season],
     divisions,
     clubs,
