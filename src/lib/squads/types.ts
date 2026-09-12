@@ -7,6 +7,7 @@ export type SquadPlayer = {
   temporada: string;
   division: string;
   playerid?: string | null;
+  profile_id?: string | null;
 };
 
 export type SquadRankingRow = {
@@ -21,6 +22,12 @@ export type SquadRankingRow = {
   assists?: number | string | null;
   mvp?: number | string | null;
   rating_apa_promedio?: number | string | null;
+};
+
+export type SquadPublicProfile = {
+  id?: string | null;
+  playerid?: string | null;
+  avatar_url?: string | null;
 };
 
 export type SquadClub = {
@@ -38,6 +45,7 @@ export type SquadClub = {
 
 export type SquadPlayerView = SquadPlayer & {
   playerId: string;
+  avatar_url?: string | null;
   pj: number;
   goles: number;
   asistencias: number;
