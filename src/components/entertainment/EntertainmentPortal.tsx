@@ -1,336 +1,261 @@
 "use client";
 
 import Link from "next/link";
-import {
-  AnimatePresence,
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useSpring,
-  useTransform,
-} from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useMemo, useState } from "react";
 import {
   ENTERTAINMENT_EXPERIENCES,
   type EntertainmentExperienceId,
 } from "@/config/entertainment";
 
-function PredictionsVisual() {
+function PredictionsPreview() {
   return (
-    <div className="relative flex h-full min-h-[360px] flex-col justify-between overflow-hidden rounded-[28px] border border-white/10 bg-[#0b2f50] p-5 text-white sm:p-7">
-      <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(255,255,255,.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.05)_1px,transparent_1px)] [background-size:42px_42px]" />
-      <motion.div
-        className="absolute -right-16 -top-16 h-52 w-52 rounded-full border border-[#68bce9]/30"
-        animate={{ scale: [1, 1.08, 1], opacity: [0.35, 0.7, 0.35] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-      />
-
-      <div className="relative z-10 flex items-center justify-between text-[10px] font-black uppercase tracking-[.18em] text-[#8fd0f2]">
-        <span>Partido oficial</span>
-        <span>Pronóstico abierto</span>
-      </div>
-
-      <div className="relative z-10 my-8 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-        <div className="text-left">
-          <motion.div
-            className="mb-4 h-16 w-16 rounded-full border border-white/20 bg-white/10"
-            animate={{ y: [0, -5, 0] }}
-            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <p className="text-[11px] font-black uppercase tracking-[.15em] text-[#8fd0f2]">Local</p>
-          <p className="mt-1 text-xl font-black uppercase sm:text-2xl">Equipo local</p>
+    <div className="border border-[#c7dfeb] bg-white">
+      <div className="flex items-center justify-between border-b border-[#d8e9f2] px-5 py-4 sm:px-7">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[.15em] text-[#2d98d4]">Próximo partido</p>
+          <p className="mt-1 text-[12px] font-bold text-[#688095]">Pronóstico abierto</p>
         </div>
-
-        <div className="text-center">
-          <p className="text-[10px] font-black uppercase tracking-[.16em] text-[#8fd0f2]">Elegí</p>
-          <div className="mt-4 flex gap-2">
-            {['1', 'X', '2'].map((value, index) => (
-              <motion.span
-                key={value}
-                className={`grid h-12 w-12 place-items-center rounded-xl border text-base font-black ${index === 0 ? 'border-[#79c8ef] bg-[#79c8ef] text-[#0f355a]' : 'border-white/20 bg-white/5 text-white'}`}
-                animate={index === 0 ? { y: [0, -4, 0] } : undefined}
-                transition={{ duration: 2.8, repeat: Infinity, delay: index * 0.15 }}
-              >
-                {value}
-              </motion.span>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex flex-col items-end text-right">
-          <motion.div
-            className="mb-4 h-16 w-16 rounded-full border border-white/20 bg-white/10"
-            animate={{ y: [0, 5, 0] }}
-            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <p className="text-[11px] font-black uppercase tracking-[.15em] text-[#8fd0f2]">Visitante</p>
-          <p className="mt-1 text-xl font-black uppercase sm:text-2xl">Equipo visitante</p>
+        <div className="text-right">
+          <p className="text-[10px] font-black uppercase tracking-[.12em] text-[#86a0b3]">Puntaje</p>
+          <p className="mt-1 text-[12px] font-black text-[#102f55]">+1 ganador · +3 exacto</p>
         </div>
       </div>
 
-      <div className="relative z-10 flex items-center justify-between border-t border-white/10 pt-5 text-[10px] font-black uppercase tracking-[.13em] text-[#bcd9e9]">
-        <span>Ganador +1</span>
-        <span>Exacto +3</span>
+      <div className="grid items-center gap-5 px-5 py-8 sm:grid-cols-[1fr_auto_1fr] sm:px-7 sm:py-10">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[.14em] text-[#86a0b3]">Local</p>
+          <p className="mt-2 text-[22px] font-black uppercase leading-none text-[#102f55]">Equipo local</p>
+        </div>
+
+        <div className="flex items-center justify-center gap-2">
+          {['1', 'X', '2'].map((value) => (
+            <button
+              key={value}
+              type="button"
+              className="grid h-12 w-12 place-items-center border border-[#8fc9e8] bg-[#f6fbfe] text-sm font-black text-[#102f55] transition hover:bg-[#dff2fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#56afe2]"
+            >
+              {value}
+            </button>
+          ))}
+        </div>
+
+        <div className="sm:text-right">
+          <p className="text-[10px] font-black uppercase tracking-[.14em] text-[#86a0b3]">Visitante</p>
+          <p className="mt-2 text-[22px] font-black uppercase leading-none text-[#102f55]">Equipo visitante</p>
+        </div>
       </div>
     </div>
   );
 }
 
-function DreamTeamVisual() {
+function DreamTeamPreview({ reduced }: { reduced: boolean }) {
   const positions = [
-    ["LST", "24%", "16%"],
-    ["RST", "64%", "16%"],
-    ["LCM", "25%", "39%"],
-    ["RCM", "63%", "39%"],
-    ["LB", "12%", "64%"],
-    ["CB", "42%", "66%"],
-    ["RB", "74%", "64%"],
-    ["GK", "42%", "84%"],
+    ["LST", "28%", "18%"],
+    ["RST", "72%", "18%"],
+    ["LCM", "30%", "42%"],
+    ["RCM", "70%", "42%"],
+    ["LB", "16%", "68%"],
+    ["CB", "50%", "68%"],
+    ["RB", "84%", "68%"],
+    ["GK", "50%", "88%"],
   ];
 
   return (
-    <div className="relative h-full min-h-[360px] overflow-hidden rounded-[28px] border border-[#b9dbea] bg-[#dff1fa] p-5 sm:p-7">
-      <div className="absolute inset-5 rounded-[22px] border-2 border-[#6db4da]/50 sm:inset-7" />
-      <div className="absolute left-1/2 top-[8%] h-[84%] w-px -translate-x-1/2 bg-[#6db4da]/45" />
-      <div className="absolute left-1/2 top-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#6db4da]/45" />
-      <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#4ba7d8]" />
+    <div className="grid gap-0 border border-[#c7dfeb] bg-white lg:grid-cols-[1fr_220px]">
+      <div className="relative min-h-[390px] overflow-hidden bg-[#dff1fa]">
+        <div className="absolute inset-5 border-2 border-[#73b8dc]/60 sm:inset-7" />
+        <div className="absolute left-1/2 top-5 bottom-5 w-px -translate-x-1/2 bg-[#73b8dc]/50 sm:top-7 sm:bottom-7" />
+        <div className="absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#73b8dc]/50" />
 
-      {positions.map(([label, left, top], index) => (
-        <motion.div
-          key={label}
-          className="absolute z-10 -translate-x-1/2 -translate-y-1/2"
-          style={{ left, top }}
-          initial={{ opacity: 0, scale: 0.6 }}
-          animate={{ opacity: 1, scale: 1, y: [0, index % 2 ? 3 : -3, 0] }}
-          transition={{ opacity: { delay: index * 0.06 }, scale: { delay: index * 0.06 }, y: { duration: 4 + index * 0.15, repeat: Infinity, ease: "easeInOut" } }}
-        >
-          <div className="grid h-12 w-12 place-items-center rounded-full border-4 border-white bg-[#0f355a] text-[10px] font-black text-white shadow-[0_10px_24px_rgba(16,47,85,.14)] sm:h-14 sm:w-14">
-            {label}
-          </div>
-        </motion.div>
-      ))}
+        {positions.map(([label, left, top], index) => (
+          <motion.div
+            key={label}
+            className="absolute -translate-x-1/2 -translate-y-1/2"
+            style={{ left, top }}
+            initial={reduced ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28, delay: reduced ? 0 : index * 0.04 }}
+          >
+            <div className="grid h-11 min-w-11 place-items-center border border-[#0f355a] bg-[#0f355a] px-2 text-[10px] font-black text-white">
+              {label}
+            </div>
+          </motion.div>
+        ))}
+      </div>
 
-      <div className="absolute bottom-8 left-8 z-10 sm:bottom-10 sm:left-10">
-        <p className="text-[10px] font-black uppercase tracking-[.16em] text-[#2d98d4]">Tu formación</p>
-        <p className="mt-2 text-2xl font-black uppercase text-[#102f55] sm:text-3xl">8 jugadores</p>
+      <div className="border-t border-[#d8e9f2] p-5 lg:border-l lg:border-t-0 lg:p-6">
+        <p className="text-[10px] font-black uppercase tracking-[.15em] text-[#2d98d4]">Formato oficial</p>
+        <p className="mt-3 text-[30px] font-black uppercase leading-none text-[#102f55]">8 vs 8</p>
+        <div className="mt-6 border-t border-[#d8e9f2] pt-5 text-[12px] font-bold leading-6 text-[#668196]">
+          Elegí un jugador por posición y armá tu equipo ideal de la fecha.
+        </div>
       </div>
     </div>
   );
 }
 
-function AwardsVisual() {
-  const bars = [
-    { label: "MVP", value: 94, delay: 0.05 },
-    { label: "Goleador", value: 82, delay: 0.14 },
-    { label: "Rendimiento", value: 72, delay: 0.23 },
+function AwardsPreview({ reduced }: { reduced: boolean }) {
+  const rows = [
+    ["01", "MVP", "Jugador destacado"],
+    ["02", "Goleador", "Mayor aporte ofensivo"],
+    ["03", "Rendimiento", "Mejor valoración"],
   ];
 
   return (
-    <div className="relative flex h-full min-h-[360px] flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#102f55] p-6 text-white sm:p-8">
-      <div className="absolute right-0 top-0 h-full w-[44%] bg-[#123f68]" />
-      <div className="absolute -right-10 top-7 h-44 w-44 rounded-full border border-[#77c2e8]/25" />
-      <div className="absolute -right-4 top-20 h-28 w-28 rounded-full border border-[#77c2e8]/20" />
-
-      <div className="relative z-10 max-w-[70%]">
-        <p className="text-[10px] font-black uppercase tracking-[.16em] text-[#79c8ef]">Reconocimientos APA</p>
-        <p className="mt-3 text-3xl font-black uppercase leading-none sm:text-4xl">Rendimiento que se ve</p>
+    <div className="border border-[#c7dfeb] bg-white">
+      <div className="flex items-center justify-between border-b border-[#d8e9f2] bg-[#102f55] px-5 py-4 text-white sm:px-7">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[.15em] text-[#79c8ef]">Reconocimientos APA</p>
+          <p className="mt-1 text-[14px] font-black uppercase">Premios de la jornada</p>
+        </div>
+        <p className="text-[10px] font-black uppercase tracking-[.14em] text-[#c0d8e6]">Datos oficiales</p>
       </div>
 
-      <div className="relative z-10 mt-auto space-y-5">
-        {bars.map((bar) => (
-          <div key={bar.label}>
-            <div className="mb-2 flex items-center justify-between text-[10px] font-black uppercase tracking-[.13em] text-[#c9deeb]">
-              <span>{bar.label}</span>
-              <span>{bar.value}</span>
+      <div>
+        {rows.map(([pos, title, detail], index) => (
+          <motion.div
+            key={title}
+            initial={reduced ? false : { opacity: 0, x: 12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.26, delay: reduced ? 0 : index * 0.05 }}
+            className="grid grid-cols-[52px_1fr_auto] items-center gap-4 border-b border-[#e0edf4] px-5 py-5 last:border-b-0 sm:px-7"
+          >
+            <span className="text-[18px] font-black text-[#9ab3c4]">{pos}</span>
+            <div>
+              <p className="text-[15px] font-black uppercase text-[#102f55]">{title}</p>
+              <p className="mt-1 text-[11px] font-bold text-[#7990a2]">{detail}</p>
             </div>
-            <div className="h-3 overflow-hidden rounded-full bg-white/10">
-              <motion.div
-                className="h-full rounded-full bg-[#79c8ef]"
-                initial={{ width: 0 }}
-                animate={{ width: `${bar.value}%` }}
-                transition={{ duration: 0.8, delay: bar.delay, ease: [0.2, 0.8, 0.2, 1] }}
-              />
-            </div>
-          </div>
+            <span className="h-2 w-10 bg-[#56afe2]" aria-hidden="true" />
+          </motion.div>
         ))}
       </div>
     </div>
   );
 }
 
-function ExperienceVisual({ id }: { id: EntertainmentExperienceId }) {
-  if (id === "predicciones") return <PredictionsVisual />;
-  if (id === "dream-team") return <DreamTeamVisual />;
-  return <AwardsVisual />;
+function ExperiencePreview({ id, reduced }: { id: EntertainmentExperienceId; reduced: boolean }) {
+  if (id === "predicciones") return <PredictionsPreview />;
+  if (id === "dream-team") return <DreamTeamPreview reduced={reduced} />;
+  return <AwardsPreview reduced={reduced} />;
 }
 
 export default function EntertainmentPortal() {
-  const prefersReducedMotion = useReducedMotion();
+  const reducedMotion = Boolean(useReducedMotion());
   const [activeId, setActiveId] = useState<EntertainmentExperienceId>("predicciones");
   const active = useMemo(
     () => ENTERTAINMENT_EXPERIENCES.find((item) => item.id === activeId) ?? ENTERTAINMENT_EXPERIENCES[0],
     [activeId],
   );
 
-  const pointerX = useMotionValue(0);
-  const pointerY = useMotionValue(0);
-  const springX = useSpring(pointerX, { stiffness: 80, damping: 18 });
-  const springY = useSpring(pointerY, { stiffness: 80, damping: 18 });
-  const orbX = useTransform(springX, [-1, 1], [-24, 24]);
-  const orbY = useTransform(springY, [-1, 1], [-18, 18]);
-
   return (
     <main className="min-h-screen bg-[#f3fafe] text-[#102f55]">
-      <section className="overflow-hidden border-b border-[#c9e3f1] bg-white">
-        <div className="mx-auto grid max-w-[1680px] items-end gap-8 px-5 py-10 sm:px-8 lg:grid-cols-[minmax(0,1fr)_420px] lg:px-10 lg:py-14">
+      <section className="border-b border-[#c9e3f1] bg-white">
+        <div className="mx-auto grid max-w-[1680px] gap-7 px-5 py-10 sm:px-8 lg:grid-cols-[1fr_360px] lg:items-end lg:px-10 lg:py-14">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[.16em] text-[#2d98d4]">APA / Comunidad</p>
-            <h1 className="mt-3 text-[clamp(3.3rem,7vw,7.6rem)] font-black uppercase leading-[.84] tracking-[-.06em]">
+            <h1 className="mt-3 text-[clamp(3.1rem,6.8vw,7rem)] font-black uppercase leading-[.86] tracking-[-.055em]">
               Entretenimiento
             </h1>
           </div>
-          <div className="border-l border-[#cfe4f0] pl-6 lg:pb-2">
-            <p className="text-[15px] font-semibold leading-7 text-[#607b90] sm:text-[16px]">
-              No es otra sección de estadísticas. Es el lugar donde la comunidad juega con lo que pasa dentro de APA.
-            </p>
-          </div>
+          <p className="border-l border-[#cfe4f0] pl-6 text-[14px] font-semibold leading-7 text-[#607b90] sm:text-[15px]">
+            Elegí una experiencia y participá con lo que pasa dentro de APA.
+          </p>
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-[#eaf6fd] py-8 sm:py-10 lg:py-14">
-        <motion.div
-          aria-hidden="true"
-          className="pointer-events-none absolute right-[7%] top-[8%] h-72 w-72 rounded-full bg-[#b9e2f7]/55 blur-3xl"
-          style={prefersReducedMotion ? undefined : { x: orbX, y: orbY }}
-        />
+      <section className="bg-[#f3fafe]">
+        <div className="mx-auto max-w-[1680px] px-5 py-8 sm:px-8 lg:px-10 lg:py-12">
+          <div className="grid border-y border-[#bcd9e8] bg-white lg:grid-cols-[360px_minmax(0,1fr)]">
+            <div className="border-b border-[#bcd9e8] lg:border-b-0 lg:border-r">
+              <div className="px-5 py-4 sm:px-6">
+                <p className="text-[10px] font-black uppercase tracking-[.15em] text-[#7c97aa]">Elegí una experiencia</p>
+              </div>
 
-        <div
-          className="relative mx-auto max-w-[1680px] px-5 sm:px-8 lg:px-10"
-          onPointerMove={(event) => {
-            if (prefersReducedMotion) return;
-            const rect = event.currentTarget.getBoundingClientRect();
-            pointerX.set(((event.clientX - rect.left) / rect.width) * 2 - 1);
-            pointerY.set(((event.clientY - rect.top) / rect.height) * 2 - 1);
-          }}
-          onPointerLeave={() => {
-            pointerX.set(0);
-            pointerY.set(0);
-          }}
-        >
-          <div className="mb-5 flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Experiencias de entretenimiento">
-            {ENTERTAINMENT_EXPERIENCES.map((experience) => {
-              const selected = experience.id === activeId;
-              return (
-                <button
-                  key={experience.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  onClick={() => setActiveId(experience.id)}
-                  className={`relative min-h-12 flex-none rounded-full px-5 text-[12px] font-black uppercase tracking-[.08em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#56afe2] focus-visible:ring-offset-2 ${selected ? "text-white" : "border border-[#bfdcea] bg-white text-[#58748b] hover:text-[#102f55]"}`}
-                >
-                  {selected && (
-                    <motion.span
-                      layoutId="entertainment-active-tab"
-                      className="absolute inset-0 rounded-full bg-[#102f55]"
-                      transition={{ type: "spring", stiffness: 420, damping: 32 }}
-                    />
-                  )}
-                  <span className="relative z-10">{experience.title}</span>
-                </button>
-              );
-            })}
-          </div>
+              <div role="tablist" aria-label="Entretenimiento APA">
+                {ENTERTAINMENT_EXPERIENCES.map((item, index) => {
+                  const selected = item.id === activeId;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={selected}
+                      onClick={() => setActiveId(item.id)}
+                      className={`relative grid w-full grid-cols-[42px_1fr] gap-4 border-t border-[#d8e9f2] px-5 py-5 text-left transition sm:px-6 ${selected ? "bg-[#102f55] text-white" : "bg-white text-[#102f55] hover:bg-[#eef8fd]"}`}
+                    >
+                      <span className={`text-[12px] font-black ${selected ? "text-[#79c8ef]" : "text-[#9cb4c4]"}`}>
+                        0{index + 1}
+                      </span>
+                      <span className="min-w-0">
+                        <span className={`block text-[10px] font-black uppercase tracking-[.13em] ${selected ? "text-[#79c8ef]" : "text-[#2d98d4]"}`}>
+                          {item.kicker}
+                        </span>
+                        <span className="mt-2 block text-[24px] font-black uppercase leading-none sm:text-[28px]">
+                          {item.title}
+                        </span>
+                      </span>
 
-          <div className="overflow-hidden rounded-[30px] border border-[#c5dfed] bg-white shadow-[0_30px_90px_rgba(16,47,85,.10)]">
-            <div className="grid min-h-[620px] lg:grid-cols-[0.9fr_1.1fr]">
+                      {selected && (
+                        <motion.span
+                          layoutId="entertainment-active-line"
+                          className="absolute bottom-0 left-0 top-0 w-1 bg-[#56afe2]"
+                          transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="min-w-0">
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={`${active.id}-copy`}
+                  key={active.id}
                   role="tabpanel"
-                  initial={prefersReducedMotion ? false : { opacity: 0, x: -28 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={prefersReducedMotion ? undefined : { opacity: 0, x: 28 }}
-                  transition={{ duration: 0.36, ease: [0.2, 0.8, 0.2, 1] }}
-                  className="flex min-h-0 flex-col justify-between p-6 sm:p-8 lg:p-10 xl:p-12"
+                  initial={reducedMotion ? false : { opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={reducedMotion ? undefined : { opacity: 0, y: -8 }}
+                  transition={{ duration: 0.24, ease: [0.2, 0.8, 0.2, 1] }}
+                  className="grid gap-0 xl:grid-cols-[minmax(0,.9fr)_minmax(420px,1.1fr)]"
                 >
-                  <div>
-                    <div className="flex items-center gap-4">
-                      <span className="h-px w-12 bg-[#56afe2]" />
-                      <p className="text-[10px] font-black uppercase tracking-[.16em] text-[#2d98d4]">{active.kicker}</p>
+                  <div className="flex flex-col justify-between border-b border-[#d8e9f2] p-6 sm:p-8 xl:border-b-0 xl:border-r xl:p-10">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[.15em] text-[#2d98d4]">Experiencia seleccionada</p>
+                      <h2 className="mt-4 text-[clamp(2.5rem,5vw,5.4rem)] font-black uppercase leading-[.88] tracking-[-.05em] text-[#102f55]">
+                        {active.title}
+                      </h2>
+                      <p className="mt-5 max-w-[650px] text-[14px] font-semibold leading-7 text-[#607b90] sm:text-[16px]">
+                        {active.description}
+                      </p>
+
+                      <div className="mt-7 grid gap-0 border-y border-[#d8e9f2] sm:grid-cols-3">
+                        {active.highlights.map((item) => (
+                          <div key={item.label} className="border-b border-[#d8e9f2] py-4 last:border-b-0 sm:border-b-0 sm:border-r sm:px-4 sm:first:pl-0 sm:last:border-r-0">
+                            <p className="text-[9px] font-black uppercase tracking-[.14em] text-[#8aa2b3]">{item.label}</p>
+                            <p className="mt-1 text-[13px] font-black uppercase text-[#102f55]">{item.value}</p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
-                    <h2 className="mt-6 max-w-[760px] text-[clamp(2.8rem,6vw,6.4rem)] font-black uppercase leading-[.86] tracking-[-.055em]">
-                      {active.title}
-                    </h2>
-
-                    <p className="mt-6 max-w-[680px] text-[15px] font-semibold leading-7 text-[#607b90] sm:text-[17px]">
-                      {active.description}
-                    </p>
-
-                    <div className="mt-8 divide-y divide-[#d8e9f2] border-y border-[#d8e9f2]">
-                      {active.highlights.map((item, index) => (
-                        <motion.div
-                          key={item.label}
-                          initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.06 + 0.08 }}
-                          className="grid grid-cols-[1fr_auto] items-center gap-4 py-4"
-                        >
-                          <span className="text-[10px] font-black uppercase tracking-[.14em] text-[#6f899d]">{item.label}</span>
-                          <strong className="text-right text-[16px] font-black uppercase text-[#102f55] sm:text-[18px]">{item.value}</strong>
-                        </motion.div>
-                      ))}
+                    <div className="mt-8">
+                      <Link
+                        href={active.href}
+                        className="inline-flex min-h-12 items-center border border-[#56afe2] bg-[#56afe2] px-6 text-[12px] font-black uppercase tracking-[.08em] text-white transition hover:bg-[#389dd5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#56afe2] focus-visible:ring-offset-2"
+                      >
+                        {active.cta}
+                      </Link>
                     </div>
                   </div>
 
-                  <div className="mt-8 flex flex-wrap items-center gap-4">
-                    <Link
-                      href={active.href}
-                      className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#56afe2] px-6 text-[12px] font-black uppercase tracking-[.08em] text-white transition hover:bg-[#3f9dd5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#56afe2] focus-visible:ring-offset-2"
-                    >
-                      {active.cta}
-                    </Link>
-                    <span className="text-[10px] font-black uppercase tracking-[.14em] text-[#8aa0b0]">Experiencia APA</span>
+                  <div className="bg-[#eaf6fd] p-5 sm:p-7 xl:p-8">
+                    <ExperiencePreview id={active.id} reduced={reducedMotion} />
                   </div>
                 </motion.div>
               </AnimatePresence>
-
-              <div className="relative min-h-[420px] border-t border-[#d6e8f1] bg-[#f5fbfe] p-4 sm:p-6 lg:min-h-0 lg:border-l lg:border-t-0 lg:p-7 xl:p-8">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={`${active.id}-visual`}
-                    initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.97, y: 18 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.985, y: -10 }}
-                    transition={{ duration: 0.42, ease: [0.2, 0.8, 0.2, 1] }}
-                    className="h-full"
-                  >
-                    <ExperienceVisual id={active.id} />
-                  </motion.div>
-                </AnimatePresence>
-              </div>
             </div>
-          </div>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            {ENTERTAINMENT_EXPERIENCES.map((experience, index) => {
-              const selected = experience.id === activeId;
-              return (
-                <button
-                  key={`footer-${experience.id}`}
-                  type="button"
-                  onClick={() => setActiveId(experience.id)}
-                  className={`group flex min-h-20 items-center justify-between rounded-[18px] border px-5 text-left transition ${selected ? "border-[#9ed0ea] bg-[#dff2fb]" : "border-[#cfe4f0] bg-white hover:border-[#a8d3e9]"}`}
-                >
-                  <div>
-                    <span className="text-[9px] font-black uppercase tracking-[.15em] text-[#7f99aa]">0{index + 1}</span>
-                    <p className="mt-1 text-[14px] font-black uppercase text-[#102f55]">{experience.title}</p>
-                  </div>
-                  <span className={`h-2.5 w-2.5 rounded-full transition ${selected ? "bg-[#56afe2]" : "bg-[#d6e8f1] group-hover:bg-[#9ed0ea]"}`} />
-                </button>
-              );
-            })}
           </div>
         </div>
       </section>
