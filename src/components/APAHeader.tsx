@@ -49,7 +49,10 @@ function IconoYoutube() {
   );
 }
 
-function seccionActiva(pathname: string, seccion: "competicion" | "clubes" | "noticias" | "guia") {
+function seccionActiva(
+  pathname: string,
+  seccion: "competicion" | "clubes" | "guia" | "entretenimiento",
+) {
   if (seccion === "competicion") {
     return ["/competicion", "/divisiones", "/fixture", "/estadisticas", "/historia"].some((ruta) =>
       pathname.startsWith(ruta),
@@ -95,6 +98,13 @@ export default function APAHeader() {
         </Link>
 
         <nav className={estilos.navegacion} aria-label="Navegación principal">
+          <Link
+            className={`${estilos.enlace} ${seccionActiva(pathname, "guia") ? estilos.activo : ""}`}
+            href="/guia"
+          >
+            Guía
+          </Link>
+
           <div className={estilos.menuGrupo}>
             <Link
               className={`${estilos.enlace} ${estilos.enlaceConMenu} ${seccionActiva(pathname, "competicion") ? estilos.activo : ""}`}
@@ -168,16 +178,10 @@ export default function APAHeader() {
           </div>
 
           <Link
-            className={`${estilos.enlace} ${seccionActiva(pathname, "noticias") ? estilos.activo : ""}`}
-            href="/noticias"
+            className={`${estilos.enlace} ${seccionActiva(pathname, "entretenimiento") ? estilos.activo : ""}`}
+            href="/entretenimiento"
           >
-            Noticias
-          </Link>
-          <Link
-            className={`${estilos.enlace} ${seccionActiva(pathname, "guia") ? estilos.activo : ""}`}
-            href="/guia"
-          >
-            Guía
+            Entretenimiento
           </Link>
         </nav>
 
