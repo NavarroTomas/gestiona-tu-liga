@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./typography-fixed.css";
 import "./theme-worldcup-mural.css";
 import APAHeader from "../components/APAHeader";
 import BienvenidaAPA from "../components/BienvenidaAPA";
@@ -15,12 +16,6 @@ import {
   Rajdhani,
   Space_Grotesk,
 } from "next/font/google";
-import {
-  DEFAULT_TYPOGRAPHY_THEME,
-  TYPOGRAPHY_STORAGE_KEY,
-  TYPOGRAPHY_THEMES,
-  buildTypographyThemeCss,
-} from "@/config/typography";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -89,51 +84,6 @@ const fontVariables = [
   orbitron.variable,
 ].join(" ");
 
-const allowedTypographyThemes = TYPOGRAPHY_THEMES.map((theme) => theme.id);
-const typographyBootstrap = `(() => {
-  try {
-    const stored = localStorage.getItem(${JSON.stringify(TYPOGRAPHY_STORAGE_KEY)});
-    const allowed = ${JSON.stringify(allowedTypographyThemes)};
-    document.documentElement.dataset.fontTheme = allowed.includes(stored)
-      ? stored
-      : ${JSON.stringify(DEFAULT_TYPOGRAPHY_THEME)};
-  } catch {
-    document.documentElement.dataset.fontTheme = ${JSON.stringify(DEFAULT_TYPOGRAPHY_THEME)};
-  }
-})();`;
-
-const typographyRuntimeCss = `
-:where(html[data-font-theme]) body {
-  font-family: var(--apa-font-body);
-}
-
-:where(html[data-font-theme]) :where(h1, h2, h3) {
-  font-family: var(--apa-font-heading);
-  font-weight: var(--apa-heading-weight);
-  line-height: var(--apa-heading-line-height);
-  letter-spacing: var(--apa-heading-letter-spacing);
-  transition: line-height 160ms ease, letter-spacing 160ms ease, opacity 160ms ease;
-}
-
-:where(html[data-font-theme]) :where(p, li) {
-  font-family: var(--apa-font-body);
-  font-weight: var(--apa-body-weight);
-  line-height: var(--apa-body-line-height);
-  letter-spacing: var(--apa-body-letter-spacing);
-  transition: line-height 160ms ease, letter-spacing 160ms ease, opacity 160ms ease;
-}
-
-html.apa-font-theme-changing :where(h1, h2, h3, p, li) {
-  opacity: 0.985;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :where(html[data-font-theme]) :where(h1, h2, h3, p, li) {
-    transition: none;
-  }
-}
-`;
-
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.psoargentina.com"),
   title: {
@@ -182,14 +132,9 @@ export default function RootLayout({
     <html
       lang="es-AR"
       className={fontVariables}
-      data-font-theme={DEFAULT_TYPOGRAPHY_THEME}
+      data-font-theme="data-first"
       suppressHydrationWarning
     >
-      <head>
-        <style id="apa-font-themes" dangerouslySetInnerHTML={{ __html: buildTypographyThemeCss() }} />
-        <style id="apa-font-runtime" dangerouslySetInnerHTML={{ __html: typographyRuntimeCss }} />
-        <script dangerouslySetInnerHTML={{ __html: typographyBootstrap }} />
-      </head>
       <body className="text-white overflow-x-hidden">
         <IntroAPA />
         <BienvenidaAPA />
