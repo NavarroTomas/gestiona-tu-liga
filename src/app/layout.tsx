@@ -102,6 +102,38 @@ const typographyBootstrap = `(() => {
   }
 })();`;
 
+const typographyRuntimeCss = `
+:where(html[data-font-theme]) body {
+  font-family: var(--apa-font-body);
+}
+
+:where(html[data-font-theme]) :where(h1, h2, h3) {
+  font-family: var(--apa-font-heading);
+  font-weight: var(--apa-heading-weight);
+  line-height: var(--apa-heading-line-height);
+  letter-spacing: var(--apa-heading-letter-spacing);
+  transition: line-height 160ms ease, letter-spacing 160ms ease, opacity 160ms ease;
+}
+
+:where(html[data-font-theme]) :where(p, li) {
+  font-family: var(--apa-font-body);
+  font-weight: var(--apa-body-weight);
+  line-height: var(--apa-body-line-height);
+  letter-spacing: var(--apa-body-letter-spacing);
+  transition: line-height 160ms ease, letter-spacing 160ms ease, opacity 160ms ease;
+}
+
+html.apa-font-theme-changing :where(h1, h2, h3, p, li) {
+  opacity: 0.985;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(html[data-font-theme]) :where(h1, h2, h3, p, li) {
+    transition: none;
+  }
+}
+`;
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.psoargentina.com"),
   title: {
@@ -155,6 +187,7 @@ export default function RootLayout({
     >
       <head>
         <style id="apa-font-themes" dangerouslySetInnerHTML={{ __html: buildTypographyThemeCss() }} />
+        <style id="apa-font-runtime" dangerouslySetInnerHTML={{ __html: typographyRuntimeCss }} />
         <script dangerouslySetInnerHTML={{ __html: typographyBootstrap }} />
       </head>
       <body className="text-white overflow-x-hidden">
