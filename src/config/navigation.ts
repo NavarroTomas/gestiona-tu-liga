@@ -65,3 +65,28 @@ export const CLUBS_HEADER_MENU: HeaderDropdownItem[] = [
     href: "/jugadores",
   },
 ];
+
+/**
+ * MENÚ DESPLEGABLE DE ENTRETENIMIENTO
+ * -----------------------------------
+ * No existe una landing intermedia de entretenimiento: el usuario entra
+ * directamente a una experiencia. El acceso principal abre Predicciones y
+ * el desplegable permite saltar a cualquiera de los tres módulos.
+ */
+export const ENTERTAINMENT_HEADER_MENU: HeaderDropdownItem[] = [
+  {
+    label: "Predicciones",
+    description: "Pronosticá los partidos oficiales",
+    href: "/entretenimiento/predicciones",
+  },
+  {
+    label: "Dream Team",
+    description: "Armá tu equipo ideal de la fecha",
+    href: "/entretenimiento/dream-team",
+  },
+  {
+    label: "Premios APA",
+    description: "Reconocimientos y destacados",
+    href: "/entretenimiento/premios",
+  },
+];
