@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CLUBS_HEADER_MENU, COMPETITION_HEADER_MENU } from "@/config/navigation";
+import TypographySwitcher from "./TypographySwitcher";
 import estilos from "./APAHeader.module.css";
 
 function IconoBuscar() {
@@ -185,6 +186,8 @@ export default function APAHeader() {
           <button className={estilos.icono} type="button" aria-label="Buscar">
             <IconoBuscar />
           </button>
+
+          <TypographySwitcher />
 
           <span className={estilos.separador} aria-hidden="true" />
 
