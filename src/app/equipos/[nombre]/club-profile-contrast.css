@@ -4,19 +4,19 @@
   --club-navy-2: #173f73;
   --club-blue: #2d98d4;
   --club-sky: #69c0ec;
-  --club-light: #e7f2f8;
-  --club-card: #f3f8fb;
-  --club-line: #b9d6e5;
+  --club-light: #dcecf5;
+  --club-card: #d2e7f2;
+  --club-line: #a8ccde;
 }
 
 /* Más contraste general: menos blanco puro */
 .club-profile-redesign main {
-  background: linear-gradient(180deg, #dfeef6 0%, #edf6fa 42%, #dcecf5 100%) !important;
+  background: linear-gradient(180deg, #dbeaf3 0%, #edf5f9 42%, #d7e8f1 100%) !important;
 }
 
 .club-profile-redesign main > section > section:nth-of-type(even) {
-  background: #e7f2f8 !important;
-  border-color: #b8d5e4 !important;
+  background: #dcecf5 !important;
+  border-color: #a9cddd !important;
 }
 
 .club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) {
@@ -46,18 +46,16 @@
   color: #c2d8e7 !important;
 }
 
-/* Panel derecho del resumen */
 .club-profile-redesign main > section > a:first-child + section [class*="bg-black/35"] {
-  background: rgba(5, 24, 45, .62) !important;
+  background: rgba(5, 24, 45, .68) !important;
   border-color: rgba(143, 202, 234, .28) !important;
   backdrop-filter: blur(10px) !important;
 }
 
-/* Tarjetas PTS/PJ/GF/GC y racha dentro del hero */
 .club-profile-redesign main > section > a:first-child + section [class*="bg-white/[0.04]"],
 .club-profile-redesign main > section > a:first-child + section [class*="bg-white/[0.045]"] {
-  background: rgba(24, 67, 108, .9) !important;
-  border-color: rgba(148, 205, 235, .26) !important;
+  background: rgba(19, 57, 94, .96) !important;
+  border-color: rgba(148, 205, 235, .28) !important;
 }
 
 .club-profile-redesign main > section > a:first-child + section [class*="text-zinc-500"] {
@@ -76,18 +74,62 @@
   color: #ff9b9b !important;
 }
 
-/* Badges del hero: navy/celeste, no píldoras blancas */
 .club-profile-redesign main > section > a:first-child + section [class*="bg-sky-400/10"],
 .club-profile-redesign main > section > a:first-child + section [class*="bg-yellow-400/10"] {
-  background: rgba(44, 104, 153, .58) !important;
-  border-color: rgba(140, 207, 239, .35) !important;
+  background: rgba(34, 88, 134, .82) !important;
+  border-color: rgba(140, 207, 239, .38) !important;
   color: #fff !important;
 }
 
 .club-profile-redesign main > section > a:first-child + section [class*="bg-black/30"] {
-  background: rgba(4, 22, 42, .5) !important;
+  background: rgba(4, 22, 42, .62) !important;
   border-color: rgba(255,255,255,.16) !important;
   color: #d9e9f2 !important;
+}
+
+/* Rendimiento por competición: azul visible y con contraste alto */
+.club-profile-redesign main > section > section:nth-of-type(2) {
+  background: #9fcbe1 !important;
+  border-color: #76b3d1 !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(2) > div:first-child h2 {
+  color: #0b2747 !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(2) > div:first-child p {
+  color: #176f9f !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(2) article {
+  background: linear-gradient(135deg, #245f8e 0%, #2e79aa 100%) !important;
+  border-color: #4e94bc !important;
+  color: #fff !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(2) article p,
+.club-profile-redesign main > section > section:nth-of-type(2) article span,
+.club-profile-redesign main > section > section:nth-of-type(2) article h3 {
+  color: #fff !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(2) article [class*="bg-white/[0.04]"] {
+  background: #1b527f !important;
+  border-color: #5b9fc3 !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(2) article [class*="bg-sky-400/10"] {
+  background: #16486f !important;
+  border-color: #589bbf !important;
+  color: #dff5ff !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(2) article [class*="text-zinc"] {
+  color: #cfe8f4 !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(2) article [class*="text-emerald"] {
+  color: #b5f0d9 !important;
 }
 
 /* En secciones claras usamos azul hielo, no blanco puro */
@@ -96,9 +138,31 @@
 .club-profile-redesign main > section > section:nth-of-type(even) a[class*="bg-black"],
 .club-profile-redesign main > section > section:nth-of-type(even) [class*="bg-white/[0.04]"],
 .club-profile-redesign main > section > section:nth-of-type(even) [class*="bg-white/[0.045]"] {
-  background: #d8e9f2 !important;
-  border-color: #b3d0df !important;
+  background: #c8e1ed !important;
+  border-color: #9fc7da !important;
   color: var(--club-navy) !important;
+}
+
+/* Reaplicamos la identidad fuerte del bloque de rendimiento después de las reglas genéricas */
+.club-profile-redesign main > section > section:nth-of-type(2) article {
+  background: linear-gradient(135deg, #245f8e 0%, #2e79aa 100%) !important;
+  border-color: #4e94bc !important;
+  color: #fff !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(2) article [class*="bg-white/[0.04]"] {
+  background: #1b527f !important;
+  border-color: #5b9fc3 !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(2) article [class*="bg-sky-400/10"] {
+  background: #16486f !important;
+  border-color: #589bbf !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(2) article p,
+.club-profile-redesign main > section > section:nth-of-type(2) article span {
+  color: #fff !important;
 }
 
 /* En bloques navy las tarjetas también quedan oscuras */
@@ -137,17 +201,50 @@
   border-color: #2b628e !important;
 }
 
-/* Tabla: filas con más separación tonal */
+/* Tabla del plantel: filas oscuras con lectura fuerte */
+.club-profile-redesign main table {
+  color: #fff !important;
+}
+
+.club-profile-redesign main thead tr {
+  color: #1c6f9e !important;
+}
+
 .club-profile-redesign main tbody tr {
-  background: #dcebf3 !important;
+  background: #163b63 !important;
+  color: #fff !important;
 }
 
 .club-profile-redesign main tbody tr:nth-child(even) {
-  background: #cfe3ee !important;
+  background: #1d4d79 !important;
 }
 
 .club-profile-redesign main tbody tr:hover {
-  background: #bddbea !important;
+  background: #276493 !important;
+}
+
+.club-profile-redesign main tbody td {
+  border-top-color: #2d6289 !important;
+  border-bottom-color: #2d6289 !important;
+  color: #fff !important;
+}
+
+.club-profile-redesign main tbody a,
+.club-profile-redesign main tbody [class*="text-sky"],
+.club-profile-redesign main tbody [class*="text-zinc"],
+.club-profile-redesign main tbody [class*="text-yellow"] {
+  color: #fff !important;
+}
+
+.club-profile-redesign main tbody td:first-child,
+.club-profile-redesign main tbody td:last-child a {
+  color: #8bd5f5 !important;
+}
+
+.club-profile-redesign main tbody td:nth-child(3),
+.club-profile-redesign main tbody td:nth-child(4),
+.club-profile-redesign main tbody td:nth-child(5) {
+  color: #dff4ff !important;
 }
 
 /* Historial lateral más profundo */
