@@ -1,0 +1,386 @@
+.dream-team-redesign {
+  --dt-navy: #102f55;
+  --dt-blue: #2d98d4;
+  --dt-sky: #56afe2;
+  --dt-ice: #f3fafe;
+  --dt-pale: #eaf6fd;
+  --dt-line: #c9e3f1;
+  --dt-muted: #607b90;
+  background: var(--dt-ice);
+}
+
+.dream-team-redesign main {
+  min-height: 100vh !important;
+  overflow-x: hidden !important;
+  background: var(--dt-ice) !important;
+  color: var(--dt-navy) !important;
+}
+
+.dream-team-redesign main > div {
+  width: 100% !important;
+  max-width: 1680px !important;
+  margin-inline: auto !important;
+  padding: 28px 20px 52px !important;
+}
+
+.dream-team-redesign main > div > section {
+  box-shadow: none !important;
+}
+
+/* Hero */
+.dream-team-redesign main > div > section:first-child {
+  border: 1px solid var(--dt-line) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  padding: 28px !important;
+}
+
+.dream-team-redesign main > div > section:first-child > .absolute {
+  display: none !important;
+}
+
+.dream-team-redesign main > div > section:first-child p {
+  color: var(--dt-muted) !important;
+}
+
+.dream-team-redesign main > div > section:first-child p:first-of-type {
+  color: var(--dt-blue) !important;
+  letter-spacing: .13em !important;
+}
+
+.dream-team-redesign main > div > section:first-child h1 {
+  margin-top: 10px !important;
+  font-style: normal !important;
+  font-size: clamp(2.6rem, 5vw, 5rem) !important;
+  line-height: .9 !important;
+  letter-spacing: -.045em !important;
+}
+
+.dream-team-redesign main > div > section:first-child h1 span:first-child {
+  color: var(--dt-navy) !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+.dream-team-redesign main > div > section:first-child h1 span:last-child {
+  margin-top: 4px !important;
+  color: var(--dt-blue) !important;
+  text-shadow: none !important;
+}
+
+.dream-team-redesign main > div > section:first-child .grid > div {
+  border: 1px solid #d8e8f0 !important;
+  border-radius: 10px !important;
+  background: #f8fcfe !important;
+  padding: 14px 16px !important;
+}
+
+.dream-team-redesign main > div > section:first-child .grid > div p:first-child {
+  color: #7d98aa !important;
+}
+
+.dream-team-redesign main > div > section:first-child .grid > div p:last-child {
+  color: var(--dt-navy) !important;
+}
+
+/* Context selectors */
+.dream-team-redesign main > div > section:nth-child(2) {
+  border: 1px solid var(--dt-line) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  padding: 22px !important;
+}
+
+.dream-team-redesign main > div > section:nth-child(2) p {
+  margin-bottom: 10px !important;
+  color: #7390a4 !important;
+  letter-spacing: .1em !important;
+}
+
+.dream-team-redesign main > div > section:nth-child(2) button {
+  min-height: 44px !important;
+  border: 1px solid #c9dfeb !important;
+  border-radius: 8px !important;
+  background: #f8fcfe !important;
+  color: var(--dt-navy) !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  transition: border-color .18s ease, background-color .18s ease, color .18s ease !important;
+}
+
+.dream-team-redesign main > div > section:nth-child(2) button:hover {
+  border-color: var(--dt-sky) !important;
+  background: var(--dt-pale) !important;
+}
+
+.dream-team-redesign main > div > section:nth-child(2) button[class*="bg-gradient-to"] {
+  border-color: var(--dt-navy) !important;
+  background: var(--dt-navy) !important;
+  color: #fff !important;
+}
+
+/* Feedback message */
+.dream-team-redesign main > div > section:not(.grid)[class*="text-center"] {
+  border: 1px solid #acd7eb !important;
+  border-radius: 10px !important;
+  background: #e9f7fd !important;
+  color: var(--dt-navy) !important;
+}
+
+/* Main game area */
+.dream-team-redesign main > div > section.grid {
+  align-items: start !important;
+  gap: 20px !important;
+}
+
+.dream-team-redesign main > div > section.grid > div.relative {
+  border: 1px solid var(--dt-line) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  padding: 22px !important;
+  box-shadow: none !important;
+}
+
+.dream-team-redesign main > div > section.grid > div.relative > .absolute {
+  display: none !important;
+}
+
+/* Formation board: abstract tactical board, no literal green pitch */
+.dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 {
+  min-height: 650px !important;
+  border: 1px solid #bfd9e8 !important;
+  border-radius: 12px !important;
+  background:
+    linear-gradient(90deg, transparent calc(50% - .5px), #c4dce9 calc(50% - .5px), #c4dce9 calc(50% + .5px), transparent calc(50% + .5px)),
+    linear-gradient(#edf7fc, #f8fcfe) !important;
+  padding: 34px !important;
+  overflow: hidden !important;
+}
+
+.dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > .absolute {
+  display: none !important;
+}
+
+.dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10::before {
+  content: "FORMACIÓN 3 - 2 - 2";
+  position: absolute;
+  left: 22px;
+  top: 18px;
+  color: var(--dt-blue);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10::after {
+  content: "8 JUGADORES";
+  position: absolute;
+  right: 22px;
+  top: 18px;
+  color: var(--dt-navy);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 {
+  min-height: 565px !important;
+  padding-top: 42px !important;
+}
+
+.dream-team-redesign main > div > section.grid button.group {
+  min-height: 102px !important;
+  border: 1px solid #bfd9e8 !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  color: var(--dt-navy) !important;
+  transform: none !important;
+}
+
+.dream-team-redesign main > div > section.grid button.group:hover {
+  border-color: var(--dt-sky) !important;
+  background: #f4fbff !important;
+  box-shadow: 0 8px 24px rgba(16,47,85,.08) !important;
+}
+
+.dream-team-redesign main > div > section.grid button.group p,
+.dream-team-redesign main > div > section.grid button.group h3 {
+  color: var(--dt-navy) !important;
+  text-shadow: none !important;
+}
+
+.dream-team-redesign main > div > section.grid button.group p:first-of-type {
+  color: var(--dt-blue) !important;
+  letter-spacing: .12em !important;
+}
+
+.dream-team-redesign main > div > section.grid button.group p:last-of-type {
+  color: #7c96a8 !important;
+}
+
+.dream-team-redesign main > div > section.grid button.group [class*="yellow"] {
+  color: var(--dt-blue) !important;
+  border-color: #c9e3f1 !important;
+  background: #eef8fd !important;
+}
+
+/* Side panels */
+.dream-team-redesign main > div > section.grid aside {
+  display: grid !important;
+  gap: 16px !important;
+}
+
+.dream-team-redesign main > div > section.grid aside > section {
+  border: 1px solid var(--dt-line) !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  color: var(--dt-navy) !important;
+  box-shadow: none !important;
+}
+
+.dream-team-redesign main > div > section.grid aside > section p,
+.dream-team-redesign main > div > section.grid aside > section h2,
+.dream-team-redesign main > div > section.grid aside > section span,
+.dream-team-redesign main > div > section.grid aside > section b {
+  color: inherit !important;
+}
+
+.dream-team-redesign main > div > section.grid aside > section > p:first-child {
+  color: var(--dt-blue) !important;
+  letter-spacing: .12em !important;
+}
+
+.dream-team-redesign main > div > section.grid aside > section:nth-child(2) {
+  border-color: var(--dt-navy) !important;
+  background: var(--dt-navy) !important;
+  color: #fff !important;
+}
+
+.dream-team-redesign main > div > section.grid aside > section:nth-child(2) p,
+.dream-team-redesign main > div > section.grid aside > section:nth-child(2) span,
+.dream-team-redesign main > div > section.grid aside > section:nth-child(2) h2 {
+  color: #fff !important;
+}
+
+.dream-team-redesign main > div > section.grid aside > section:nth-child(2) > p:first-child {
+  color: #8ed2f3 !important;
+}
+
+.dream-team-redesign main > div > section.grid aside button {
+  box-shadow: none !important;
+}
+
+.dream-team-redesign main > div > section.grid aside > section:nth-child(2) button {
+  border: 1px solid #77c2e8 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #fff !important;
+}
+
+.dream-team-redesign main > div > section.grid aside > section:nth-child(2) [class*="bg-black"] {
+  border: 1px solid rgba(255,255,255,.12) !important;
+  background: rgba(255,255,255,.05) !important;
+}
+
+.dream-team-redesign main > div > section.grid aside > section:nth-child(3) [class*="yellow"] {
+  border-color: #bfe1f0 !important;
+  background: #eff9fd !important;
+  color: var(--dt-navy) !important;
+}
+
+/* Candidate list */
+.dream-team-redesign main > div > section.grid aside > section:last-child {
+  max-height: 680px !important;
+  padding: 14px !important;
+}
+
+.dream-team-redesign main > div > section.grid aside > section:last-child > div > button {
+  border: 1px solid #d7e7ef !important;
+  border-radius: 10px !important;
+  background: #f9fcfe !important;
+  color: var(--dt-navy) !important;
+}
+
+.dream-team-redesign main > div > section.grid aside > section:last-child > div > button:hover {
+  border-color: var(--dt-sky) !important;
+  background: #eef8fd !important;
+}
+
+.dream-team-redesign main > div > section.grid aside > section:last-child > div > button p,
+.dream-team-redesign main > div > section.grid aside > section:last-child > div > button b {
+  color: var(--dt-navy) !important;
+}
+
+.dream-team-redesign main > div > section.grid aside > section:last-child [class*="bg-white"] {
+  background: #edf6fb !important;
+}
+
+/* Avatars and crests lose old neon/yellow styling */
+.dream-team-redesign main [class*="rounded-full"][class*="yellow"] {
+  border-color: #c9e3f1 !important;
+  background: #edf6fb !important;
+  color: var(--dt-navy) !important;
+}
+
+.dream-team-redesign main a:hover {
+  color: var(--dt-blue) !important;
+}
+
+@media (max-width: 1279px) {
+  .dream-team-redesign main > div > section.grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dream-team-redesign main > div > section.grid aside {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .dream-team-redesign main > div {
+    padding: 18px 12px 36px !important;
+  }
+
+  .dream-team-redesign main > div > section:first-child,
+  .dream-team-redesign main > div > section:nth-child(2),
+  .dream-team-redesign main > div > section.grid > div.relative,
+  .dream-team-redesign main > div > section.grid aside > section {
+    border-radius: 10px !important;
+  }
+
+  .dream-team-redesign main > div > section:first-child {
+    padding: 20px !important;
+  }
+
+  .dream-team-redesign main > div > section:first-child h1 {
+    font-size: clamp(2.2rem, 14vw, 3.8rem) !important;
+  }
+
+  .dream-team-redesign main > div > section:nth-child(2) {
+    padding: 16px !important;
+  }
+
+  .dream-team-redesign main > div > section.grid > div.relative {
+    padding: 12px !important;
+  }
+
+  .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 {
+    min-height: 570px !important;
+    padding: 24px 12px 18px !important;
+  }
+
+  .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 {
+    min-height: 520px !important;
+    padding-top: 42px !important;
+  }
+
+  .dream-team-redesign main > div > section.grid button.group {
+    min-height: 86px !important;
+    padding: 8px !important;
+  }
+
+  .dream-team-redesign main > div > section.grid aside {
+    grid-template-columns: 1fr !important;
+  }
+}
