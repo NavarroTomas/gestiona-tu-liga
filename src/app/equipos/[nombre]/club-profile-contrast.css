@@ -1,0 +1,182 @@
+.club-profile-redesign {
+  --club-deep: #0b2747;
+  --club-navy: #102f55;
+  --club-navy-2: #173f73;
+  --club-blue: #2d98d4;
+  --club-sky: #69c0ec;
+  --club-light: #e7f2f8;
+  --club-card: #f3f8fb;
+  --club-line: #b9d6e5;
+}
+
+/* Más contraste general: menos blanco puro */
+.club-profile-redesign main {
+  background: linear-gradient(180deg, #dfeef6 0%, #edf6fa 42%, #dcecf5 100%) !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(even) {
+  background: #e7f2f8 !important;
+  border-color: #b8d5e4 !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) {
+  background: var(--club-deep) !important;
+  border-color: #1c527f !important;
+}
+
+/* HERO: navy más profundo y sin paneles lavados */
+.club-profile-redesign main > section > a:first-child + section {
+  background: linear-gradient(120deg, #0b2747 0%, #123862 58%, #1a4d7d 100%) !important;
+  border-color: #245984 !important;
+}
+
+.club-profile-redesign main > section > a:first-child + section > div:last-child {
+  color: #fff !important;
+}
+
+.club-profile-redesign main > section > a:first-child + section h1,
+.club-profile-redesign main > section > a:first-child + section h2,
+.club-profile-redesign main > section > a:first-child + section h3,
+.club-profile-redesign main > section > a:first-child + section p,
+.club-profile-redesign main > section > a:first-child + section span {
+  color: #fff !important;
+}
+
+.club-profile-redesign main > section > a:first-child + section p[class*="text-zinc"] {
+  color: #c2d8e7 !important;
+}
+
+/* Panel derecho del resumen */
+.club-profile-redesign main > section > a:first-child + section [class*="bg-black/35"] {
+  background: rgba(5, 24, 45, .62) !important;
+  border-color: rgba(143, 202, 234, .28) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* Tarjetas PTS/PJ/GF/GC y racha dentro del hero */
+.club-profile-redesign main > section > a:first-child + section [class*="bg-white/[0.04]"],
+.club-profile-redesign main > section > a:first-child + section [class*="bg-white/[0.045]"] {
+  background: rgba(24, 67, 108, .9) !important;
+  border-color: rgba(148, 205, 235, .26) !important;
+}
+
+.club-profile-redesign main > section > a:first-child + section [class*="text-zinc-500"] {
+  color: #bdd8e8 !important;
+}
+
+.club-profile-redesign main > section > a:first-child + section [class*="text-sky"] {
+  color: #7fd3f5 !important;
+}
+
+.club-profile-redesign main > section > a:first-child + section [class*="text-emerald"] {
+  color: #79dfbd !important;
+}
+
+.club-profile-redesign main > section > a:first-child + section [class*="text-red"] {
+  color: #ff9b9b !important;
+}
+
+/* Badges del hero: navy/celeste, no píldoras blancas */
+.club-profile-redesign main > section > a:first-child + section [class*="bg-sky-400/10"],
+.club-profile-redesign main > section > a:first-child + section [class*="bg-yellow-400/10"] {
+  background: rgba(44, 104, 153, .58) !important;
+  border-color: rgba(140, 207, 239, .35) !important;
+  color: #fff !important;
+}
+
+.club-profile-redesign main > section > a:first-child + section [class*="bg-black/30"] {
+  background: rgba(4, 22, 42, .5) !important;
+  border-color: rgba(255,255,255,.16) !important;
+  color: #d9e9f2 !important;
+}
+
+/* En secciones claras usamos azul hielo, no blanco puro */
+.club-profile-redesign main > section > section:nth-of-type(even) article[class*="bg-black"],
+.club-profile-redesign main > section > section:nth-of-type(even) div[class*="bg-black"],
+.club-profile-redesign main > section > section:nth-of-type(even) a[class*="bg-black"],
+.club-profile-redesign main > section > section:nth-of-type(even) [class*="bg-white/[0.04]"],
+.club-profile-redesign main > section > section:nth-of-type(even) [class*="bg-white/[0.045]"] {
+  background: #d8e9f2 !important;
+  border-color: #b3d0df !important;
+  color: var(--club-navy) !important;
+}
+
+/* En bloques navy las tarjetas también quedan oscuras */
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) article,
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) [class*="bg-black"],
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) [class*="bg-white/[0.04]"],
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) [class*="bg-white/[0.045]"] {
+  background: #153b64 !important;
+  border-color: #2a5d88 !important;
+  color: #fff !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) [class*="text-zinc"] {
+  color: #b7d0df !important;
+}
+
+/* Figura histórica: azul sólido, sin restos dorados */
+.club-profile-redesign main a[class*="border-yellow"][class*="from-yellow"] {
+  background: linear-gradient(135deg, #0b2747 0%, #164774 100%) !important;
+  border-color: #2b6899 !important;
+}
+
+.club-profile-redesign main a[class*="border-yellow"][class*="from-yellow"] [class*="text-yellow"],
+.club-profile-redesign main a[class*="border-yellow"][class*="from-yellow"] [class*="text-purple"] {
+  color: #82cff2 !important;
+}
+
+/* Palmarés y bloques históricos */
+.club-profile-redesign main section[class*="border-yellow"] {
+  background: #0d2b4d !important;
+  border-color: #245b87 !important;
+}
+
+.club-profile-redesign main section[class*="border-yellow"] [class*="bg-black"] {
+  background: #173f68 !important;
+  border-color: #2b628e !important;
+}
+
+/* Tabla: filas con más separación tonal */
+.club-profile-redesign main tbody tr {
+  background: #dcebf3 !important;
+}
+
+.club-profile-redesign main tbody tr:nth-child(even) {
+  background: #cfe3ee !important;
+}
+
+.club-profile-redesign main tbody tr:hover {
+  background: #bddbea !important;
+}
+
+/* Historial lateral más profundo */
+.club-profile-redesign main aside {
+  background: #0b2747 !important;
+  border-color: #245984 !important;
+}
+
+.club-profile-redesign main aside a {
+  background: #153b64 !important;
+  border-color: #2a5e89 !important;
+}
+
+.club-profile-redesign main aside a:hover {
+  background: #1b4d7e !important;
+}
+
+/* Los emojis se limpian en el layout; ocultamos sus cajas si quedan vacías. */
+.club-profile-redesign div:empty[class*="h-12"][class*="w-12"],
+.club-profile-redesign div:empty[class*="h-14"][class*="w-14"],
+.club-profile-redesign div:empty[class*="h-16"][class*="w-16"],
+.club-profile-redesign span:empty[class*="h-12"][class*="w-12"],
+.club-profile-redesign span:empty[class*="h-14"][class*="w-14"],
+.club-profile-redesign span:empty[class*="h-16"][class*="w-16"] {
+  display: none !important;
+}
+
+@media (max-width: 767px) {
+  .club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) {
+    padding: 18px !important;
+  }
+}
