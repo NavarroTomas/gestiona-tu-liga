@@ -52,26 +52,20 @@ function PredictionsPreview() {
 
   return (
     <div className="overflow-hidden rounded-[10px] border border-[#c9e3f1] bg-white">
-      <div className="grid grid-cols-[1.1fr_.8fr_.8fr] border-b border-[#c9e3f1] bg-[#eaf6fd] px-4 py-3 text-[10px] font-black uppercase tracking-[.08em] text-[#4c6e88] sm:grid-cols-[1.15fr_.8fr_.8fr] sm:px-5">
+      <div className="grid grid-cols-[1.1fr_.8fr_.8fr] border-b border-[#c9e3f1] bg-[#eaf6fd] px-4 py-3 text-[10px] font-black uppercase tracking-[.08em] text-[#4c6e88] sm:px-5">
         <span>Partido</span>
         <span className="text-center">Pronóstico</span>
         <span className="text-right">Estado</span>
       </div>
       {rows.map((row, index) => (
-        <div
-          key={row}
-          className="grid grid-cols-[1.1fr_.8fr_.8fr] items-center gap-3 border-b border-[#dceaf2] px-4 py-4 last:border-b-0 sm:grid-cols-[1.15fr_.8fr_.8fr] sm:px-5"
-        >
+        <div key={row} className="grid grid-cols-[1.1fr_.8fr_.8fr] items-center gap-3 border-b border-[#dceaf2] px-4 py-4 last:border-b-0 sm:px-5">
           <div className="min-w-0">
             <p className="truncate text-[13px] font-black text-[#102f55]">{row}</p>
             <p className="mt-1 text-[10px] font-bold uppercase tracking-[.06em] text-[#7a94a8]">Próxima fecha</p>
           </div>
           <div className="flex justify-center gap-1.5">
-            {['1', 'X', '2'].map((value) => (
-              <span
-                key={value}
-                className="grid h-8 w-8 place-items-center rounded-[6px] border border-[#a9d4e9] bg-[#f7fbfe] text-[11px] font-black text-[#102f55]"
-              >
+            {["1", "X", "2"].map((value) => (
+              <span key={value} className="grid h-8 w-8 place-items-center rounded-[6px] border border-[#a9d4e9] bg-[#f7fbfe] text-[11px] font-black text-[#102f55]">
                 {value}
               </span>
             ))}
@@ -85,36 +79,64 @@ function PredictionsPreview() {
   );
 }
 
-function DreamTeamPreview() {
-  const positions = [
-    ["DEL", "22%", "18%"],
-    ["DEL", "58%", "18%"],
-    ["MED", "25%", "45%"],
-    ["MED", "55%", "45%"],
-    ["DEF", "12%", "70%"],
-    ["DEF", "36%", "70%"],
-    ["DEF", "60%", "70%"],
-    ["ARQ", "36%", "88%"],
-  ] as const;
+const dreamTeamPositions = [
+  { code: "GK", name: "Arquero", x: "9%", y: "50%", tone: "bg-[#a98724]" },
+  { code: "LB", name: "Lateral izquierdo", x: "30%", y: "24%", tone: "bg-[#2d83c4]" },
+  { code: "CB", name: "Defensor central", x: "30%", y: "50%", tone: "bg-[#657d91]" },
+  { code: "RB", name: "Lateral derecho", x: "30%", y: "76%", tone: "bg-[#2d83c4]" },
+  { code: "LCM", name: "Mediocampista izquierdo", x: "55%", y: "35%", tone: "bg-[#318d43]" },
+  { code: "RCM", name: "Mediocampista derecho", x: "55%", y: "65%", tone: "bg-[#318d43]" },
+  { code: "LST", name: "Delantero izquierdo", x: "82%", y: "35%", tone: "bg-[#102f55]" },
+  { code: "RST", name: "Delantero derecho", x: "82%", y: "65%", tone: "bg-[#102f55]" },
+] as const;
 
+function DreamTeamPreview() {
   return (
-    <div className="relative min-h-[320px] overflow-hidden rounded-[10px] border border-[#8ebdd7] bg-[#dff1fa]">
-      <div className="absolute inset-[7%] border border-[#69a9cc]" />
-      <div className="absolute left-1/2 top-[7%] h-[86%] w-px -translate-x-1/2 bg-[#69a9cc]" />
-      <div className="absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#69a9cc]" />
-      {positions.map(([label, left, top], index) => (
-        <div
-          key={`${label}-${index}`}
-          className="absolute -translate-x-1/2 -translate-y-1/2 rounded-[6px] border border-white bg-[#102f55] px-3 py-2 text-[10px] font-black text-white"
-          style={{ left, top }}
-        >
-          {label}
+    <div className="grid gap-5 lg:grid-cols-[310px_minmax(0,1fr)]">
+      <section className="rounded-[10px] border border-[#c9e3f1] bg-white p-4 sm:p-5">
+        <p className="text-[10px] font-black uppercase tracking-[.1em] text-[#2d98d4]">Seleccioná tus jugadores</p>
+        <div className="mt-4 space-y-2">
+          {dreamTeamPositions.map((position) => (
+            <div key={position.code} className="grid min-h-[48px] grid-cols-[52px_1fr_28px] items-center gap-3 rounded-[8px] bg-[#f3f8fb] px-3">
+              <span className={`inline-flex h-8 items-center justify-center rounded-[6px] px-2 text-[11px] font-black text-white ${position.tone}`}>
+                {position.code}
+              </span>
+              <span className="min-w-0 truncate text-[12px] font-semibold text-[#607b90]">{position.name}</span>
+              <span className="text-center text-[20px] font-semibold leading-none text-[#102f55]" aria-hidden="true">+</span>
+            </div>
+          ))}
         </div>
-      ))}
-      <div className="absolute bottom-5 left-5 border-l-2 border-[#56afe2] pl-3">
-        <p className="text-[10px] font-black uppercase tracking-[.08em] text-[#2d98d4]">Formación APA</p>
-        <p className="mt-1 text-[20px] font-black uppercase text-[#102f55]">8 jugadores</p>
-      </div>
+      </section>
+
+      <section className="rounded-[10px] border border-[#c9e3f1] bg-white p-4 sm:p-5">
+        <div className="mb-4 flex items-end justify-between gap-4 border-b border-[#dceaf2] pb-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[.09em] text-[#6f8799]">Estructura</p>
+            <p className="mt-1 text-[23px] font-black text-[#102f55]">8 vs 8</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[26px] font-black leading-none text-[#102f55]">8</p>
+            <p className="mt-1 text-[9px] font-black uppercase tracking-[.08em] text-[#6f8799]">jugadores</p>
+          </div>
+        </div>
+
+        <div className="relative min-h-[360px] overflow-hidden rounded-[10px] border border-[#c8dce7] bg-[#edf4f8] sm:min-h-[410px]">
+          <div className="absolute inset-y-0 left-[18%] w-px bg-[#d0e0e9]" />
+          <div className="absolute inset-y-0 left-[43%] w-px bg-[#d0e0e9]" />
+          <div className="absolute inset-y-0 left-[69%] w-px bg-[#d0e0e9]" />
+          <div className="absolute inset-x-0 top-1/2 h-px bg-[#d0e0e9]" />
+          <div className="absolute left-[9%] top-1/2 h-28 w-14 -translate-x-1/2 -translate-y-1/2 rounded-r-full border border-l-0 border-[#c5d9e4]" />
+
+          {dreamTeamPositions.map((position) => (
+            <div key={position.code} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: position.x, top: position.y }}>
+              <div className="min-w-[58px] overflow-hidden rounded-[7px] border border-[#bcd2df] bg-white text-center shadow-[0_6px_14px_rgba(16,47,85,.06)]">
+                <span className="grid h-34px min-h-[34px] place-items-center bg-[#173e64] text-[20px] font-medium leading-none text-white" aria-hidden="true">+</span>
+                <span className="block px-2 py-1.5 text-[10px] font-black text-[#102f55]">{position.code}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
@@ -234,10 +256,7 @@ export default function EntertainmentPortal() {
                       {active.description}
                     </p>
                   </div>
-                  <Link
-                    href={active.href}
-                    className="inline-flex min-h-11 flex-none items-center justify-center rounded-[8px] bg-[#56afe2] px-6 text-[12px] font-black uppercase tracking-[.05em] text-[#102f55] transition hover:bg-[#3fa4df]"
-                  >
+                  <Link href={active.href} className="inline-flex min-h-11 flex-none items-center justify-center rounded-[8px] bg-[#56afe2] px-6 text-[12px] font-black uppercase tracking-[.05em] text-[#102f55] transition hover:bg-[#3fa4df]">
                     {active.cta}
                   </Link>
                 </div>
@@ -255,8 +274,8 @@ export default function EntertainmentPortal() {
                       <div key={item.label} className="grid grid-cols-[34px_1fr] gap-3 border-b border-[#e0ebf1] pb-4 last:border-b-0 last:pb-0">
                         <span className="text-[11px] font-black text-[#9ab2c2]">0{index + 1}</span>
                         <div>
-                          <p className="text-[10px] font-black uppercase tracking-[.07em] text-[#6f899c]">{item.label}</p>
-                          <p className="mt-1 text-[16px] font-black text-[#102f55]">{item.value}</p>
+                          <p className="text-[10px] font-black uppercase tracking-[.06em] text-[#6f889b]">{item.label}</p>
+                          <p className="mt-1 text-[14px] font-black text-[#102f55]">{item.value}</p>
                         </div>
                       </div>
                     ))}
@@ -269,10 +288,7 @@ export default function EntertainmentPortal() {
                   <p className="mt-3 text-[13px] font-semibold leading-6 text-[#c4dbe8]">
                     El módulo completo conserva sus reglas, datos y acciones reales.
                   </p>
-                  <Link
-                    href={active.href}
-                    className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-[8px] border border-[#79c8ef] px-4 text-[12px] font-black uppercase tracking-[.06em] text-white transition hover:bg-[#17466f]"
-                  >
+                  <Link href={active.href} className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-[8px] border border-[#79c8ef] px-4 text-[12px] font-black uppercase tracking-[.06em] text-white transition hover:bg-[#17466f]">
                     Abrir {active.title}
                   </Link>
                 </section>
