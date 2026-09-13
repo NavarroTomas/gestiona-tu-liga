@@ -57,7 +57,10 @@ export default function DreamTeamPage() {
 
         <section className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_390px] xl:gap-8">
           <DreamTeamFormation
+            fecha={dreamTeam.fecha}
             plantillaActual={dreamTeam.plantillaActual}
+            votosPorPosicion={dreamTeam.votosPorPosicion}
+            votingWindow={dreamTeam.votingWindow}
             perfilesJugadores={dreamTeam.perfilesJugadores}
             setPosicionActiva={dreamTeam.setPosicionActiva}
             puedeEditar={dreamTeam.puedeEditar}
