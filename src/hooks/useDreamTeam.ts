@@ -3,14 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   DREAM_TEAM_CONFIG,
-  DREAM_TEAM_PHASES,
   DREAM_TEAM_POSITIONS,
   getDreamTeamCompetitionLabel,
   getDreamTeamPhases,
 } from "@/config/dreamTeam";
 import {
   fetchDreamTeamAvailableDates,
-  fetchDreamTeamClubLogos,
   fetchDreamTeamCurrentUser,
   fetchDreamTeamMatches,
   fetchDreamTeamPlayerStats,
@@ -21,7 +19,6 @@ import {
 } from "@/lib/dream-team/api";
 import type {
   DreamTeamCompetition,
-  DreamTeamLogos,
   DreamTeamPlayer,
   DreamTeamPositionId,
   DreamTeamProfile,
@@ -52,7 +49,6 @@ export function useDreamTeam() {
   const [miPerfil, setMiPerfil] = useState<DreamTeamProfile | null>(null);
   const [jugadores, setJugadores] = useState<DreamTeamPlayer[]>([]);
   const [votos, setVotos] = useState<DreamTeamVote[]>([]);
-  const [logos, setLogos] = useState<DreamTeamLogos>({});
   const [perfilesJugadores, setPerfilesJugadores] = useState<DreamTeamProfiles>({});
   const [posicionActiva, setPosicionActiva] = useState<DreamTeamPositionId | null>(null);
   const [mensaje, setMensaje] = useState("");
@@ -102,7 +98,7 @@ export function useDreamTeam() {
       setMiPerfil((profileResult.data || null) as DreamTeamProfile | null);
     }
 
-    loadUser();
+    void loadUser();
     return () => {
       active = false;
     };
@@ -151,14 +147,17 @@ export function useDreamTeam() {
         console.log(matchesResult.error);
         setJugadores([]);
         setVotos([]);
-        setLogos({});
         setPerfilesJugadores({});
         return;
       }
 
       const matches = matchesResult.data || [];
       const matchIds = Array.from(
-        new Set(matches.map((match) => match.partido_id).filter((id): id is string | number => id !== null && id !== undefined)),
+        new Set(
+          matches
+            .map((match) => match.partido_id)
+            .filter((id): id is string | number => id !== null && id !== undefined),
+        ),
       );
 
       const statsResult = await fetchDreamTeamPlayerStats(matchIds);
@@ -195,25 +194,6 @@ export function useDreamTeam() {
         });
         setPerfilesJugadores(profileMap);
       }
-
-      const clubNames = Array.from(
-        new Set(
-          [
-            ...matches.flatMap((match) => [match.local || "", match.visitante || ""]),
-            ...players.map((player) => player.equipo),
-            ...voteRows.map((vote) => vote.equipo),
-          ].filter(Boolean),
-        ),
-      );
-
-      const logosResult = await fetchDreamTeamClubLogos(clubNames);
-      if (logosResult.error) console.log(logosResult.error);
-
-      const logoMap: DreamTeamLogos = {};
-      (logosResult.data || []).forEach((club) => {
-        if (club.nombre && club.logo_url) logoMap[club.nombre] = club.logo_url;
-      });
-      setLogos(logoMap);
     } finally {
       setCargando(false);
     }
@@ -269,8 +249,14 @@ export function useDreamTeam() {
         return;
       }
 
-      if (userVotes.some((vote) => (vote.playerId || vote.nombre) === (jugador.playerId || jugador.nombre))) {
-        setMensaje(`${jugador.nombre} ya está en otra posición de tu Dream Team de la Fecha ${fecha}. Elegí otro jugador.`);
+      if (
+        userVotes.some(
+          (vote) => (vote.playerId || vote.nombre) === (jugador.playerId || jugador.nombre),
+        )
+      ) {
+        setMensaje(
+          `${jugador.nombre} ya está en otra posición de tu Dream Team de la Fecha ${fecha}. Elegí otro jugador.`,
+        );
         return;
       }
 
@@ -296,7 +282,11 @@ export function useDreamTeam() {
 
       if (result.error) {
         console.log(result.error);
-        setMensaje(result.error.code === "23505" ? "Ya registraste ese voto para esta fecha." : "Error guardando voto.");
+        setMensaje(
+          result.error.code === "23505"
+            ? "Ya registraste ese voto para esta fecha."
+            : "Error guardando voto.",
+        );
         return;
       }
 
@@ -359,7 +349,6 @@ export function useDreamTeam() {
     miPerfil,
     jugadores,
     votos,
-    logos,
     perfilesJugadores,
     posicionActiva,
     setPosicionActiva,
