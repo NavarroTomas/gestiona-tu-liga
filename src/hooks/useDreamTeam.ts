@@ -8,14 +8,15 @@ import {
   getDreamTeamPhases,
 } from "@/config/dreamTeam";
 import {
+  ensureDreamTeamUser,
   fetchDreamTeamAvailableDates,
-  fetchDreamTeamCurrentUser,
   fetchDreamTeamMatches,
   fetchDreamTeamPlayerStats,
   fetchDreamTeamProfiles,
   fetchDreamTeamUserProfile,
   fetchDreamTeamVotes,
-  insertDreamTeamVote,
+  fetchDreamTeamVotingWindow,
+  insertDreamTeamVotes,
 } from "@/lib/dream-team/api";
 import type {
   DreamTeamCompetition,
@@ -24,6 +25,8 @@ import type {
   DreamTeamProfile,
   DreamTeamProfiles,
   DreamTeamVote,
+  DreamTeamVotingWindow,
+  UserDreamTeam,
 } from "@/lib/dream-team/types";
 import {
   aggregateDreamTeamPlayers,
@@ -36,6 +39,12 @@ import {
   getMostVotedDreamTeamPlayer,
   normalizeDreamTeamPhase,
 } from "@/lib/dream-team/utils";
+
+const EMPTY_WINDOW: DreamTeamVotingWindow = {
+  openAt: null,
+  closeAt: null,
+  isOpen: false,
+};
 
 export function useDreamTeam() {
   const [temporada, setTemporada] = useState<string>(DREAM_TEAM_CONFIG.defaultSeason);
@@ -51,8 +60,11 @@ export function useDreamTeam() {
   const [votos, setVotos] = useState<DreamTeamVote[]>([]);
   const [perfilesJugadores, setPerfilesJugadores] = useState<DreamTeamProfiles>({});
   const [posicionActiva, setPosicionActiva] = useState<DreamTeamPositionId | null>(null);
+  const [plantillaBorrador, setPlantillaBorrador] = useState<UserDreamTeam>({});
+  const [votingWindow, setVotingWindow] = useState<DreamTeamVotingWindow>(EMPTY_WINDOW);
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [enviando, setEnviando] = useState(false);
 
   const context = useMemo(
     () => ({ temporada, competicion, division, grupo, fase, fecha }),
@@ -76,16 +88,25 @@ export function useDreamTeam() {
     let active = true;
 
     async function loadUser() {
-      const { data, error } = await fetchDreamTeamCurrentUser();
+      const { data, error } = await ensureDreamTeamUser();
       if (!active) return;
 
       if (error || !data.user) {
+        console.log(error);
         setUsuarioId("");
         setMiPerfil(null);
+        setMensaje("No se pudo iniciar el modo invitado para votar.");
         return;
       }
 
       setUsuarioId(data.user.id);
+
+      // Los usuarios anónimos no tienen perfil público; los usuarios normales sí pueden tenerlo.
+      if (data.user.is_anonymous) {
+        setMiPerfil(null);
+        return;
+      }
+
       const profileResult = await fetchDreamTeamUserProfile(data.user.id);
       if (!active) return;
 
@@ -103,6 +124,11 @@ export function useDreamTeam() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    setPlantillaBorrador({});
+    setPosicionActiva(null);
+  }, [temporada, competicion, division, grupo, fase, fecha]);
 
   const loadData = useCallback(async () => {
     setCargando(true);
@@ -138,10 +164,18 @@ export function useDreamTeam() {
         return;
       }
 
-      const [matchesResult, votesResult] = await Promise.all([
+      const [matchesResult, votesResult, windowResult] = await Promise.all([
         fetchDreamTeamMatches(context),
         fetchDreamTeamVotes(context),
+        fetchDreamTeamVotingWindow(context),
       ]);
+
+      if (windowResult.error) {
+        console.log(windowResult.error);
+        setVotingWindow(EMPTY_WINDOW);
+      } else {
+        setVotingWindow(windowResult.data);
+      }
 
       if (matchesResult.error) {
         console.log(matchesResult.error);
@@ -204,7 +238,20 @@ export function useDreamTeam() {
   }, [loadData]);
 
   const votosPorPosicion = useMemo(() => buildVotesByPosition(votos), [votos]);
-  const miDreamTeam = useMemo(() => buildUserDreamTeam(votos, usuarioId), [votos, usuarioId]);
+  const miDreamTeamGuardado = useMemo(
+    () => buildUserDreamTeam(votos, usuarioId),
+    [votos, usuarioId],
+  );
+  const plantillaEnviada = useMemo(
+    () => DREAM_TEAM_POSITIONS.every((position) => Boolean(miDreamTeamGuardado[position.id])),
+    [miDreamTeamGuardado],
+  );
+  const plantillaCompleta = useMemo(
+    () => DREAM_TEAM_POSITIONS.every((position) => Boolean(plantillaBorrador[position.id])),
+    [plantillaBorrador],
+  );
+  const plantillaActual = plantillaEnviada ? miDreamTeamGuardado : plantillaBorrador;
+  const puedeEditar = votingWindow.isOpen && !plantillaEnviada && !enviando;
   const jugadorMasVotado = useMemo(() => getMostVotedDreamTeamPlayer(votos), [votos]);
 
   const topPorPosicion = useCallback(
@@ -217,89 +264,141 @@ export function useDreamTeam() {
     [jugadores],
   );
 
-  const votar = useCallback(
-    async (jugador: DreamTeamPlayer) => {
+  const seleccionarJugador = useCallback(
+    (jugador: DreamTeamPlayer) => {
       setMensaje("");
 
-      const { data, error: authError } = await fetchDreamTeamCurrentUser();
-      if (authError || !data.user) {
-        setMensaje("Tenés que iniciar sesión para votar el Dream Team.");
-        return;
-      }
+      if (!posicionActiva || !puedeEditar) return;
 
-      if (!posicionActiva) return;
-      setUsuarioId(data.user.id);
-
-      const userVotes = votos.filter(
-        (vote) =>
-          vote.temporada === temporada &&
-          vote.division === contextoLabel &&
-          String(vote.fecha) === String(fecha) &&
-          (!vote.competicion || vote.competicion === competicion) &&
-          vote.usuario === data.user.id,
+      const jugadorKey = jugador.playerId || jugador.nombre;
+      const repetido = Object.entries(plantillaBorrador).some(
+        ([position, vote]) =>
+          position !== posicionActiva &&
+          vote &&
+          (vote.playerId || vote.nombre) === jugadorKey,
       );
 
-      if (userVotes.some((vote) => vote.posicion === posicionActiva)) {
-        setMensaje(`Ya votaste la posición ${posicionActiva} en tu Dream Team de la Fecha ${fecha}.`);
+      if (repetido) {
+        setMensaje(`${jugador.nombre} ya está elegido en otra posición. Elegí otro jugador.`);
         return;
       }
 
-      if (userVotes.length >= DREAM_TEAM_POSITIONS.length) {
-        setMensaje(`Ya completaste tu Dream Team de la Fecha ${fecha}.`);
+      setPlantillaBorrador((current) => ({
+        ...current,
+        [posicionActiva]: {
+          temporada,
+          division: contextoLabel,
+          competicion,
+          fase:
+            competicion === "liga"
+              ? null
+              : competicion === "copa_clasificatoria"
+                ? "grupos"
+                : normalizeDreamTeamPhase(fase),
+          grupo: competicion === "copa_clasificatoria" ? grupo : null,
+          fecha,
+          posicion: posicionActiva,
+          playerId: jugador.playerId,
+          nombre: jugador.nombre,
+          equipo: jugador.equipo,
+          usuario: usuarioId || null,
+          fecha_voto: null,
+        },
+      }));
+
+      setPosicionActiva(null);
+    },
+    [competicion, contextoLabel, fase, fecha, grupo, plantillaBorrador, posicionActiva, puedeEditar, temporada, usuarioId],
+  );
+
+  const enviarPlantilla = useCallback(async () => {
+    setMensaje("");
+
+    if (plantillaEnviada) {
+      setMensaje(`Ya enviaste tu Dream Team de la Fecha ${fecha}.`);
+      return;
+    }
+
+    if (!votingWindow.isOpen) {
+      setMensaje("La votación no está abierta para esta fecha.");
+      return;
+    }
+
+    if (!plantillaCompleta) {
+      setMensaje("Completá las 8 posiciones antes de enviar tu Dream Team.");
+      return;
+    }
+
+    setEnviando(true);
+
+    try {
+      const { data, error: authError } = await ensureDreamTeamUser();
+      if (authError || !data.user) {
+        console.log(authError);
+        setMensaje("No se pudo iniciar el modo invitado para enviar tu Dream Team.");
         return;
       }
 
-      if (
-        userVotes.some(
-          (vote) => (vote.playerId || vote.nombre) === (jugador.playerId || jugador.nombre),
-        )
-      ) {
-        setMensaje(
-          `${jugador.nombre} ya está en otra posición de tu Dream Team de la Fecha ${fecha}. Elegí otro jugador.`,
-        );
-        return;
-      }
+      const userId = data.user.id;
+      setUsuarioId(userId);
+      const fechaVoto = currentDreamTeamDateISO();
 
-      const result = await insertDreamTeamVote({
-        temporada,
-        division: contextoLabel,
-        competicion,
-        fase:
-          competicion === "liga"
-            ? null
-            : competicion === "copa_clasificatoria"
-              ? "grupos"
-              : normalizeDreamTeamPhase(fase),
-        grupo: competicion === "copa_clasificatoria" ? grupo : null,
-        fecha,
-        posicion: posicionActiva,
-        playerId: jugador.playerId,
-        nombre: jugador.nombre,
-        equipo: jugador.equipo,
-        usuario: data.user.id,
-        fecha_voto: currentDreamTeamDateISO(),
+      const payloads = DREAM_TEAM_POSITIONS.map((position) => {
+        const player = plantillaBorrador[position.id];
+        if (!player) throw new Error(`Falta la posición ${position.id}`);
+
+        return {
+          temporada,
+          division: contextoLabel,
+          competicion,
+          fase:
+            competicion === "liga"
+              ? null
+              : competicion === "copa_clasificatoria"
+                ? "grupos"
+                : normalizeDreamTeamPhase(fase),
+          grupo: competicion === "copa_clasificatoria" ? grupo : null,
+          fecha,
+          posicion: position.id,
+          playerId: player.playerId || "",
+          nombre: player.nombre,
+          equipo: player.equipo,
+          usuario: userId,
+          fecha_voto: fechaVoto,
+        };
       });
 
+      const result = await insertDreamTeamVotes(payloads);
       if (result.error) {
         console.log(result.error);
-        setMensaje(
-          result.error.code === "23505"
-            ? "Ya registraste ese voto para esta fecha."
-            : "Error guardando voto.",
-        );
+        const errorText = String(result.error.message || "").toLowerCase();
+
+        if (result.error.code === "23505") {
+          setMensaje(`Ya enviaste tu Dream Team de la Fecha ${fecha}.`);
+        } else if (errorText.includes("todavía no está abierta")) {
+          setMensaje("La votación todavía no está abierta.");
+        } else if (errorText.includes("ya cerró")) {
+          setMensaje("La votación de esta fecha ya cerró.");
+        } else {
+          setMensaje("No se pudo guardar el Dream Team. Intentá nuevamente.");
+        }
         return;
       }
 
-      setMensaje(`Voto guardado para ${posicionActiva}: ${jugador.nombre}`);
+      setMensaje(`Tu Dream Team de la Fecha ${fecha} fue enviado. Ya no se puede modificar.`);
       setPosicionActiva(null);
       await loadData();
-    },
-    [competicion, contextoLabel, fase, fecha, grupo, loadData, posicionActiva, temporada, votos],
-  );
+    } catch (error) {
+      console.log(error);
+      setMensaje("No se pudo enviar el Dream Team.");
+    } finally {
+      setEnviando(false);
+    }
+  }, [competicion, contextoLabel, fase, fecha, grupo, loadData, plantillaBorrador, plantillaCompleta, plantillaEnviada, temporada, votingWindow.isOpen]);
 
   const compartir = useCallback(async () => {
     const texto = DREAM_TEAM_POSITIONS
-      .map((position) => `${position.id}: ${miDreamTeam[position.id]?.nombre || "-"}`)
+      .map((position) => `${position.id}: ${plantillaActual[position.id]?.nombre || "-"}`)
       .join("\n");
     const shareText = `Mi Dream Team Fecha ${fecha}\n${temporada} / ${division}\n\n${texto}`;
 
@@ -309,7 +408,7 @@ export function useDreamTeam() {
     } catch {
       setMensaje("No se pudo copiar el Dream Team.");
     }
-  }, [division, fecha, miDreamTeam, temporada]);
+  }, [division, fecha, plantillaActual, temporada]);
 
   const setCompetition = useCallback((value: DreamTeamCompetition) => {
     setCompeticion(value);
@@ -354,15 +453,22 @@ export function useDreamTeam() {
     setPosicionActiva,
     mensaje,
     cargando,
+    enviando,
     competicionLabel,
     contextoLabel,
     fasesDisponibles: getDreamTeamPhases(competicion),
     votosPorPosicion,
-    miDreamTeam,
+    miDreamTeam: miDreamTeamGuardado,
+    plantillaActual,
+    plantillaCompleta,
+    plantillaEnviada,
+    puedeEditar,
+    votingWindow,
     jugadorMasVotado,
     topPorPosicion,
     candidatos,
-    votar,
+    seleccionarJugador,
+    enviarPlantilla,
     compartir,
   };
 }
