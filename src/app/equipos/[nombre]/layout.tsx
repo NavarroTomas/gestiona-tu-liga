@@ -2,14 +2,15 @@
 
 import { useEffect, useRef } from "react";
 import "./club-profile-redesign.css";
+import "./club-profile-contrast.css";
 
 /**
  * Layout visual para todas las fichas públicas de club.
  *
  * Además de aplicar el sistema visual común, elimina pictogramas emoji
- * heredados de la versión anterior. De esta forma la ficha mantiene un
- * lenguaje editorial/deportivo consistente, basado en tipografía, escudos
- * y color, sin iconografía emoji decorativa.
+ * heredados de la versión anterior. La capa de contraste se carga al final
+ * para asegurar que los bloques navy mantengan suficiente profundidad y que
+ * las tarjetas internas no vuelvan a verse lavadas por estilos genéricos.
  */
 export default function ClubProfileLayout({
   children,
