@@ -43,45 +43,25 @@ export function readGoalkeeperSaves(row: DreamTeamRawPlayerStat) {
 export function getDreamTeamPlayerType(player: DreamTeamPlayer): DreamTeamPlayerType {
   const position = (player.posicion || "").toUpperCase();
 
-  if (player.atajadas > 0 || position.includes("GK") || position.includes("POR")) {
-    return "arquero";
-  }
+  if (player.atajadas > 0 || position.includes("GK") || position.includes("POR")) return "arquero";
 
   if (
-    position.includes("CB") ||
-    position.includes("LB") ||
-    position.includes("RB") ||
-    position.includes("DEF") ||
-    position.includes("DFC") ||
-    position.includes("LI") ||
+    position.includes("CB") || position.includes("LB") || position.includes("RB") ||
+    position.includes("DEF") || position.includes("DFC") || position.includes("LI") ||
     position.includes("LD")
-  ) {
-    return "defensa";
-  }
+  ) return "defensa";
 
   if (
-    position.includes("CM") ||
-    position.includes("CAM") ||
-    position.includes("CDM") ||
-    position.includes("MC") ||
-    position.includes("MCD") ||
-    position.includes("MCO") ||
+    position.includes("CM") || position.includes("CAM") || position.includes("CDM") ||
+    position.includes("MC") || position.includes("MCD") || position.includes("MCO") ||
     position.includes("MED")
-  ) {
-    return "medio";
-  }
+  ) return "medio";
 
   if (
-    position.includes("ST") ||
-    position.includes("CF") ||
-    position.includes("LW") ||
-    position.includes("RW") ||
-    position.includes("DC") ||
-    position.includes("DEL") ||
+    position.includes("ST") || position.includes("CF") || position.includes("LW") ||
+    position.includes("RW") || position.includes("DC") || position.includes("DEL") ||
     position.includes("EXT")
-  ) {
-    return "delantero";
-  }
+  ) return "delantero";
 
   if (player.goles > 0 || player.asistencias > 0) return "delantero";
   return "medio";
@@ -133,16 +113,18 @@ export function aggregateDreamTeamPlayers(rows: DreamTeamRawPlayerStat[]): Dream
       ? Math.round((ratingApaTotal / player.partidos) * 10) / 10
       : 0;
 
-    return {
-      ...player,
-      rating,
-      rating_apa: rating,
-    };
+    return { ...player, rating, rating_apa: rating };
   });
 }
 
-export function buildVotesByPosition(votes: DreamTeamVote[]): DreamTeamByPosition {
+export function buildVotesByPosition(
+  votes: DreamTeamVote[],
+  players: DreamTeamPlayer[] = [],
+): DreamTeamByPosition {
   const result: DreamTeamByPosition = {};
+  const ratings = new Map(
+    players.map((player) => [player.playerId || player.nombre, Number(player.rating_apa || player.rating || 0)]),
+  );
 
   DREAM_TEAM_POSITIONS.forEach((position) => {
     const count: Record<string, DreamTeamVoteLeader> = {};
@@ -163,7 +145,18 @@ export function buildVotesByPosition(votes: DreamTeamVote[]): DreamTeamByPositio
         count[key].votos += 1;
       });
 
-    const winner = Object.values(count).sort((a, b) => b.votos - a.votos)[0];
+    const winner = Object.values(count).sort((a, b) => {
+      const voteDiff = b.votos - a.votos;
+      if (voteDiff !== 0) return voteDiff;
+
+      const ratingA = ratings.get(a.playerId || a.nombre) || 0;
+      const ratingB = ratings.get(b.playerId || b.nombre) || 0;
+      const ratingDiff = ratingB - ratingA;
+      if (ratingDiff !== 0) return ratingDiff;
+
+      return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+    })[0];
+
     if (winner) result[position.id] = winner;
   });
 
