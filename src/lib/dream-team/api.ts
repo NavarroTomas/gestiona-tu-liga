@@ -46,16 +46,19 @@ export async function fetchDreamTeamUserProfile(userId: string) {
 }
 
 export async function fetchDreamTeamAvailableDates(context: DreamTeamContext) {
-  const query = applyMatchContext(
+  const result = await applyMatchContext(
     supabase.from("partidos").select("fecha"),
     context,
-  );
+  ).order("fecha", { ascending: true });
 
-  return query.order("fecha", { ascending: true });
+  return {
+    data: (result.data || []) as Array<{ fecha?: string | number | null }>,
+    error: result.error,
+  };
 }
 
 export async function fetchDreamTeamMatches(context: DreamTeamContext) {
-  const query = applyMatchContext(
+  const result = await applyMatchContext(
     supabase
       .from("partidos")
       .select("partido_id, local, visitante")
@@ -63,7 +66,10 @@ export async function fetchDreamTeamMatches(context: DreamTeamContext) {
     context,
   );
 
-  return query as Promise<{ data: DreamTeamMatch[] | null; error: any }>;
+  return {
+    data: (result.data || []) as DreamTeamMatch[],
+    error: result.error,
+  };
 }
 
 export async function fetchDreamTeamPlayerStats(matchIds: Array<string | number>) {
@@ -71,15 +77,17 @@ export async function fetchDreamTeamPlayerStats(matchIds: Array<string | number>
     return { data: [] as DreamTeamRawPlayerStat[], error: null };
   }
 
-  return supabase
+  const result = await supabase
     .from("estadisticas_jugadores")
     .select(
       "nombre, playerId, equipo, posicion, goals, assists, overallRating, rating_apa, gKSaves, score, mvp",
     )
-    .in("partido_id", matchIds) as Promise<{
-      data: DreamTeamRawPlayerStat[] | null;
-      error: any;
-    }>;
+    .in("partido_id", matchIds);
+
+  return {
+    data: (result.data || []) as DreamTeamRawPlayerStat[],
+    error: result.error,
+  };
 }
 
 export async function fetchDreamTeamVotes(context: DreamTeamContext) {
@@ -104,20 +112,27 @@ export async function fetchDreamTeamVotes(context: DreamTeamContext) {
   }
 
   const result = await query;
-  if (!result.error) return result as { data: DreamTeamVote[] | null; error: any };
+  if (!result.error) {
+    return {
+      data: (result.data || []) as DreamTeamVote[],
+      error: null,
+    };
+  }
 
   // Compatibilidad con la vista vieja si todavía no expone competicion/fase/grupo.
-  return supabase
+  const legacyResult = await supabase
     .from("public_dream_team_votos")
     .select(
       "id, temporada, division, fecha, posicion, playerId, nombre, equipo, usuario, fecha_voto",
     )
     .eq("temporada", context.temporada)
     .eq("division", division)
-    .eq("fecha", context.fecha) as Promise<{
-      data: DreamTeamVote[] | null;
-      error: any;
-    }>;
+    .eq("fecha", context.fecha);
+
+  return {
+    data: (legacyResult.data || []) as DreamTeamVote[],
+    error: legacyResult.error,
+  };
 }
 
 export async function fetchDreamTeamProfiles(playerIds: string[]) {
@@ -125,27 +140,15 @@ export async function fetchDreamTeamProfiles(playerIds: string[]) {
     return { data: [] as DreamTeamProfile[], error: null };
   }
 
-  return supabase
+  const result = await supabase
     .from("public_profiles")
     .select("id, display_name, username, playerid, avatar_url")
-    .in("playerid", playerIds) as Promise<{
-      data: DreamTeamProfile[] | null;
-      error: any;
-    }>;
-}
+    .in("playerid", playerIds);
 
-export async function fetchDreamTeamClubLogos(clubNames: string[]) {
-  if (clubNames.length === 0) {
-    return { data: [] as Array<{ nombre: string; logo_url: string | null }>, error: null };
-  }
-
-  return supabase
-    .from("clubes_info")
-    .select("nombre, logo_url")
-    .in("nombre", clubNames) as Promise<{
-      data: Array<{ nombre: string; logo_url: string | null }> | null;
-      error: any;
-    }>;
+  return {
+    data: (result.data || []) as DreamTeamProfile[],
+    error: result.error,
+  };
 }
 
 export type DreamTeamVotePayload = {
