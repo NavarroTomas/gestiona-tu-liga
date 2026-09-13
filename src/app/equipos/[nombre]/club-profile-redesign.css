@@ -4,6 +4,7 @@
   --club-blue: #2d98d4;
   --club-sky: #56afe2;
   --club-ice: #f3fafe;
+  --club-pale: #eaf6fd;
   --club-line: #c9e3f1;
   --club-muted: #607b90;
   background: var(--club-ice);
@@ -16,7 +17,7 @@
 
 .club-profile-redesign main {
   min-height: 100vh !important;
-  background: linear-gradient(180deg, #f3fafe 0%, #edf7fc 58%, #f7fbfe 100%) !important;
+  background: linear-gradient(180deg, #eef8fd 0%, #f7fbfe 46%, #edf7fc 100%) !important;
   color: var(--club-navy) !important;
 }
 
@@ -26,7 +27,6 @@
   padding-bottom: 52px !important;
 }
 
-/* Back link */
 .club-profile-redesign main > section > a:first-child {
   border: 1px solid var(--club-line) !important;
   background: #fff !important;
@@ -36,93 +36,109 @@
 
 .club-profile-redesign main > section > a:first-child:hover {
   border-color: var(--club-sky) !important;
-  background: #eaf6fd !important;
-  color: var(--club-navy) !important;
+  background: var(--club-pale) !important;
 }
 
-/* Shared card language */
-.club-profile-redesign main > section > section,
-.club-profile-redesign main > section > section > div,
-.club-profile-redesign main aside {
-  box-shadow: none !important;
-}
-
-.club-profile-redesign main > section > section:not(:first-of-type) {
-  border-color: var(--club-line) !important;
-  background: #fff !important;
-  color: var(--club-navy) !important;
-}
-
-/* HERO */
+/* HERO: azul APA, sin banner del club */
 .club-profile-redesign main > section > a:first-child + section {
-  border: 1px solid var(--club-line) !important;
+  border: 1px solid #1d4e7b !important;
   border-radius: 24px !important;
-  background: #fff !important;
+  background: linear-gradient(125deg, #102f55 0%, #173f73 58%, #22598d 100%) !important;
   box-shadow: none !important;
 }
 
-.club-profile-redesign main > section > a:first-child + section > div:first-child {
-  opacity: .26 !important;
-  filter: saturate(.85) contrast(.95) !important;
-}
-
-.club-profile-redesign main > section > a:first-child + section > div:nth-child(2) {
-  background: linear-gradient(90deg, rgba(255,255,255,.98) 0%, rgba(255,255,255,.92) 42%, rgba(255,255,255,.62) 72%, rgba(255,255,255,.28) 100%) !important;
+/* Oculta el banner y los overlays originales del hero */
+.club-profile-redesign main > section > a:first-child + section > div:nth-child(1),
+.club-profile-redesign main > section > a:first-child + section > div:nth-child(2),
+.club-profile-redesign main > section > a:first-child + section > div:nth-child(3) {
+  display: none !important;
 }
 
 .club-profile-redesign main > section > a:first-child + section h1,
-.club-profile-redesign main > section > a:first-child + section h2 {
-  color: var(--club-navy) !important;
+.club-profile-redesign main > section > a:first-child + section h2,
+.club-profile-redesign main > section > a:first-child + section h3,
+.club-profile-redesign main > section > a:first-child + section p {
+  color: #fff !important;
 }
 
 .club-profile-redesign main > section > a:first-child + section h1 span {
   background: none !important;
   -webkit-text-fill-color: currentColor !important;
-  color: var(--club-navy) !important;
+  color: #fff !important;
   text-shadow: none !important;
 }
 
-.club-profile-redesign main > section > a:first-child + section p {
-  color: var(--club-muted) !important;
+.club-profile-redesign main > section > a:first-child + section p[class*="text-zinc"] {
+  color: rgba(255,255,255,.72) !important;
 }
 
 .club-profile-redesign main > section > a:first-child + section [class*="bg-black"] {
-  background: rgba(255,255,255,.82) !important;
-  border-color: var(--club-line) !important;
-  color: var(--club-navy) !important;
-  backdrop-filter: blur(14px) !important;
+  background: rgba(255,255,255,.09) !important;
+  border-color: rgba(255,255,255,.18) !important;
+  color: #fff !important;
+  backdrop-filter: blur(10px) !important;
 }
 
-.club-profile-redesign main > section > a:first-child + section [class*="text-zinc"] {
-  color: var(--club-muted) !important;
+.club-profile-redesign main > section > a:first-child + section [class*="bg-white"] {
+  background: rgba(255,255,255,.10) !important;
+  border-color: rgba(255,255,255,.18) !important;
 }
 
 .club-profile-redesign main > section > a:first-child + section [class*="text-sky"] {
-  color: var(--club-blue) !important;
+  color: #8ed2f3 !important;
 }
 
 .club-profile-redesign main > section > a:first-child + section [class*="text-yellow"] {
+  color: #fff !important;
+}
+
+/* Escudo sobre tarjeta clara */
+.club-profile-redesign main > section > a:first-child + section [class*="from-sky-400/30"] {
+  background: #fff !important;
+  border-color: rgba(255,255,255,.75) !important;
+  box-shadow: 0 18px 38px rgba(3,20,39,.22) !important;
+}
+
+/* Alternancia real de secciones */
+.club-profile-redesign main > section > section:not(:first-of-type) {
+  border-radius: 22px !important;
+  border: 1px solid var(--club-line) !important;
+  box-shadow: none !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(even) {
+  background: #fff !important;
   color: var(--club-navy) !important;
 }
 
-/* General headings */
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) {
+  background: var(--club-navy) !important;
+  border-color: #1e4f7e !important;
+  color: #fff !important;
+  padding: 24px !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) h2,
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) h3,
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) p[class*="text-white"] {
+  color: #fff !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) p[class*="text-zinc"],
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) [class*="text-zinc"] {
+  color: rgba(255,255,255,.64) !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) [class*="text-sky"] {
+  color: #8ed2f3 !important;
+}
+
+/* Lenguaje general de tarjetas */
 .club-profile-redesign main h2,
 .club-profile-redesign main h3 {
-  color: var(--club-navy) !important;
+  color: var(--club-navy);
 }
 
-.club-profile-redesign main p[class*="text-sky"],
-.club-profile-redesign main [class*="text-sky-300"] {
-  color: var(--club-blue) !important;
-}
-
-.club-profile-redesign main [class*="text-zinc-4"],
-.club-profile-redesign main [class*="text-zinc-5"],
-.club-profile-redesign main [class*="text-zinc-6"] {
-  color: var(--club-muted) !important;
-}
-
-/* Competition cards, titles, fixtures, historic leaders */
 .club-profile-redesign main article,
 .club-profile-redesign main [class*="rounded-[26px]"],
 .club-profile-redesign main [class*="rounded-[28px]"],
@@ -150,7 +166,6 @@
   background-color: #f8fcfe !important;
 }
 
-/* Stats / badges */
 .club-profile-redesign main [class*="bg-white/[0.04]"],
 .club-profile-redesign main [class*="bg-white/[0.045]"] {
   background: #f8fcfe !important;
@@ -159,37 +174,70 @@
 
 .club-profile-redesign main [class*="bg-sky-400/10"],
 .club-profile-redesign main [class*="bg-sky-500/10"] {
-  background: #eaf6fd !important;
+  background: var(--club-pale) !important;
   border-color: #b9ddeb !important;
 }
 
-.club-profile-redesign main [class*="text-white"] {
-  color: var(--club-navy) !important;
+/* Se elimina todo el lenguaje dorado/amarillo */
+.club-profile-redesign main [class*="border-yellow"] {
+  border-color: #b9ddeb !important;
 }
 
-/* Keep dark buttons legible */
-.club-profile-redesign main a[class*="bg-sky-400"],
-.club-profile-redesign main button[class*="bg-sky-400"] {
+.club-profile-redesign main [class*="bg-yellow"] {
+  background: var(--club-pale) !important;
+}
+
+.club-profile-redesign main [class*="text-yellow"] {
+  color: var(--club-blue) !important;
+}
+
+.club-profile-redesign main [class*="from-yellow"],
+.club-profile-redesign main [class*="via-black"],
+.club-profile-redesign main [class*="to-black"] {
+  background-image: none !important;
+}
+
+/* Figura histórica: navy, sin negro/dorado */
+.club-profile-redesign main a[class*="border-yellow"][class*="from-yellow"] {
+  background: linear-gradient(135deg, #102f55 0%, #173f73 100%) !important;
+  border-color: #2d6797 !important;
+  color: #fff !important;
+}
+
+.club-profile-redesign main a[class*="border-yellow"][class*="from-yellow"] h2,
+.club-profile-redesign main a[class*="border-yellow"][class*="from-yellow"] h3,
+.club-profile-redesign main a[class*="border-yellow"][class*="from-yellow"] p {
+  color: #fff !important;
+}
+
+.club-profile-redesign main a[class*="border-yellow"][class*="from-yellow"] [class*="bg-black"] {
+  background: rgba(255,255,255,.10) !important;
+  border-color: rgba(255,255,255,.17) !important;
+}
+
+/* Palmarés en azul */
+.club-profile-redesign main section[class*="border-yellow"] {
+  border-color: #1f5f91 !important;
   background: var(--club-navy) !important;
   color: #fff !important;
 }
 
-/* Palmarés */
-.club-profile-redesign main section[class*="border-yellow"] {
-  border-color: var(--club-line) !important;
-  background: #fff !important;
+.club-profile-redesign main section[class*="border-yellow"] h2,
+.club-profile-redesign main section[class*="border-yellow"] h3,
+.club-profile-redesign main section[class*="border-yellow"] p {
+  color: #fff !important;
+}
+
+.club-profile-redesign main section[class*="border-yellow"] [class*="bg-black"] {
+  background: rgba(255,255,255,.08) !important;
+  border-color: rgba(255,255,255,.16) !important;
 }
 
 .club-profile-redesign main section[class*="border-yellow"] [class*="text-yellow"] {
-  color: var(--club-navy) !important;
+  color: #8ed2f3 !important;
 }
 
-.club-profile-redesign main section[class*="border-yellow"] [class*="bg-yellow"] {
-  background: #eef8fd !important;
-  border-color: #b9ddeb !important;
-}
-
-/* Results */
+/* Estados */
 .club-profile-redesign main [class*="text-emerald"] {
   color: #16845c !important;
 }
@@ -198,15 +246,11 @@
   color: #b34747 !important;
 }
 
-.club-profile-redesign main [class*="text-yellow"] {
-  color: #9a6a14 !important;
-}
-
 .club-profile-redesign main [class*="text-purple"] {
   color: #6d5bb7 !important;
 }
 
-/* Squad table */
+/* Plantel */
 .club-profile-redesign main table {
   color: var(--club-navy) !important;
 }
@@ -220,7 +264,7 @@
 }
 
 .club-profile-redesign main tbody tr:hover {
-  background: #eaf6fd !important;
+  background: var(--club-pale) !important;
   filter: none !important;
 }
 
@@ -229,21 +273,39 @@
   border-bottom: 1px solid #edf3f7 !important;
 }
 
-/* Match history */
+/* Historial de partidos */
 .club-profile-redesign main aside {
   border-color: var(--club-line) !important;
-  background: #fff !important;
-  color: var(--club-navy) !important;
+  background: var(--club-navy) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.club-profile-redesign main aside h2 {
+  color: #fff !important;
+}
+
+.club-profile-redesign main aside [class*="text-sky"] {
+  color: #8ed2f3 !important;
 }
 
 .club-profile-redesign main aside a {
-  background: #f8fcfe !important;
-  border-color: #d7e7ef !important;
+  background: rgba(255,255,255,.08) !important;
+  border-color: rgba(255,255,255,.15) !important;
+  color: #fff !important;
 }
 
 .club-profile-redesign main aside a:hover {
-  background: #eaf6fd !important;
-  border-color: var(--club-sky) !important;
+  background: rgba(255,255,255,.13) !important;
+  border-color: #67b9e7 !important;
+}
+
+.club-profile-redesign main aside a [class*="text-white"] {
+  color: #fff !important;
+}
+
+.club-profile-redesign main aside a [class*="text-zinc"] {
+  color: rgba(255,255,255,.62) !important;
 }
 
 /* Loading / not found */
