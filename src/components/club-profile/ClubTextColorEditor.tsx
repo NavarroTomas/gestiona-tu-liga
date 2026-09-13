@@ -72,7 +72,6 @@ function getPageRoot() {
 }
 
 export default function ClubTextColorEditor() {
-  const [isAdmin, setIsAdmin] = useState(false);
   const [open, setOpen] = useState(false);
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<SelectedText | null>(null);
@@ -143,40 +142,6 @@ export default function ClubTextColorEditor() {
   }, [styles, applyStyles]);
 
   useEffect(() => {
-    let active = true;
-
-    async function refreshAdmin() {
-      const result = await supabase.auth.getUser();
-      const user = result.data.user;
-
-      if (!active) return;
-      if (!user) {
-        setIsAdmin(false);
-        return;
-      }
-
-      const adminResult = await supabase
-        .from("admins")
-        .select("user_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (active) setIsAdmin(Boolean(adminResult.data?.user_id));
-    }
-
-    void refreshAdmin();
-
-    const listener = supabase.auth.onAuthStateChange(() => {
-      void refreshAdmin();
-    });
-
-    return () => {
-      active = false;
-      listener.data.subscription.unsubscribe();
-    };
-  }, []);
-
-  useEffect(() => {
     const root = getPageRoot();
     if (!root || !selecting) {
       clearOutline();
@@ -241,7 +206,7 @@ export default function ClubTextColorEditor() {
     const user = authResult.data.user;
 
     if (!user) {
-      setMessage("Necesitás una sesión de administrador.");
+      setMessage("Necesitás una sesión de administrador para guardar.");
       setSaving(false);
       return;
     }
@@ -261,7 +226,7 @@ export default function ClubTextColorEditor() {
 
     if (error) {
       console.error("Error guardando color:", error);
-      setMessage("No se pudo guardar.");
+      setMessage("No se pudo guardar. Supabase rechazó el cambio.");
       setSaving(false);
       return;
     }
@@ -273,7 +238,7 @@ export default function ClubTextColorEditor() {
 
     setStyles(next);
     applyStyles(next);
-    setMessage("Guardado.");
+    setMessage("Guardado y aplicado.");
     setSaving(false);
   }
 
@@ -303,8 +268,6 @@ export default function ClubTextColorEditor() {
     setMessage("Restaurado al diseño original.");
     setSaving(false);
   }
-
-  if (!isAdmin) return null;
 
   return (
     <div
@@ -428,7 +391,7 @@ export default function ClubTextColorEditor() {
           ) : null}
 
           <p className="mt-4 text-[11px] leading-5 text-slate-500">
-            Lo que guardes queda aplicado para todos los visitantes y todas las fichas de club.
+            El editor siempre está visible. Supabase valida el permiso de administrador al guardar.
           </p>
         </div>
       )}
