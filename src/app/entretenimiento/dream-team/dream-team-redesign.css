@@ -237,8 +237,24 @@
   gap: 32px !important;
 }
 
+/* GK gets a dedicated, full-width centered row. */
+.dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 > div:nth-child(4) {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin-inline: auto !important;
+}
+
 .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 > div:nth-child(4) > div {
-  width: 190px !important;
+  width: 220px !important;
+  max-width: 220px !important;
+  margin-inline: auto !important;
+}
+
+.dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 > div:nth-child(4) button.group {
+  width: 100% !important;
+  margin-inline: auto !important;
 }
 
 .dream-team-redesign main > div > section.grid button.group {
@@ -484,7 +500,8 @@
   }
 
   .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 > div:nth-child(4) > div {
-    width: 132px !important;
+    width: 160px !important;
+    max-width: 160px !important;
   }
 
   .dream-team-redesign main > div > section.grid aside {
