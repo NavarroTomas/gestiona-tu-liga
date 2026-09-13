@@ -17,9 +17,10 @@ export default function PredictionsHero({ resumen }: Pick<PrediccionesController
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <Link
           href="/entretenimiento/predicciones/ranking"
-          className="inline-flex items-center rounded-lg bg-[#102f55] px-5 py-3 text-xs font-black uppercase tracking-[0.12em] text-white transition hover:bg-[#173f73]"
+          className="inline-flex items-center justify-center rounded-lg bg-[#102f55] px-5 py-3 text-xs font-black uppercase tracking-[0.12em] transition hover:bg-[#173f73]"
+          style={{ color: "#ffffff" }}
         >
-          Ver ranking de pronosticadores
+          <span style={{ color: "#ffffff" }}>Ver ranking de pronosticadores</span>
         </Link>
         <span className="text-xs font-bold text-[#607b90]">Modo invitado · no hace falta iniciar sesión</span>
       </div>
