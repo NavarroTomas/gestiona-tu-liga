@@ -1,11 +1,10 @@
 "use client";
 
 import type {
-  DreamTeamLogos,
+  DreamTeamPositionId,
   DreamTeamProfiles,
   DreamTeamVoteLeader,
 } from "@/lib/dream-team/types";
-import type { DreamTeamPositionId } from "@/lib/dream-team/types";
 import {
   DreamTeamPlayerAvatar,
   DreamTeamPlayerName,
@@ -15,13 +14,11 @@ export default function DreamTeamSlot({
   id,
   selected,
   profiles,
-  logos,
   onSelect,
 }: {
   id: DreamTeamPositionId;
   selected?: DreamTeamVoteLeader;
   profiles: DreamTeamProfiles;
-  logos: DreamTeamLogos;
   onSelect: (id: DreamTeamPositionId) => void;
 }) {
   return (
@@ -38,7 +35,7 @@ export default function DreamTeamSlot({
             profiles={profiles}
           />
         ) : (
-          <DreamTeamEmptyBadge id={id} logos={logos} />
+          <DreamTeamEmptyBadge id={id} />
         )}
       </div>
 
@@ -69,12 +66,7 @@ export default function DreamTeamSlot({
   );
 }
 
-function DreamTeamEmptyBadge({
-  id,
-}: {
-  id: DreamTeamPositionId;
-  logos: DreamTeamLogos;
-}) {
+function DreamTeamEmptyBadge({ id }: { id: DreamTeamPositionId }) {
   return (
     <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-sky-400/30 bg-black sm:h-10 sm:w-10">
       <span className="text-[10px] font-black text-white">{id.slice(0, 1)}</span>
