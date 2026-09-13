@@ -38,132 +38,136 @@ export default function DreamTeamFilters({
   | "fechas"
   | "fasesDisponibles"
 >) {
+  const contextLabel =
+    competicion === "liga"
+      ? "División"
+      : competicion === "copa_clasificatoria"
+        ? "Grupo"
+        : "Fase";
+
+  const contextValue =
+    competicion === "liga"
+      ? division
+      : competicion === "copa_clasificatoria"
+        ? grupo
+        : fase;
+
+  const contextOptions =
+    competicion === "liga"
+      ? DREAM_TEAM_CONFIG.divisions.map((item) => ({ value: item, label: item }))
+      : competicion === "copa_clasificatoria"
+        ? DREAM_TEAM_CONFIG.groups.map((item) => ({ value: item, label: `Grupo ${item}` }))
+        : fasesDisponibles.map((item) => ({ value: item, label: item }));
+
+  const setContextValue = (value: string) => {
+    if (competicion === "liga") {
+      setDivisionFilter(value);
+      return;
+    }
+
+    if (competicion === "copa_clasificatoria") {
+      setGroupFilter(value);
+      return;
+    }
+
+    setPhaseFilter(value);
+  };
+
+  const competitionName =
+    DREAM_TEAM_COMPETITIONS.find((item) => item.value === competicion)?.label || competicion;
+
   return (
-    <section className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] md:p-8 shadow-[0_0_35px_rgba(0,120,255,.12)]">
-      <div className="grid gap-7">
-        <FilterGroup label="Temporada">
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-            {DREAM_TEAM_CONFIG.seasons.map((season) => (
-              <FilterButton
-                key={season}
-                active={temporada === season}
-                onClick={() => setTemporada(season)}
-              >
-                {season}
-              </FilterButton>
-            ))}
+    <section className="rounded-[26px] border border-sky-500/20 bg-[#020714]/95 p-4 shadow-[0_0_32px_rgba(0,120,255,.09)] sm:p-5 md:rounded-[32px] md:p-6">
+      <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.32em] text-sky-400">
+              Selección de jornada
+            </p>
+            <h2 className="mt-2 text-xl font-black uppercase text-white sm:text-2xl">
+              {competitionName} · {contextLabel} {contextValue} · Fecha {fecha}
+            </h2>
           </div>
-        </FilterGroup>
+          <p className="max-w-xl text-sm text-zinc-500">
+            Elegí el torneo y la jornada que querés votar o consultar.
+          </p>
+        </div>
 
-        <FilterGroup label="Competencia">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-            {DREAM_TEAM_COMPETITIONS.map((competition) => (
-              <FilterButton
-                key={competition.value}
-                active={competicion === competition.value}
-                onClick={() => setCompetition(competition.value)}
-              >
-                {competition.label}
-              </FilterButton>
-            ))}
-          </div>
-        </FilterGroup>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <CompactSelect
+            label="Temporada"
+            value={temporada}
+            onChange={setTemporada}
+            options={DREAM_TEAM_CONFIG.seasons.map((season) => ({
+              value: season,
+              label: season,
+            }))}
+          />
 
-        {competicion === "liga" && (
-          <FilterGroup label="División">
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              {DREAM_TEAM_CONFIG.divisions.map((item) => (
-                <FilterButton
-                  key={item}
-                  active={division === item}
-                  onClick={() => setDivisionFilter(item)}
-                >
-                  {item}
-                </FilterButton>
-              ))}
-            </div>
-          </FilterGroup>
-        )}
+          <CompactSelect
+            label="Competición"
+            value={competicion}
+            onChange={(value) => setCompetition(value as typeof competicion)}
+            options={DREAM_TEAM_COMPETITIONS.map((competition) => ({
+              value: competition.value,
+              label: competition.label,
+            }))}
+          />
 
-        {competicion === "copa_clasificatoria" && (
-          <FilterGroup label="Grupo">
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              {DREAM_TEAM_CONFIG.groups.map((item) => (
-                <FilterButton
-                  key={item}
-                  active={grupo === item}
-                  onClick={() => setGroupFilter(item)}
-                >
-                  Grupo {item}
-                </FilterButton>
-              ))}
-            </div>
-          </FilterGroup>
-        )}
+          <CompactSelect
+            label={contextLabel}
+            value={contextValue}
+            onChange={setContextValue}
+            options={contextOptions}
+          />
 
-        {["copa_argentina", "copa_apa", "copa_campeones", "playoffs"].includes(
-          competicion,
-        ) && (
-          <FilterGroup label="Fase">
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              {fasesDisponibles.map((item) => (
-                <FilterButton
-                  key={item}
-                  active={fase === item}
-                  onClick={() => setPhaseFilter(item)}
-                >
-                  {item}
-                </FilterButton>
-              ))}
-            </div>
-          </FilterGroup>
-        )}
-
-        <FilterGroup label="Fecha">
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-            {fechas.map((item) => (
-              <FilterButton key={item} active={fecha === item} onClick={() => setFecha(item)}>
-                Fecha {item}
-              </FilterButton>
-            ))}
-          </div>
-        </FilterGroup>
+          <CompactSelect
+            label="Fecha"
+            value={fecha}
+            onChange={setFecha}
+            options={fechas.map((item) => ({
+              value: item,
+              label: `Fecha ${item}`,
+            }))}
+          />
+        </div>
       </div>
     </section>
   );
 }
 
-function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-sky-300">
-        {label}
-      </p>
-      {children}
-    </div>
-  );
-}
-
-function FilterButton({
-  active,
-  onClick,
-  children,
+function CompactSelect({
+  label,
+  value,
+  onChange,
+  options,
 }: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: Array<{ value: string; label: string }>;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-2xl border px-3 py-3 text-xs font-black uppercase transition-all sm:px-4 sm:py-4 sm:text-sm ${
-        active
-          ? "border-sky-300 bg-gradient-to-b from-sky-400 to-blue-700 text-white shadow-[0_0_20px_rgba(56,189,248,.45)]"
-          : "border-sky-500/20 bg-black/35 text-zinc-400 hover:border-sky-400/40 hover:text-white"
-      }`}
-    >
-      {children}
-    </button>
+    <label className="group block">
+      <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.24em] text-zinc-500 transition group-focus-within:text-sky-300">
+        {label}
+      </span>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="h-14 w-full appearance-none rounded-2xl border border-sky-500/20 bg-[#07111f] px-4 pr-11 text-sm font-black uppercase text-white outline-none transition hover:border-sky-400/40 focus:border-sky-300 focus:ring-2 focus:ring-sky-400/10"
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value} className="bg-[#07111f] text-white">
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sky-300">
+          ▾
+        </span>
+      </div>
+    </label>
   );
 }
