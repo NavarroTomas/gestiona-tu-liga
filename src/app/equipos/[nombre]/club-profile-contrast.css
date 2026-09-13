@@ -11,19 +11,49 @@
   --club-line: #cbd5e1;
 }
 
-/* Regla visual: nada de celeste claro/pastel. */
+/* Regla base: nada de celeste pastel. */
 .club-profile-redesign main {
   background: #f3f4f6 !important;
+  color: var(--club-navy) !important;
 }
 
+/* =========================================================
+   CONTRASTE GLOBAL
+   Superficie clara => texto navy oscuro.
+   Superficie oscura => texto blanco.
+   ========================================================= */
 .club-profile-redesign main > section > section:nth-of-type(even) {
   background: #ffffff !important;
   border-color: #cbd5e1 !important;
+  color: var(--club-navy) !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(even) h1,
+.club-profile-redesign main > section > section:nth-of-type(even) h2,
+.club-profile-redesign main > section > section:nth-of-type(even) h3,
+.club-profile-redesign main > section > section:nth-of-type(even) h4,
+.club-profile-redesign main > section > section:nth-of-type(even) p,
+.club-profile-redesign main > section > section:nth-of-type(even) span,
+.club-profile-redesign main > section > section:nth-of-type(even) th,
+.club-profile-redesign main > section > section:nth-of-type(even) label {
+  color: var(--club-navy) !important;
 }
 
 .club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) {
   background: var(--club-deep) !important;
   border-color: #1c527f !important;
+  color: #ffffff !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) h1,
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) h2,
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) h3,
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) h4,
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) p,
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) span,
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) th,
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) label {
+  color: #ffffff !important;
 }
 
 /* HERO */
@@ -89,51 +119,67 @@
   color: #fff !important;
 }
 
-/* Rendimiento por competición: solo azules fuertes, sin pastel */
+/* =========================================================
+   RENDIMIENTO POR COMPETICIÓN
+   Fondo/tarjeta clara => texto navy.
+   Celdas estadísticas azules => texto blanco.
+   ========================================================= */
 .club-profile-redesign main > section > section:nth-of-type(2) {
-  background: #173f73 !important;
-  border-color: #245f8e !important;
-  color: #fff !important;
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: var(--club-navy) !important;
 }
 
 .club-profile-redesign main > section > section:nth-of-type(2) > div:first-child h2,
 .club-profile-redesign main > section > section:nth-of-type(2) > div:first-child p,
 .club-profile-redesign main > section > section:nth-of-type(2) > div:first-child span {
-  color: #fff !important;
+  color: var(--club-navy) !important;
 }
 
 .club-profile-redesign main > section > section:nth-of-type(2) article {
-  background: #245f8e !important;
-  border-color: #3476a8 !important;
-  color: #fff !important;
+  background: #f3f4f6 !important;
+  border-color: #cbd5e1 !important;
+  color: var(--club-navy) !important;
 }
 
-.club-profile-redesign main > section > section:nth-of-type(2) article p,
-.club-profile-redesign main > section > section:nth-of-type(2) article span,
-.club-profile-redesign main > section > section:nth-of-type(2) article h3 {
-  color: #fff !important;
+.club-profile-redesign main > section > section:nth-of-type(2) article > div:first-child p,
+.club-profile-redesign main > section > section:nth-of-type(2) article > div:first-child span,
+.club-profile-redesign main > section > section:nth-of-type(2) article > div:first-child h3 {
+  color: var(--club-navy) !important;
 }
 
+/* FINALIZADA / EN CURSO / PENDIENTE sobre tarjeta clara */
+.club-profile-redesign main > section > section:nth-of-type(2) article > div:first-child > span {
+  background: #e5e7eb !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+/* PJ / PG / GF / GC */
 .club-profile-redesign main > section > section:nth-of-type(2) article [class*="bg-white/[0.04]"] {
-  background: #173f73 !important;
-  border-color: #3476a8 !important;
+  background: #1d4d79 !important;
+  border-color: #2d6797 !important;
+  color: #ffffff !important;
 }
 
+.club-profile-redesign main > section > section:nth-of-type(2) article [class*="bg-white/[0.04]"] p,
+.club-profile-redesign main > section > section:nth-of-type(2) article [class*="bg-white/[0.04]"] span {
+  color: #ffffff !important;
+}
+
+/* Barra inferior de puntos / posición */
 .club-profile-redesign main > section > section:nth-of-type(2) article [class*="bg-sky-400/10"] {
   background: #102f55 !important;
-  border-color: #3476a8 !important;
-  color: #fff !important;
+  border-color: #245f8e !important;
+  color: #ffffff !important;
 }
 
-.club-profile-redesign main > section > section:nth-of-type(2) article [class*="text-zinc"] {
-  color: #d1d5db !important;
+.club-profile-redesign main > section > section:nth-of-type(2) article [class*="bg-sky-400/10"] span,
+.club-profile-redesign main > section > section:nth-of-type(2) article [class*="bg-sky-400/10"] p {
+  color: #ffffff !important;
 }
 
-.club-profile-redesign main > section > section:nth-of-type(2) article [class*="text-emerald"] {
-  color: #6ee7b7 !important;
-}
-
-/* Secciones claras: blanco/gris neutro, nunca celeste claro */
+/* Secciones claras: componentes internos también deben tener texto oscuro */
 .club-profile-redesign main > section > section:nth-of-type(even) article[class*="bg-black"],
 .club-profile-redesign main > section > section:nth-of-type(even) div[class*="bg-black"],
 .club-profile-redesign main > section > section:nth-of-type(even) a[class*="bg-black"],
@@ -141,6 +187,15 @@
 .club-profile-redesign main > section > section:nth-of-type(even) [class*="bg-white/[0.045]"] {
   background: #f3f4f6 !important;
   border-color: #d1d5db !important;
+  color: var(--club-navy) !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(even) article[class*="bg-black"] p,
+.club-profile-redesign main > section > section:nth-of-type(even) article[class*="bg-black"] span,
+.club-profile-redesign main > section > section:nth-of-type(even) div[class*="bg-black"] p,
+.club-profile-redesign main > section > section:nth-of-type(even) div[class*="bg-black"] span,
+.club-profile-redesign main > section > section:nth-of-type(even) a[class*="bg-black"] p,
+.club-profile-redesign main > section > section:nth-of-type(even) a[class*="bg-black"] span {
   color: var(--club-navy) !important;
 }
 
@@ -154,8 +209,11 @@
   color: #fff !important;
 }
 
-.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) [class*="text-zinc"] {
-  color: #d1d5db !important;
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) article p,
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) article span,
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) [class*="bg-black"] p,
+.club-profile-redesign main > section > section:nth-of-type(odd):not(:first-of-type) [class*="bg-black"] span {
+  color: #ffffff !important;
 }
 
 /* Figura histórica */
@@ -164,8 +222,10 @@
   border-color: #2b6899 !important;
 }
 
-.club-profile-redesign main a[class*="border-yellow"][class*="from-yellow"] [class*="text-yellow"],
-.club-profile-redesign main a[class*="border-yellow"][class*="from-yellow"] [class*="text-purple"] {
+.club-profile-redesign main a[class*="border-yellow"][class*="from-yellow"] h2,
+.club-profile-redesign main a[class*="border-yellow"][class*="from-yellow"] h3,
+.club-profile-redesign main a[class*="border-yellow"][class*="from-yellow"] p,
+.club-profile-redesign main a[class*="border-yellow"][class*="from-yellow"] span {
   color: #fff !important;
 }
 
@@ -173,6 +233,13 @@
 .club-profile-redesign main section[class*="border-yellow"] {
   background: #0d2b4d !important;
   border-color: #245b87 !important;
+}
+
+.club-profile-redesign main section[class*="border-yellow"] h2,
+.club-profile-redesign main section[class*="border-yellow"] h3,
+.club-profile-redesign main section[class*="border-yellow"] p,
+.club-profile-redesign main section[class*="border-yellow"] span {
+  color: #ffffff !important;
 }
 
 .club-profile-redesign main section[class*="border-yellow"] [class*="bg-black"] {
@@ -185,8 +252,9 @@
   color: #fff !important;
 }
 
-.club-profile-redesign main thead tr {
-  color: #102f55 !important;
+.club-profile-redesign main thead tr,
+.club-profile-redesign main thead th {
+  color: var(--club-navy) !important;
 }
 
 .club-profile-redesign main tbody tr {
@@ -202,12 +270,7 @@
   background: #276493 !important;
 }
 
-.club-profile-redesign main tbody td {
-  border-top-color: #2d6289 !important;
-  border-bottom-color: #2d6289 !important;
-  color: #fff !important;
-}
-
+.club-profile-redesign main tbody td,
 .club-profile-redesign main tbody a,
 .club-profile-redesign main tbody [class*="text-sky"],
 .club-profile-redesign main tbody [class*="text-zinc"],
@@ -215,34 +278,36 @@
   color: #fff !important;
 }
 
-.club-profile-redesign main tbody td:first-child,
-.club-profile-redesign main tbody td:last-child a {
-  color: #ffffff !important;
-}
-
-.club-profile-redesign main tbody td:nth-child(3),
-.club-profile-redesign main tbody td:nth-child(4),
-.club-profile-redesign main tbody td:nth-child(5) {
-  color: #ffffff !important;
+.club-profile-redesign main tbody td {
+  border-top-color: #2d6289 !important;
+  border-bottom-color: #2d6289 !important;
 }
 
 /* Historial lateral */
 .club-profile-redesign main aside {
   background: #0b2747 !important;
   border-color: #245984 !important;
+  color: #ffffff !important;
+}
+
+.club-profile-redesign main aside h2,
+.club-profile-redesign main aside h3,
+.club-profile-redesign main aside p,
+.club-profile-redesign main aside span {
+  color: #ffffff !important;
 }
 
 .club-profile-redesign main aside a {
   background: #153b64 !important;
   border-color: #2a5e89 !important;
+  color: #ffffff !important;
 }
 
 .club-profile-redesign main aside a:hover {
   background: #1b4d7e !important;
 }
 
-/* Neutraliza cualquier resto de fondos celestes claros heredados */
-.club-profile-redesign main [style*="#d"],
+/* Neutraliza restos de fondos pastel heredados */
 .club-profile-redesign main [class*="bg-sky-50"],
 .club-profile-redesign main [class*="bg-blue-50"] {
   background-color: #f3f4f6 !important;
