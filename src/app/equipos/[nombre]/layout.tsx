@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import ClubTextColorEditor from "@/components/club-profile/ClubTextColorEditor";
 import "./club-profile-redesign.css";
 import "./club-profile-contrast.css";
 import "./club-profile-final-fixes.css";
@@ -13,6 +14,9 @@ import "./club-profile-final-fixes.css";
  * del rediseño base y los ajustes finales se cargan últimos para que las
  * correcciones aprobadas por sección no vuelvan a ser pisadas por reglas
  * genéricas.
+ *
+ * El editor visual de colores aparece únicamente para usuarios presentes
+ * en public.admins. Los colores guardados se cargan para todos los visitantes.
  */
 export default function ClubProfileLayout({
   children,
@@ -50,6 +54,7 @@ export default function ClubProfileLayout({
   return (
     <div ref={rootRef} className="club-profile-redesign">
       {children}
+      <ClubTextColorEditor />
     </div>
   );
 }
