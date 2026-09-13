@@ -1,23 +1,22 @@
 "use client";
 
 import type { DreamTeamController } from "@/hooks/useDreamTeam";
+import type { DreamTeamPositionId } from "@/lib/dream-team/types";
 import DreamTeamSlot from "./DreamTeamSlot";
 
 export default function DreamTeamFormation({
   votosPorPosicion,
   perfilesJugadores,
-  logos,
   setPosicionActiva,
 }: Pick<
   DreamTeamController,
-  "votosPorPosicion" | "perfilesJugadores" | "logos" | "setPosicionActiva"
+  "votosPorPosicion" | "perfilesJugadores" | "setPosicionActiva"
 >) {
-  const slot = (id: keyof typeof votosPorPosicion) => (
+  const slot = (id: DreamTeamPositionId) => (
     <DreamTeamSlot
       id={id}
       selected={votosPorPosicion[id]}
       profiles={perfilesJugadores}
-      logos={logos}
       onSelect={setPosicionActiva}
     />
   );
