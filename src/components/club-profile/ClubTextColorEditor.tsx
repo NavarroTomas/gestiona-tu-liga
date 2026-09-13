@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 type SavedStyle = {
   element_key: string;
   color: string;
-  label?: string | null;
+  label: string | null;
 };
 
 type SelectedText = {
@@ -20,226 +20,225 @@ const TEXT_SELECTOR =
   "h1,h2,h3,h4,h5,h6,p,span,a,button,th,td,label,small,strong";
 
 const QUICK_COLORS = [
-  { name: "Blanco", value: "#ffffff" },
-  { name: "Negro", value: "#111827" },
-  { name: "Navy APA", value: "#102f55" },
-  { name: "Azul medio", value: "#1d4d79" },
-  { name: "Azul fuerte", value: "#245f8e" },
-  { name: "Gris", value: "#4b5563" },
-];
-
-/**
- * Genera un selector estructural estable dentro de la ficha de club.
- * No depende de los textos (que cambian entre clubes) ni de clases Tailwind.
- */
-function buildElementKey(element: HTMLElement, root: HTMLElement) {
-  const segments: string[] = [];
-  let node: HTMLElement | null = element;
-
-  while (node && node !== root) {
-    const currentNode = node;
-    const parent = currentNode.parentElement;
-    if (!parent) break;
-
-    const tag = currentNode.tagName.toLowerCase();
-    const siblings = Array.from(parent.children).filter(
-      (child) => child.tagName === currentNode.tagName,
-    );
-    const index = Math.max(1, siblings.indexOf(currentNode) + 1);
-
-    segments.unshift(`${tag}:nth-of-type(${index})`);
-    node = parent;
-  }
-
-  return segments.join(" > ");
-}
+  ["Blanco", "#ffffff"],
+  ["Negro", "#111827"],
+  ["Navy APA", "#102f55"],
+  ["Azul medio", "#1d4d79"],
+  ["Azul fuerte", "#245f8e"],
+  ["Gris", "#4b5563"],
+] as const;
 
 function normalizeHex(value: string) {
   const clean = value.trim().toLowerCase();
   return /^#[0-9a-f]{6}$/.test(clean) ? clean : "#102f55";
 }
 
-function readableLabel(element: HTMLElement) {
-  const text = (element.textContent || "").replace(/\s+/g, " ").trim();
-  return text.slice(0, 90) || element.tagName.toLowerCase();
+function rgbToHex(value: string) {
+  const parts = value.match(/\d+/g)?.slice(0, 3).map(Number);
+  if (!parts || parts.length !== 3) return "#102f55";
+  return `#${parts.map((n) => n.toString(16).padStart(2, "0")).join("")}`;
+}
+
+function buildElementKey(element: HTMLElement, root: HTMLElement) {
+  const segments: string[] = [];
+  let current: HTMLElement | null = element;
+
+  while (current && current !== root) {
+    const node = current;
+    const parent = node.parentElement;
+    if (!parent) break;
+
+    const sameTag = Array.from(parent.children).filter(
+      (child) => child.tagName === node.tagName,
+    );
+    const index = sameTag.indexOf(node) + 1;
+    segments.unshift(`${node.tagName.toLowerCase()}:nth-of-type(${index})`);
+    current = parent;
+  }
+
+  return segments.join(" > ");
+}
+
+function getTextLabel(element: HTMLElement) {
+  return (element.textContent || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 90);
+}
+
+function getPageRoot() {
+  if (typeof document === "undefined") return null;
+  return document.querySelector(".club-profile-redesign") as HTMLElement | null;
 }
 
 export default function ClubTextColorEditor() {
   const [isAdmin, setIsAdmin] = useState(false);
-  const [editorOpen, setEditorOpen] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<SelectedText | null>(null);
-  const [savedStyles, setSavedStyles] = useState<SavedStyle[]>([]);
+  const [styles, setStyles] = useState<SavedStyle[]>([]);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const selectedRef = useRef<HTMLElement | null>(null);
+  const [message, setMessage] = useState("");
+  const outlinedRef = useRef<HTMLElement | null>(null);
 
-  const root = useMemo(() => {
-    if (typeof document === "undefined") return null;
-    return document.querySelector<HTMLElement>(".club-profile-redesign");
+  const clearOutline = useCallback(() => {
+    const element = outlinedRef.current;
+    if (!element) return;
+    element.style.removeProperty("outline");
+    element.style.removeProperty("outline-offset");
+    outlinedRef.current = null;
   }, []);
 
-  const applySavedStyles = useCallback((styles: SavedStyle[]) => {
-    if (typeof document === "undefined") return;
-    const pageRoot = document.querySelector<HTMLElement>(".club-profile-redesign");
-    if (!pageRoot) return;
+  const applyStyles = useCallback((items: SavedStyle[]) => {
+    const root = getPageRoot();
+    if (!root) return;
 
-    styles.forEach((style) => {
+    for (const item of items) {
+      if (!item.element_key) continue;
       try {
-        const target = pageRoot.querySelector<HTMLElement>(style.element_key);
-        if (!target) return;
-        target.style.setProperty("color", normalizeHex(style.color), "important");
-        target.dataset.clubColorEdited = "true";
+        const target = root.querySelector(item.element_key) as HTMLElement | null;
+        if (!target) continue;
+        target.style.setProperty("color", normalizeHex(item.color), "important");
       } catch {
-        // Si una estructura antigua deja de existir, simplemente se ignora.
+        // Un selector antiguo puede dejar de existir si cambia el layout.
       }
-    });
+    }
   }, []);
 
-  const loadSavedStyles = useCallback(async () => {
+  const reloadStyles = useCallback(async () => {
     const { data, error } = await supabase
       .from("club_profile_text_styles")
       .select("element_key,color,label,updated_at")
       .order("updated_at", { ascending: true });
 
     if (error) {
-      console.error("No se pudieron cargar los colores del perfil:", error);
+      console.error("Error cargando colores guardados:", error);
       return;
     }
 
-    const styles = (data || []).map((item: any) => ({
-      element_key: String(item.element_key || ""),
-      color: String(item.color || "#102f55"),
-      label: item.label ? String(item.label) : null,
+    const next: SavedStyle[] = (data || []).map((row: any) => ({
+      element_key: String(row.element_key || ""),
+      color: String(row.color || "#102f55"),
+      label: row.label ? String(row.label) : null,
     }));
 
-    setSavedStyles(styles);
-    applySavedStyles(styles);
-  }, [applySavedStyles]);
+    setStyles(next);
+    applyStyles(next);
+  }, [applyStyles]);
 
   useEffect(() => {
-    loadSavedStyles();
-  }, [loadSavedStyles]);
+    void reloadStyles();
+  }, [reloadStyles]);
 
-  // La ficha carga datos de forma asíncrona. Reaplicamos colores cuando aparecen nodos nuevos.
   useEffect(() => {
+    const root = getPageRoot();
     if (!root) return;
 
     const observer = new MutationObserver(() => {
-      window.requestAnimationFrame(() => applySavedStyles(savedStyles));
+      window.requestAnimationFrame(() => applyStyles(styles));
     });
 
     observer.observe(root, { childList: true, subtree: true });
     return () => observer.disconnect();
-  }, [root, savedStyles, applySavedStyles]);
+  }, [styles, applyStyles]);
 
   useEffect(() => {
-    let alive = true;
+    let active = true;
 
-    async function checkAdmin() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+    async function refreshAdmin() {
+      const result = await supabase.auth.getUser();
+      const user = result.data.user;
 
-      if (!user || !alive) {
-        if (alive) setIsAdmin(false);
+      if (!active) return;
+      if (!user) {
+        setIsAdmin(false);
         return;
       }
 
-      const { data } = await supabase
+      const adminResult = await supabase
         .from("admins")
         .select("user_id")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (alive) setIsAdmin(Boolean(data?.user_id));
+      if (active) setIsAdmin(Boolean(adminResult.data?.user_id));
     }
 
-    checkAdmin();
+    void refreshAdmin();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(() => {
-      void checkAdmin();
+    const listener = supabase.auth.onAuthStateChange(() => {
+      void refreshAdmin();
     });
 
     return () => {
-      alive = false;
-      authListener.subscription.unsubscribe();
+      active = false;
+      listener.data.subscription.unsubscribe();
     };
   }, []);
 
-  const clearSelectionOutline = useCallback(() => {
-    if (!selectedRef.current) return;
-    selectedRef.current.style.removeProperty("outline");
-    selectedRef.current.style.removeProperty("outline-offset");
-    selectedRef.current = null;
-  }, []);
-
   useEffect(() => {
-    if (!root || !editMode) {
-      clearSelectionOutline();
+    const root = getPageRoot();
+    if (!root || !selecting) {
+      clearOutline();
       return;
     }
 
-    function handleClick(event: MouseEvent) {
+    const pageRoot = root;
+
+    const handleClick = (event: MouseEvent) => {
       const raw = event.target;
       if (!(raw instanceof HTMLElement)) return;
       if (raw.closest("[data-club-color-editor]")) return;
 
       const target = raw.closest(TEXT_SELECTOR) as HTMLElement | null;
-      if (!target || !root.contains(target)) return;
-      if (!(target.textContent || "").trim()) return;
+      if (!target || !pageRoot.contains(target)) return;
+      if (!getTextLabel(target)) return;
 
       event.preventDefault();
       event.stopPropagation();
 
-      clearSelectionOutline();
+      clearOutline();
       target.style.setProperty("outline", "3px solid #2d98d4", "important");
       target.style.setProperty("outline-offset", "3px", "important");
-      selectedRef.current = target;
+      outlinedRef.current = target;
 
-      const key = buildElementKey(target, root);
-      const current = getComputedStyle(target).color;
-      const rgb = current.match(/\d+/g)?.slice(0, 3).map(Number);
-      const computedHex = rgb
-        ? `#${rgb.map((n) => n.toString(16).padStart(2, "0")).join("")}`
-        : "#102f55";
-      const saved = savedStyles.find((item) => item.element_key === key);
+      const key = buildElementKey(target, pageRoot);
+      const saved = styles.find((item) => item.element_key === key);
 
       setSelected({
         element: target,
         key,
-        label: readableLabel(target),
-        color: saved?.color || computedHex,
+        label: getTextLabel(target),
+        color: saved?.color || rgbToHex(getComputedStyle(target).color),
       });
-      setEditorOpen(true);
-      setMessage(null);
-    }
+      setOpen(true);
+      setMessage("");
+    };
 
-    root.addEventListener("click", handleClick, true);
-    root.style.cursor = "crosshair";
+    pageRoot.addEventListener("click", handleClick, true);
+    pageRoot.style.cursor = "crosshair";
 
     return () => {
-      root.removeEventListener("click", handleClick, true);
-      root.style.removeProperty("cursor");
-      clearSelectionOutline();
+      pageRoot.removeEventListener("click", handleClick, true);
+      pageRoot.style.removeProperty("cursor");
+      clearOutline();
     };
-  }, [root, editMode, savedStyles, clearSelectionOutline]);
+  }, [selecting, styles, clearOutline]);
 
-  function previewColor(color: string) {
+  function previewColor(value: string) {
     if (!selected) return;
-    const normalized = normalizeHex(color);
-    selected.element.style.setProperty("color", normalized, "important");
-    setSelected({ ...selected, color: normalized });
+    const color = normalizeHex(value);
+    selected.element.style.setProperty("color", color, "important");
+    setSelected((current) => (current ? { ...current, color } : current));
   }
 
-  async function saveColor() {
+  async function saveSelected() {
     if (!selected) return;
     setSaving(true);
-    setMessage(null);
+    setMessage("");
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const authResult = await supabase.auth.getUser();
+    const user = authResult.data.user;
 
     if (!user) {
       setMessage("Necesitás una sesión de administrador.");
@@ -247,9 +246,10 @@ export default function ClubTextColorEditor() {
       return;
     }
 
-    const row = {
+    const color = normalizeHex(selected.color);
+    const payload = {
       element_key: selected.key,
-      color: normalizeHex(selected.color),
+      color,
       label: selected.label,
       updated_by: user.id,
       updated_at: new Date().toISOString(),
@@ -257,34 +257,30 @@ export default function ClubTextColorEditor() {
 
     const { error } = await supabase
       .from("club_profile_text_styles")
-      .upsert(row, { onConflict: "element_key" });
+      .upsert(payload, { onConflict: "element_key" });
 
     if (error) {
       console.error("Error guardando color:", error);
-      setMessage("No se pudo guardar el cambio.");
+      setMessage("No se pudo guardar.");
       setSaving(false);
       return;
     }
 
     const next: SavedStyle[] = [
-      ...savedStyles.filter((item) => item.element_key !== selected.key),
-      {
-        element_key: row.element_key,
-        color: row.color,
-        label: row.label,
-      },
+      ...styles.filter((item) => item.element_key !== selected.key),
+      { element_key: selected.key, color, label: selected.label },
     ];
 
-    setSavedStyles(next);
-    applySavedStyles(next);
-    setMessage("Color guardado y aplicado.");
+    setStyles(next);
+    applyStyles(next);
+    setMessage("Guardado.");
     setSaving(false);
   }
 
-  async function resetSelected() {
+  async function restoreSelected() {
     if (!selected) return;
     setSaving(true);
-    setMessage(null);
+    setMessage("");
 
     const { error } = await supabase
       .from("club_profile_text_styles")
@@ -293,35 +289,38 @@ export default function ClubTextColorEditor() {
 
     if (error) {
       console.error("Error restaurando color:", error);
-      setMessage("No se pudo restaurar el color.");
+      setMessage("No se pudo restaurar.");
       setSaving(false);
       return;
     }
 
     selected.element.style.removeProperty("color");
-    delete selected.element.dataset.clubColorEdited;
-    const next = savedStyles.filter((item) => item.element_key !== selected.key);
-    setSavedStyles(next);
+    setStyles((current) =>
+      current.filter((item) => item.element_key !== selected.key),
+    );
     setSelected(null);
-    clearSelectionOutline();
-    setMessage("Color restaurado al diseño original.");
+    clearOutline();
+    setMessage("Restaurado al diseño original.");
     setSaving(false);
   }
 
   if (!isAdmin) return null;
 
   return (
-    <div data-club-color-editor className="fixed bottom-5 right-5 z-[9999] font-sans">
-      {!editorOpen ? (
+    <div
+      data-club-color-editor
+      className="fixed bottom-5 right-5 z-[9999] font-sans"
+    >
+      {!open ? (
         <button
           type="button"
-          onClick={() => setEditorOpen(true)}
-          className="rounded-2xl border border-white/20 bg-[#0b2747] px-5 py-3 text-sm font-black uppercase tracking-[0.08em] text-white shadow-2xl transition hover:bg-[#173f73]"
+          onClick={() => setOpen(true)}
+          className="rounded-2xl border border-white/20 bg-[#0b2747] px-5 py-3 text-sm font-black uppercase tracking-[0.08em] text-white shadow-2xl hover:bg-[#173f73]"
         >
           Editar colores
         </button>
       ) : (
-        <div className="w-[min(360px,calc(100vw-24px))] rounded-3xl border border-slate-200 bg-white p-4 text-[#102f55] shadow-2xl">
+        <div className="w-[360px] max-w-[calc(100vw-24px)] rounded-3xl border border-slate-200 bg-white p-4 text-[#102f55] shadow-2xl">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#245f8e]">
@@ -334,9 +333,9 @@ export default function ClubTextColorEditor() {
             <button
               type="button"
               onClick={() => {
-                setEditorOpen(false);
-                setEditMode(false);
-                clearSelectionOutline();
+                setOpen(false);
+                setSelecting(false);
+                clearOutline();
               }}
               className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-[#102f55] hover:bg-slate-100"
             >
@@ -347,37 +346,35 @@ export default function ClubTextColorEditor() {
           <button
             type="button"
             onClick={() => {
-              setEditMode((value) => !value);
-              setMessage(null);
+              setSelecting((value) => !value);
+              setMessage("");
             }}
-            className={`mt-4 w-full rounded-2xl px-4 py-3 text-sm font-black uppercase tracking-[0.08em] transition ${
-              editMode
-                ? "bg-[#245f8e] text-white"
-                : "bg-[#102f55] text-white hover:bg-[#173f73]"
+            className={`mt-4 w-full rounded-2xl px-4 py-3 text-sm font-black uppercase tracking-[0.08em] text-white ${
+              selecting ? "bg-[#245f8e]" : "bg-[#102f55] hover:bg-[#173f73]"
             }`}
           >
-            {editMode ? "Selección activa" : "Seleccionar texto"}
+            {selecting ? "Selección activa" : "Seleccionar texto"}
           </button>
 
           <p className="mt-2 text-xs leading-5 text-slate-600">
-            {editMode
-              ? "Hacé clic sobre cualquier texto de la ficha para editarlo."
-              : "Activá la selección para elegir un texto directamente en la página."}
+            {selecting
+              ? "Hacé clic sobre cualquier texto de la ficha."
+              : "Activá la selección y elegí directamente el texto que querés cambiar."}
           </p>
 
-          {selected && (
+          {selected ? (
             <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">
-                Texto seleccionado
+                Seleccionado
               </p>
-              <p className="mt-1 line-clamp-2 text-sm font-bold text-[#102f55]">
+              <p className="mt-1 text-sm font-bold text-[#102f55]">
                 {selected.label}
               </p>
 
               <div className="mt-4 flex items-center gap-3">
                 <input
-                  aria-label="Color del texto"
                   type="color"
+                  aria-label="Color del texto"
                   value={normalizeHex(selected.color)}
                   onChange={(event) => previewColor(event.target.value)}
                   className="h-11 w-14 cursor-pointer rounded-xl border border-slate-300 bg-white p-1"
@@ -390,15 +387,15 @@ export default function ClubTextColorEditor() {
               </div>
 
               <div className="mt-3 grid grid-cols-6 gap-2">
-                {QUICK_COLORS.map((color) => (
+                {QUICK_COLORS.map(([name, value]) => (
                   <button
-                    key={color.value}
+                    key={value}
                     type="button"
-                    title={color.name}
-                    aria-label={color.name}
-                    onClick={() => previewColor(color.value)}
+                    title={name}
+                    aria-label={name}
+                    onClick={() => previewColor(value)}
                     className="h-9 rounded-xl border border-slate-300 shadow-sm"
-                    style={{ backgroundColor: color.value }}
+                    style={{ backgroundColor: value }}
                   />
                 ))}
               </div>
@@ -407,31 +404,31 @@ export default function ClubTextColorEditor() {
                 <button
                   type="button"
                   disabled={saving}
-                  onClick={saveColor}
-                  className="rounded-xl bg-[#102f55] px-3 py-3 text-xs font-black uppercase text-white transition hover:bg-[#173f73] disabled:opacity-50"
+                  onClick={() => void saveSelected()}
+                  className="rounded-xl bg-[#102f55] px-3 py-3 text-xs font-black uppercase text-white disabled:opacity-50"
                 >
                   {saving ? "Guardando..." : "Guardar"}
                 </button>
                 <button
                   type="button"
                   disabled={saving}
-                  onClick={resetSelected}
-                  className="rounded-xl border border-slate-300 bg-white px-3 py-3 text-xs font-black uppercase text-[#102f55] transition hover:bg-slate-100 disabled:opacity-50"
+                  onClick={() => void restoreSelected()}
+                  className="rounded-xl border border-slate-300 bg-white px-3 py-3 text-xs font-black uppercase text-[#102f55] hover:bg-slate-100 disabled:opacity-50"
                 >
                   Restaurar
                 </button>
               </div>
             </div>
-          )}
+          ) : null}
 
-          {message && (
+          {message ? (
             <p className="mt-3 rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-[#102f55]">
               {message}
             </p>
-          )}
+          ) : null}
 
           <p className="mt-4 text-[11px] leading-5 text-slate-500">
-            Los cambios guardados quedan en Supabase y se aplican a todas las fichas de club.
+            Lo que guardes queda aplicado para todos los visitantes y todas las fichas de club.
           </p>
         </div>
       )}
