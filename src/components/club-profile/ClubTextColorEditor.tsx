@@ -37,14 +37,15 @@ function buildElementKey(element: HTMLElement, root: HTMLElement) {
   let node: HTMLElement | null = element;
 
   while (node && node !== root) {
-    const parent = node.parentElement;
+    const currentNode = node;
+    const parent = currentNode.parentElement;
     if (!parent) break;
 
-    const tag = node.tagName.toLowerCase();
+    const tag = currentNode.tagName.toLowerCase();
     const siblings = Array.from(parent.children).filter(
-      (child) => child.tagName === node!.tagName,
+      (child) => child.tagName === currentNode.tagName,
     );
-    const index = Math.max(1, siblings.indexOf(node) + 1);
+    const index = Math.max(1, siblings.indexOf(currentNode) + 1);
 
     segments.unshift(`${tag}:nth-of-type(${index})`);
     node = parent;
@@ -98,7 +99,7 @@ export default function ClubTextColorEditor() {
   const loadSavedStyles = useCallback(async () => {
     const { data, error } = await supabase
       .from("club_profile_text_styles")
-      .select("element_key,color,label")
+      .select("element_key,color,label,updated_at")
       .order("updated_at", { ascending: true });
 
     if (error) {
@@ -106,7 +107,12 @@ export default function ClubTextColorEditor() {
       return;
     }
 
-    const styles = (data || []) as SavedStyle[];
+    const styles = (data || []).map((item: any) => ({
+      element_key: String(item.element_key || ""),
+      color: String(item.color || "#102f55"),
+      label: item.label ? String(item.label) : null,
+    }));
+
     setSavedStyles(styles);
     applySavedStyles(styles);
   }, [applySavedStyles]);
@@ -135,7 +141,10 @@ export default function ClubTextColorEditor() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user || !alive) return;
+      if (!user || !alive) {
+        if (alive) setIsAdmin(false);
+        return;
+      }
 
       const { data } = await supabase
         .from("admins")
@@ -149,7 +158,7 @@ export default function ClubTextColorEditor() {
     checkAdmin();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(() => {
-      checkAdmin();
+      void checkAdmin();
     });
 
     return () => {
@@ -176,8 +185,8 @@ export default function ClubTextColorEditor() {
       if (!(raw instanceof HTMLElement)) return;
       if (raw.closest("[data-club-color-editor]")) return;
 
-      const target = raw.closest<HTMLElement>(TEXT_SELECTOR);
-      if (!target || !root!.contains(target)) return;
+      const target = raw.closest(TEXT_SELECTOR) as HTMLElement | null;
+      if (!target || !root.contains(target)) return;
       if (!(target.textContent || "").trim()) return;
 
       event.preventDefault();
@@ -188,7 +197,7 @@ export default function ClubTextColorEditor() {
       target.style.setProperty("outline-offset", "3px", "important");
       selectedRef.current = target;
 
-      const key = buildElementKey(target, root!);
+      const key = buildElementKey(target, root);
       const current = getComputedStyle(target).color;
       const rgb = current.match(/\d+/g)?.slice(0, 3).map(Number);
       const computedHex = rgb
@@ -257,10 +266,15 @@ export default function ClubTextColorEditor() {
       return;
     }
 
-    const next = [
+    const next: SavedStyle[] = [
       ...savedStyles.filter((item) => item.element_key !== selected.key),
-      row,
+      {
+        element_key: row.element_key,
+        color: row.color,
+        label: row.label,
+      },
     ];
+
     setSavedStyles(next);
     applySavedStyles(next);
     setMessage("Color guardado y aplicado.");
