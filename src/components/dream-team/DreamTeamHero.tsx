@@ -46,7 +46,7 @@ export default function DreamTeamHero({
             value={
               miPerfil?.display_name ||
               miPerfil?.username ||
-              (usuarioId ? "Invitado" : "Preparando voto...")
+              (usuarioId ? "Invitado" : "Modo invitado")
             }
           />
           <HeroStat label="Temporada" value={temporada} />
