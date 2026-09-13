@@ -111,7 +111,7 @@ export function useDreamTeam() {
 
     try {
       const datesResult = await fetchDreamTeamAvailableDates(context);
-      let availableDates = [DREAM_TEAM_CONFIG.defaultDate];
+      let availableDates: string[] = [DREAM_TEAM_CONFIG.defaultDate];
 
       if (datesResult.error) {
         console.log(datesResult.error);
