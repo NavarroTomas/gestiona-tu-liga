@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import {
   DREAM_TEAM_COMPETITIONS,
   DREAM_TEAM_CONFIG,
@@ -94,7 +95,7 @@ export default function DreamTeamFilters({
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <CompactSelect
+          <CompactDropdown
             label="Temporada"
             value={temporada}
             onChange={setTemporada}
@@ -104,7 +105,7 @@ export default function DreamTeamFilters({
             }))}
           />
 
-          <CompactSelect
+          <CompactDropdown
             label="Competición"
             value={competicion}
             onChange={(value) => setCompetition(value as typeof competicion)}
@@ -114,14 +115,14 @@ export default function DreamTeamFilters({
             }))}
           />
 
-          <CompactSelect
+          <CompactDropdown
             label={contextLabel}
             value={contextValue}
             onChange={setContextValue}
             options={contextOptions}
           />
 
-          <CompactSelect
+          <CompactDropdown
             label="Fecha"
             value={fecha}
             onChange={setFecha}
@@ -136,7 +137,7 @@ export default function DreamTeamFilters({
   );
 }
 
-function CompactSelect({
+function CompactDropdown({
   label,
   value,
   onChange,
@@ -147,27 +148,89 @@ function CompactSelect({
   onChange: (value: string) => void;
   options: Array<{ value: string; label: string }>;
 }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const selected = options.find((option) => option.value === value) ?? options[0];
+
+  useEffect(() => {
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, []);
+
+  const choose = (nextValue: string) => {
+    onChange(nextValue);
+    setOpen(false);
+  };
+
   return (
-    <label className="group block">
-      <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.24em] text-[#607b90] transition group-focus-within:text-[#2d98d4]">
+    <div ref={rootRef} className="relative">
+      <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.24em] text-[#607b90]">
         {label}
       </span>
-      <div className="relative">
-        <select
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          className="h-14 w-full appearance-none rounded-2xl border border-[#1f4f80] bg-[#102f55] px-4 pr-11 text-sm font-black uppercase text-white outline-none transition hover:border-[#56afe2] hover:bg-[#163c6c] focus:border-[#56afe2] focus:bg-[#163c6c] focus:ring-2 focus:ring-[#56afe2]/20"
+
+      <div
+        role="button"
+        tabIndex={0}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setOpen((current) => !current);
+          }
+          if (event.key === "Escape") setOpen(false);
+        }}
+        className="flex h-14 w-full cursor-pointer items-center justify-between rounded-2xl border border-[#2d98d4]/35 bg-[#102f55] px-4 text-sm font-black uppercase text-white outline-none transition hover:bg-[#173f73] focus:border-[#56afe2] focus:ring-2 focus:ring-[#56afe2]/20"
+      >
+        <span className="truncate">{selected?.label ?? value}</span>
+        <span
+          className={`ml-3 text-[#8ed2f3] transition-transform ${open ? "rotate-180" : ""}`}
+          aria-hidden="true"
         >
-          {options.map((option) => (
-            <option key={option.value} value={option.value} className="bg-[#102f55] text-white">
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#8ed2f3]">
           ▾
         </span>
       </div>
-    </label>
+
+      {open && (
+        <div
+          role="listbox"
+          className="absolute left-0 right-0 top-[calc(100%+8px)] z-[80] max-h-72 overflow-y-auto rounded-2xl border border-[#56afe2]/45 bg-[#102f55] p-1.5 shadow-[0_16px_40px_rgba(16,47,85,.28)]"
+        >
+          {options.map((option) => {
+            const active = option.value === value;
+
+            return (
+              <div
+                key={option.value}
+                role="option"
+                aria-selected={active}
+                tabIndex={0}
+                onClick={() => choose(option.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    choose(option.value);
+                  }
+                }}
+                className={`cursor-pointer rounded-xl px-3 py-3 text-xs font-black uppercase transition sm:text-sm ${
+                  active
+                    ? "bg-[#2d98d4] text-white"
+                    : "text-white hover:bg-[#173f73]"
+                }`}
+              >
+                {option.label}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
