@@ -44,9 +44,10 @@ export const ENTERTAINMENT_EXPERIENCES: EntertainmentExperience[] = [
     href: "/entretenimiento/dream-team",
     cta: "Armar Dream Team",
     highlights: [
-      { label: "Formato", value: "8 vs 8" },
       { label: "Selección", value: "8 jugadores" },
-      { label: "Actualización", value: "Por fecha" },
+      { label: "Posiciones", value: "Fijas" },
+      { label: "Puntaje", value: "Por rendimiento" },
+      { label: "Comparación", value: "Comunidad APA" },
     ],
   },
   {
