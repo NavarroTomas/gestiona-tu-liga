@@ -79,6 +79,16 @@ export type DreamTeamMatch = {
   local?: string | null;
   visitante?: string | null;
   fecha?: string | number | null;
+  dia?: string | null;
+  hora?: string | null;
+  estado?: string | null;
+  scheduled_at?: string | null;
+};
+
+export type DreamTeamVotingWindow = {
+  openAt: string | null;
+  closeAt: string | null;
+  isOpen: boolean;
 };
 
 export type DreamTeamRawPlayerStat = {
