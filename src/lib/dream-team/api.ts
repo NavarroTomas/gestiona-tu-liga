@@ -37,6 +37,17 @@ export async function fetchDreamTeamCurrentUser() {
   return supabase.auth.getUser();
 }
 
+export async function ensureDreamTeamUser() {
+  const current = await supabase.auth.getUser();
+  if (!current.error && current.data.user) return current;
+
+  const anonymous = await supabase.auth.signInAnonymously();
+  return {
+    data: { user: anonymous.data.user },
+    error: anonymous.error,
+  };
+}
+
 export async function fetchDreamTeamUserProfile(userId: string) {
   return supabase
     .from("profiles")
@@ -61,13 +72,41 @@ export async function fetchDreamTeamMatches(context: DreamTeamContext) {
   const result = await applyMatchContext(
     supabase
       .from("partidos")
-      .select("partido_id, local, visitante")
+      .select("partido_id, local, visitante, fecha, dia, hora, estado, scheduled_at")
       .eq("fecha", context.fecha),
     context,
   );
 
   return {
     data: (result.data || []) as DreamTeamMatch[],
+    error: result.error,
+  };
+}
+
+export async function fetchDreamTeamVotingWindow(context: DreamTeamContext) {
+  const result = await supabase.rpc("get_dream_team_voting_window", {
+    p_temporada: context.temporada,
+    p_competicion: context.competicion,
+    p_division: getDreamTeamContextLabel(context),
+    p_grupo: context.competicion === "copa_clasificatoria" ? context.grupo : null,
+    p_fase:
+      context.competicion === "liga"
+        ? null
+        : context.competicion === "copa_clasificatoria"
+          ? "grupos"
+          : normalizeDreamTeamPhase(context.fase),
+    p_fecha: context.fecha,
+  });
+
+  const row = Array.isArray(result.data) ? result.data[0] : result.data;
+  return {
+    data: row
+      ? {
+          openAt: row.open_at as string | null,
+          closeAt: row.close_at as string | null,
+          isOpen: Boolean(row.is_open),
+        }
+      : { openAt: null, closeAt: null, isOpen: false },
     error: result.error,
   };
 }
@@ -119,7 +158,6 @@ export async function fetchDreamTeamVotes(context: DreamTeamContext) {
     };
   }
 
-  // Compatibilidad con la vista vieja si todavía no expone competicion/fase/grupo.
   const legacyResult = await supabase
     .from("public_dream_team_votos")
     .select(
@@ -166,13 +204,6 @@ export type DreamTeamVotePayload = {
   fecha_voto: string;
 };
 
-export async function insertDreamTeamVote(payload: DreamTeamVotePayload) {
-  let result = await supabase.from("dream_team_votos").insert([payload]);
-
-  if (result.error && String(result.error.message || "").toLowerCase().includes("column")) {
-    const { competicion: _competition, fase: _phase, grupo: _group, ...legacyPayload } = payload;
-    result = await supabase.from("dream_team_votos").insert([legacyPayload]);
-  }
-
-  return result;
+export async function insertDreamTeamVotes(payloads: DreamTeamVotePayload[]) {
+  return supabase.from("dream_team_votos").insert(payloads);
 }
