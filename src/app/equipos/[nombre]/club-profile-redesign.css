@@ -1,0 +1,270 @@
+.club-profile-redesign {
+  --club-navy: #102f55;
+  --club-navy-2: #173f73;
+  --club-blue: #2d98d4;
+  --club-sky: #56afe2;
+  --club-ice: #f3fafe;
+  --club-line: #c9e3f1;
+  --club-muted: #607b90;
+  background: var(--club-ice);
+}
+
+.club-profile-redesign,
+.club-profile-redesign * {
+  box-sizing: border-box;
+}
+
+.club-profile-redesign main {
+  min-height: 100vh !important;
+  background: linear-gradient(180deg, #f3fafe 0%, #edf7fc 58%, #f7fbfe 100%) !important;
+  color: var(--club-navy) !important;
+}
+
+.club-profile-redesign main > section {
+  max-width: 1560px !important;
+  padding-top: 28px !important;
+  padding-bottom: 52px !important;
+}
+
+/* Back link */
+.club-profile-redesign main > section > a:first-child {
+  border: 1px solid var(--club-line) !important;
+  background: #fff !important;
+  color: var(--club-navy) !important;
+  box-shadow: none !important;
+}
+
+.club-profile-redesign main > section > a:first-child:hover {
+  border-color: var(--club-sky) !important;
+  background: #eaf6fd !important;
+  color: var(--club-navy) !important;
+}
+
+/* Shared card language */
+.club-profile-redesign main > section > section,
+.club-profile-redesign main > section > section > div,
+.club-profile-redesign main aside {
+  box-shadow: none !important;
+}
+
+.club-profile-redesign main > section > section:not(:first-of-type) {
+  border-color: var(--club-line) !important;
+  background: #fff !important;
+  color: var(--club-navy) !important;
+}
+
+/* HERO */
+.club-profile-redesign main > section > a:first-child + section {
+  border: 1px solid var(--club-line) !important;
+  border-radius: 24px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.club-profile-redesign main > section > a:first-child + section > div:first-child {
+  opacity: .26 !important;
+  filter: saturate(.85) contrast(.95) !important;
+}
+
+.club-profile-redesign main > section > a:first-child + section > div:nth-child(2) {
+  background: linear-gradient(90deg, rgba(255,255,255,.98) 0%, rgba(255,255,255,.92) 42%, rgba(255,255,255,.62) 72%, rgba(255,255,255,.28) 100%) !important;
+}
+
+.club-profile-redesign main > section > a:first-child + section h1,
+.club-profile-redesign main > section > a:first-child + section h2 {
+  color: var(--club-navy) !important;
+}
+
+.club-profile-redesign main > section > a:first-child + section h1 span {
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  color: var(--club-navy) !important;
+  text-shadow: none !important;
+}
+
+.club-profile-redesign main > section > a:first-child + section p {
+  color: var(--club-muted) !important;
+}
+
+.club-profile-redesign main > section > a:first-child + section [class*="bg-black"] {
+  background: rgba(255,255,255,.82) !important;
+  border-color: var(--club-line) !important;
+  color: var(--club-navy) !important;
+  backdrop-filter: blur(14px) !important;
+}
+
+.club-profile-redesign main > section > a:first-child + section [class*="text-zinc"] {
+  color: var(--club-muted) !important;
+}
+
+.club-profile-redesign main > section > a:first-child + section [class*="text-sky"] {
+  color: var(--club-blue) !important;
+}
+
+.club-profile-redesign main > section > a:first-child + section [class*="text-yellow"] {
+  color: var(--club-navy) !important;
+}
+
+/* General headings */
+.club-profile-redesign main h2,
+.club-profile-redesign main h3 {
+  color: var(--club-navy) !important;
+}
+
+.club-profile-redesign main p[class*="text-sky"],
+.club-profile-redesign main [class*="text-sky-300"] {
+  color: var(--club-blue) !important;
+}
+
+.club-profile-redesign main [class*="text-zinc-4"],
+.club-profile-redesign main [class*="text-zinc-5"],
+.club-profile-redesign main [class*="text-zinc-6"] {
+  color: var(--club-muted) !important;
+}
+
+/* Competition cards, titles, fixtures, historic leaders */
+.club-profile-redesign main article,
+.club-profile-redesign main [class*="rounded-[26px]"],
+.club-profile-redesign main [class*="rounded-[28px]"],
+.club-profile-redesign main [class*="rounded-[30px]"] {
+  box-shadow: none !important;
+}
+
+.club-profile-redesign main article[class*="bg-black"],
+.club-profile-redesign main a[class*="bg-black"],
+.club-profile-redesign main div[class*="bg-black"] {
+  background: #f8fcfe !important;
+  border-color: #d5e8f1 !important;
+  color: var(--club-navy) !important;
+}
+
+.club-profile-redesign main [class*="bg-[#020714]"] {
+  background: #fff !important;
+  border-color: var(--club-line) !important;
+}
+
+.club-profile-redesign main [class*="from-[#06152"],
+.club-profile-redesign main [class*="from-[#020714"],
+.club-profile-redesign main [class*="from-sky-500"] {
+  background-image: none !important;
+  background-color: #f8fcfe !important;
+}
+
+/* Stats / badges */
+.club-profile-redesign main [class*="bg-white/[0.04]"],
+.club-profile-redesign main [class*="bg-white/[0.045]"] {
+  background: #f8fcfe !important;
+  border-color: #d8e8f0 !important;
+}
+
+.club-profile-redesign main [class*="bg-sky-400/10"],
+.club-profile-redesign main [class*="bg-sky-500/10"] {
+  background: #eaf6fd !important;
+  border-color: #b9ddeb !important;
+}
+
+.club-profile-redesign main [class*="text-white"] {
+  color: var(--club-navy) !important;
+}
+
+/* Keep dark buttons legible */
+.club-profile-redesign main a[class*="bg-sky-400"],
+.club-profile-redesign main button[class*="bg-sky-400"] {
+  background: var(--club-navy) !important;
+  color: #fff !important;
+}
+
+/* Palmarés */
+.club-profile-redesign main section[class*="border-yellow"] {
+  border-color: var(--club-line) !important;
+  background: #fff !important;
+}
+
+.club-profile-redesign main section[class*="border-yellow"] [class*="text-yellow"] {
+  color: var(--club-navy) !important;
+}
+
+.club-profile-redesign main section[class*="border-yellow"] [class*="bg-yellow"] {
+  background: #eef8fd !important;
+  border-color: #b9ddeb !important;
+}
+
+/* Results */
+.club-profile-redesign main [class*="text-emerald"] {
+  color: #16845c !important;
+}
+
+.club-profile-redesign main [class*="text-red"] {
+  color: #b34747 !important;
+}
+
+.club-profile-redesign main [class*="text-yellow"] {
+  color: #9a6a14 !important;
+}
+
+.club-profile-redesign main [class*="text-purple"] {
+  color: #6d5bb7 !important;
+}
+
+/* Squad table */
+.club-profile-redesign main table {
+  color: var(--club-navy) !important;
+}
+
+.club-profile-redesign main thead tr {
+  color: var(--club-muted) !important;
+}
+
+.club-profile-redesign main tbody tr {
+  background: #f8fcfe !important;
+}
+
+.club-profile-redesign main tbody tr:hover {
+  background: #eaf6fd !important;
+  filter: none !important;
+}
+
+.club-profile-redesign main tbody td {
+  border-top: 1px solid #edf3f7 !important;
+  border-bottom: 1px solid #edf3f7 !important;
+}
+
+/* Match history */
+.club-profile-redesign main aside {
+  border-color: var(--club-line) !important;
+  background: #fff !important;
+  color: var(--club-navy) !important;
+}
+
+.club-profile-redesign main aside a {
+  background: #f8fcfe !important;
+  border-color: #d7e7ef !important;
+}
+
+.club-profile-redesign main aside a:hover {
+  background: #eaf6fd !important;
+  border-color: var(--club-sky) !important;
+}
+
+/* Loading / not found */
+.club-profile-redesign main[class*="bg-black"] {
+  background: var(--club-ice) !important;
+  color: var(--club-navy) !important;
+}
+
+.club-profile-redesign main[class*="bg-black"] [class*="text-sky"] {
+  color: var(--club-blue) !important;
+}
+
+@media (max-width: 767px) {
+  .club-profile-redesign main > section {
+    padding-inline: 12px !important;
+    padding-top: 18px !important;
+  }
+
+  .club-profile-redesign main > section > a:first-child + section,
+  .club-profile-redesign main > section > section:not(:first-of-type),
+  .club-profile-redesign main aside {
+    border-radius: 16px !important;
+  }
+}
