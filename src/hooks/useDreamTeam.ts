@@ -1,347 +1,494 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { DREAM_TEAM_CONFIG, DREAM_TEAM_POSITIONS } from "@/config/dreamTeam";
 import {
-  DREAM_TEAM_CONFIG,
-  DREAM_TEAM_POSITIONS,
-  getDreamTeamCompetitionLabel,
-  getDreamTeamPhases,
-} from "@/config/dreamTeam";
-import {
-  fetchDreamTeamAvailableDates,
-  fetchDreamTeamCurrentUser,
-  fetchDreamTeamMatches,
-  fetchDreamTeamPlayerStats,
-  fetchDreamTeamProfiles,
-  fetchDreamTeamUserProfile,
-  fetchDreamTeamVotes,
-  insertDreamTeamVote,
-} from "@/lib/dream-team/api";
+  buildUserDreamTeam,
+  buildVoteWinners,
+  currentDateIso,
+  getCandidates,
+  getCompetitionLabel,
+  getContextLabel,
+  getGkSaves,
+  getMostVotedPlayer,
+  getTopVotesForPosition,
+  phaseToDb,
+} from "@/lib/dream-team/utils";
 import type {
   DreamTeamCompetition,
+  DreamTeamLogosMap,
   DreamTeamPlayer,
   DreamTeamPositionId,
   DreamTeamProfile,
-  DreamTeamProfiles,
+  DreamTeamProfilesMap,
   DreamTeamVote,
 } from "@/lib/dream-team/types";
-import {
-  aggregateDreamTeamPlayers,
-  buildUserDreamTeam,
-  buildVotesByPosition,
-  currentDreamTeamDateISO,
-  getDreamTeamCandidates,
-  getDreamTeamContextLabel,
-  getDreamTeamTopByPosition,
-  getMostVotedDreamTeamPlayer,
-  normalizeDreamTeamPhase,
-} from "@/lib/dream-team/utils";
 
 export function useDreamTeam() {
   const [temporada, setTemporada] = useState<string>(DREAM_TEAM_CONFIG.defaultSeason);
-  const [competicion, setCompeticion] = useState<DreamTeamCompetition>(DREAM_TEAM_CONFIG.defaultCompetition);
+  const [competicion, setCompeticion] = useState<DreamTeamCompetition>(
+    DREAM_TEAM_CONFIG.defaultCompetition,
+  );
   const [division, setDivision] = useState<string>(DREAM_TEAM_CONFIG.defaultDivision);
   const [grupo, setGrupo] = useState<string>(DREAM_TEAM_CONFIG.defaultGroup);
   const [fase, setFase] = useState<string>(DREAM_TEAM_CONFIG.defaultPhase);
-  const [fecha, setFecha] = useState<string>(DREAM_TEAM_CONFIG.defaultDate);
+  const [fecha, setFecha] = useState<string>("1");
   const [fechas, setFechas] = useState<string[]>([]);
-  const [usuarioId, setUsuarioId] = useState("");
+  const [usuarioId, setUsuarioId] = useState<string>("");
   const [miPerfil, setMiPerfil] = useState<DreamTeamProfile | null>(null);
   const [jugadores, setJugadores] = useState<DreamTeamPlayer[]>([]);
   const [votos, setVotos] = useState<DreamTeamVote[]>([]);
-  const [perfilesJugadores, setPerfilesJugadores] = useState<DreamTeamProfiles>({});
+  const [logos, setLogos] = useState<DreamTeamLogosMap>({});
+  const [perfilesJugadores, setPerfilesJugadores] = useState<DreamTeamProfilesMap>({});
   const [posicionActiva, setPosicionActiva] = useState<DreamTeamPositionId | null>(null);
-  const [mensaje, setMensaje] = useState("");
-  const [cargando, setCargando] = useState(false);
+  const [mensaje, setMensaje] = useState<string>("");
 
-  const context = useMemo(
-    () => ({ temporada, competicion, division, grupo, fase, fecha }),
-    [temporada, competicion, division, grupo, fase, fecha],
-  );
-
-  const competicionLabel = useMemo(
-    () => getDreamTeamCompetitionLabel(competicion),
-    [competicion],
-  );
-  const contextoLabel = useMemo(() => getDreamTeamContextLabel(context), [context]);
+  const competicionLabel = getCompetitionLabel(competicion);
+  const contextoLabel = getContextLabel(competicion, division, grupo, fase);
+  const contextoVoto = contextoLabel;
 
   useEffect(() => {
-    const allowedPhases = getDreamTeamPhases(competicion);
-    if (!allowedPhases.includes(fase)) {
-      setFase(allowedPhases[0] ?? DREAM_TEAM_CONFIG.defaultPhase);
+    void cargarUsuario();
+  }, []);
+
+  useEffect(() => {
+    if (
+      competicion === "copa_campeones" &&
+      !DREAM_TEAM_CONFIG.championsPhases.includes(
+        fase as (typeof DREAM_TEAM_CONFIG.championsPhases)[number],
+      )
+    ) {
+      setFase("Semifinal");
+    }
+
+    if (
+      competicion === "playoffs" &&
+      !DREAM_TEAM_CONFIG.playoffsPhases.includes(
+        fase as (typeof DREAM_TEAM_CONFIG.playoffsPhases)[number],
+      )
+    ) {
+      setFase("Semifinal");
     }
   }, [competicion, fase]);
 
   useEffect(() => {
-    let active = true;
+    void cargarDatos();
+    // cargarDatos depende exactamente del contexto competitivo de esta lista.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [temporada, competicion, division, grupo, fase, fecha]);
 
-    async function loadUser() {
-      const { data, error } = await fetchDreamTeamCurrentUser();
-      if (!active) return;
+  async function cargarUsuario() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-      if (error || !data.user) {
-        setUsuarioId("");
-        setMiPerfil(null);
-        return;
-      }
-
-      setUsuarioId(data.user.id);
-      const profileResult = await fetchDreamTeamUserProfile(data.user.id);
-      if (!active) return;
-
-      if (profileResult.error) {
-        console.log(profileResult.error);
-        setMiPerfil(null);
-        return;
-      }
-
-      setMiPerfil((profileResult.data || null) as DreamTeamProfile | null);
+    if (!user) {
+      setUsuarioId("");
+      setMiPerfil(null);
+      return;
     }
 
-    void loadUser();
-    return () => {
-      active = false;
-    };
-  }, []);
+    setUsuarioId(user.id);
 
-  const loadData = useCallback(async () => {
-    setCargando(true);
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, display_name, username, playerid, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.log(error);
+      setMiPerfil(null);
+      return;
+    }
+
+    setMiPerfil((data || null) as DreamTeamProfile | null);
+  }
+
+  function aplicarFiltroPartidos(query: any) {
+    query = query.eq("temporada", temporada).eq("competicion", competicion);
+
+    if (competicion === "liga") {
+      query = query.in("division", [division, division.toLowerCase()]);
+    }
+
+    if (competicion === "copa_clasificatoria") {
+      query = query.eq("fase", "grupos").eq("grupo", grupo);
+    }
+
+    if (
+      ["copa_argentina", "copa_apa", "copa_campeones", "playoffs"].includes(
+        competicion,
+      )
+    ) {
+      query = query.eq("fase", phaseToDb(fase));
+    }
+
+    return query;
+  }
+
+  async function cargarFechasDisponibles() {
+    let query: any = supabase.from("partidos").select("fecha");
+    query = aplicarFiltroPartidos(query);
+
+    const { data, error } = await query.order("fecha", { ascending: true });
+
+    if (error) {
+      console.log(error);
+      setFechas(["1"]);
+      return ["1"];
+    }
+
+    const lista = Array.from(
+      new Set(
+        (data || [])
+          .map((partido: any) => String(partido.fecha || ""))
+          .filter(Boolean),
+      ),
+    ).sort((a, b) => Number(a) - Number(b));
+
+    const finales = lista.length > 0 ? lista : ["1"];
+    setFechas(finales);
+
+    if (!finales.includes(String(fecha))) {
+      setFecha(finales[0]);
+    }
+
+    return finales;
+  }
+
+  async function cargarVotos(fechaObjetivo = fecha) {
+    let query: any = supabase
+      .from("public_dream_team_votos")
+      .select(
+        "id, temporada, division, competicion, fase, grupo, fecha, posicion, playerId, nombre, equipo, usuario, fecha_voto",
+      )
+      .eq("temporada", temporada)
+      .eq("division", contextoVoto)
+      .eq("fecha", fechaObjetivo)
+      .eq("competicion", competicion);
+
+    if (competicion === "copa_clasificatoria") {
+      query = query.eq("grupo", grupo).eq("fase", "grupos");
+    }
+
+    if (
+      ["copa_argentina", "copa_apa", "copa_campeones", "playoffs"].includes(
+        competicion,
+      )
+    ) {
+      query = query.eq("fase", phaseToDb(fase));
+    }
+
+    const result = await query;
+    if (!result.error) return result;
+
+    return supabase
+      .from("public_dream_team_votos")
+      .select(
+        "id, temporada, division, fecha, posicion, playerId, nombre, equipo, usuario, fecha_voto",
+      )
+      .eq("temporada", temporada)
+      .eq("division", contextoVoto)
+      .eq("fecha", fechaObjetivo);
+  }
+
+  async function cargarDatos() {
     setMensaje("");
     setPosicionActiva(null);
 
-    try {
-      const datesResult = await fetchDreamTeamAvailableDates(context);
-      let availableDates: string[] = [DREAM_TEAM_CONFIG.defaultDate];
+    const disponibles = await cargarFechasDisponibles();
+    const fechaObjetivo = disponibles.includes(String(fecha))
+      ? String(fecha)
+      : disponibles[0];
 
-      if (datesResult.error) {
-        console.log(datesResult.error);
-      } else {
-        const parsedDates = Array.from(
-          new Set(
-            (datesResult.data || [])
-              .map((row: { fecha?: string | number | null }) => String(row.fecha || ""))
-              .filter(Boolean),
-          ),
-        ).sort((a, b) => {
-          const aNumber = Number(a);
-          const bNumber = Number(b);
-          if (Number.isFinite(aNumber) && Number.isFinite(bNumber)) return aNumber - bNumber;
-          return a.localeCompare(b, "es", { numeric: true });
-        });
+    let partidosQuery: any = supabase
+      .from("partidos")
+      .select("partido_id, local, visitante")
+      .eq("fecha", fechaObjetivo);
+    partidosQuery = aplicarFiltroPartidos(partidosQuery);
 
-        if (parsedDates.length > 0) availableDates = parsedDates;
-      }
+    const { data: partidosData, error: partidosError } = await partidosQuery;
 
-      setFechas(availableDates);
-      if (!availableDates.includes(fecha)) {
-        setFecha(availableDates[0]);
-        return;
-      }
-
-      const [matchesResult, votesResult] = await Promise.all([
-        fetchDreamTeamMatches(context),
-        fetchDreamTeamVotes(context),
-      ]);
-
-      if (matchesResult.error) {
-        console.log(matchesResult.error);
-        setJugadores([]);
-        setVotos([]);
-        setPerfilesJugadores({});
-        return;
-      }
-
-      const matches = matchesResult.data || [];
-      const matchIds = Array.from(
-        new Set(
-          matches
-            .map((match) => match.partido_id)
-            .filter((id): id is string | number => id !== null && id !== undefined),
-        ),
-      );
-
-      const statsResult = await fetchDreamTeamPlayerStats(matchIds);
-      if (statsResult.error) {
-        console.log(statsResult.error);
-        setJugadores([]);
-        setVotos([]);
-        setPerfilesJugadores({});
-        return;
-      }
-
-      if (votesResult.error) console.log(votesResult.error);
-
-      const players = aggregateDreamTeamPlayers(statsResult.data || []);
-      const voteRows = (votesResult.data || []) as DreamTeamVote[];
-      setJugadores(players);
-      setVotos(voteRows);
-
-      const playerIds = Array.from(
-        new Set([
-          ...players.map((player) => player.playerId).filter(Boolean),
-          ...voteRows.map((vote) => vote.playerId || "").filter(Boolean),
-        ]),
-      );
-
-      const profilesResult = await fetchDreamTeamProfiles(playerIds);
-      if (profilesResult.error) {
-        console.log(profilesResult.error);
-        setPerfilesJugadores({});
-      } else {
-        const profileMap: DreamTeamProfiles = {};
-        (profilesResult.data || []).forEach((profile) => {
-          if (profile.playerid) profileMap[profile.playerid] = profile;
-        });
-        setPerfilesJugadores(profileMap);
-      }
-    } finally {
-      setCargando(false);
+    if (partidosError) {
+      console.log(partidosError);
+      setJugadores([]);
+      setVotos([]);
+      setLogos({});
+      setPerfilesJugadores({});
+      return;
     }
-  }, [context, fecha]);
 
-  useEffect(() => {
-    void loadData();
-  }, [loadData]);
+    const partidoIds = Array.from(
+      new Set(
+        (partidosData || [])
+          .map((partido: any) => partido.partido_id)
+          .filter(Boolean),
+      ),
+    );
 
-  const votosPorPosicion = useMemo(() => buildVotesByPosition(votos), [votos]);
-  const miDreamTeam = useMemo(() => buildUserDreamTeam(votos, usuarioId), [votos, usuarioId]);
-  const jugadorMasVotado = useMemo(() => getMostVotedDreamTeamPlayer(votos), [votos]);
-
-  const topPorPosicion = useCallback(
-    (position: DreamTeamPositionId) => getDreamTeamTopByPosition(votos, position),
-    [votos],
-  );
-
-  const candidatos = useCallback(
-    (position: DreamTeamPositionId) => getDreamTeamCandidates(jugadores, position),
-    [jugadores],
-  );
-
-  const votar = useCallback(
-    async (jugador: DreamTeamPlayer) => {
-      setMensaje("");
-
-      const { data, error: authError } = await fetchDreamTeamCurrentUser();
-      if (authError || !data.user) {
-        setMensaje("Tenés que iniciar sesión para votar el Dream Team.");
-        return;
-      }
-
-      if (!posicionActiva) return;
-      setUsuarioId(data.user.id);
-
-      const userVotes = votos.filter(
-        (vote) =>
-          vote.temporada === temporada &&
-          vote.division === contextoLabel &&
-          String(vote.fecha) === String(fecha) &&
-          (!vote.competicion || vote.competicion === competicion) &&
-          vote.usuario === data.user.id,
-      );
-
-      if (userVotes.some((vote) => vote.posicion === posicionActiva)) {
-        setMensaje(`Ya votaste la posición ${posicionActiva} en tu Dream Team de la Fecha ${fecha}.`);
-        return;
-      }
-
-      if (userVotes.length >= DREAM_TEAM_POSITIONS.length) {
-        setMensaje(`Ya completaste tu Dream Team de la Fecha ${fecha}.`);
-        return;
-      }
-
-      if (
-        userVotes.some(
-          (vote) => (vote.playerId || vote.nombre) === (jugador.playerId || jugador.nombre),
+    let statsResult: any = { data: [], error: null };
+    if (partidoIds.length > 0) {
+      statsResult = await supabase
+        .from("estadisticas_jugadores")
+        .select(
+          "nombre, playerId, equipo, posicion, goals, assists, overallRating, rating_apa, gKSaves, score, mvp",
         )
-      ) {
-        setMensaje(
-          `${jugador.nombre} ya está en otra posición de tu Dream Team de la Fecha ${fecha}. Elegí otro jugador.`,
-        );
-        return;
-      }
-
-      const result = await insertDreamTeamVote({
-        temporada,
-        division: contextoLabel,
-        competicion,
-        fase:
-          competicion === "liga"
-            ? null
-            : competicion === "copa_clasificatoria"
-              ? "grupos"
-              : normalizeDreamTeamPhase(fase),
-        grupo: competicion === "copa_clasificatoria" ? grupo : null,
-        fecha,
-        posicion: posicionActiva,
-        playerId: jugador.playerId,
-        nombre: jugador.nombre,
-        equipo: jugador.equipo,
-        usuario: data.user.id,
-        fecha_voto: currentDreamTeamDateISO(),
-      });
-
-      if (result.error) {
-        console.log(result.error);
-        setMensaje(
-          result.error.code === "23505"
-            ? "Ya registraste ese voto para esta fecha."
-            : "Error guardando voto.",
-        );
-        return;
-      }
-
-      setMensaje(`Voto guardado para ${posicionActiva}: ${jugador.nombre}`);
-      setPosicionActiva(null);
-      await loadData();
-    },
-    [competicion, contextoLabel, fase, fecha, grupo, loadData, posicionActiva, temporada, votos],
-  );
-
-  const compartir = useCallback(async () => {
-    const texto = DREAM_TEAM_POSITIONS
-      .map((position) => `${position.id}: ${miDreamTeam[position.id]?.nombre || "-"}`)
-      .join("\n");
-    const shareText = `Mi Dream Team Fecha ${fecha}\n${temporada} / ${division}\n\n${texto}`;
-
-    try {
-      await navigator.clipboard.writeText(shareText);
-      setMensaje("Dream Team copiado al portapapeles.");
-    } catch {
-      setMensaje("No se pudo copiar el Dream Team.");
+        .in("partido_id", partidoIds);
     }
-  }, [division, fecha, miDreamTeam, temporada]);
 
-  const setCompetition = useCallback((value: DreamTeamCompetition) => {
-    setCompeticion(value);
-    setFecha(DREAM_TEAM_CONFIG.defaultDate);
-  }, []);
+    const votosResult = await cargarVotos(fechaObjetivo);
 
-  const setDivisionFilter = useCallback((value: string) => {
-    setDivision(value);
-    setFecha(DREAM_TEAM_CONFIG.defaultDate);
-  }, []);
+    if (statsResult.error) {
+      console.log(statsResult.error);
+      setJugadores([]);
+      setVotos([]);
+      setPerfilesJugadores({});
+      return;
+    }
 
-  const setGroupFilter = useCallback((value: string) => {
-    setGrupo(value);
-    setFecha(DREAM_TEAM_CONFIG.defaultDate);
-  }, []);
+    if (votosResult.error) console.log(votosResult.error);
 
-  const setPhaseFilter = useCallback((value: string) => {
-    setFase(value);
-    setFecha(DREAM_TEAM_CONFIG.defaultDate);
-  }, []);
+    const mapa: Record<string, any> = {};
+    for (const row of statsResult.data || []) {
+      const nombre = String(row.nombre || "").trim();
+      const playerId = String(row.playerId || "").trim();
+      if (!nombre) continue;
+
+      const key = playerId || nombre;
+      if (!mapa[key]) {
+        mapa[key] = {
+          nombre,
+          playerId,
+          equipo: row.equipo || "Sin Club",
+          posicion: row.posicion || "",
+          partidos: 0,
+          goles: 0,
+          asistencias: 0,
+          ratingApaTotal: 0,
+          score: 0,
+          mvps: 0,
+          atajadas: 0,
+        };
+      }
+
+      mapa[key].partidos += 1;
+      mapa[key].goles += Number(row.goals || 0);
+      mapa[key].asistencias += Number(row.assists || 0);
+      mapa[key].ratingApaTotal += Number(row.rating_apa || row.overallRating || 0);
+      mapa[key].atajadas += getGkSaves(row);
+      mapa[key].score += Number(row.score || 0);
+      mapa[key].mvps += Number(row.mvp || 0);
+      if (row.equipo) mapa[key].equipo = row.equipo;
+      if (row.posicion) mapa[key].posicion = row.posicion;
+      if (row.playerId) mapa[key].playerId = row.playerId;
+      if (row.nombre) mapa[key].nombre = row.nombre;
+    }
+
+    const players: DreamTeamPlayer[] = Object.values(mapa).map((player: any) => {
+      const rating =
+        player.partidos > 0
+          ? Math.round((player.ratingApaTotal / player.partidos) * 10) / 10
+          : 0;
+      return { ...player, rating, rating_apa: rating };
+    });
+
+    const voteData = (votosResult.data || []) as DreamTeamVote[];
+    setJugadores(players);
+    setVotos(voteData);
+
+    const playerIds = Array.from(
+      new Set(
+        [
+          ...players.map((player) => player.playerId),
+          ...voteData.map((vote) => vote.playerId || ""),
+        ].filter((value): value is string => Boolean(value)),
+      ),
+    );
+
+    if (playerIds.length > 0) {
+      const { data, error } = await supabase
+        .from("public_profiles")
+        .select("id, display_name, username, playerid, avatar_url")
+        .in("playerid", playerIds);
+
+      if (error) {
+        console.log(error);
+        setPerfilesJugadores({});
+      } else {
+        const profiles: DreamTeamProfilesMap = {};
+        for (const profile of data || []) {
+          if (profile.playerid) profiles[profile.playerid] = profile as DreamTeamProfile;
+        }
+        setPerfilesJugadores(profiles);
+      }
+    } else {
+      setPerfilesJugadores({});
+    }
+
+    const clubNames = Array.from(
+      new Set(
+        [
+          ...(partidosData || []).flatMap((partido: any) => [partido.local, partido.visitante]),
+          ...players.map((player) => player.equipo),
+          ...voteData.map((vote) => vote.equipo),
+        ].filter((value): value is string => Boolean(value)),
+      ),
+    );
+
+    if (clubNames.length > 0) {
+      const { data, error } = await supabase
+        .from("clubes_info")
+        .select("nombre, logo_url")
+        .in("nombre", clubNames);
+
+      if (error) console.log(error);
+      const logoMap: DreamTeamLogosMap = {};
+      for (const club of data || []) {
+        if (club.nombre && club.logo_url) logoMap[club.nombre] = club.logo_url;
+      }
+      setLogos(logoMap);
+    } else {
+      setLogos({});
+    }
+  }
+
+  const votosPorPosicion = useMemo(() => buildVoteWinners(votos), [votos]);
+  const miDreamTeam = useMemo(
+    () => buildUserDreamTeam(votos, usuarioId),
+    [votos, usuarioId],
+  );
+  const jugadorMasVotado = useMemo(() => getMostVotedPlayer(votos), [votos]);
+
+  function topPorPosicion(position: DreamTeamPositionId) {
+    return getTopVotesForPosition(votos, position);
+  }
+
+  function candidatos(position: DreamTeamPositionId) {
+    return getCandidates(jugadores, position);
+  }
+
+  async function votar(jugador: DreamTeamPlayer) {
+    setMensaje("");
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setMensaje("Tenés que iniciar sesión para votar el Dream Team.");
+      return;
+    }
+
+    if (!posicionActiva) return;
+    setUsuarioId(user.id);
+
+    const votosMismaFecha = votos.filter(
+      (vote) =>
+        vote.temporada === temporada &&
+        vote.division === contextoVoto &&
+        String(vote.fecha) === String(fecha) &&
+        (!vote.competicion || vote.competicion === competicion) &&
+        vote.usuario === user.id,
+    );
+
+    if (votosMismaFecha.some((vote) => vote.posicion === posicionActiva)) {
+      setMensaje(
+        `Ya votaste la posición ${posicionActiva} en tu Dream Team de la Fecha ${fecha}.`,
+      );
+      return;
+    }
+
+    if (votosMismaFecha.length >= DREAM_TEAM_POSITIONS.length) {
+      setMensaje(`Ya completaste tu Dream Team de la Fecha ${fecha}.`);
+      return;
+    }
+
+    if (
+      votosMismaFecha.some(
+        (vote) =>
+          (vote.playerId || vote.nombre) === (jugador.playerId || jugador.nombre),
+      )
+    ) {
+      setMensaje(
+        `${jugador.nombre} ya está en otra posición de tu Dream Team de la Fecha ${fecha}. Elegí otro jugador.`,
+      );
+      return;
+    }
+
+    const payload = {
+      temporada,
+      division: contextoVoto,
+      competicion,
+      fase:
+        competicion === "liga"
+          ? null
+          : competicion === "copa_clasificatoria"
+            ? "grupos"
+            : phaseToDb(fase),
+      grupo: competicion === "copa_clasificatoria" ? grupo : null,
+      fecha,
+      posicion: posicionActiva,
+      playerId: jugador.playerId,
+      nombre: jugador.nombre,
+      equipo: jugador.equipo,
+      usuario: user.id,
+      fecha_voto: currentDateIso(),
+    };
+
+    let { error } = await supabase.from("dream_team_votos").insert([payload]);
+
+    if (error && String(error.message || "").toLowerCase().includes("column")) {
+      const {
+        competicion: _competition,
+        fase: _phase,
+        grupo: _group,
+        ...legacyPayload
+      } = payload;
+      const retry = await supabase.from("dream_team_votos").insert([legacyPayload]);
+      error = retry.error;
+    }
+
+    if (error) {
+      console.log(error);
+      setMensaje(
+        error.code === "23505"
+          ? "Ya registraste ese voto para esta fecha."
+          : "Error guardando voto.",
+      );
+      return;
+    }
+
+    setMensaje(`Voto guardado para ${posicionActiva}: ${jugador.nombre}`);
+    setPosicionActiva(null);
+    await cargarDatos();
+  }
+
+  async function compartir() {
+    const texto = DREAM_TEAM_POSITIONS.map(
+      (position) => `${position.id}: ${miDreamTeam[position.id]?.nombre || "-"}`,
+    ).join("\n");
+
+    const mensajeCompartir = `Mi Dream Team Fecha ${fecha}\n${temporada} / ${contextoLabel}\n\n${texto}`;
+
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(mensajeCompartir);
+      setMensaje("Dream Team copiado al portapapeles.");
+    }
+  }
 
   return {
     temporada,
     setTemporada,
     competicion,
-    setCompetition,
+    setCompeticion,
     division,
-    setDivisionFilter,
+    setDivision,
     grupo,
-    setGroupFilter,
+    setGrupo,
     fase,
-    setPhaseFilter,
+    setFase,
     fecha,
     setFecha,
     fechas,
@@ -349,14 +496,13 @@ export function useDreamTeam() {
     miPerfil,
     jugadores,
     votos,
+    logos,
     perfilesJugadores,
     posicionActiva,
     setPosicionActiva,
     mensaje,
-    cargando,
     competicionLabel,
     contextoLabel,
-    fasesDisponibles: getDreamTeamPhases(competicion),
     votosPorPosicion,
     miDreamTeam,
     jugadorMasVotado,
@@ -367,4 +513,4 @@ export function useDreamTeam() {
   };
 }
 
-export type DreamTeamController = ReturnType<typeof useDreamTeam>;
+export type UseDreamTeamReturn = ReturnType<typeof useDreamTeam>;

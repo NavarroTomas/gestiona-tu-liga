@@ -1,35 +1,35 @@
 "use client";
 
 import { DREAM_TEAM_POSITIONS } from "@/config/dreamTeam";
-import type { DreamTeamController } from "@/hooks/useDreamTeam";
-import type { DreamTeamPositionId } from "@/lib/dream-team/types";
+import type { UseDreamTeamReturn } from "@/hooks/useDreamTeam";
 import {
-  DreamTeamPlayerAvatar,
+  DreamTeamAvatar,
   DreamTeamPlayerName,
 } from "./DreamTeamPlayerIdentity";
+import { DreamTeamCandidateList } from "./DreamTeamCandidateList";
 
-export default function DreamTeamSidebar({
+export function DreamTeamSidebar({
   jugadorMasVotado,
-  miDreamTeam,
   perfilesJugadores,
+  miDreamTeam,
   compartir,
   posicionActiva,
   topPorPosicion,
   candidatos,
   votar,
 }: Pick<
-  DreamTeamController,
+  UseDreamTeamReturn,
   | "jugadorMasVotado"
-  | "miDreamTeam"
   | "perfilesJugadores"
+  | "miDreamTeam"
   | "compartir"
   | "posicionActiva"
   | "topPorPosicion"
   | "candidatos"
   | "votar"
 >) {
-  const top = posicionActiva ? topPorPosicion(posicionActiva) : [];
-  const candidates = posicionActiva ? candidatos(posicionActiva) : [];
+  const candidatosActuales = posicionActiva ? candidatos(posicionActiva) : [];
+  const topActual = posicionActiva ? topPorPosicion(posicionActiva) : [];
 
   return (
     <aside className="space-y-6">
@@ -38,17 +38,17 @@ export default function DreamTeamSidebar({
           MVP de la fecha
         </p>
         <div className="mt-4 flex items-center gap-4">
-          <DreamTeamPlayerAvatar
+          <DreamTeamAvatar
             playerId={jugadorMasVotado?.playerId}
             nombre={jugadorMasVotado?.nombre || "-"}
-            profiles={perfilesJugadores}
+            perfiles={perfilesJugadores}
           />
           <div className="min-w-0">
             <h2 className="break-words text-2xl font-black uppercase sm:truncate sm:text-3xl">
               <DreamTeamPlayerName
                 playerId={jugadorMasVotado?.playerId}
                 nombre={jugadorMasVotado?.nombre || "-"}
-                profiles={perfilesJugadores}
+                perfiles={perfilesJugadores}
               />
             </h2>
             <p className="mt-2 truncate text-zinc-500">
@@ -86,7 +86,7 @@ export default function DreamTeamSidebar({
 
         <div className="mt-5 grid grid-cols-1 gap-2">
           {DREAM_TEAM_POSITIONS.map((position) => {
-            const player = miDreamTeam[position.id];
+            const selected = miDreamTeam[position.id];
             return (
               <div
                 key={position.id}
@@ -94,20 +94,20 @@ export default function DreamTeamSidebar({
               >
                 <span className="font-black text-yellow-300">{position.id}</span>
                 <div className="flex min-w-0 items-center gap-2">
-                  {player && (
-                    <DreamTeamPlayerAvatar
-                      playerId={player.playerId}
-                      nombre={player.nombre}
-                      profiles={perfilesJugadores}
+                  {selected && (
+                    <DreamTeamAvatar
+                      playerId={selected.playerId}
+                      nombre={selected.nombre}
+                      perfiles={perfilesJugadores}
                       size="sm"
                     />
                   )}
                   <span className="truncate text-sm text-zinc-300">
-                    {player ? (
+                    {selected ? (
                       <DreamTeamPlayerName
-                        playerId={player.playerId}
-                        nombre={player.nombre}
-                        profiles={perfilesJugadores}
+                        playerId={selected.playerId}
+                        nombre={selected.nombre}
+                        perfiles={perfilesJugadores}
                       />
                     ) : (
                       "-"
@@ -137,27 +137,27 @@ export default function DreamTeamSidebar({
               Top 3 actual
             </p>
             <div className="space-y-2">
-              {top.length === 0 ? (
+              {topActual.length === 0 ? (
                 <p className="text-sm text-zinc-500">Sin votos todavía.</p>
               ) : (
-                top.map((player, index) => (
+                topActual.map((player, index) => (
                   <div
                     key={player.playerId || player.nombre}
                     className="flex items-center justify-between gap-3 text-sm"
                   >
                     <div className="flex min-w-0 items-center gap-2">
                       <span className="font-black text-zinc-500">{index + 1}.</span>
-                      <DreamTeamPlayerAvatar
+                      <DreamTeamAvatar
                         playerId={player.playerId}
                         nombre={player.nombre}
-                        profiles={perfilesJugadores}
+                        perfiles={perfilesJugadores}
                         size="sm"
                       />
                       <span className="truncate text-white">
                         <DreamTeamPlayerName
                           playerId={player.playerId}
                           nombre={player.nombre}
-                          profiles={perfilesJugadores}
+                          perfiles={perfilesJugadores}
                         />
                       </span>
                     </div>
@@ -170,90 +170,12 @@ export default function DreamTeamSidebar({
         )}
       </section>
 
-      <CandidateList
-        position={posicionActiva}
-        candidates={candidates}
-        profiles={perfilesJugadores}
+      <DreamTeamCandidateList
+        posicionActiva={posicionActiva}
+        candidatos={candidatosActuales}
+        perfiles={perfilesJugadores}
         onVote={votar}
       />
     </aside>
-  );
-}
-
-function CandidateList({
-  position,
-  candidates,
-  profiles,
-  onVote,
-}: {
-  position: DreamTeamPositionId | null;
-  candidates: ReturnType<DreamTeamController["candidatos"]>;
-  profiles: DreamTeamController["perfilesJugadores"];
-  onVote: DreamTeamController["votar"];
-}) {
-  return (
-    <section className="max-h-[560px] overflow-y-auto rounded-[28px] border border-sky-500/25 bg-[#020714] p-4 sm:max-h-[760px] sm:rounded-[34px]">
-      {!position ? (
-        <div className="p-8 text-center text-zinc-500">No hay posición seleccionada.</div>
-      ) : candidates.length === 0 ? (
-        <div className="p-8 text-center text-zinc-500">
-          No hay candidatos para esta posición.
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {candidates.map((player) => (
-            <button
-              key={player.playerId || player.nombre}
-              type="button"
-              onClick={() => onVote(player)}
-              className="w-full rounded-2xl border border-sky-500/15 bg-black/35 p-3 text-left transition hover:border-yellow-300/60 hover:bg-yellow-400/10 sm:p-4"
-            >
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex min-w-0 items-center gap-3">
-                  <DreamTeamPlayerAvatar
-                    playerId={player.playerId}
-                    nombre={player.nombre}
-                    profiles={profiles}
-                  />
-                  <div className="min-w-0">
-                    <p className="break-words text-base font-black uppercase sm:truncate sm:text-lg">
-                      <DreamTeamPlayerName
-                        playerId={player.playerId}
-                        nombre={player.nombre}
-                        profiles={profiles}
-                      />
-                    </p>
-                    <p className="truncate text-sm text-zinc-500">
-                      {player.equipo} · {player.posicion || "Sin posición"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <p className="text-xl font-black text-yellow-300 sm:text-2xl">{player.rating}</p>
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-zinc-500">rating</p>
-                </div>
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-2 text-center text-xs sm:grid-cols-4">
-                <CandidateStat value={player.partidos} label="PJ" />
-                <CandidateStat value={player.goles} label="G" />
-                <CandidateStat value={player.asistencias} label="A" />
-                <CandidateStat value={player.atajadas} label="ATAJ" />
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}
-
-function CandidateStat({ value, label }: { value: number; label: string }) {
-  return (
-    <div className="rounded-xl bg-white/[0.04] p-2">
-      <b>{value}</b>
-      <p className="text-zinc-500">{label}</p>
-    </div>
   );
 }

@@ -1,22 +1,11 @@
 "use client";
 
-import DreamTeamFilters from "@/components/dream-team/DreamTeamFilters";
-import DreamTeamFormation from "@/components/dream-team/DreamTeamFormation";
-import DreamTeamHero from "@/components/dream-team/DreamTeamHero";
-import DreamTeamSidebar from "@/components/dream-team/DreamTeamSidebar";
+import { DreamTeamHero } from "@/components/dream-team/DreamTeamHero";
+import { DreamTeamFilters } from "@/components/dream-team/DreamTeamFilters";
+import { DreamTeamFormation } from "@/components/dream-team/DreamTeamFormation";
+import { DreamTeamSidebar } from "@/components/dream-team/DreamTeamSidebar";
 import { useDreamTeam } from "@/hooks/useDreamTeam";
 
-/**
- * Ensamblador de la pantalla Dream Team.
- *
- * - Configuración editable: `src/config/dreamTeam.ts`
- * - Estado y acciones: `src/hooks/useDreamTeam.ts`
- * - Acceso a Supabase: `src/lib/dream-team/api.ts`
- * - Cálculos puros: `src/lib/dream-team/utils.ts`
- * - UI: `src/components/dream-team/*`
- *
- * La página no contiene reglas de negocio ni consultas a la base de datos.
- */
 export default function DreamTeamPage() {
   const dreamTeam = useDreamTeam();
 
@@ -36,17 +25,16 @@ export default function DreamTeamPage() {
           temporada={dreamTeam.temporada}
           setTemporada={dreamTeam.setTemporada}
           competicion={dreamTeam.competicion}
-          setCompetition={dreamTeam.setCompetition}
+          setCompeticion={dreamTeam.setCompeticion}
           division={dreamTeam.division}
-          setDivisionFilter={dreamTeam.setDivisionFilter}
+          setDivision={dreamTeam.setDivision}
           grupo={dreamTeam.grupo}
-          setGroupFilter={dreamTeam.setGroupFilter}
+          setGrupo={dreamTeam.setGrupo}
           fase={dreamTeam.fase}
-          setPhaseFilter={dreamTeam.setPhaseFilter}
+          setFase={dreamTeam.setFase}
           fecha={dreamTeam.fecha}
           setFecha={dreamTeam.setFecha}
           fechas={dreamTeam.fechas}
-          fasesDisponibles={dreamTeam.fasesDisponibles}
         />
 
         {dreamTeam.mensaje && (
@@ -59,13 +47,14 @@ export default function DreamTeamPage() {
           <DreamTeamFormation
             votosPorPosicion={dreamTeam.votosPorPosicion}
             perfilesJugadores={dreamTeam.perfilesJugadores}
+            logos={dreamTeam.logos}
             setPosicionActiva={dreamTeam.setPosicionActiva}
           />
 
           <DreamTeamSidebar
             jugadorMasVotado={dreamTeam.jugadorMasVotado}
-            miDreamTeam={dreamTeam.miDreamTeam}
             perfilesJugadores={dreamTeam.perfilesJugadores}
+            miDreamTeam={dreamTeam.miDreamTeam}
             compartir={dreamTeam.compartir}
             posicionActiva={dreamTeam.posicionActiva}
             topPorPosicion={dreamTeam.topPorPosicion}

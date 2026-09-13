@@ -1,21 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import type { DreamTeamProfiles } from "@/lib/dream-team/types";
+import type { DreamTeamLogosMap, DreamTeamProfilesMap } from "@/lib/dream-team/types";
 
-export function DreamTeamPlayerAvatar({
+export function DreamTeamAvatar({
   playerId,
   nombre,
-  profiles,
+  perfiles,
   size = "md",
 }: {
   playerId?: string | null;
   nombre?: string | null;
-  profiles: DreamTeamProfiles;
+  perfiles: DreamTeamProfilesMap;
   size?: "sm" | "md";
 }) {
-  const profile = playerId ? profiles[playerId] : null;
-  const initial = String(nombre || "J").slice(0, 1).toUpperCase();
+  const perfil = playerId ? perfiles[playerId] : null;
+  const inicial = String(nombre || "J").slice(0, 1).toUpperCase();
   const sizeClass =
     size === "sm"
       ? "h-9 w-9 sm:h-10 sm:w-10 text-sm"
@@ -25,49 +25,75 @@ export function DreamTeamPlayerAvatar({
     <div
       className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-yellow-400/25 bg-yellow-400/10 font-black text-yellow-300 ${sizeClass}`}
     >
-      {profile?.avatar_url ? (
+      {perfil?.avatar_url ? (
         <img
-          src={profile.avatar_url}
+          src={perfil.avatar_url}
           alt={nombre || "Jugador"}
           className="h-full w-full object-cover"
         />
       ) : (
-        initial
+        inicial
       )}
     </div>
   );
 
-  if (!profile?.username) return avatar;
+  if (perfil?.username) {
+    return (
+      <Link href={`/u/${perfil.username}`} className="transition hover:scale-105">
+        {avatar}
+      </Link>
+    );
+  }
 
-  return (
-    <Link href={`/u/${profile.username}`} className="transition hover:scale-105">
-      {avatar}
-    </Link>
-  );
+  return avatar;
 }
 
 export function DreamTeamPlayerName({
   playerId,
   nombre,
-  profiles,
+  perfiles,
   className = "",
 }: {
   playerId?: string | null;
   nombre?: string | null;
-  profiles: DreamTeamProfiles;
+  perfiles: DreamTeamProfilesMap;
   className?: string;
 }) {
-  const profile = playerId ? profiles[playerId] : null;
-  const text = nombre || "Sin nombre";
+  const perfil = playerId ? perfiles[playerId] : null;
+  const texto = nombre || "Sin nombre";
 
-  if (!profile?.username) return <span className={className}>{text}</span>;
+  if (perfil?.username) {
+    return (
+      <Link
+        href={`/u/${perfil.username}`}
+        className={`transition hover:text-yellow-300 ${className}`}
+      >
+        {texto}
+      </Link>
+    );
+  }
+
+  return <span className={className}>{texto}</span>;
+}
+
+export function DreamTeamClubLogo({
+  equipo,
+  logos,
+}: {
+  equipo?: string;
+  logos: DreamTeamLogosMap;
+}) {
+  const logo = equipo ? logos[equipo] : "";
 
   return (
-    <Link
-      href={`/u/${profile.username}`}
-      className={`transition hover:text-yellow-300 ${className}`}
-    >
-      {text}
-    </Link>
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-sky-400/30 bg-black sm:h-10 sm:w-10">
+      {logo ? (
+        <img src={logo} alt={equipo} className="h-full w-full object-contain p-1" />
+      ) : (
+        <span className="text-[10px] font-black text-white">
+          {(equipo || "?").slice(0, 2).toUpperCase()}
+        </span>
+      )}
+    </div>
   );
 }
