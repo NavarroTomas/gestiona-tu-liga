@@ -1,0 +1,318 @@
+/*
+ * Ajustes visuales finales de la ficha de club.
+ *
+ * Esta hoja se carga DESPUÉS de club-profile-redesign.css y
+ * club-profile-contrast.css. Acá viven únicamente correcciones puntuales
+ * aprobadas visualmente, para evitar que reglas genéricas vuelvan a pisarlas.
+ */
+
+/* =========================================================
+   1. HERO
+   Se deja sin cambios.
+   ========================================================= */
+
+/* =========================================================
+   2. RENDIMIENTO POR COMPETICIÓN
+   Las cajas azules de PJ / PG / GF / GC siempre llevan texto blanco.
+   ========================================================= */
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(2)
+  article
+  [class*="bg-white/[0.04]"],
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(2)
+  article
+  [class*="bg-white/[0.045]"] {
+  background: #245f8e !important;
+  border-color: #3476a8 !important;
+  color: #ffffff !important;
+}
+
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(2)
+  article
+  [class*="bg-white/[0.04]"] *,
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(2)
+  article
+  [class*="bg-white/[0.045]"] * {
+  color: #ffffff !important;
+}
+
+/* Barra inferior de puntos / puesto también en blanco sobre navy. */
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(2)
+  article
+  [class*="bg-sky-400/10"],
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(2)
+  article
+  [class*="bg-sky-400/10"] * {
+  color: #ffffff !important;
+}
+
+/* =========================================================
+   3. PALMARÉS
+   El contador superior derecho es claro: texto oscuro.
+   ========================================================= */
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(3)
+  > div:first-child
+  > span {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #102f55 !important;
+}
+
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(3)
+  > div:first-child
+  > span * {
+  color: #102f55 !important;
+}
+
+/* =========================================================
+   4. PRÓXIMO PARTIDO / RÉCORD
+   Se deja sin cambios.
+   ========================================================= */
+
+/* =========================================================
+   5. ÚLTIMOS PARTIDOS
+   Marcadores: fondo blanco y texto oscuro para eliminar el brillo.
+   ========================================================= */
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(5)
+  a
+  > p[class*="bg-yellow"] {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #102f55 !important;
+  box-shadow: none !important;
+}
+
+/* Cobertura por si cambia el orden de clases del marcador. */
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(5)
+  a
+  p[class*="text-yellow"] {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #102f55 !important;
+  box-shadow: none !important;
+}
+
+/* =========================================================
+   6. FIGURA HISTÓRICA Y LÍDERES
+   Primera tarjeta: geometría limpia y TODO el texto blanco.
+   ========================================================= */
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(6)
+  > a:first-of-type {
+  background: #123f69 !important;
+  border-color: #2a5f89 !important;
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  box-shadow: none !important;
+}
+
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(6)
+  > a:first-of-type
+  > div.absolute {
+  display: none !important;
+}
+
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(6)
+  > a:first-of-type,
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(6)
+  > a:first-of-type * {
+  color: #ffffff !important;
+}
+
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(6)
+  > a:first-of-type
+  [class*="bg-black"] {
+  background: #1d4d79 !important;
+  border-color: #356b94 !important;
+}
+
+/* =========================================================
+   7. PLANTEL + HISTORIAL
+   Toda la zona blanca y TODO el texto oscuro.
+   ========================================================= */
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7) {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #102f55 !important;
+}
+
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  > div,
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  > aside {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #102f55 !important;
+  box-shadow: none !important;
+}
+
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7) *,
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  > aside * {
+  color: #102f55 !important;
+}
+
+/* Tabla completamente blanca. */
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  table,
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  thead,
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  tbody,
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  tbody tr,
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  tbody tr:nth-child(even),
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  tbody tr:hover {
+  background: #ffffff !important;
+  color: #102f55 !important;
+}
+
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  th,
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  td,
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  td *,
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  th * {
+  color: #102f55 !important;
+}
+
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  tbody td {
+  border-top-color: #e5e7eb !important;
+  border-bottom-color: #e5e7eb !important;
+}
+
+/* Historial: tarjetas blancas, letras oscuras. */
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  aside a,
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  aside a:hover {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #102f55 !important;
+}
+
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  aside a * {
+  color: #102f55 !important;
+}
+
+/* Marcadores del historial: blancos y legibles. */
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  aside a span[class*="bg-yellow"],
+.club-profile-redesign
+  main
+  > section
+  > section:nth-of-type(7)
+  aside a span[class*="text-yellow"] {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #102f55 !important;
+}
