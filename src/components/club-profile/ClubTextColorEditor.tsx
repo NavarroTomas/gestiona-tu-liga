@@ -1,6 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  clearAdminPermissionsCache,
+  getMyAdminPermissions,
+  hasAnyAdminPermission,
+} from "@/lib/adminPermissions";
 import { supabase } from "@/lib/supabase";
 
 type SavedStyle = {
@@ -72,6 +77,7 @@ function getPageRoot() {
 }
 
 export default function ClubTextColorEditor() {
+  const [canEdit, setCanEdit] = useState(false);
   const [open, setOpen] = useState(false);
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<SelectedText | null>(null);
@@ -115,7 +121,7 @@ export default function ClubTextColorEditor() {
       return;
     }
 
-    const next: SavedStyle[] = (data || []).map((row: any) => ({
+    const next: SavedStyle[] = (data || []).map((row) => ({
       element_key: String(row.element_key || ""),
       color: String(row.color || "#102f55"),
       label: row.label ? String(row.label) : null,
@@ -142,8 +148,47 @@ export default function ClubTextColorEditor() {
   }, [styles, applyStyles]);
 
   useEffect(() => {
+    let active = true;
+
+    async function refreshPermission() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!active) return;
+
+      if (!user) {
+        clearAdminPermissionsCache();
+        setCanEdit(false);
+        return;
+      }
+
+      try {
+        const permissions = await getMyAdminPermissions(user.id);
+        if (active) setCanEdit(hasAnyAdminPermission(permissions));
+      } catch (error) {
+        console.error("Error verificando permiso del editor:", error);
+        clearAdminPermissionsCache();
+        if (active) setCanEdit(false);
+      }
+    }
+
+    void refreshPermission();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+      clearAdminPermissionsCache();
+      void refreshPermission();
+    });
+
+    return () => {
+      active = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
     const root = getPageRoot();
-    if (!root || !selecting) {
+    if (!root || !selecting || !canEdit) {
       clearOutline();
       return;
     }
@@ -188,7 +233,7 @@ export default function ClubTextColorEditor() {
       pageRoot.style.removeProperty("cursor");
       clearOutline();
     };
-  }, [selecting, styles, clearOutline]);
+  }, [selecting, styles, canEdit, clearOutline]);
 
   function previewColor(value: string) {
     if (!selected) return;
@@ -198,7 +243,7 @@ export default function ClubTextColorEditor() {
   }
 
   async function saveSelected() {
-    if (!selected) return;
+    if (!selected || !canEdit) return;
     setSaving(true);
     setMessage("");
 
@@ -243,7 +288,7 @@ export default function ClubTextColorEditor() {
   }
 
   async function restoreSelected() {
-    if (!selected) return;
+    if (!selected || !canEdit) return;
     setSaving(true);
     setMessage("");
 
@@ -268,6 +313,8 @@ export default function ClubTextColorEditor() {
     setMessage("Restaurado al diseño original.");
     setSaving(false);
   }
+
+  if (!canEdit) return null;
 
   return (
     <div
@@ -391,7 +438,7 @@ export default function ClubTextColorEditor() {
           ) : null}
 
           <p className="mt-4 text-[11px] leading-5 text-slate-500">
-            El editor siempre está visible. Supabase valida el permiso de administrador al guardar.
+            Solo visible para usuarios con permisos administrativos.
           </p>
         </div>
       )}
