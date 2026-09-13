@@ -1,45 +1,41 @@
 "use client";
 
+import type {
+  DreamTeamPositionId,
+  DreamTeamProfiles,
+  DreamTeamVoteLeader,
+} from "@/lib/dream-team/types";
 import {
-  DreamTeamAvatar,
-  DreamTeamClubLogo,
+  DreamTeamPlayerAvatar,
   DreamTeamPlayerName,
 } from "./DreamTeamPlayerIdentity";
-import type {
-  DreamTeamLogosMap,
-  DreamTeamPositionId,
-  DreamTeamProfilesMap,
-  DreamTeamVoteSummary,
-} from "@/lib/dream-team/types";
 
-export function DreamTeamSlot({
+export default function DreamTeamSlot({
   id,
   selected,
-  perfiles,
-  logos,
+  profiles,
   onSelect,
 }: {
   id: DreamTeamPositionId;
-  selected?: DreamTeamVoteSummary;
-  perfiles: DreamTeamProfilesMap;
-  logos: DreamTeamLogosMap;
+  selected?: DreamTeamVoteLeader;
+  profiles: DreamTeamProfiles;
   onSelect: (id: DreamTeamPositionId) => void;
 }) {
   return (
     <button
       type="button"
       onClick={() => onSelect(id)}
-      className="group relative min-h-[92px] rounded-2xl border border-sky-400/30 bg-black/55 p-2 text-center shadow-[0_0_24px_rgba(56,189,248,.10)] transition hover:scale-[1.04] hover:border-yellow-300/70 hover:shadow-[0_0_30px_rgba(250,204,21,.20)] sm:min-h-[106px] sm:rounded-3xl sm:p-3"
+      className="group relative min-h-[92px] rounded-2xl border border-sky-400/30 bg-black/55 p-2 text-center sm:min-h-[106px] sm:rounded-3xl sm:p-3 shadow-[0_0_24px_rgba(56,189,248,.10)] transition hover:scale-[1.04] hover:border-yellow-300/70 hover:shadow-[0_0_30px_rgba(250,204,21,.20)]"
     >
       <div className="mx-auto mb-2 flex justify-center">
         {selected ? (
-          <DreamTeamAvatar
+          <DreamTeamPlayerAvatar
             playerId={selected.playerId}
             nombre={selected.nombre}
-            perfiles={perfiles}
+            profiles={profiles}
           />
         ) : (
-          <DreamTeamClubLogo logos={logos} />
+          <DreamTeamEmptyBadge id={id} />
         )}
       </div>
 
@@ -52,7 +48,7 @@ export function DreamTeamSlot({
           <DreamTeamPlayerName
             playerId={selected.playerId}
             nombre={selected.nombre}
-            perfiles={perfiles}
+            profiles={profiles}
           />
         ) : (
           "Elegir"
@@ -67,5 +63,13 @@ export function DreamTeamSlot({
         {selected?.votos || 0} votos
       </p>
     </button>
+  );
+}
+
+function DreamTeamEmptyBadge({ id }: { id: DreamTeamPositionId }) {
+  return (
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-sky-400/30 bg-black sm:h-10 sm:w-10">
+      <span className="text-[10px] font-black text-white">{id.slice(0, 1)}</span>
+    </div>
   );
 }

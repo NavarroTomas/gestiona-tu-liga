@@ -1,20 +1,28 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { DreamTeamSlot } from "./DreamTeamSlot";
-import type { UseDreamTeamReturn } from "@/hooks/useDreamTeam";
+import type { DreamTeamController } from "@/hooks/useDreamTeam";
+import type { DreamTeamPositionId } from "@/lib/dream-team/types";
+import DreamTeamSlot from "./DreamTeamSlot";
 
-export function DreamTeamFormation({
+export default function DreamTeamFormation({
   votosPorPosicion,
   perfilesJugadores,
-  logos,
   setPosicionActiva,
 }: Pick<
-  UseDreamTeamReturn,
-  "votosPorPosicion" | "perfilesJugadores" | "logos" | "setPosicionActiva"
+  DreamTeamController,
+  "votosPorPosicion" | "perfilesJugadores" | "setPosicionActiva"
 >) {
+  const slot = (id: DreamTeamPositionId) => (
+    <DreamTeamSlot
+      id={id}
+      selected={votosPorPosicion[id]}
+      profiles={perfilesJugadores}
+      onSelect={setPosicionActiva}
+    />
+  );
+
   return (
-    <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#071b22] p-3 shadow-[0_0_55px_rgba(34,197,94,.12)] sm:rounded-[42px] sm:p-5 md:p-8 xl:p-10">
+    <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#071b22] p-3 sm:rounded-[42px] sm:p-5 md:p-8 xl:p-10 shadow-[0_0_55px_rgba(34,197,94,.12)]">
       <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px)] bg-[size:44px_44px] opacity-20" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,197,94,.18),transparent_60%)]" />
 
@@ -25,81 +33,29 @@ export function DreamTeamFormation({
         <div className="absolute left-0 right-0 top-1/2 h-px bg-white/10" />
 
         <div className="relative z-10 flex h-full min-h-[500px] flex-col justify-between sm:min-h-[620px] md:min-h-[700px] xl:min-h-[740px]">
-          <FormationRow className="max-w-[520px] grid-cols-2 gap-3 sm:gap-6 md:gap-8">
-            <DreamTeamSlot
-              id="LST"
-              selected={votosPorPosicion.LST}
-              perfiles={perfilesJugadores}
-              logos={logos}
-              onSelect={setPosicionActiva}
-            />
-            <DreamTeamSlot
-              id="RST"
-              selected={votosPorPosicion.RST}
-              perfiles={perfilesJugadores}
-              logos={logos}
-              onSelect={setPosicionActiva}
-            />
-          </FormationRow>
+          <div className="mx-auto grid w-full max-w-[520px] grid-cols-2 gap-3 sm:gap-6 md:gap-8">
+            {slot("LST")}
+            {slot("RST")}
+          </div>
 
-          <FormationRow className="max-w-[430px] grid-cols-2 gap-3 sm:gap-6 md:gap-8">
-            <DreamTeamSlot
-              id="LCM"
-              selected={votosPorPosicion.LCM}
-              perfiles={perfilesJugadores}
-              logos={logos}
-              onSelect={setPosicionActiva}
-            />
-            <DreamTeamSlot
-              id="RCM"
-              selected={votosPorPosicion.RCM}
-              perfiles={perfilesJugadores}
-              logos={logos}
-              onSelect={setPosicionActiva}
-            />
-          </FormationRow>
+          <div className="mx-auto grid w-full max-w-[430px] grid-cols-2 gap-3 sm:gap-6 md:gap-8">
+            {slot("LCM")}
+            {slot("RCM")}
+          </div>
 
-          <FormationRow className="max-w-[620px] grid-cols-3 gap-2 sm:gap-4 md:gap-6">
-            <DreamTeamSlot
-              id="LB"
-              selected={votosPorPosicion.LB}
-              perfiles={perfilesJugadores}
-              logos={logos}
-              onSelect={setPosicionActiva}
-            />
-            <DreamTeamSlot
-              id="CB"
-              selected={votosPorPosicion.CB}
-              perfiles={perfilesJugadores}
-              logos={logos}
-              onSelect={setPosicionActiva}
-            />
-            <DreamTeamSlot
-              id="RB"
-              selected={votosPorPosicion.RB}
-              perfiles={perfilesJugadores}
-              logos={logos}
-              onSelect={setPosicionActiva}
-            />
-          </FormationRow>
+          <div className="mx-auto grid w-full max-w-[620px] grid-cols-3 gap-2 sm:gap-4 md:gap-6">
+            {slot("LB")}
+            {slot("CB")}
+            {slot("RB")}
+          </div>
 
           <div className="flex w-full justify-center">
             <div className="w-[130px] sm:w-[160px] md:w-[180px]">
-              <DreamTeamSlot
-                id="GK"
-                selected={votosPorPosicion.GK}
-                perfiles={perfilesJugadores}
-                logos={logos}
-                onSelect={setPosicionActiva}
-              />
+              {slot("GK")}
             </div>
           </div>
         </div>
       </div>
     </div>
   );
-}
-
-function FormationRow({ className, children }: { className: string; children: ReactNode }) {
-  return <div className={`mx-auto grid w-full ${className}`}>{children}</div>;
 }

@@ -1,59 +1,55 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { DREAM_TEAM_CONFIG } from "@/config/dreamTeam";
-import type { UseDreamTeamReturn } from "@/hooks/useDreamTeam";
-import type { DreamTeamCompetition } from "@/lib/dream-team/types";
+import {
+  DREAM_TEAM_COMPETITIONS,
+  DREAM_TEAM_CONFIG,
+} from "@/config/dreamTeam";
+import type { DreamTeamController } from "@/hooks/useDreamTeam";
 
-export function DreamTeamFilters({
+export default function DreamTeamFilters({
   temporada,
   setTemporada,
   competicion,
-  setCompeticion,
+  setCompetition,
   division,
-  setDivision,
+  setDivisionFilter,
   grupo,
-  setGrupo,
+  setGroupFilter,
   fase,
-  setFase,
+  setPhaseFilter,
   fecha,
   setFecha,
   fechas,
+  fasesDisponibles,
 }: Pick<
-  UseDreamTeamReturn,
+  DreamTeamController,
   | "temporada"
   | "setTemporada"
   | "competicion"
-  | "setCompeticion"
+  | "setCompetition"
   | "division"
-  | "setDivision"
+  | "setDivisionFilter"
   | "grupo"
-  | "setGrupo"
+  | "setGroupFilter"
   | "fase"
-  | "setFase"
+  | "setPhaseFilter"
   | "fecha"
   | "setFecha"
   | "fechas"
+  | "fasesDisponibles"
 >) {
-  const phaseOptions =
-    competicion === "copa_campeones"
-      ? DREAM_TEAM_CONFIG.championsPhases
-      : competicion === "playoffs"
-        ? DREAM_TEAM_CONFIG.playoffsPhases
-        : DREAM_TEAM_CONFIG.phases;
-
   return (
-    <section className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 shadow-[0_0_35px_rgba(0,120,255,.12)] sm:rounded-[34px] md:p-8">
+    <section className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] md:p-8 shadow-[0_0_35px_rgba(0,120,255,.12)]">
       <div className="grid gap-7">
         <FilterGroup label="Temporada">
           <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-            {DREAM_TEAM_CONFIG.seasons.map((item) => (
+            {DREAM_TEAM_CONFIG.seasons.map((season) => (
               <FilterButton
-                key={item}
-                active={temporada === item}
-                onClick={() => setTemporada(item)}
+                key={season}
+                active={temporada === season}
+                onClick={() => setTemporada(season)}
               >
-                {item}
+                {season}
               </FilterButton>
             ))}
           </div>
@@ -61,16 +57,13 @@ export function DreamTeamFilters({
 
         <FilterGroup label="Competencia">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-            {DREAM_TEAM_CONFIG.competitions.map((item) => (
+            {DREAM_TEAM_COMPETITIONS.map((competition) => (
               <FilterButton
-                key={item.value}
-                active={competicion === item.value}
-                onClick={() => {
-                  setCompeticion(item.value as DreamTeamCompetition);
-                  setFecha("1");
-                }}
+                key={competition.value}
+                active={competicion === competition.value}
+                onClick={() => setCompetition(competition.value)}
               >
-                {item.label}
+                {competition.label}
               </FilterButton>
             ))}
           </div>
@@ -83,10 +76,7 @@ export function DreamTeamFilters({
                 <FilterButton
                   key={item}
                   active={division === item}
-                  onClick={() => {
-                    setDivision(item);
-                    setFecha("1");
-                  }}
+                  onClick={() => setDivisionFilter(item)}
                 >
                   {item}
                 </FilterButton>
@@ -102,10 +92,7 @@ export function DreamTeamFilters({
                 <FilterButton
                   key={item}
                   active={grupo === item}
-                  onClick={() => {
-                    setGrupo(item);
-                    setFecha("1");
-                  }}
+                  onClick={() => setGroupFilter(item)}
                 >
                   Grupo {item}
                 </FilterButton>
@@ -114,22 +101,16 @@ export function DreamTeamFilters({
           </FilterGroup>
         )}
 
-        {[
-          "copa_argentina",
-          "copa_apa",
-          "copa_campeones",
-          "playoffs",
-        ].includes(competicion) && (
+        {["copa_argentina", "copa_apa", "copa_campeones", "playoffs"].includes(
+          competicion,
+        ) && (
           <FilterGroup label="Fase">
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              {phaseOptions.map((item) => (
+              {fasesDisponibles.map((item) => (
                 <FilterButton
                   key={item}
                   active={fase === item}
-                  onClick={() => {
-                    setFase(item);
-                    setFecha("1");
-                  }}
+                  onClick={() => setPhaseFilter(item)}
                 >
                   {item}
                 </FilterButton>
@@ -141,11 +122,7 @@ export function DreamTeamFilters({
         <FilterGroup label="Fecha">
           <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
             {fechas.map((item) => (
-              <FilterButton
-                key={item}
-                active={fecha === item}
-                onClick={() => setFecha(item)}
-              >
+              <FilterButton key={item} active={fecha === item} onClick={() => setFecha(item)}>
                 Fecha {item}
               </FilterButton>
             ))}
@@ -156,7 +133,7 @@ export function DreamTeamFilters({
   );
 }
 
-function FilterGroup({ label, children }: { label: string; children: ReactNode }) {
+function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
       <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-sky-300">
@@ -174,7 +151,7 @@ function FilterButton({
 }: {
   active: boolean;
   onClick: () => void;
-  children: ReactNode;
+  children: React.ReactNode;
 }) {
   return (
     <button
