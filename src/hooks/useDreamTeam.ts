@@ -235,7 +235,10 @@ export function useDreamTeam() {
     void loadData();
   }, [loadData]);
 
-  const votosPorPosicion = useMemo(() => buildVotesByPosition(votos), [votos]);
+  const votosPorPosicion = useMemo(
+    () => buildVotesByPosition(votos, jugadores),
+    [votos, jugadores],
+  );
   const miDreamTeamGuardado = useMemo(
     () => buildUserDreamTeam(votos, usuarioId),
     [votos, usuarioId],
