@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { PrediccionesController } from "@/hooks/usePredicciones";
 import type { PredictionChoice, PredictionMatch } from "@/lib/predicciones/types";
 import {
@@ -15,7 +16,14 @@ export default function PredictionMatchCard({
   match: PredictionMatch;
   controller: PrediccionesController;
 }) {
-  const open = isPredictionVotingOpen(match);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const open = isPredictionVotingOpen(match, new Date(now));
   const vote = controller.votoUsuario(match);
   const key = predictionMatchKey(match);
   const score = controller.marcadores[key] || { local: "", visitante: "" };
