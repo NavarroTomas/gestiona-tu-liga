@@ -1,3 +1,6 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import "./predicciones-redesign.css";
 
 export default function PrediccionesLayout({
@@ -5,5 +8,12 @@ export default function PrediccionesLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <div className="predicciones-redesign">{children}</div>;
+  const pathname = usePathname();
+  const isPrediccionesHome = pathname === "/entretenimiento/predicciones";
+
+  return isPrediccionesHome ? (
+    <div className="predicciones-redesign">{children}</div>
+  ) : (
+    children
+  );
 }
