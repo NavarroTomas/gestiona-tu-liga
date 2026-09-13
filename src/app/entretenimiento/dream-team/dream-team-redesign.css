@@ -1,9 +1,11 @@
 .dream-team-redesign {
   --dt-navy: #102f55;
+  --dt-navy-2: #0b2543;
   --dt-blue: #2d98d4;
   --dt-sky: #56afe2;
   --dt-ice: #f3fafe;
   --dt-pale: #eaf6fd;
+  --dt-pale-2: #dff1fa;
   --dt-line: #c9e3f1;
   --dt-muted: #607b90;
   background: var(--dt-ice);
@@ -12,7 +14,8 @@
 .dream-team-redesign main {
   min-height: 100vh !important;
   overflow-x: hidden !important;
-  background: var(--dt-ice) !important;
+  background:
+    linear-gradient(180deg, #f3fafe 0%, #edf7fc 58%, #f7fbfe 100%) !important;
   color: var(--dt-navy) !important;
 }
 
@@ -130,31 +133,57 @@
 /* Main game area */
 .dream-team-redesign main > div > section.grid {
   align-items: start !important;
-  gap: 20px !important;
+  gap: 24px !important;
 }
 
 .dream-team-redesign main > div > section.grid > div.relative {
-  border: 1px solid var(--dt-line) !important;
-  border-radius: 14px !important;
-  background: #fff !important;
-  padding: 22px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  border: 1px solid #163e68 !important;
+  border-radius: 16px !important;
+  background: var(--dt-navy) !important;
+  padding: 18px !important;
   box-shadow: none !important;
+}
+
+.dream-team-redesign main > div > section.grid > div.relative::before,
+.dream-team-redesign main > div > section.grid > div.relative::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.dream-team-redesign main > div > section.grid > div.relative::before {
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(86,175,226,.12), transparent 28%),
+    linear-gradient(315deg, rgba(86,175,226,.08), transparent 24%);
+}
+
+.dream-team-redesign main > div > section.grid > div.relative::after {
+  top: 0;
+  left: 0;
+  width: 180px;
+  height: 5px;
+  background: var(--dt-sky);
 }
 
 .dream-team-redesign main > div > section.grid > div.relative > .absolute {
   display: none !important;
 }
 
-/* Formation board: abstract tactical board, no literal green pitch */
+/* Formation board: balanced APA palette, more breathing room */
 .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 {
-  min-height: 650px !important;
-  border: 1px solid #bfd9e8 !important;
-  border-radius: 12px !important;
+  min-height: 820px !important;
+  border: 1px solid #8fc6df !important;
+  border-radius: 13px !important;
   background:
-    linear-gradient(90deg, transparent calc(50% - .5px), #c4dce9 calc(50% - .5px), #c4dce9 calc(50% + .5px), transparent calc(50% + .5px)),
-    linear-gradient(#edf7fc, #f8fcfe) !important;
-  padding: 34px !important;
+    radial-gradient(circle at 50% 50%, rgba(86,175,226,.11) 0 12%, transparent 12.5%),
+    linear-gradient(90deg, transparent calc(50% - .5px), rgba(16,47,85,.16) calc(50% - .5px), rgba(16,47,85,.16) calc(50% + .5px), transparent calc(50% + .5px)),
+    linear-gradient(180deg, #e7f5fc 0%, #dff1fa 52%, #edf8fd 100%) !important;
+  padding: 42px 46px 34px !important;
   overflow: hidden !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.7) !important;
 }
 
 .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > .absolute {
@@ -164,10 +193,10 @@
 .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10::before {
   content: "FORMACIÓN 3 - 2 - 2";
   position: absolute;
-  left: 22px;
-  top: 18px;
-  color: var(--dt-blue);
-  font-size: 10px;
+  left: 26px;
+  top: 20px;
+  color: var(--dt-navy);
+  font-size: 11px;
   font-weight: 900;
   letter-spacing: .12em;
 }
@@ -175,33 +204,58 @@
 .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10::after {
   content: "8 JUGADORES";
   position: absolute;
-  right: 22px;
-  top: 18px;
+  right: 26px;
+  top: 20px;
   color: var(--dt-navy);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 900;
   letter-spacing: .12em;
 }
 
 .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 {
-  min-height: 565px !important;
-  padding-top: 42px !important;
+  min-height: 720px !important;
+  padding-top: 54px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-evenly !important;
+  gap: 26px !important;
+}
+
+/* Spread each line of the formation */
+.dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 > div:nth-child(1) {
+  max-width: 640px !important;
+  gap: 54px !important;
+}
+
+.dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 > div:nth-child(2) {
+  max-width: 560px !important;
+  gap: 54px !important;
+}
+
+.dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 > div:nth-child(3) {
+  max-width: 820px !important;
+  gap: 32px !important;
+}
+
+.dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 > div:nth-child(4) > div {
+  width: 190px !important;
 }
 
 .dream-team-redesign main > div > section.grid button.group {
-  min-height: 102px !important;
-  border: 1px solid #bfd9e8 !important;
-  border-radius: 10px !important;
-  background: #fff !important;
-  box-shadow: none !important;
+  min-height: 118px !important;
+  border: 1px solid #8fc6df !important;
+  border-radius: 11px !important;
+  background: rgba(255,255,255,.96) !important;
+  box-shadow: 0 7px 18px rgba(16,47,85,.08) !important;
   color: var(--dt-navy) !important;
   transform: none !important;
+  padding: 12px 14px !important;
 }
 
 .dream-team-redesign main > div > section.grid button.group:hover {
   border-color: var(--dt-sky) !important;
-  background: #f4fbff !important;
-  box-shadow: 0 8px 24px rgba(16,47,85,.08) !important;
+  background: #fff !important;
+  box-shadow: 0 12px 26px rgba(16,47,85,.13) !important;
 }
 
 .dream-team-redesign main > div > section.grid button.group p,
@@ -211,18 +265,22 @@
 }
 
 .dream-team-redesign main > div > section.grid button.group p:first-of-type {
+  margin-inline: auto !important;
+  max-width: 160px !important;
+  border-radius: 4px !important;
+  background: #e5f4fb !important;
   color: var(--dt-blue) !important;
   letter-spacing: .12em !important;
 }
 
 .dream-team-redesign main > div > section.grid button.group p:last-of-type {
-  color: #7c96a8 !important;
+  color: #6c879a !important;
 }
 
 .dream-team-redesign main > div > section.grid button.group [class*="yellow"] {
   color: var(--dt-blue) !important;
-  border-color: #c9e3f1 !important;
-  background: #eef8fd !important;
+  border-color: #b7dceb !important;
+  background: #eaf6fd !important;
 }
 
 /* Side panels */
@@ -337,6 +395,27 @@
   }
 }
 
+@media (max-width: 900px) {
+  .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 {
+    min-height: 740px !important;
+    padding: 38px 24px 26px !important;
+  }
+
+  .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 {
+    min-height: 650px !important;
+    gap: 20px !important;
+  }
+
+  .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 > div:nth-child(1),
+  .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 > div:nth-child(2) {
+    gap: 24px !important;
+  }
+
+  .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 > div:nth-child(3) {
+    gap: 14px !important;
+  }
+}
+
 @media (max-width: 767px) {
   .dream-team-redesign main > div {
     padding: 18px 12px 36px !important;
@@ -362,22 +441,50 @@
   }
 
   .dream-team-redesign main > div > section.grid > div.relative {
-    padding: 12px !important;
+    padding: 10px !important;
   }
 
   .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 {
-    min-height: 570px !important;
-    padding: 24px 12px 18px !important;
+    min-height: 670px !important;
+    padding: 40px 10px 18px !important;
+  }
+
+  .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10::before,
+  .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10::after {
+    top: 14px !important;
+    font-size: 9px !important;
+  }
+
+  .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10::before {
+    left: 12px !important;
+  }
+
+  .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10::after {
+    right: 12px !important;
   }
 
   .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 {
-    min-height: 520px !important;
-    padding-top: 42px !important;
+    min-height: 610px !important;
+    padding-top: 26px !important;
+    gap: 16px !important;
   }
 
   .dream-team-redesign main > div > section.grid button.group {
-    min-height: 86px !important;
-    padding: 8px !important;
+    min-height: 100px !important;
+    padding: 8px 6px !important;
+  }
+
+  .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 > div:nth-child(1),
+  .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 > div:nth-child(2) {
+    gap: 10px !important;
+  }
+
+  .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 > div:nth-child(3) {
+    gap: 6px !important;
+  }
+
+  .dream-team-redesign main > div > section.grid > div.relative > div.relative.z-10 > div.relative.z-10 > div:nth-child(4) > div {
+    width: 132px !important;
   }
 
   .dream-team-redesign main > div > section.grid aside {
