@@ -10,6 +10,7 @@ import {
 import {
   ensureDreamTeamUser,
   fetchDreamTeamAvailableDates,
+  fetchDreamTeamCurrentUser,
   fetchDreamTeamMatches,
   fetchDreamTeamPlayerStats,
   fetchDreamTeamProfiles,
@@ -88,20 +89,17 @@ export function useDreamTeam() {
     let active = true;
 
     async function loadUser() {
-      const { data, error } = await ensureDreamTeamUser();
+      const { data, error } = await fetchDreamTeamCurrentUser();
       if (!active) return;
 
       if (error || !data.user) {
-        console.log(error);
         setUsuarioId("");
         setMiPerfil(null);
-        setMensaje("No se pudo iniciar el modo invitado para votar.");
         return;
       }
 
       setUsuarioId(data.user.id);
 
-      // Los usuarios anónimos no tienen perfil público; los usuarios normales sí pueden tenerlo.
       if (data.user.is_anonymous) {
         setMiPerfil(null);
         return;
@@ -379,6 +377,8 @@ export function useDreamTeam() {
           setMensaje("La votación todavía no está abierta.");
         } else if (errorText.includes("ya cerró")) {
           setMensaje("La votación de esta fecha ya cerró.");
+        } else if (errorText.includes("siguiente fecha comenzó")) {
+          setMensaje("La votación de esta fecha ya no está disponible porque comenzó la siguiente.");
         } else {
           setMensaje("No se pudo guardar el Dream Team. Intentá nuevamente.");
         }
