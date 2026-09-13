@@ -8,140 +8,149 @@ import {
   type EntertainmentExperienceId,
 } from "@/config/entertainment";
 
+function ChartIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
+      <path d="M5 19V11M12 19V5M19 19V8" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function TeamIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
+      <circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="17" cy="9" r="2.4" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M3.8 19c.5-4 2.3-6 5.2-6s4.7 2 5.2 6M14.2 14.5c2.9-.7 5 .9 5.7 4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function TrophyIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
+      <path d="M8 4h8v4.5c0 3.2-1.5 5.4-4 6.5-2.5-1.1-4-3.3-4-6.5V4Z" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8 6H5.5v1.5c0 2 1 3.3 3 3.8M16 6h2.5v1.5c0 2-1 3.3-3 3.8M12 15v3M8.5 20h7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ExperienceIcon({ id, className = "" }: { id: EntertainmentExperienceId; className?: string }) {
+  if (id === "predicciones") return <ChartIcon className={className} />;
+  if (id === "dream-team") return <TeamIcon className={className} />;
+  return <TrophyIcon className={className} />;
+}
+
+const descriptions: Record<EntertainmentExperienceId, string> = {
+  predicciones: "Adiviná los resultados y sumá puntos",
+  "dream-team": "Armá tu equipo ideal",
+  premios: "Seguí los reconocimientos APA",
+};
+
 function PredictionsPreview() {
+  const rows = ["Partido oficial 1", "Partido oficial 2", "Partido oficial 3", "Partido oficial 4"];
+
   return (
-    <div className="border border-[#c7dfeb] bg-white">
-      <div className="flex items-center justify-between border-b border-[#d8e9f2] px-5 py-4 sm:px-7">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[.15em] text-[#2d98d4]">Próximo partido</p>
-          <p className="mt-1 text-[12px] font-bold text-[#688095]">Pronóstico abierto</p>
-        </div>
-        <div className="text-right">
-          <p className="text-[10px] font-black uppercase tracking-[.12em] text-[#86a0b3]">Puntaje</p>
-          <p className="mt-1 text-[12px] font-black text-[#102f55]">+1 ganador · +3 exacto</p>
-        </div>
+    <div className="overflow-hidden rounded-[10px] border border-[#c9e3f1] bg-white">
+      <div className="grid grid-cols-[1.1fr_.8fr_.8fr] border-b border-[#c9e3f1] bg-[#eaf6fd] px-4 py-3 text-[10px] font-black uppercase tracking-[.08em] text-[#4c6e88] sm:grid-cols-[1.15fr_.8fr_.8fr] sm:px-5">
+        <span>Partido</span>
+        <span className="text-center">Pronóstico</span>
+        <span className="text-right">Estado</span>
       </div>
-
-      <div className="grid items-center gap-5 px-5 py-8 sm:grid-cols-[1fr_auto_1fr] sm:px-7 sm:py-10">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[.14em] text-[#86a0b3]">Local</p>
-          <p className="mt-2 text-[22px] font-black uppercase leading-none text-[#102f55]">Equipo local</p>
+      {rows.map((row, index) => (
+        <div
+          key={row}
+          className="grid grid-cols-[1.1fr_.8fr_.8fr] items-center gap-3 border-b border-[#dceaf2] px-4 py-4 last:border-b-0 sm:grid-cols-[1.15fr_.8fr_.8fr] sm:px-5"
+        >
+          <div className="min-w-0">
+            <p className="truncate text-[13px] font-black text-[#102f55]">{row}</p>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-[.06em] text-[#7a94a8]">Próxima fecha</p>
+          </div>
+          <div className="flex justify-center gap-1.5">
+            {['1', 'X', '2'].map((value) => (
+              <span
+                key={value}
+                className="grid h-8 w-8 place-items-center rounded-[6px] border border-[#a9d4e9] bg-[#f7fbfe] text-[11px] font-black text-[#102f55]"
+              >
+                {value}
+              </span>
+            ))}
+          </div>
+          <p className="text-right text-[10px] font-black uppercase tracking-[.06em] text-[#2d98d4]">
+            {index < 2 ? "Abierto" : "Próximo"}
+          </p>
         </div>
-
-        <div className="flex items-center justify-center gap-2">
-          {['1', 'X', '2'].map((value) => (
-            <button
-              key={value}
-              type="button"
-              className="grid h-12 w-12 place-items-center border border-[#8fc9e8] bg-[#f6fbfe] text-sm font-black text-[#102f55] transition hover:bg-[#dff2fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#56afe2]"
-            >
-              {value}
-            </button>
-          ))}
-        </div>
-
-        <div className="sm:text-right">
-          <p className="text-[10px] font-black uppercase tracking-[.14em] text-[#86a0b3]">Visitante</p>
-          <p className="mt-2 text-[22px] font-black uppercase leading-none text-[#102f55]">Equipo visitante</p>
-        </div>
-      </div>
+      ))}
     </div>
   );
 }
 
-function DreamTeamPreview({ reduced }: { reduced: boolean }) {
+function DreamTeamPreview() {
   const positions = [
-    ["LST", "28%", "18%"],
-    ["RST", "72%", "18%"],
-    ["LCM", "30%", "42%"],
-    ["RCM", "70%", "42%"],
-    ["LB", "16%", "68%"],
-    ["CB", "50%", "68%"],
-    ["RB", "84%", "68%"],
-    ["GK", "50%", "88%"],
-  ];
+    ["DEL", "22%", "18%"],
+    ["DEL", "58%", "18%"],
+    ["MED", "25%", "45%"],
+    ["MED", "55%", "45%"],
+    ["DEF", "12%", "70%"],
+    ["DEF", "36%", "70%"],
+    ["DEF", "60%", "70%"],
+    ["ARQ", "36%", "88%"],
+  ] as const;
 
   return (
-    <div className="grid gap-0 border border-[#c7dfeb] bg-white lg:grid-cols-[1fr_220px]">
-      <div className="relative min-h-[390px] overflow-hidden bg-[#dff1fa]">
-        <div className="absolute inset-5 border-2 border-[#73b8dc]/60 sm:inset-7" />
-        <div className="absolute left-1/2 top-5 bottom-5 w-px -translate-x-1/2 bg-[#73b8dc]/50 sm:top-7 sm:bottom-7" />
-        <div className="absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#73b8dc]/50" />
-
-        {positions.map(([label, left, top], index) => (
-          <motion.div
-            key={label}
-            className="absolute -translate-x-1/2 -translate-y-1/2"
-            style={{ left, top }}
-            initial={reduced ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28, delay: reduced ? 0 : index * 0.04 }}
-          >
-            <div className="grid h-11 min-w-11 place-items-center border border-[#0f355a] bg-[#0f355a] px-2 text-[10px] font-black text-white">
-              {label}
-            </div>
-          </motion.div>
-        ))}
-      </div>
-
-      <div className="border-t border-[#d8e9f2] p-5 lg:border-l lg:border-t-0 lg:p-6">
-        <p className="text-[10px] font-black uppercase tracking-[.15em] text-[#2d98d4]">Formato oficial</p>
-        <p className="mt-3 text-[30px] font-black uppercase leading-none text-[#102f55]">8 vs 8</p>
-        <div className="mt-6 border-t border-[#d8e9f2] pt-5 text-[12px] font-bold leading-6 text-[#668196]">
-          Elegí un jugador por posición y armá tu equipo ideal de la fecha.
+    <div className="relative min-h-[320px] overflow-hidden rounded-[10px] border border-[#8ebdd7] bg-[#dff1fa]">
+      <div className="absolute inset-[7%] border border-[#69a9cc]" />
+      <div className="absolute left-1/2 top-[7%] h-[86%] w-px -translate-x-1/2 bg-[#69a9cc]" />
+      <div className="absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#69a9cc]" />
+      {positions.map(([label, left, top], index) => (
+        <div
+          key={`${label}-${index}`}
+          className="absolute -translate-x-1/2 -translate-y-1/2 rounded-[6px] border border-white bg-[#102f55] px-3 py-2 text-[10px] font-black text-white"
+          style={{ left, top }}
+        >
+          {label}
         </div>
+      ))}
+      <div className="absolute bottom-5 left-5 border-l-2 border-[#56afe2] pl-3">
+        <p className="text-[10px] font-black uppercase tracking-[.08em] text-[#2d98d4]">Formación APA</p>
+        <p className="mt-1 text-[20px] font-black uppercase text-[#102f55]">8 jugadores</p>
       </div>
     </div>
   );
 }
 
-function AwardsPreview({ reduced }: { reduced: boolean }) {
-  const rows = [
-    ["01", "MVP", "Jugador destacado"],
-    ["02", "Goleador", "Mayor aporte ofensivo"],
-    ["03", "Rendimiento", "Mejor valoración"],
+function AwardsPreview() {
+  const awards = [
+    ["MVP", "Figura de la fecha"],
+    ["Goleador", "Mayor aporte ofensivo"],
+    ["Arquero", "Mejor rendimiento"],
+    ["Temporada", "Reconocimiento general"],
   ];
 
   return (
-    <div className="border border-[#c7dfeb] bg-white">
-      <div className="flex items-center justify-between border-b border-[#d8e9f2] bg-[#102f55] px-5 py-4 text-white sm:px-7">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[.15em] text-[#79c8ef]">Reconocimientos APA</p>
-          <p className="mt-1 text-[14px] font-black uppercase">Premios de la jornada</p>
+    <div className="overflow-hidden rounded-[10px] border border-[#c9e3f1] bg-white">
+      {awards.map(([title, description], index) => (
+        <div key={title} className="grid grid-cols-[52px_1fr_auto] items-center gap-4 border-b border-[#dceaf2] px-5 py-5 last:border-b-0">
+          <span className="text-[11px] font-black text-[#7ea9c0]">0{index + 1}</span>
+          <div>
+            <p className="text-[14px] font-black uppercase text-[#102f55]">{title}</p>
+            <p className="mt-1 text-[12px] font-semibold text-[#6e879a]">{description}</p>
+          </div>
+          <span className="h-[2px] w-10 bg-[#56afe2]" aria-hidden="true" />
         </div>
-        <p className="text-[10px] font-black uppercase tracking-[.14em] text-[#c0d8e6]">Datos oficiales</p>
-      </div>
-
-      <div>
-        {rows.map(([pos, title, detail], index) => (
-          <motion.div
-            key={title}
-            initial={reduced ? false : { opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.26, delay: reduced ? 0 : index * 0.05 }}
-            className="grid grid-cols-[52px_1fr_auto] items-center gap-4 border-b border-[#e0edf4] px-5 py-5 last:border-b-0 sm:px-7"
-          >
-            <span className="text-[18px] font-black text-[#9ab3c4]">{pos}</span>
-            <div>
-              <p className="text-[15px] font-black uppercase text-[#102f55]">{title}</p>
-              <p className="mt-1 text-[11px] font-bold text-[#7990a2]">{detail}</p>
-            </div>
-            <span className="h-2 w-10 bg-[#56afe2]" aria-hidden="true" />
-          </motion.div>
-        ))}
-      </div>
+      ))}
     </div>
   );
 }
 
-function ExperiencePreview({ id, reduced }: { id: EntertainmentExperienceId; reduced: boolean }) {
+function ExperiencePreview({ id }: { id: EntertainmentExperienceId }) {
   if (id === "predicciones") return <PredictionsPreview />;
-  if (id === "dream-team") return <DreamTeamPreview reduced={reduced} />;
-  return <AwardsPreview reduced={reduced} />;
+  if (id === "dream-team") return <DreamTeamPreview />;
+  return <AwardsPreview />;
 }
 
 export default function EntertainmentPortal() {
-  const reducedMotion = Boolean(useReducedMotion());
+  const reducedMotion = useReducedMotion();
   const [activeId, setActiveId] = useState<EntertainmentExperienceId>("predicciones");
   const active = useMemo(
     () => ENTERTAINMENT_EXPERIENCES.find((item) => item.id === activeId) ?? ENTERTAINMENT_EXPERIENCES[0],
@@ -150,113 +159,126 @@ export default function EntertainmentPortal() {
 
   return (
     <main className="min-h-screen bg-[#f3fafe] text-[#102f55]">
-      <section className="border-b border-[#c9e3f1] bg-white">
-        <div className="mx-auto grid max-w-[1680px] gap-7 px-5 py-10 sm:px-8 lg:grid-cols-[1fr_360px] lg:items-end lg:px-10 lg:py-14">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[.16em] text-[#2d98d4]">APA / Comunidad</p>
-            <h1 className="mt-3 text-[clamp(3.1rem,6.8vw,7rem)] font-black uppercase leading-[.86] tracking-[-.055em]">
-              Entretenimiento
-            </h1>
-          </div>
-          <p className="border-l border-[#cfe4f0] pl-6 text-[14px] font-semibold leading-7 text-[#607b90] sm:text-[15px]">
-            Elegí una experiencia y participá con lo que pasa dentro de APA.
+      <section className="relative overflow-hidden border-b border-[#c9e3f1] bg-white">
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 hidden w-[58%] bg-cover bg-center opacity-35 lg:block"
+          style={{ backgroundImage: "url('/themes/worldcup/backgrounds/FotoCancha.png')" }}
+          aria-hidden="true"
+        />
+        <div className="pointer-events-none absolute inset-0 hidden bg-[linear-gradient(90deg,#ffffff_0%,#ffffff_42%,rgba(255,255,255,.83)_61%,rgba(255,255,255,.24)_100%)] lg:block" />
+
+        <div className="relative mx-auto max-w-[1680px] px-5 py-9 sm:px-8 lg:px-10 lg:py-12">
+          <p className="text-[10px] font-black uppercase tracking-[.13em] text-[#2d98d4]">Comunidad APA</p>
+          <h1 className="mt-2 max-w-[980px] text-[clamp(3rem,7vw,6.9rem)] font-black uppercase leading-[.84] tracking-[-.055em]">
+            Entretenimiento
+            <span className="block text-[#2d98d4]">Comunidad</span>
+          </h1>
+          <p className="mt-5 max-w-2xl text-[15px] font-semibold leading-7 text-[#4f6e85] sm:text-[17px]">
+            Viví APA más allá de la competencia. Participá, jugá y elegí la experiencia que más te guste.
           </p>
         </div>
       </section>
 
-      <section className="bg-[#f3fafe]">
-        <div className="mx-auto max-w-[1680px] px-5 py-8 sm:px-8 lg:px-10 lg:py-12">
-          <div className="grid border-y border-[#bcd9e8] bg-white lg:grid-cols-[360px_minmax(0,1fr)]">
-            <div className="border-b border-[#bcd9e8] lg:border-b-0 lg:border-r">
-              <div className="px-5 py-4 sm:px-6">
-                <p className="text-[10px] font-black uppercase tracking-[.15em] text-[#7c97aa]">Elegí una experiencia</p>
-              </div>
-
-              <div role="tablist" aria-label="Entretenimiento APA">
-                {ENTERTAINMENT_EXPERIENCES.map((item, index) => {
-                  const selected = item.id === activeId;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      role="tab"
-                      aria-selected={selected}
-                      onClick={() => setActiveId(item.id)}
-                      className={`relative grid w-full grid-cols-[42px_1fr] gap-4 border-t border-[#d8e9f2] px-5 py-5 text-left transition sm:px-6 ${selected ? "bg-[#102f55] text-white" : "bg-white text-[#102f55] hover:bg-[#eef8fd]"}`}
-                    >
-                      <span className={`text-[12px] font-black ${selected ? "text-[#79c8ef]" : "text-[#9cb4c4]"}`}>
-                        0{index + 1}
-                      </span>
-                      <span className="min-w-0">
-                        <span className={`block text-[10px] font-black uppercase tracking-[.13em] ${selected ? "text-[#79c8ef]" : "text-[#2d98d4]"}`}>
-                          {item.kicker}
-                        </span>
-                        <span className="mt-2 block text-[24px] font-black uppercase leading-none sm:text-[28px]">
-                          {item.title}
-                        </span>
-                      </span>
-
-                      {selected && (
-                        <motion.span
-                          layoutId="entertainment-active-line"
-                          className="absolute bottom-0 left-0 top-0 w-1 bg-[#56afe2]"
-                          transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                        />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="min-w-0">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={active.id}
-                  role="tabpanel"
-                  initial={reducedMotion ? false : { opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reducedMotion ? undefined : { opacity: 0, y: -8 }}
-                  transition={{ duration: 0.24, ease: [0.2, 0.8, 0.2, 1] }}
-                  className="grid gap-0 xl:grid-cols-[minmax(0,.9fr)_minmax(420px,1.1fr)]"
+      <section className="border-b border-[#c9e3f1] bg-white">
+        <div className="mx-auto max-w-[1680px] px-5 sm:px-8 lg:px-10">
+          <div className="grid sm:grid-cols-3" role="tablist" aria-label="Experiencias de entretenimiento">
+            {ENTERTAINMENT_EXPERIENCES.map((experience) => {
+              const selected = experience.id === activeId;
+              return (
+                <button
+                  key={experience.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => setActiveId(experience.id)}
+                  className={`relative flex min-h-[88px] items-center gap-4 border-b px-1 py-4 text-left transition sm:border-b-0 sm:border-r sm:px-7 ${selected ? "border-[#56afe2] text-[#102f55]" : "border-[#d4e6ef] text-[#557087] hover:bg-[#f7fbfe]"}`}
                 >
-                  <div className="flex flex-col justify-between border-b border-[#d8e9f2] p-6 sm:p-8 xl:border-b-0 xl:border-r xl:p-10">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[.15em] text-[#2d98d4]">Experiencia seleccionada</p>
-                      <h2 className="mt-4 text-[clamp(2.5rem,5vw,5.4rem)] font-black uppercase leading-[.88] tracking-[-.05em] text-[#102f55]">
-                        {active.title}
-                      </h2>
-                      <p className="mt-5 max-w-[650px] text-[14px] font-semibold leading-7 text-[#607b90] sm:text-[16px]">
-                        {active.description}
-                      </p>
-
-                      <div className="mt-7 grid gap-0 border-y border-[#d8e9f2] sm:grid-cols-3">
-                        {active.highlights.map((item) => (
-                          <div key={item.label} className="border-b border-[#d8e9f2] py-4 last:border-b-0 sm:border-b-0 sm:border-r sm:px-4 sm:first:pl-0 sm:last:border-r-0">
-                            <p className="text-[9px] font-black uppercase tracking-[.14em] text-[#8aa2b3]">{item.label}</p>
-                            <p className="mt-1 text-[13px] font-black uppercase text-[#102f55]">{item.value}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="mt-8">
-                      <Link
-                        href={active.href}
-                        className="inline-flex min-h-12 items-center border border-[#56afe2] bg-[#56afe2] px-6 text-[12px] font-black uppercase tracking-[.08em] text-white transition hover:bg-[#389dd5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#56afe2] focus-visible:ring-offset-2"
-                      >
-                        {active.cta}
-                      </Link>
-                    </div>
-                  </div>
-
-                  <div className="bg-[#eaf6fd] p-5 sm:p-7 xl:p-8">
-                    <ExperiencePreview id={active.id} reduced={reducedMotion} />
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
+                  <span className={`grid h-11 w-11 flex-none place-items-center rounded-full ${selected ? "bg-[#dff1fa] text-[#2d98d4]" : "bg-[#f0f6f9] text-[#58758b]"}`}>
+                    <ExperienceIcon id={experience.id} className="h-6 w-6" />
+                  </span>
+                  <span className="min-w-0">
+                    <strong className={`block text-[15px] font-black ${selected ? "text-[#2d98d4]" : "text-[#102f55]"}`}>
+                      {experience.title}
+                    </strong>
+                    <span className="mt-1 block text-[12px] font-semibold leading-5 text-[#678298]">
+                      {descriptions[experience.id]}
+                    </span>
+                  </span>
+                  {selected && <span className="absolute bottom-0 left-0 h-[3px] w-full bg-[#56afe2]" aria-hidden="true" />}
+                </button>
+              );
+            })}
           </div>
+        </div>
+      </section>
+
+      <section className="bg-[#f3fafe] py-7 sm:py-10 lg:py-12">
+        <div className="mx-auto max-w-[1680px] px-5 sm:px-8 lg:px-10">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={active.id}
+              initial={reducedMotion ? false : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reducedMotion ? undefined : { opacity: 0, y: -8 }}
+              transition={{ duration: 0.22 }}
+              className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]"
+            >
+              <div className="rounded-[12px] border border-[#c9e3f1] bg-white p-5 sm:p-7 lg:p-8">
+                <div className="flex flex-col gap-5 border-b border-[#d8e8f0] pb-6 md:flex-row md:items-end md:justify-between">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[.13em] text-[#2d98d4]">{active.kicker}</p>
+                    <h2 className="mt-2 text-[clamp(2rem,4vw,3.6rem)] font-black uppercase leading-[.95] tracking-[-.04em]">
+                      {active.title}
+                    </h2>
+                    <p className="mt-3 max-w-3xl text-[14px] font-semibold leading-6 text-[#607b90] sm:text-[15px]">
+                      {active.description}
+                    </p>
+                  </div>
+                  <Link
+                    href={active.href}
+                    className="inline-flex min-h-11 flex-none items-center justify-center rounded-[8px] bg-[#56afe2] px-6 text-[12px] font-black uppercase tracking-[.05em] text-[#102f55] transition hover:bg-[#3fa4df]"
+                  >
+                    {active.cta}
+                  </Link>
+                </div>
+
+                <div className="mt-6">
+                  <ExperiencePreview id={active.id} />
+                </div>
+              </div>
+
+              <aside className="space-y-5">
+                <section className="rounded-[12px] border border-[#c9e3f1] bg-white p-6">
+                  <p className="text-[10px] font-black uppercase tracking-[.12em] text-[#2d98d4]">Cómo funciona</p>
+                  <div className="mt-5 space-y-5">
+                    {active.highlights.map((item, index) => (
+                      <div key={item.label} className="grid grid-cols-[34px_1fr] gap-3 border-b border-[#e0ebf1] pb-4 last:border-b-0 last:pb-0">
+                        <span className="text-[11px] font-black text-[#9ab2c2]">0{index + 1}</span>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-[.07em] text-[#6f899c]">{item.label}</p>
+                          <p className="mt-1 text-[16px] font-black text-[#102f55]">{item.value}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="rounded-[12px] bg-[#102f55] p-6 text-white">
+                  <p className="text-[10px] font-black uppercase tracking-[.12em] text-[#79c8ef]">Acceso directo</p>
+                  <h3 className="mt-3 text-[22px] font-black uppercase leading-tight">Entrá a la experiencia completa</h3>
+                  <p className="mt-3 text-[13px] font-semibold leading-6 text-[#c4dbe8]">
+                    El módulo completo conserva sus reglas, datos y acciones reales.
+                  </p>
+                  <Link
+                    href={active.href}
+                    className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-[8px] border border-[#79c8ef] px-4 text-[12px] font-black uppercase tracking-[.06em] text-white transition hover:bg-[#17466f]"
+                  >
+                    Abrir {active.title}
+                  </Link>
+                </section>
+              </aside>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </section>
     </main>
