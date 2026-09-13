@@ -21,7 +21,7 @@ export default function DreamTeamPage() {
   const dreamTeam = useDreamTeam();
 
   return (
-    <main className="min-h-screen overflow-x-hidden text-white bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)]">
+    <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#123a7a_0%,#081427_24%,#020714_55%,#000_100%)] text-white">
       <div className="mx-auto max-w-[1500px] space-y-6 px-3 py-5 sm:px-4 md:space-y-8 md:px-8 md:py-8">
         <DreamTeamHero
           fecha={dreamTeam.fecha}
@@ -57,20 +57,27 @@ export default function DreamTeamPage() {
 
         <section className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_390px] xl:gap-8">
           <DreamTeamFormation
-            votosPorPosicion={dreamTeam.votosPorPosicion}
+            plantillaActual={dreamTeam.plantillaActual}
             perfilesJugadores={dreamTeam.perfilesJugadores}
             setPosicionActiva={dreamTeam.setPosicionActiva}
+            puedeEditar={dreamTeam.puedeEditar}
           />
 
           <DreamTeamSidebar
             jugadorMasVotado={dreamTeam.jugadorMasVotado}
-            miDreamTeam={dreamTeam.miDreamTeam}
+            plantillaActual={dreamTeam.plantillaActual}
             perfilesJugadores={dreamTeam.perfilesJugadores}
             compartir={dreamTeam.compartir}
             posicionActiva={dreamTeam.posicionActiva}
             topPorPosicion={dreamTeam.topPorPosicion}
             candidatos={dreamTeam.candidatos}
-            votar={dreamTeam.votar}
+            seleccionarJugador={dreamTeam.seleccionarJugador}
+            enviarPlantilla={dreamTeam.enviarPlantilla}
+            plantillaCompleta={dreamTeam.plantillaCompleta}
+            plantillaEnviada={dreamTeam.plantillaEnviada}
+            votingWindow={dreamTeam.votingWindow}
+            puedeEditar={dreamTeam.puedeEditar}
+            enviando={dreamTeam.enviando}
           />
         </section>
       </div>
