@@ -3,29 +3,41 @@
 import type {
   DreamTeamPositionId,
   DreamTeamProfiles,
-  DreamTeamVoteLeader,
 } from "@/lib/dream-team/types";
 import {
   DreamTeamPlayerAvatar,
   DreamTeamPlayerName,
 } from "./DreamTeamPlayerIdentity";
 
+type SelectedPlayer = {
+  playerId?: string | null;
+  nombre: string;
+  equipo: string;
+};
+
 export default function DreamTeamSlot({
   id,
   selected,
   profiles,
   onSelect,
+  disabled = false,
 }: {
   id: DreamTeamPositionId;
-  selected?: DreamTeamVoteLeader;
+  selected?: SelectedPlayer;
   profiles: DreamTeamProfiles;
   onSelect: (id: DreamTeamPositionId) => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
+      disabled={disabled}
       onClick={() => onSelect(id)}
-      className="group relative min-h-[92px] rounded-2xl border border-sky-400/30 bg-black/55 p-2 text-center sm:min-h-[106px] sm:rounded-3xl sm:p-3 shadow-[0_0_24px_rgba(56,189,248,.10)] transition hover:scale-[1.04] hover:border-yellow-300/70 hover:shadow-[0_0_30px_rgba(250,204,21,.20)]"
+      className={`group relative min-h-[92px] rounded-2xl border bg-black/55 p-2 text-center shadow-[0_0_24px_rgba(56,189,248,.10)] transition sm:min-h-[106px] sm:rounded-3xl sm:p-3 ${
+        disabled
+          ? "cursor-default border-white/10 opacity-80"
+          : "border-sky-400/30 hover:scale-[1.04] hover:border-yellow-300/70 hover:shadow-[0_0_30px_rgba(250,204,21,.20)]"
+      }`}
     >
       <div className="mx-auto mb-2 flex justify-center">
         {selected ? (
@@ -50,6 +62,8 @@ export default function DreamTeamSlot({
             nombre={selected.nombre}
             profiles={profiles}
           />
+        ) : disabled ? (
+          "Sin elegir"
         ) : (
           "Elegir"
         )}
@@ -60,7 +74,7 @@ export default function DreamTeamSlot({
       </p>
 
       <p className="mt-2 text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">
-        {selected?.votos || 0} votos
+        {selected ? (disabled ? "Confirmado" : "Elegido") : disabled ? "Bloqueado" : "Tocá para elegir"}
       </p>
     </button>
   );
