@@ -1,0 +1,56 @@
+.match-report-navigation {
+  margin-bottom: 4px;
+}
+
+.match-report-nav-link,
+.match-report-back-link {
+  color: #102f55;
+  text-decoration: none;
+}
+
+.match-report-nav-link {
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.match-report-nav-link span {
+  color: #245f8e;
+}
+
+.match-report-nav-link strong {
+  color: #102f55;
+  font-size: 12px;
+  letter-spacing: .02em;
+}
+
+.match-report-back-link {
+  justify-self: center;
+  background: #ffffff;
+  border-color: #cfd8e2 !important;
+}
+
+.match-report-nav-link:hover strong,
+.match-report-back-link:hover {
+  color: #245f8e;
+}
+
+.match-report-redesign a[href^="/jugadores/"],
+.match-report-redesign a[href^="/equipos/"] {
+  transition: opacity .16s ease, text-decoration-color .16s ease;
+}
+
+.match-report-redesign a[href^="/jugadores/"]:hover,
+.match-report-redesign a[href^="/equipos/"]:hover {
+  opacity: .82;
+}
+
+@media (max-width: 639px) {
+  .match-report-back-link {
+    justify-self: stretch;
+    justify-content: center;
+    order: -1;
+  }
+}
