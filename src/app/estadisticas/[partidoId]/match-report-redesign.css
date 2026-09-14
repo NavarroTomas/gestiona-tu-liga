@@ -1,0 +1,318 @@
+/* MATCH REPORT — ficha oficial de partido */
+.match-report-redesign {
+  --match-bg: #eef1f4;
+  --match-paper: #ffffff;
+  --match-soft: #f5f6f8;
+  --match-line: #d6dde5;
+  --match-ink: #102f55;
+  --match-navy: #0b2747;
+  --match-navy-2: #102f55;
+  --match-blue: #245f8e;
+  --match-blue-2: #2d6f9f;
+  --match-muted: #667789;
+}
+
+.match-report-redesign main {
+  background: var(--match-bg) !important;
+  color: var(--match-ink) !important;
+}
+
+.match-report-redesign main > div {
+  max-width: 1440px !important;
+}
+
+.match-report-redesign a,
+.match-report-redesign button,
+.match-report-redesign div,
+.match-report-redesign section {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* Volver */
+.match-report-redesign main > div > a:first-child {
+  background: var(--match-paper) !important;
+  border: 1px solid var(--match-line) !important;
+  color: var(--match-navy) !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+}
+
+/* HERO / MARCADOR */
+.match-report-redesign main > div > section:nth-of-type(1) {
+  background: linear-gradient(115deg, #0b2747 0%, #102f55 60%, #173f73 100%) !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(1) > div.absolute {
+  display: none !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(1) p,
+.match-report-redesign main > div > section:nth-of-type(1) h1,
+.match-report-redesign main > div > section:nth-of-type(1) h2,
+.match-report-redesign main > div > section:nth-of-type(1) span {
+  color: #fff !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(1) > div.relative > p:first-child {
+  color: #b8c8d8 !important;
+  letter-spacing: .2em !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(1) div[class*="rounded-full"] {
+  background: #fff !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(1) div[class*="rounded-full"] img {
+  object-fit: contain !important;
+  padding: 8px !important;
+}
+
+/* marcador central: blanco, sin amarillo */
+.match-report-redesign main > div > section:nth-of-type(1) [class*="border-yellow"] {
+  background: #fff !important;
+  border-color: #fff !important;
+  box-shadow: none !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(1) [class*="border-yellow"] span {
+  color: var(--match-navy) !important;
+  text-shadow: none !important;
+}
+
+/* MVP dentro del hero */
+.match-report-redesign main > div > section:nth-of-type(1) [class*="from-yellow"] {
+  background: #fff !important;
+  border: 0 !important;
+  color: var(--match-navy) !important;
+  box-shadow: none !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(1) [class*="from-yellow"] * {
+  color: var(--match-navy) !important;
+}
+
+/* SECCIONES GENERALES */
+.match-report-redesign main > div > section:not(:first-of-type) {
+  background: var(--match-paper) !important;
+  border: 1px solid var(--match-line) !important;
+  border-radius: 14px !important;
+  color: var(--match-ink) !important;
+  box-shadow: none !important;
+}
+
+.match-report-redesign main > div > section:not(:first-of-type) h2,
+.match-report-redesign main > div > section:not(:first-of-type) h3,
+.match-report-redesign main > div > section:not(:first-of-type) p,
+.match-report-redesign main > div > section:not(:first-of-type) span,
+.match-report-redesign main > div > section:not(:first-of-type) a {
+  color: var(--match-ink) !important;
+}
+
+/* 2. Eventos: dos columnas compactas */
+.match-report-redesign main > div > section:nth-of-type(2) {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(2) > div {
+  background: var(--match-paper) !important;
+  border: 1px solid var(--match-line) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  padding: 20px !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(2) > div > div:first-child > div {
+  background: var(--match-navy) !important;
+  border: 0 !important;
+  color: #fff !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(2) > div > div[class*="space-y"] > div {
+  background: var(--match-soft) !important;
+  border: 1px solid var(--match-line) !important;
+  border-radius: 8px !important;
+  padding: 12px 14px !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(2) [class*="text-yellow"] {
+  color: var(--match-blue) !important;
+}
+
+/* 3. Comparativa principal */
+.match-report-redesign main > div > section:nth-of-type(3) {
+  padding: 28px !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(3) h2 {
+  padding-bottom: 14px !important;
+  margin-bottom: 22px !important;
+  border-bottom: 3px solid var(--match-navy) !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(3) > div[class*="space-y"] {
+  gap: 18px !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(3) div[class*="grid-cols-3"] span:first-child,
+.match-report-redesign main > div > section:nth-of-type(3) div[class*="grid-cols-3"] span:last-child {
+  color: var(--match-navy) !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(3) div[class*="grid-cols-3"] span:nth-child(2) {
+  color: var(--match-muted) !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(3) div[class*="h-3"] {
+  height: 10px !important;
+  background: #dce3e9 !important;
+  border: 0 !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(3) div[class*="h-full"] {
+  background: var(--match-blue) !important;
+  box-shadow: none !important;
+}
+
+/* 4. Mejores jugadores */
+.match-report-redesign main > div > section:nth-of-type(4) > div[class*="grid"] > div {
+  background: var(--match-soft) !important;
+  border: 1px solid var(--match-line) !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(4) [class*="bg-yellow"] {
+  background: var(--match-navy) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(4) [class*="bg-yellow"] * {
+  color: #fff !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(4) [class*="bg-black"] {
+  background: #fff !important;
+  border-color: var(--match-line) !important;
+}
+
+/* 5. estadísticas por equipo */
+.match-report-redesign main > div > section:nth-of-type(5) {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(5) > div {
+  background: var(--match-paper) !important;
+  border: 1px solid var(--match-line) !important;
+  border-radius: 12px !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(5) [class*="bg-black"] {
+  background: var(--match-soft) !important;
+  border-color: var(--match-line) !important;
+}
+
+/* Escudos pequeños en superficies claras */
+.match-report-redesign main > div > section:nth-of-type(5) div[class*="rounded-full"] {
+  background: #fff !important;
+  border-color: var(--match-line) !important;
+  box-shadow: none !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(5) div[class*="rounded-full"] img {
+  object-fit: contain !important;
+  padding: 5px !important;
+}
+
+/* Arqueros / Detalle: limpieza genérica */
+.match-report-redesign main > div > section:nth-of-type(n+6) [class*="bg-black"] {
+  background: var(--match-soft) !important;
+  border-color: var(--match-line) !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(n+6) [class*="bg-sky"] {
+  background: #e9edf1 !important;
+  border-color: #cfd7df !important;
+  color: var(--match-navy) !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(n+6) [class*="bg-yellow"] {
+  background: var(--match-navy) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.match-report-redesign main > div > section:nth-of-type(n+6) [class*="text-yellow"],
+.match-report-redesign main > div > section:nth-of-type(n+6) [class*="text-sky"],
+.match-report-redesign main > div > section:nth-of-type(n+6) [class*="text-cyan"],
+.match-report-redesign main > div > section:nth-of-type(n+6) [class*="text-purple"] {
+  color: var(--match-navy) !important;
+}
+
+/* textos secundarios */
+.match-report-redesign [class*="text-zinc-500"] {
+  color: var(--match-muted) !important;
+}
+
+/* botón detalle */
+.match-report-redesign button {
+  background: var(--match-navy) !important;
+  border-color: var(--match-navy) !important;
+  color: #fff !important;
+  border-radius: 999px !important;
+}
+
+.match-report-redesign button:hover {
+  background: var(--match-blue) !important;
+}
+
+/* detalle completo: horizontal y menos card apilada */
+.match-report-redesign main > div > section:last-of-type > div[class*="grid-cols-1"] > div > div:not(:first-child) {
+  background: #fff !important;
+  border: 1px solid var(--match-line) !important;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+}
+
+.match-report-redesign main > div > section:last-of-type > div[class*="grid-cols-1"] > div > div:not(:first-child) > div:first-child {
+  border-bottom: 1px solid var(--match-line) !important;
+  padding-bottom: 12px !important;
+}
+
+.match-report-redesign main > div > section:last-of-type [class*="grid-cols-2"] > div,
+.match-report-redesign main > div > section:last-of-type [class*="grid-cols-4"] > div,
+.match-report-redesign main > div > section:last-of-type [class*="grid-cols-6"] > div {
+  background: var(--match-soft) !important;
+  border: 1px solid var(--match-line) !important;
+}
+
+@media (max-width: 767px) {
+  .match-report-redesign main > div {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .match-report-redesign main > div > section:nth-of-type(1) {
+    padding: 18px !important;
+  }
+
+  .match-report-redesign main > div > section:nth-of-type(1) h1 {
+    font-size: 26px !important;
+  }
+
+  .match-report-redesign main > div > section:nth-of-type(3),
+  .match-report-redesign main > div > section:nth-of-type(4),
+  .match-report-redesign main > div > section:nth-of-type(n+6) {
+    padding: 18px !important;
+  }
+}
