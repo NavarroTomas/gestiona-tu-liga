@@ -22,9 +22,7 @@ export default function DreamTeamFormation({
   | "setPosicionActiva"
   | "puedeEditar"
 >) {
-  const resultadoFinal = Boolean(
-    votingWindow.closeAt && new Date(votingWindow.closeAt).getTime() <= Date.now(),
-  );
+  const resultadoFinal = Boolean(votingWindow.isClosed);
   const hayResultado = resultadoFinal && Object.keys(votosPorPosicion).length > 0;
 
   const slot = (id: DreamTeamPositionId) => {
