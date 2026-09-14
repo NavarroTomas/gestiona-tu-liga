@@ -15,6 +15,7 @@ import {
   textValue,
   validateMatchStats,
 } from "@/lib/adminMatches";
+import { restoreMatchRevision } from "@/lib/matchRevisions";
 import {
   Field,
   Input,
@@ -204,6 +205,28 @@ export default function MatchCenter() {
     }
   }
 
+  async function restoreRevision(revisionId: string, revisionNumber: number) {
+    if (!bundle) return;
+    const entered = window.prompt(
+      `Motivo para restaurar la revisión #${revisionNumber} (obligatorio):`,
+      `Restauración de revisión #${revisionNumber}`,
+    );
+    if (!entered?.trim()) return;
+    if (!window.confirm(`¿Restaurar la revisión #${revisionNumber}? El estado actual quedará guardado como una nueva revisión y no se pierde.`)) return;
+
+    try {
+      setLoading(true);
+      const response = await restoreMatchRevision(revisionId, entered.trim());
+      setMessage(`Revisión #${revisionNumber} restaurada. Se creó la nueva revisión #${response.revision}.`);
+      await openMatch(bundle.match.id);
+      await loadMatches();
+    } catch (error: any) {
+      setMessage(error.message || "No se pudo restaurar la revisión.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <PermissionGuard permission="matches.edit">
       <MatchPage>
@@ -282,12 +305,21 @@ export default function MatchCenter() {
               )}
             </MatchCard>
 
-            <MatchCard title="Historial" description="Cada carga, corrección o anulación queda registrada con motivo, usuario y número de revisión.">
+            <MatchCard title="Historial" description="Cada carga, corrección, restauración o anulación queda registrada. Restaurar nunca borra el estado actual: crea otra revisión.">
               <div className={styles.revisionList}>
-                {bundle.revisions.length === 0 ? <div className={styles.empty}>Este partido todavía no tiene revisiones del sistema nuevo.</div> : bundle.revisions.map((revision) => (
+                {bundle.revisions.length === 0 ? <div className={styles.empty}>Este partido todavía no tiene revisiones del sistema nuevo.</div> : bundle.revisions.map((revision, index) => (
                   <div key={revision.id} className={styles.revisionRow}>
-                    <strong>Revisión #{revision.revision_number} · {sourceLabel(revision.source)}</strong>
-                    <div className={styles.matchMeta}>{new Date(revision.created_at).toLocaleString("es-AR")} · {revision.reason || "Sin observación"}</div>
+                    <div className={styles.matchRow} style={{ padding: 0, border: 0, background: "transparent" }}>
+                      <div>
+                        <strong>Revisión #{revision.revision_number} · {sourceLabel(revision.source)}</strong>
+                        <div className={styles.matchMeta}>{new Date(revision.created_at).toLocaleString("es-AR")} · {revision.reason || "Sin observación"}</div>
+                      </div>
+                      {index > 0 && (
+                        <button className={styles.secondary} type="button" disabled={loading} onClick={() => restoreRevision(revision.id, revision.revision_number)}>
+                          Restaurar
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
