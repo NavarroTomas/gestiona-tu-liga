@@ -12,10 +12,18 @@ type Props = {
   onConfirm: (file: File) => Promise<void> | void;
 };
 
+type DragState = {
+  x: number;
+  y: number;
+  offsetX: number;
+  offsetY: number;
+  pointerScale: number;
+};
+
 export default function AvatarCropper({ file, onCancel, onConfirm }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
-  const dragRef = useRef<{ x: number; y: number; offsetX: number; offsetY: number } | null>(null);
+  const dragRef = useRef<DragState | null>(null);
 
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -94,11 +102,14 @@ export default function AvatarCropper({ file, onCancel, onConfirm }: Props) {
 
   function handlePointerDown(event: React.PointerEvent<HTMLDivElement>) {
     event.currentTarget.setPointerCapture(event.pointerId);
+    const rect = event.currentTarget.getBoundingClientRect();
+
     dragRef.current = {
       x: event.clientX,
       y: event.clientY,
       offsetX: offset.x,
       offsetY: offset.y,
+      pointerScale: PREVIEW_SIZE / rect.width,
     };
   }
 
@@ -107,8 +118,8 @@ export default function AvatarCropper({ file, onCancel, onConfirm }: Props) {
     if (!drag) return;
 
     const next = clampOffset({
-      x: drag.offsetX + event.clientX - drag.x,
-      y: drag.offsetY + event.clientY - drag.y,
+      x: drag.offsetX + (event.clientX - drag.x) * drag.pointerScale,
+      y: drag.offsetY + (event.clientY - drag.y) * drag.pointerScale,
     });
 
     setOffset(next);
@@ -196,7 +207,9 @@ export default function AvatarCropper({ file, onCancel, onConfirm }: Props) {
               onChange={(event) => handleZoom(Number(event.target.value))}
               aria-label="Zoom de la foto"
             />
-            <p className={styles.hint}>Tip: dejá un poco de aire alrededor de la cara para que funcione bien también en el avatar chico del navbar.</p>
+            <p className={styles.hint}>
+              Tip: dejá un poco de aire alrededor de la cara para que funcione bien también en el avatar chico del navbar.
+            </p>
           </div>
         </div>
 
