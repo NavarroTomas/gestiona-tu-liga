@@ -306,7 +306,7 @@ export default function MatchManualEditor() {
                     <div className={styles.statGrid}>
                       <Field label="Jugador"><Input value={player.nombre} onChange={(e) => updatePlayer(player.key, { nombre: e.target.value })} /></Field>
                       <Field label="Player ID"><Input value={player.playerId} onChange={(e) => updatePlayer(player.key, { playerId: e.target.value })} /></Field>
-                      <Field label="Equipo"><Select value={player.equipo} onChange={(e) => updatePlayer(player.key, { equipo: e.target.value })}><option value={match.local}>{match.local}</option><option value={match.visitante}>{match.visitante}</option></Select></Field>
+                      <Field label="Equipo"><Select value={player.equipo} onChange={(e) => updatePlayer(player.key, { equipo: e.target.value })}><option value={match.local}>{match.local}</option><option value={match.visitante || ""}>{match.visitante}</option></Select></Field>
                       <Field label="Goles"><Input type="number" min={0} value={player.goals} onChange={(e) => updatePlayer(player.key, { goals: Math.max(0, Number(e.target.value)) })} /></Field>
                       <Field label="Asist."><Input type="number" min={0} value={player.assists} onChange={(e) => updatePlayer(player.key, { assists: Math.max(0, Number(e.target.value)) })} /></Field>
                       <Field label="Score"><Input type="number" min={0} value={player.score} onChange={(e) => updatePlayer(player.key, { score: Math.max(0, Number(e.target.value)) })} /></Field>
