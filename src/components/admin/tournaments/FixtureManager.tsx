@@ -6,6 +6,7 @@ import PermissionGuard from "@/components/PermissionGuard";
 import { supabase } from "@/lib/supabase";
 import {
   calculateStandings,
+  fetchCompetitionConfigs,
   fetchTournamentMatches,
   fetchTournamentSeasons,
   fetchTournamentTeams,
@@ -14,6 +15,7 @@ import {
   isLoadedMatch,
   normalizeDivision,
   safeDeleteScheduledMatches,
+  type CompetitionConfig,
   type TournamentMatch,
   type TournamentTeam,
 } from "@/lib/adminTournaments";
@@ -38,6 +40,7 @@ export default function FixtureManager() {
   const [division, setDivision] = useState("");
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
   const [matches, setMatches] = useState<TournamentMatch[]>([]);
+  const [configs, setConfigs] = useState<CompetitionConfig[]>([]);
   const [doubleRound, setDoubleRound] = useState(false);
   const [view, setView] = useState<View>("participantes");
   const [message, setMessage] = useState("");
@@ -64,10 +67,14 @@ export default function FixtureManager() {
     setLoading(true);
     setMessage("");
 
-    fetchTournamentTeams(temporada)
-      .then((rows) => {
+    Promise.all([
+      fetchTournamentTeams(temporada),
+      fetchCompetitionConfigs(temporada).catch(() => [] as CompetitionConfig[]),
+    ])
+      .then(([rows, configRows]) => {
         if (!active) return;
         setTeams(rows);
+        setConfigs(configRows);
         const divisions = Array.from(new Set(rows.map((row) => normalizeDivision(row.division)).filter(Boolean))).sort();
         setDivision((current) => current && divisions.includes(current) ? current : divisions[0] || "primera");
       })
@@ -76,6 +83,19 @@ export default function FixtureManager() {
 
     return () => { active = false; };
   }, [temporada]);
+
+  const leagueConfig = useMemo(() => {
+    const slug = `liga_${normalizeDivision(division)}`;
+    return configs.find((item) => item.slug === slug)
+      || configs.find((item) => item.tipo === "liga" && item.nombre.toLowerCase().includes(normalizeDivision(division)))
+      || null;
+  }, [configs, division]);
+
+  useEffect(() => {
+    if (!matches.length && leagueConfig) {
+      setDoubleRound(Boolean(leagueConfig.reglas?.ida_vuelta));
+    }
+  }, [leagueConfig?.id, matches.length]);
 
   useEffect(() => {
     if (!temporada || !division) return;
@@ -110,7 +130,12 @@ export default function FixtureManager() {
   );
 
   const rounds = useMemo(() => groupMatchesByRound(matches), [matches]);
-  const standings = useMemo(() => calculateStandings(matches), [matches]);
+  const standings = useMemo(() => calculateStandings(matches, [], {
+    winPoints: Number(leagueConfig?.reglas?.puntos_victoria ?? 3),
+    drawPoints: Number(leagueConfig?.reglas?.puntos_empate ?? 1),
+    lossPoints: Number(leagueConfig?.reglas?.puntos_derrota ?? 0),
+    tieBreakers: leagueConfig?.reglas?.desempates,
+  }), [matches, leagueConfig]);
   const loadedCount = useMemo(() => matches.filter(isLoadedMatch).length, [matches]);
   const pendingCount = matches.length - loadedCount;
 
@@ -274,6 +299,12 @@ export default function FixtureManager() {
           </div>
         </TournamentHero>
 
+        {leagueConfig && (
+          <div className={styles.notice}>
+            Reglas activas: {leagueConfig.nombre} · victoria {leagueConfig.reglas?.puntos_victoria ?? 3} pts · empate {leagueConfig.reglas?.puntos_empate ?? 1} pt · {doubleRound ? "ida y vuelta" : "una vuelta"}. Estas reglas se editan desde “Temporadas y reglas”.
+          </div>
+        )}
+
         {message && <div className={`${styles.notice} ${message.toLowerCase().includes("no se puede") ? styles.noticeDanger : ""}`}>{message}</div>}
 
         <Tabs value={view} onChange={setView} items={[
@@ -341,7 +372,7 @@ export default function FixtureManager() {
               </div>
             </TournamentPanel>
 
-            <TournamentPanel eyebrow="Tabla" title="Vista de posiciones" description="Usa el mismo motor de standings compartido por Torneos.">
+            <TournamentPanel eyebrow="Tabla" title="Vista de posiciones" description="Usa las reglas configuradas para esta liga y temporada.">
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
                   <thead><tr><th>#</th><th>Club</th><th>PTS</th><th>PJ</th><th>DG</th></tr></thead>
