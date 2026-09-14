@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import "./player-profile-redesign.css";
 import "./player-profile-compact-matches.css";
+import "./player-profile-horizontal-layout.css";
 
 export default function PlayerProfileLayout({
   children,
