@@ -22,8 +22,8 @@ export default function MatchNavigation({
         ) : null}
       </div>
 
-      <Link href="/estadisticas" className="match-report-back-link">
-        Match Center
+      <Link href="/fixture" className="match-report-back-link">
+        Volver al fixture
       </Link>
 
       <div className="sm:text-right">
