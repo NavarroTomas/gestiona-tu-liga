@@ -2,12 +2,12 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .loading {
-  width: 166px;
-  height: 48px;
+  width: 190px;
+  height: 54px;
   border-radius: 999px;
   background: linear-gradient(90deg, #edf3f7 20%, #f8fbfd 50%, #edf3f7 80%);
   background-size: 200% 100%;
@@ -21,18 +21,18 @@
 .guestActions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .loginLink,
 .joinLink {
-  min-height: 46px;
+  min-height: 50px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
   text-decoration: none;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1;
   font-weight: 900;
   white-space: nowrap;
@@ -40,7 +40,7 @@
 }
 
 .loginLink {
-  padding: 0 16px;
+  padding: 0 18px;
   border: 1px solid #c9dbe8;
   background: #fff;
   color: #102f55;
@@ -48,7 +48,7 @@
 
 .joinLink {
   gap: 10px;
-  padding: 0 19px;
+  padding: 0 22px;
   border: 1px solid #245f8e;
   background: #245f8e;
   color: #fff;
@@ -60,20 +60,20 @@
 }
 
 .panelQuickLink {
-  height: 44px;
+  height: 48px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 13px;
+  gap: 9px;
+  padding: 0 15px;
   border: 1px solid #c9dbe8;
-  border-radius: 12px;
+  border-radius: 13px;
   background: #fff;
   color: #102f55;
   text-decoration: none;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: .035em;
+  letter-spacing: .03em;
   transition: background-color 150ms ease, border-color 150ms ease;
 }
 
@@ -83,20 +83,20 @@
 }
 
 .panelQuickLink svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   color: #245f8e;
 }
 
 .accountButton {
-  min-width: 168px;
-  height: 50px;
+  min-width: 195px;
+  height: 56px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 4px 11px 4px 5px;
+  gap: 11px;
+  padding: 5px 13px 5px 6px;
   border: 1px solid #bcd5e4;
-  border-radius: 14px;
+  border-radius: 15px;
   background: #fff;
   color: #102f55;
   cursor: pointer;
@@ -127,15 +127,15 @@
 }
 
 .avatarSmall {
-  width: 40px;
-  height: 40px;
-  font-size: 14px;
+  width: 44px;
+  height: 44px;
+  font-size: 16px;
 }
 
 .avatarLarge {
-  width: 58px;
-  height: 58px;
-  font-size: 20px;
+  width: 70px;
+  height: 70px;
+  font-size: 24px;
 }
 
 .avatarSmall img,
@@ -151,32 +151,32 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 5px;
 }
 
 .accountText strong {
-  max-width: 126px;
+  max-width: 145px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1;
   font-weight: 900;
   text-transform: uppercase;
 }
 
 .accountText small {
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1;
   font-weight: 900;
-  letter-spacing: .1em;
+  letter-spacing: .08em;
   color: #245f8e;
 }
 
 .chevron {
   margin-left: 2px;
   color: #6d879d;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 900;
   transition: transform 150ms ease;
 }
@@ -187,13 +187,13 @@
 
 .menu {
   position: absolute;
-  top: calc(100% + 12px);
+  top: calc(100% + 14px);
   right: 0;
   z-index: 120;
-  width: 340px;
+  width: 410px;
   overflow: hidden;
   border: 1px solid #cbdce7;
-  border-radius: 18px;
+  border-radius: 20px;
   background: rgba(255,255,255,.99);
   box-shadow: 0 24px 56px rgba(16, 47, 85, .18);
   opacity: 0;
@@ -214,8 +214,8 @@
 .identity {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 18px;
+  gap: 17px;
+  padding: 22px;
   border-bottom: 1px solid #dce8ef;
   background: linear-gradient(110deg, #edf7fc 0%, #f9fcfe 100%);
 }
@@ -224,7 +224,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
 .identityText strong {
@@ -232,7 +232,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: #102f55;
-  font-size: 15px;
+  font-size: 18px;
   line-height: 1.05;
   font-weight: 900;
   text-transform: uppercase;
@@ -240,30 +240,30 @@
 
 .identityText span {
   color: #7890a7;
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.25;
   font-weight: 700;
 }
 
 .identityText small {
   color: #245f8e;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.15;
   font-weight: 900;
-  letter-spacing: .07em;
+  letter-spacing: .06em;
 }
 
 .menuLinks {
-  padding: 8px 0;
+  padding: 10px 0;
 }
 
 .menuLink {
   display: grid;
-  grid-template-columns: 38px minmax(0, 1fr);
+  grid-template-columns: 46px minmax(0, 1fr);
   align-items: center;
-  gap: 11px;
-  min-height: 68px;
-  padding: 11px 18px;
+  gap: 14px;
+  min-height: 82px;
+  padding: 14px 22px;
   color: #102f55;
   text-decoration: none;
   transition: background-color 140ms ease;
@@ -280,8 +280,8 @@
 }
 
 .menuLink > svg {
-  width: 23px;
-  height: 23px;
+  width: 27px;
+  height: 27px;
   color: #245f8e;
 }
 
@@ -289,12 +289,12 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .menuLink strong {
   color: #102f55;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.15;
   font-weight: 900;
   text-transform: uppercase;
@@ -302,24 +302,24 @@
 
 .menuLink small {
   color: #7890a7;
-  font-size: 10.5px;
+  font-size: 13px;
   line-height: 1.35;
   font-weight: 650;
 }
 
 .logout {
   width: 100%;
-  min-height: 58px;
+  min-height: 68px;
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 0 18px;
+  gap: 14px;
+  padding: 0 22px;
   border: 0;
   border-top: 1px solid #ecdede;
   background: #fffafa;
   color: #ad4545;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 900;
   text-transform: uppercase;
   transition: background-color 140ms ease;
@@ -330,8 +330,8 @@
 }
 
 .logout svg {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
 }
 
 @media (max-width: 1180px) {
@@ -340,17 +340,17 @@
   }
 
   .panelQuickLink {
-    width: 42px;
+    width: 46px;
     justify-content: center;
     padding: 0;
   }
 
   .accountButton {
-    min-width: 138px;
+    min-width: 154px;
   }
 
   .accountText strong {
-    max-width: 90px;
+    max-width: 100px;
   }
 }
 
@@ -392,20 +392,48 @@
     right: 10px;
     left: 10px;
     width: auto;
-    max-width: 380px;
+    max-width: 410px;
     margin-left: auto;
   }
 
+  .avatarLarge {
+    width: 58px;
+    height: 58px;
+  }
+
+  .identity {
+    padding: 18px;
+  }
+
   .identityText strong {
-    font-size: 14px;
+    font-size: 16px;
+  }
+
+  .identityText span {
+    font-size: 12px;
+  }
+
+  .identityText small {
+    font-size: 11px;
+  }
+
+  .menuLink {
+    min-height: 70px;
+    grid-template-columns: 38px minmax(0, 1fr);
+    padding: 11px 16px;
+  }
+
+  .menuLink > svg {
+    width: 23px;
+    height: 23px;
   }
 
   .menuLink strong,
   .logout {
-    font-size: 12px;
+    font-size: 14px;
   }
 
   .menuLink small {
-    font-size: 10px;
+    font-size: 11px;
   }
 }
