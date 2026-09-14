@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CLUBS_HEADER_MENU, COMPETITION_HEADER_MENU } from "@/config/navigation";
+import APAUserMenu from "./APAUserMenu";
 import estilos from "./APAHeader.module.css";
 
 function IconoBuscar() {
@@ -201,10 +202,7 @@ export default function APAHeader() {
 
           <span className={`${estilos.separador} ${estilos.separadorFinal}`} aria-hidden="true" />
 
-          <button className={estilos.unite} type="button">
-            <span>Unite a APA</span>
-            <span className={estilos.flecha} aria-hidden="true">→</span>
-          </button>
+          <APAUserMenu />
         </div>
       </div>
     </header>
