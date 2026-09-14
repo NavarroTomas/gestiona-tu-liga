@@ -1,0 +1,160 @@
+.admin-panel-scope {
+  --admin-blue: #123f69;
+  --admin-blue-hover: #173f73;
+  --admin-blue-strong: #245f8e;
+  --admin-blue-border: #35699a;
+  --admin-blue-focus: #69b6ff;
+}
+
+.admin-panel-scope .input,
+.admin-panel-scope input.input,
+.admin-panel-scope select.input,
+.admin-panel-scope textarea.input {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--admin-blue-border) !important;
+  border-radius: 12px;
+  background: var(--admin-blue) !important;
+  background-color: var(--admin-blue) !important;
+  color: #ffffff !important;
+  padding: 0 14px;
+  outline: none;
+  box-shadow: none;
+  font: inherit;
+  font-weight: 650;
+  transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+
+.admin-panel-scope textarea.input {
+  min-height: 96px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.admin-panel-scope .input:hover,
+.admin-panel-scope input.input:hover,
+.admin-panel-scope select.input:hover,
+.admin-panel-scope textarea.input:hover {
+  background: var(--admin-blue-hover) !important;
+  background-color: var(--admin-blue-hover) !important;
+}
+
+.admin-panel-scope .input:focus,
+.admin-panel-scope input.input:focus,
+.admin-panel-scope select.input:focus,
+.admin-panel-scope textarea.input:focus {
+  border-color: var(--admin-blue-focus) !important;
+  box-shadow: 0 0 0 3px rgba(105, 182, 255, .18) !important;
+}
+
+.admin-panel-scope .input::placeholder,
+.admin-panel-scope input.input::placeholder,
+.admin-panel-scope textarea.input::placeholder {
+  color: rgba(255, 255, 255, .66) !important;
+  opacity: 1;
+}
+
+.admin-panel-scope select.input,
+.admin-panel-scope select {
+  color-scheme: dark;
+}
+
+.admin-panel-scope select.input option,
+.admin-panel-scope select option {
+  background: var(--admin-blue) !important;
+  color: #ffffff !important;
+}
+
+.admin-panel-scope input[type="file"].input {
+  padding: 5px 7px;
+  line-height: 34px;
+}
+
+.admin-panel-scope input[type="file"].input::file-selector-button {
+  min-height: 34px;
+  margin-right: 12px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--admin-blue-strong);
+  color: #ffffff;
+  padding: 0 14px;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  cursor: pointer;
+}
+
+.admin-panel-scope [class*="bg-[#245f8e]"],
+.admin-panel-scope [class*="bg-[#123f69]"],
+.admin-panel-scope [class*="bg-[#173f73]"] {
+  color: #ffffff !important;
+}
+
+.admin-panel-scope [class*="bg-[#245f8e]"] *,
+.admin-panel-scope [class*="bg-[#123f69]"] *,
+.admin-panel-scope [class*="bg-[#173f73]"] * {
+  color: inherit;
+}
+
+.admin-panel-scope button[class*="bg-[#245f8e]"],
+.admin-panel-scope a[class*="bg-[#245f8e]"] {
+  background-color: var(--admin-blue-strong) !important;
+  color: #ffffff !important;
+}
+
+.admin-panel-scope button[class*="bg-[#245f8e]"]:hover,
+.admin-panel-scope a[class*="bg-[#245f8e]"]:hover {
+  background-color: var(--admin-blue-hover) !important;
+}
+
+.admin-panel-scope .admin-match-tab {
+  min-height: 38px;
+  border: 1px solid #bfd0df;
+  border-radius: 11px;
+  background: #ffffff;
+  color: #123f69;
+  padding: 0 14px;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  transition: .16s ease;
+}
+
+.admin-panel-scope .admin-match-tab:hover {
+  border-color: #7da4c5;
+  background: #f3f7fb;
+}
+
+.admin-panel-scope .admin-match-tab[data-active="true"] {
+  border-color: var(--admin-blue-strong);
+  background: var(--admin-blue-strong);
+  color: #ffffff;
+}
+
+.admin-panel-scope .admin-match-team-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #eaf1f7;
+  color: #123f69;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+
+@media (max-width: 760px) {
+  .admin-panel-scope .input,
+  .admin-panel-scope input.input,
+  .admin-panel-scope select.input,
+  .admin-panel-scope textarea.input {
+    min-height: 44px;
+    font-size: 14px;
+  }
+}
