@@ -55,9 +55,7 @@ export default function DreamTeamSidebar({
   const candidates = posicionActiva ? candidatos(posicionActiva) : [];
   const opensAt = formatWindowDate(votingWindow.openAt);
   const closesAt = formatWindowDate(votingWindow.closeAt);
-  const waitingToOpen = Boolean(
-    votingWindow.openAt && Date.now() < new Date(votingWindow.openAt).getTime(),
-  );
+  const waitingToOpen = Boolean(votingWindow.isWaiting);
 
   return (
     <aside className="space-y-6">
