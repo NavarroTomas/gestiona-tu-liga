@@ -16,12 +16,19 @@ function TeamIdentity({
       href={`/equipos/${encodeURIComponent(name)}`}
       className={`match-report-team ${align === "right" ? "match-report-team-right" : ""}`}
     >
-      <div className="match-report-crest">
-        {logo ? (
-          <img src={logo} alt={name} className="h-full w-full object-contain" loading="lazy" />
-        ) : (
-          <span>{name.slice(0, 2).toUpperCase()}</span>
-        )}
+      <div className="match-report-crest-plate">
+        <div className="match-report-crest">
+          {logo ? (
+            <img
+              src={logo}
+              alt={name}
+              className="h-full w-full object-contain"
+              loading="lazy"
+            />
+          ) : (
+            <span>{name.slice(0, 2).toUpperCase()}</span>
+          )}
+        </div>
       </div>
       <h1>{name}</h1>
     </Link>
