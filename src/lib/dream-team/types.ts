@@ -89,8 +89,8 @@ export type DreamTeamVotingWindow = {
   openAt: string | null;
   closeAt: string | null;
   isOpen: boolean;
-  isWaiting: boolean;
-  isClosed: boolean;
+  isWaiting?: boolean;
+  isClosed?: boolean;
 };
 
 export type DreamTeamRawPlayerStat = {
