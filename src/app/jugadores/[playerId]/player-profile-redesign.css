@@ -1,75 +1,126 @@
-/* Perfil público de jugador - tema APA */
+/*
+ * PERFIL PUBLICO DE JUGADOR — ATHLETE DOSSIER
+ * ---------------------------------------------
+ * Identidad propia para /jugadores/[playerId].
+ * No replica la ficha de clubes: usa una composición editorial/deportiva.
+ */
+
 .player-profile-redesign {
-  --player-page: #f3f4f6;
-  --player-white: #ffffff;
-  --player-soft: #f5f6f8;
-  --player-navy-deep: #0b2747;
-  --player-navy: #123f69;
+  --player-page: #eef1f4;
+  --player-paper: #ffffff;
+  --player-soft: #f4f6f8;
+  --player-line: #d7dde3;
+  --player-ink: #0d2948;
+  --player-navy: #102f55;
+  --player-navy-2: #173f73;
   --player-blue: #245f8e;
-  --player-blue-2: #1d4d79;
-  --player-text: #102f55;
-  --player-border: #d1d5db;
+  --player-muted: #667789;
 }
 
 .player-profile-redesign main {
   background: var(--player-page) !important;
-  color: var(--player-text) !important;
+  color: var(--player-ink) !important;
 }
 
 .player-profile-redesign main > section {
-  max-width: 1500px !important;
+  max-width: 1460px !important;
 }
 
 .player-profile-redesign main > section > a:first-child {
-  background: var(--player-white) !important;
-  border-color: var(--player-border) !important;
-  color: var(--player-text) !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  color: var(--player-navy) !important;
   box-shadow: none !important;
 }
 
-/* HERO */
+/* =========================================================
+   1. HERO — DOSSIER DE ATLETA
+   ========================================================= */
 .player-profile-redesign main > section > section:nth-of-type(1) {
-  background: var(--player-navy) !important;
-  border-color: #28618f !important;
-  box-shadow: none !important;
-  color: var(--player-white) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  background: var(--player-paper) !important;
+  border: 1px solid var(--player-line) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 18px 45px rgba(16, 47, 85, .08) !important;
+  color: var(--player-ink) !important;
+}
+
+/* barra editorial izquierda */
+.player-profile-redesign main > section > section:nth-of-type(1)::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 14px;
+  background: var(--player-navy);
+  z-index: 3;
 }
 
 .player-profile-redesign main > section > section:nth-of-type(1) > div.absolute {
   display: none !important;
 }
 
-.player-profile-redesign main > section > section:nth-of-type(1) h1,
-.player-profile-redesign main > section > section:nth-of-type(1) h2,
-.player-profile-redesign main > section > section:nth-of-type(1) h3,
+.player-profile-redesign main > section > section:nth-of-type(1) > div.relative {
+  padding: 44px 44px 44px 58px !important;
+}
+
 .player-profile-redesign main > section > section:nth-of-type(1) p,
 .player-profile-redesign main > section > section:nth-of-type(1) span,
 .player-profile-redesign main > section > section:nth-of-type(1) a {
-  color: var(--player-white) !important;
+  color: var(--player-ink) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(1) > div.relative > p:first-child {
+  color: var(--player-blue) !important;
+  letter-spacing: .22em !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(1) h1 {
+  color: var(--player-navy) !important;
+  font-style: normal !important;
+  letter-spacing: -.045em !important;
+  line-height: .9 !important;
 }
 
 .player-profile-redesign main > section > section:nth-of-type(1) h1 span {
   background: none !important;
-  color: var(--player-white) !important;
-  -webkit-text-fill-color: var(--player-white) !important;
+  color: var(--player-navy) !important;
+  -webkit-text-fill-color: var(--player-navy) !important;
 }
 
+/* Avatar: placa rectangular, no círculo */
 .player-profile-redesign main > section > section:nth-of-type(1) div[class*="rounded-full"] {
-  background: var(--player-white) !important;
-  border-color: rgba(255,255,255,.45) !important;
+  width: 190px !important;
+  height: 220px !important;
+  border-radius: 6px !important;
+  background: #e8edf2 !important;
+  border: 1px solid var(--player-line) !important;
   box-shadow: none !important;
-  color: var(--player-text) !important;
+  color: var(--player-navy) !important;
 }
 
-.player-profile-redesign main > section > section:nth-of-type(1) [class*="bg-black/35"],
-.player-profile-redesign main > section > section:nth-of-type(1) [class*="bg-white/[0.04]"],
+.player-profile-redesign main > section > section:nth-of-type(1) div[class*="rounded-full"] img {
+  border-radius: 5px !important;
+}
+
+/* Chips del hero */
+.player-profile-redesign main > section > section:nth-of-type(1) [class*="rounded-xl"],
+.player-profile-redesign main > section > section:nth-of-type(1) [class*="rounded-2xl"] {
+  border-radius: 999px !important;
+}
+
 .player-profile-redesign main > section > section:nth-of-type(1) [class*="bg-sky-400/10"],
 .player-profile-redesign main > section > section:nth-of-type(1) [class*="bg-yellow-400/10"],
 .player-profile-redesign main > section > section:nth-of-type(1) [class*="bg-green-400/10"],
-.player-profile-redesign main > section > section:nth-of-type(1) [class*="bg-cyan-400/10"] {
-  background: var(--player-blue-2) !important;
-  border-color: #356b94 !important;
-  color: var(--player-white) !important;
+.player-profile-redesign main > section > section:nth-of-type(1) [class*="bg-cyan-400/10"],
+.player-profile-redesign main > section > section:nth-of-type(1) [class*="bg-black/30"],
+.player-profile-redesign main > section > section:nth-of-type(1) [class*="bg-white/[0.04]"] {
+  background: #edf2f6 !important;
+  border-color: #cbd5df !important;
+  color: var(--player-navy) !important;
 }
 
 .player-profile-redesign main > section > section:nth-of-type(1) [class*="text-yellow"],
@@ -78,15 +129,37 @@
 .player-profile-redesign main > section > section:nth-of-type(1) [class*="text-cyan"],
 .player-profile-redesign main > section > section:nth-of-type(1) [class*="text-purple"],
 .player-profile-redesign main > section > section:nth-of-type(1) [class*="text-zinc"] {
-  color: var(--player-white) !important;
+  color: var(--player-navy) !important;
 }
 
-/* TRAYECTORIA */
+/* Stats principales del hero: tipografía editorial, sin cards oscuras */
+.player-profile-redesign main > section > section:nth-of-type(1) div[class*="grid-cols-2"] > div {
+  background: transparent !important;
+  border: 0 !important;
+  border-top: 3px solid var(--player-navy) !important;
+  border-radius: 0 !important;
+  padding: 14px 4px 6px !important;
+  backdrop-filter: none !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(1) div[class*="grid-cols-2"] > div p:first-child {
+  color: var(--player-muted) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(1) div[class*="grid-cols-2"] > div p:last-child {
+  color: var(--player-navy) !important;
+}
+
+/* =========================================================
+   2. TRAYECTORIA — TIMELINE OSCURA
+   ========================================================= */
 .player-profile-redesign main > section > section:nth-of-type(2) {
-  background: var(--player-white) !important;
-  border-color: var(--player-border) !important;
+  position: relative !important;
+  background: var(--player-navy) !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  color: #fff !important;
   box-shadow: none !important;
-  color: var(--player-text) !important;
 }
 
 .player-profile-redesign main > section > section:nth-of-type(2) > div.absolute {
@@ -97,154 +170,228 @@
 .player-profile-redesign main > section > section:nth-of-type(2) h3,
 .player-profile-redesign main > section > section:nth-of-type(2) p,
 .player-profile-redesign main > section > section:nth-of-type(2) span {
-  color: var(--player-text) !important;
+  color: #fff !important;
 }
 
 .player-profile-redesign main > section > section:nth-of-type(2) [class*="bg-black"],
 .player-profile-redesign main > section > section:nth-of-type(2) [class*="bg-white/[0.04]"] {
-  background: var(--player-soft) !important;
-  border-color: var(--player-border) !important;
+  position: relative !important;
+  background: rgba(255,255,255,.06) !important;
+  border: 0 !important;
+  border-left: 3px solid #fff !important;
+  border-radius: 0 6px 6px 0 !important;
 }
 
-/* RESUMEN DE STATS - grid suelto */
+/* =========================================================
+   3. RESUMEN NUMERICO — SCOREBOARD HORIZONTAL
+   ========================================================= */
+.player-profile-redesign main > section > section:nth-of-type(3) {
+  gap: 0 !important;
+  border-top: 1px solid var(--player-line) !important;
+  border-bottom: 1px solid var(--player-line) !important;
+}
+
 .player-profile-redesign main > section > section:nth-of-type(3) > div {
-  background: var(--player-navy) !important;
-  border-color: #28618f !important;
-  color: var(--player-white) !important;
+  background: var(--player-paper) !important;
+  border: 0 !important;
+  border-right: 1px solid var(--player-line) !important;
+  border-radius: 0 !important;
+  color: var(--player-ink) !important;
   box-shadow: none !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(3) > div:last-child {
+  border-right: 0 !important;
 }
 
 .player-profile-redesign main > section > section:nth-of-type(3) > div * {
-  color: var(--player-white) !important;
+  color: var(--player-ink) !important;
 }
 
-/* MEJOR PARTIDO */
+.player-profile-redesign main > section > section:nth-of-type(3) > div p:last-child {
+  color: var(--player-navy) !important;
+  font-size: clamp(2rem, 4vw, 3.4rem) !important;
+}
+
+/* =========================================================
+   4. MEJOR PARTIDO — FEATURE CARD
+   ========================================================= */
 .player-profile-redesign main > section > section:nth-of-type(4) {
-  background: var(--player-blue) !important;
-  border-color: #3476a8 !important;
+  background: #dfe7ee !important;
+  border: 0 !important;
+  border-left: 10px solid var(--player-blue) !important;
+  border-radius: 4px !important;
   box-shadow: none !important;
-  color: var(--player-white) !important;
+  color: var(--player-ink) !important;
 }
 
 .player-profile-redesign main > section > section:nth-of-type(4) > div.absolute {
   display: none !important;
 }
 
-.player-profile-redesign main > section > section:nth-of-type(4) * {
-  color: var(--player-white) !important;
+.player-profile-redesign main > section > section:nth-of-type(4) h2,
+.player-profile-redesign main > section > section:nth-of-type(4) h3,
+.player-profile-redesign main > section > section:nth-of-type(4) p,
+.player-profile-redesign main > section > section:nth-of-type(4) span {
+  color: var(--player-ink) !important;
 }
 
 .player-profile-redesign main > section > section:nth-of-type(4) [class*="bg-green"],
 .player-profile-redesign main > section > section:nth-of-type(4) [class*="bg-yellow"],
 .player-profile-redesign main > section > section:nth-of-type(4) [class*="bg-black"] {
-  background: var(--player-navy-deep) !important;
-  border-color: #356b94 !important;
+  background: var(--player-paper) !important;
+  border-color: #c4ced8 !important;
+  color: var(--player-navy) !important;
 }
 
-/* EVOLUCION */
+.player-profile-redesign main > section > section:nth-of-type(4) [class*="text-yellow"],
+.player-profile-redesign main > section > section:nth-of-type(4) [class*="text-green"],
+.player-profile-redesign main > section > section:nth-of-type(4) [class*="text-sky"] {
+  color: var(--player-navy) !important;
+}
+
+/* =========================================================
+   5. EVOLUCION — TARJETAS DE TEMPORADA
+   ========================================================= */
 .player-profile-redesign main > section > section:nth-of-type(5) {
-  background: var(--player-white) !important;
-  border-color: var(--player-border) !important;
-  color: var(--player-text) !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  color: var(--player-ink) !important;
 }
 
-.player-profile-redesign main > section > section:nth-of-type(5) h2,
+.player-profile-redesign main > section > section:nth-of-type(5) h2 {
+  color: var(--player-navy) !important;
+  border-bottom: 4px solid var(--player-navy) !important;
+  padding-bottom: 14px !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(5) > div > div {
+  background: var(--player-paper) !important;
+  border: 1px solid var(--player-line) !important;
+  border-radius: 5px !important;
+  box-shadow: none !important;
+}
+
 .player-profile-redesign main > section > section:nth-of-type(5) h3,
 .player-profile-redesign main > section > section:nth-of-type(5) p,
 .player-profile-redesign main > section > section:nth-of-type(5) span {
-  color: var(--player-text) !important;
+  color: var(--player-ink) !important;
 }
 
-.player-profile-redesign main > section > section:nth-of-type(5) [class*="bg-black"],
-.player-profile-redesign main > section > section:nth-of-type(5) [class*="bg-white/[0.04]"] {
-  background: var(--player-soft) !important;
-  border-color: var(--player-border) !important;
-}
-
-/* CARRERA POR TEMPORADA */
+/* =========================================================
+   6. CARRERA POR TEMPORADA — TABLA DOSSIER
+   ========================================================= */
 .player-profile-redesign main > section > section:nth-of-type(6) {
-  background: var(--player-white) !important;
-  border-color: var(--player-border) !important;
-  color: var(--player-text) !important;
+  background: var(--player-paper) !important;
+  border: 1px solid var(--player-line) !important;
+  border-radius: 5px !important;
+  color: var(--player-ink) !important;
 }
 
-.player-profile-redesign main > section > section:nth-of-type(6) h2,
-.player-profile-redesign main > section > section:nth-of-type(6) th,
-.player-profile-redesign main > section > section:nth-of-type(6) td,
-.player-profile-redesign main > section > section:nth-of-type(6) a {
-  color: var(--player-text) !important;
+.player-profile-redesign main > section > section:nth-of-type(6) h2 {
+  color: var(--player-navy) !important;
 }
 
 .player-profile-redesign main > section > section:nth-of-type(6) table,
 .player-profile-redesign main > section > section:nth-of-type(6) thead,
 .player-profile-redesign main > section > section:nth-of-type(6) tbody,
 .player-profile-redesign main > section > section:nth-of-type(6) tr {
-  background: var(--player-white) !important;
+  background: transparent !important;
 }
 
-.player-profile-redesign main > section > section:nth-of-type(6) td {
-  border-color: #e5e7eb !important;
+.player-profile-redesign main > section > section:nth-of-type(6) thead tr {
+  border-bottom: 2px solid var(--player-navy) !important;
 }
 
-/* ESTADISTICAS ACUMULADAS */
+.player-profile-redesign main > section > section:nth-of-type(6) th {
+  color: var(--player-muted) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(6) td,
+.player-profile-redesign main > section > section:nth-of-type(6) a {
+  color: var(--player-ink) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(6) tbody tr {
+  border-bottom: 1px solid #e4e9ee !important;
+}
+
+/* =========================================================
+   7. ESTADISTICAS ACUMULADAS — BANDA NAVY
+   ========================================================= */
 .player-profile-redesign main > section > section:nth-of-type(7) {
-  background: var(--player-navy-deep) !important;
-  border-color: #255a83 !important;
-  color: var(--player-white) !important;
+  background: var(--player-navy) !important;
+  border: 0 !important;
+  border-radius: 5px !important;
+  color: #fff !important;
 }
 
 .player-profile-redesign main > section > section:nth-of-type(7) h2,
 .player-profile-redesign main > section > section:nth-of-type(7) p,
 .player-profile-redesign main > section > section:nth-of-type(7) span {
-  color: var(--player-white) !important;
+  color: #fff !important;
 }
 
 .player-profile-redesign main > section > section:nth-of-type(7) > div > div {
-  background: var(--player-blue-2) !important;
-  border-color: #356b94 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(255,255,255,.24) !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
 }
 
 .player-profile-redesign main > section > section:nth-of-type(7) > div > div * {
-  color: var(--player-white) !important;
+  color: #fff !important;
 }
 
-/* PARTIDOS JUGADOS + HISTORIAL */
+/* =========================================================
+   8. PARTIDOS + HISTORIAL — DOS COLUMNAS DE PRENSA
+   ========================================================= */
 .player-profile-redesign main > section > section:nth-of-type(8) {
   background: transparent !important;
 }
 
 .player-profile-redesign main > section > section:nth-of-type(8) > div,
 .player-profile-redesign main > section > section:nth-of-type(8) > aside {
-  background: var(--player-white) !important;
-  border-color: var(--player-border) !important;
-  color: var(--player-text) !important;
+  background: var(--player-paper) !important;
+  border: 1px solid var(--player-line) !important;
+  border-radius: 5px !important;
+  color: var(--player-ink) !important;
   box-shadow: none !important;
 }
 
-.player-profile-redesign main > section > section:nth-of-type(8) h2,
+.player-profile-redesign main > section > section:nth-of-type(8) h2 {
+  color: var(--player-navy) !important;
+  border-bottom: 3px solid var(--player-navy) !important;
+  padding-bottom: 12px !important;
+}
+
 .player-profile-redesign main > section > section:nth-of-type(8) h3,
 .player-profile-redesign main > section > section:nth-of-type(8) p,
 .player-profile-redesign main > section > section:nth-of-type(8) span,
 .player-profile-redesign main > section > section:nth-of-type(8) a {
-  color: var(--player-text) !important;
+  color: var(--player-ink) !important;
 }
 
 .player-profile-redesign main > section > section:nth-of-type(8) [class*="bg-black"],
 .player-profile-redesign main > section > section:nth-of-type(8) [class*="bg-white/[0.04]"] {
   background: var(--player-soft) !important;
-  border-color: var(--player-border) !important;
+  border-color: var(--player-line) !important;
+  border-radius: 4px !important;
 }
 
-/* Elimina restos de acentos amarillos/purple/cyan fuera del hero */
+/* =========================================================
+   LIMPIEZA / CONSISTENCIA
+   ========================================================= */
 .player-profile-redesign main > section > section:not(:first-of-type) [class*="text-yellow"],
 .player-profile-redesign main > section > section:not(:first-of-type) [class*="text-purple"],
 .player-profile-redesign main > section > section:not(:first-of-type) [class*="text-cyan"],
 .player-profile-redesign main > section > section:not(:first-of-type) [class*="text-sky"] {
-  color: var(--player-text) !important;
+  color: inherit !important;
 }
 
-/* Prevención de overflow */
 .player-profile-redesign main > section > section,
 .player-profile-redesign main > section > section > *,
 .player-profile-redesign main > section > section article,
@@ -265,6 +412,17 @@
   overflow-wrap: anywhere;
 }
 
+@media (max-width: 900px) {
+  .player-profile-redesign main > section > section:nth-of-type(1) > div.relative {
+    padding: 28px 22px 28px 34px !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(1) div[class*="rounded-full"] {
+    width: 150px !important;
+    height: 170px !important;
+  }
+}
+
 @media (max-width: 767px) {
   .player-profile-redesign main > section {
     padding-left: 12px !important;
@@ -272,10 +430,23 @@
   }
 
   .player-profile-redesign main > section > section {
-    border-radius: 18px !important;
+    border-radius: 4px !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(1)::before {
+    width: 8px;
   }
 
   .player-profile-redesign main > section > section:nth-of-type(1) h1 {
-    font-size: clamp(2.25rem, 13vw, 4rem) !important;
+    font-size: clamp(2.4rem, 13vw, 4rem) !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(3) {
+    gap: 1px !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(3) > div {
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--player-line) !important;
   }
 }
