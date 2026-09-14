@@ -1,0 +1,126 @@
+.apa-txt-importer select,
+.apa-txt-importer input[type="text"],
+.apa-txt-importer input[type="number"],
+.apa-txt-importer input[type="file"] {
+  box-sizing: border-box;
+  min-height: 48px;
+  border: 1px solid #35699a !important;
+  border-radius: 14px !important;
+  background: #123f69 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.apa-txt-importer select,
+.apa-txt-importer input[type="text"],
+.apa-txt-importer input[type="number"] {
+  height: 48px;
+  padding: 0 15px !important;
+}
+
+.apa-txt-importer select {
+  color-scheme: dark;
+  text-overflow: ellipsis;
+}
+
+.apa-txt-importer select option {
+  background: #123f69 !important;
+  color: #ffffff !important;
+}
+
+.apa-txt-importer select:hover,
+.apa-txt-importer input[type="text"]:hover,
+.apa-txt-importer input[type="number"]:hover,
+.apa-txt-importer input[type="file"]:hover {
+  border-color: #4b83b8 !important;
+  background: #173f73 !important;
+}
+
+.apa-txt-importer select:focus,
+.apa-txt-importer input[type="text"]:focus,
+.apa-txt-importer input[type="number"]:focus,
+.apa-txt-importer input[type="file"]:focus {
+  border-color: #69b6ff !important;
+  background: #173f73 !important;
+  box-shadow: 0 0 0 3px rgba(105, 182, 255, 0.18) !important;
+  outline: none !important;
+}
+
+.apa-txt-importer input[type="file"] {
+  height: 48px;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.apa-txt-importer input[type="file"]::file-selector-button {
+  height: 46px;
+  margin: 0 14px 0 0;
+  padding: 0 18px;
+  border: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.16);
+  background: #245f8e;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.apa-txt-importer input[type="file"]::file-selector-button:hover {
+  background: #2d6da1;
+}
+
+.apa-txt-importer select:disabled,
+.apa-txt-importer input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.apa-txt-importer main section {
+  overflow: hidden;
+}
+
+.apa-txt-importer main section > div[class*="grid"] {
+  align-items: stretch;
+}
+
+.apa-txt-importer main section > div[class*="grid"] > * {
+  min-width: 0;
+}
+
+.apa-txt-importer main section > div[class*="grid"] select,
+.apa-txt-importer main section > div[class*="grid"] input[type="file"] {
+  width: 100%;
+}
+
+.apa-txt-importer button {
+  box-sizing: border-box;
+}
+
+@media (max-width: 1279px) {
+  .apa-txt-importer select,
+  .apa-txt-importer input[type="file"] {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .apa-txt-importer select,
+  .apa-txt-importer input[type="text"],
+  .apa-txt-importer input[type="number"],
+  .apa-txt-importer input[type="file"] {
+    min-height: 46px;
+    height: 46px;
+    border-radius: 12px !important;
+  }
+
+  .apa-txt-importer input[type="file"]::file-selector-button {
+    height: 44px;
+    padding: 0 14px;
+  }
+}
