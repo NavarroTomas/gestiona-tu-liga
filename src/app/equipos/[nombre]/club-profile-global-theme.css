@@ -27,9 +27,16 @@
   --club-border: #d1d5db;
 }
 
+.club-profile-redesign *,
+.club-profile-redesign *::before,
+.club-profile-redesign *::after {
+  box-sizing: border-box;
+}
+
 /* Fondo general */
 .club-profile-redesign main {
   background: var(--club-page) !important;
+  overflow-x: hidden !important;
 }
 
 /* =========================================================
@@ -49,16 +56,31 @@
   color: var(--club-white) !important;
 }
 
-.club-profile-redesign main > section > a:first-child + section > div:last-child > div:last-child {
-  background: var(--club-navy-deep) !important;
-  border-color: #315f82 !important;
+/* El grid central NO debe tener otro fondo: evita el efecto de doble rectángulo. */
+.club-profile-redesign main > section > a:first-child + section > div:last-child > div {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  min-width: 0 !important;
 }
 
-.club-profile-redesign main > section > a:first-child + section [class*="bg-black/35"],
+/* Solo el panel de resumen competitivo de la derecha queda oscuro. */
+.club-profile-redesign main > section > a:first-child + section > div:last-child > div > div:last-child {
+  background: var(--club-navy-deep) !important;
+  border-color: #315f82 !important;
+  min-width: 0 !important;
+}
+
 .club-profile-redesign main > section > a:first-child + section [class*="bg-white/[0.04]"],
 .club-profile-redesign main > section > a:first-child + section [class*="bg-white/[0.045]"] {
   background: var(--club-blue-card) !important;
   border-color: #2f6d9d !important;
+}
+
+/* El badge oscuro del encabezado mantiene fondo propio sin afectar el grid. */
+.club-profile-redesign main > section > a:first-child + section [class*="bg-black/35"] {
+  background: rgba(11, 39, 71, 0.82) !important;
+  border-color: #315f82 !important;
 }
 
 /* =========================================================
@@ -68,6 +90,7 @@
   background: var(--club-white) !important;
   border-color: var(--club-border) !important;
   color: var(--club-text) !important;
+  overflow: hidden !important;
 }
 
 .club-profile-redesign main > section > section:nth-of-type(2) > div:first-child,
@@ -79,6 +102,7 @@
   background: var(--club-soft) !important;
   border-color: var(--club-border) !important;
   color: var(--club-text) !important;
+  min-width: 0 !important;
 }
 
 .club-profile-redesign main > section > section:nth-of-type(2) article h3,
@@ -115,6 +139,7 @@
   background: var(--club-navy-deep) !important;
   border-color: #255a83 !important;
   color: var(--club-white) !important;
+  overflow: hidden !important;
 }
 
 .club-profile-redesign main > section > section:nth-of-type(3) h2,
@@ -144,12 +169,14 @@
   background: var(--club-white) !important;
   border-color: var(--club-border) !important;
   color: var(--club-text) !important;
+  overflow: hidden !important;
 }
 
 .club-profile-redesign main > section > section:nth-of-type(4) > div,
 .club-profile-redesign main > section > section:nth-of-type(4) article {
   background: var(--club-white) !important;
   color: var(--club-text) !important;
+  min-width: 0 !important;
 }
 
 .club-profile-redesign main > section > section:nth-of-type(4) h2,
@@ -173,6 +200,7 @@
   background: var(--club-navy-deep) !important;
   border-color: #255a83 !important;
   color: var(--club-white) !important;
+  overflow: hidden !important;
 }
 
 .club-profile-redesign main > section > section:nth-of-type(5) h2,
@@ -185,6 +213,7 @@
 .club-profile-redesign main > section > section:nth-of-type(5) a {
   background: #184a76 !important;
   border-color: #2d6a99 !important;
+  min-width: 0 !important;
 }
 
 .club-profile-redesign main > section > section:nth-of-type(5) a > p[class*="bg-yellow"],
@@ -200,13 +229,38 @@
    ========================================================= */
 .club-profile-redesign main > section > section:nth-of-type(6) {
   background: var(--club-white) !important;
-  border-color: var(--club-border) !important;
+  border: 1px solid var(--club-border) !important;
+  border-radius: 28px !important;
   color: var(--club-text) !important;
+  padding: 20px !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* Evita que cualquiera de las cuatro columnas fuerce el ancho del grid. */
+.club-profile-redesign main > section > section:nth-of-type(6) > * {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+/* El encabezado queda adentro del bloque, con respiración correcta. */
+.club-profile-redesign main > section > section:nth-of-type(6) > div:first-child {
+  margin: 0 0 4px 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
 }
 
 .club-profile-redesign main > section > section:nth-of-type(6) > div:first-child,
 .club-profile-redesign main > section > section:nth-of-type(6) > div:first-child * {
   color: var(--club-text) !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(6) > a {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
 }
 
 .club-profile-redesign main > section > section:nth-of-type(6) > a:first-of-type {
@@ -243,6 +297,9 @@
 .club-profile-redesign main > section > section:nth-of-type(7) {
   background: var(--club-navy-deep) !important;
   border-color: #255a83 !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  min-width: 0 !important;
 }
 
 .club-profile-redesign main > section > section:nth-of-type(7) > div,
@@ -251,6 +308,8 @@
   border-color: var(--club-border) !important;
   color: var(--club-text) !important;
   box-shadow: none !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
 }
 
 .club-profile-redesign main > section > section:nth-of-type(7) > div *,
@@ -311,5 +370,9 @@
 @media (max-width: 767px) {
   .club-profile-redesign main > section > section {
     border-radius: 18px !important;
+  }
+
+  .club-profile-redesign main > section > section:nth-of-type(6) {
+    padding: 14px !important;
   }
 }
