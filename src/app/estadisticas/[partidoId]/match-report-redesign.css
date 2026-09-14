@@ -63,15 +63,65 @@
   letter-spacing: .2em !important;
 }
 
-.match-report-redesign main > div > section:nth-of-type(1) div[class*="rounded-full"] {
-  background: #fff !important;
+/* Identidad de equipos */
+.match-report-team {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+  text-decoration: none !important;
+}
+
+.match-report-team-right {
+  align-items: flex-end !important;
+}
+
+.match-report-crest-plate {
+  width: clamp(180px, 23vw, 300px) !important;
+  height: clamp(180px, 23vw, 300px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: clamp(16px, 2vw, 26px) !important;
+  border-radius: 28px !important;
+  background: linear-gradient(180deg, #fbfcfe 0%, #f1f4f8 100%) !important;
+  border: 1px solid #d8e2ee !important;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .16), inset 0 0 0 1px rgba(255,255,255,.75) !important;
+}
+
+.match-report-crest {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  background: transparent !important;
   border: 0 !important;
+  border-radius: 20px !important;
   box-shadow: none !important;
 }
 
-.match-report-redesign main > div > section:nth-of-type(1) div[class*="rounded-full"] img {
+.match-report-crest img {
+  width: 100% !important;
+  height: 100% !important;
   object-fit: contain !important;
-  padding: 8px !important;
+  padding: 0 !important;
+  filter: drop-shadow(0 4px 10px rgba(16, 47, 85, .08));
+}
+
+.match-report-crest span {
+  color: var(--match-navy) !important;
+  font-size: clamp(32px, 4vw, 52px) !important;
+  font-weight: 900 !important;
+  letter-spacing: -.03em !important;
+}
+
+.match-report-team h1 {
+  margin: 0 !important;
+  max-width: 100% !important;
+  font-size: clamp(18px, 2vw, 30px) !important;
+  line-height: 1.05 !important;
 }
 
 /* marcador central: blanco, sin amarillo */
@@ -296,6 +346,14 @@
   border: 1px solid var(--match-line) !important;
 }
 
+@media (max-width: 1023px) {
+  .match-report-team,
+  .match-report-team-right {
+    align-items: center !important;
+    text-align: center !important;
+  }
+}
+
 @media (max-width: 767px) {
   .match-report-redesign main > div {
     padding-left: 12px !important;
@@ -308,6 +366,13 @@
 
   .match-report-redesign main > div > section:nth-of-type(1) h1 {
     font-size: 26px !important;
+  }
+
+  .match-report-crest-plate {
+    width: min(76vw, 240px) !important;
+    height: min(76vw, 240px) !important;
+    border-radius: 22px !important;
+    padding: 18px !important;
   }
 
   .match-report-redesign main > div > section:nth-of-type(3),
