@@ -1,5 +1,5 @@
-import MatchTxtImporter from "@/components/admin/matches/MatchTxtImporter";
+import TxtMatchImporter from "@/components/admin/matches/TxtMatchImporter";
 
 export default function SubirTxtPage() {
-  return <MatchTxtImporter />;
+  return <TxtMatchImporter />;
 }
