@@ -99,14 +99,28 @@ export async function fetchDreamTeamVotingWindow(context: DreamTeamContext) {
   });
 
   const row = Array.isArray(result.data) ? result.data[0] : result.data;
+  const openAt = row?.open_at ? String(row.open_at) : null;
+  const closeAt = row?.close_at ? String(row.close_at) : null;
+  const now = Date.now();
+  const openTime = openAt ? new Date(openAt).getTime() : null;
+  const closeTime = closeAt ? new Date(closeAt).getTime() : null;
+
   return {
     data: row
       ? {
-          openAt: row.open_at as string | null,
-          closeAt: row.close_at as string | null,
+          openAt,
+          closeAt,
           isOpen: Boolean(row.is_open),
+          isWaiting: openTime !== null && now < openTime,
+          isClosed: closeTime !== null && now >= closeTime,
         }
-      : { openAt: null, closeAt: null, isOpen: false },
+      : {
+          openAt: null,
+          closeAt: null,
+          isOpen: false,
+          isWaiting: false,
+          isClosed: false,
+        },
     error: result.error,
   };
 }
