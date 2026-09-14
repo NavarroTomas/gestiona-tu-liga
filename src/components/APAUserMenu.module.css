@@ -1,0 +1,395 @@
+.root {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loading {
+  width: 154px;
+  height: 44px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #edf3f7 20%, #f8fbfd 50%, #edf3f7 80%);
+  background-size: 200% 100%;
+  animation: pulse 1.2s linear infinite;
+}
+
+@keyframes pulse {
+  to { background-position: -200% 0; }
+}
+
+.guestActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loginLink,
+.joinLink {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 900;
+  white-space: nowrap;
+  transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+.loginLink {
+  padding: 0 15px;
+  border: 1px solid #c9dbe8;
+  background: #fff;
+  color: #102f55;
+}
+
+.joinLink {
+  gap: 10px;
+  padding: 0 18px;
+  border: 1px solid #245f8e;
+  background: #245f8e;
+  color: #fff;
+}
+
+.loginLink:hover,
+.joinLink:hover {
+  transform: translateY(-1px);
+}
+
+.panelQuickLink {
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid #c9dbe8;
+  border-radius: 12px;
+  background: #fff;
+  color: #102f55;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.panelQuickLink:hover {
+  background: #eef6fb;
+  border-color: #9fc9df;
+}
+
+.panelQuickLink svg {
+  width: 17px;
+  height: 17px;
+  color: #245f8e;
+}
+
+.accountButton {
+  min-width: 154px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 10px 4px 5px;
+  border: 1px solid #bcd5e4;
+  border-radius: 14px;
+  background: #fff;
+  color: #102f55;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(16, 47, 85, .06);
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.accountButton:hover,
+.accountButtonOpen {
+  border-color: #79bcea;
+  box-shadow: 0 10px 24px rgba(16, 47, 85, .1);
+}
+
+.accountButton:hover {
+  transform: translateY(-1px);
+}
+
+.avatarSmall,
+.avatarLarge {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #102f55;
+  color: #fff;
+  font-weight: 900;
+}
+
+.avatarSmall {
+  width: 38px;
+  height: 38px;
+  font-size: 13px;
+}
+
+.avatarLarge {
+  width: 52px;
+  height: 52px;
+  font-size: 18px;
+}
+
+.avatarSmall img,
+.avatarLarge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.accountText {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.accountText strong {
+  max-width: 118px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.accountText small {
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: .11em;
+  color: #245f8e;
+}
+
+.chevron {
+  margin-left: 2px;
+  color: #6d879d;
+  font-size: 13px;
+  font-weight: 900;
+  transition: transform 150ms ease;
+}
+
+.accountButtonOpen .chevron {
+  transform: rotate(180deg);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 120;
+  width: 310px;
+  overflow: hidden;
+  border: 1px solid #cbdce7;
+  border-radius: 18px;
+  background: rgba(255,255,255,.99);
+  box-shadow: 0 24px 56px rgba(16, 47, 85, .18);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-6px) scale(.985);
+  transform-origin: top right;
+  transition: opacity 150ms ease, transform 150ms ease, visibility 150ms ease;
+}
+
+.menuOpen {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 16px;
+  border-bottom: 1px solid #dce8ef;
+  background: linear-gradient(110deg, #edf7fc 0%, #f9fcfe 100%);
+}
+
+.identityText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.identityText strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #102f55;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.identityText span {
+  color: #7890a7;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.identityText small {
+  color: #245f8e;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.menuLinks {
+  padding: 7px 0;
+}
+
+.menuLink {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 9px 15px;
+  color: #102f55;
+  text-decoration: none;
+  transition: background-color 140ms ease;
+}
+
+.menuLink + .menuLink {
+  border-top: 1px solid #edf2f5;
+}
+
+.menuLink:hover,
+.menuLink:focus-visible {
+  background: #edf7fc;
+  outline: none;
+}
+
+.menuLink > svg {
+  width: 21px;
+  height: 21px;
+  color: #245f8e;
+}
+
+.menuLink > span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.menuLink strong {
+  color: #102f55;
+  font-size: 11px;
+  line-height: 1.15;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.menuLink small {
+  color: #7890a7;
+  font-size: 9px;
+  line-height: 1.3;
+  font-weight: 650;
+}
+
+.logout {
+  width: 100%;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 15px;
+  border: 0;
+  border-top: 1px solid #ecdede;
+  background: #fffafa;
+  color: #ad4545;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  transition: background-color 140ms ease;
+}
+
+.logout:hover {
+  background: #fff0f0;
+}
+
+.logout svg {
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 1180px) {
+  .panelQuickLink span {
+    display: none;
+  }
+
+  .panelQuickLink {
+    width: 42px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .accountButton {
+    min-width: 132px;
+  }
+
+  .accountText strong {
+    max-width: 86px;
+  }
+}
+
+@media (max-width: 760px) {
+  .guestActions .loginLink {
+    display: none;
+  }
+
+  .guestActions .joinLink {
+    min-height: 40px;
+    padding-inline: 14px;
+  }
+
+  .panelQuickLink {
+    display: none;
+  }
+
+  .accountButton {
+    min-width: 0;
+    width: 44px;
+    height: 44px;
+    padding: 3px;
+    border-radius: 50%;
+  }
+
+  .avatarSmall {
+    width: 36px;
+    height: 36px;
+  }
+
+  .accountText,
+  .chevron {
+    display: none;
+  }
+
+  .menu {
+    position: fixed;
+    top: 78px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-width: 360px;
+    margin-left: auto;
+  }
+}
