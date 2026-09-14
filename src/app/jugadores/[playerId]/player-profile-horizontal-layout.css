@@ -1,0 +1,161 @@
+/*
+ * PERFIL DE JUGADOR — LAYOUT HORIZONTAL TIPO PLANTILLA
+ * -----------------------------------------------------
+ * Convierte la pagina completa en una grilla modular para reducir
+ * la sensacion de pila vertical en desktop.
+ */
+
+@media (min-width: 1180px) {
+  .player-profile-redesign main > section {
+    display: grid !important;
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+    gap: 22px !important;
+    align-items: start !important;
+  }
+
+  /* boton volver */
+  .player-profile-redesign main > section > a:first-child {
+    grid-column: 1 / -1 !important;
+    justify-self: start !important;
+    margin: 0 !important;
+  }
+
+  /* hero */
+  .player-profile-redesign main > section > section:nth-of-type(1) {
+    grid-column: 1 / -1 !important;
+    margin: 0 !important;
+  }
+
+  /* trayectoria + resumen */
+  .player-profile-redesign main > section > section:nth-of-type(2) {
+    grid-column: span 7 !important;
+    height: 100% !important;
+    margin: 0 !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(3) {
+    grid-column: span 5 !important;
+    align-self: stretch !important;
+    margin: 0 !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    background: #ffffff !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(3) > div {
+    min-height: 118px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    padding: 18px 20px !important;
+    border-bottom: 1px solid var(--player-line) !important;
+  }
+
+  /* mejor partido + evolucion */
+  .player-profile-redesign main > section > section:nth-of-type(4) {
+    grid-column: span 7 !important;
+    margin: 0 !important;
+    height: 100% !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(5) {
+    grid-column: span 5 !important;
+    margin: 0 !important;
+    height: 100% !important;
+  }
+
+  /* compactar evolucion para que funcione como panel lateral */
+  .player-profile-redesign main > section > section:nth-of-type(5) > div[class*="space-y-4"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(5) > div[class*="space-y-4"] > div {
+    padding: 14px !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(5) > div[class*="space-y-4"] > div > div {
+    display: block !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(5) [class*="flex-wrap"] {
+    justify-content: flex-start !important;
+    gap: 6px !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(5) [class*="rounded-xl"] {
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+  }
+
+  /* carrera + acumuladas */
+  .player-profile-redesign main > section > section:nth-of-type(6) {
+    grid-column: span 8 !important;
+    margin: 0 !important;
+    height: 100% !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(7) {
+    grid-column: span 4 !important;
+    margin: 0 !important;
+    height: 100% !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(7) > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0 !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(7) > div > div {
+    min-height: 94px !important;
+    padding: 14px !important;
+    border-right: 1px solid rgba(255,255,255,.18) !important;
+    border-bottom: 1px solid rgba(255,255,255,.18) !important;
+  }
+
+  /* partidos + historial, ancho completo */
+  .player-profile-redesign main > section > section:nth-of-type(8) {
+    grid-column: 1 / -1 !important;
+    margin: 0 !important;
+    grid-template-columns: minmax(0, 1fr) 320px !important;
+    gap: 18px !important;
+  }
+}
+
+/* laptop chica: dos columnas simples, sin apilar todo */
+@media (min-width: 900px) and (max-width: 1179px) {
+  .player-profile-redesign main > section {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 18px !important;
+    align-items: start !important;
+  }
+
+  .player-profile-redesign main > section > a:first-child,
+  .player-profile-redesign main > section > section:nth-of-type(1),
+  .player-profile-redesign main > section > section:nth-of-type(8) {
+    grid-column: 1 / -1 !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(2),
+  .player-profile-redesign main > section > section:nth-of-type(3),
+  .player-profile-redesign main > section > section:nth-of-type(4),
+  .player-profile-redesign main > section > section:nth-of-type(5),
+  .player-profile-redesign main > section > section:nth-of-type(6),
+  .player-profile-redesign main > section > section:nth-of-type(7) {
+    margin: 0 !important;
+    height: 100% !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(3) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* mobile sigue en una columna para no sacrificar legibilidad */
+@media (max-width: 899px) {
+  .player-profile-redesign main > section {
+    display: block !important;
+  }
+}
