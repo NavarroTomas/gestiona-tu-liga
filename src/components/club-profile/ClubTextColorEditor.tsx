@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   clearAdminPermissionsCache,
   getMyAdminPermissions,
@@ -19,6 +19,13 @@ type SelectedText = {
   key: string;
   label: string;
   color: string;
+};
+
+type PendingChange = {
+  element_key: string;
+  color: string;
+  label: string | null;
+  action: "upsert" | "delete";
 };
 
 const TEXT_SELECTOR =
@@ -82,9 +89,12 @@ export default function ClubTextColorEditor() {
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<SelectedText | null>(null);
   const [styles, setStyles] = useState<SavedStyle[]>([]);
+  const [pending, setPending] = useState<Record<string, PendingChange>>({});
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const outlinedRef = useRef<HTMLElement | null>(null);
+
+  const pendingCount = useMemo(() => Object.keys(pending).length, [pending]);
 
   const clearOutline = useCallback(() => {
     const element = outlinedRef.current;
@@ -213,13 +223,17 @@ export default function ClubTextColorEditor() {
       outlinedRef.current = target;
 
       const key = buildElementKey(target, pageRoot);
+      const pendingChange = pending[key];
       const saved = styles.find((item) => item.element_key === key);
 
       setSelected({
         element: target,
         key,
         label: getTextLabel(target),
-        color: saved?.color || rgbToHex(getComputedStyle(target).color),
+        color:
+          pendingChange?.action === "upsert"
+            ? pendingChange.color
+            : saved?.color || rgbToHex(getComputedStyle(target).color),
       });
       setOpen(true);
       setMessage("");
@@ -233,17 +247,57 @@ export default function ClubTextColorEditor() {
       pageRoot.style.removeProperty("cursor");
       clearOutline();
     };
-  }, [selecting, styles, canEdit, clearOutline]);
+  }, [selecting, styles, pending, canEdit, clearOutline]);
 
   function previewColor(value: string) {
     if (!selected) return;
+
     const color = normalizeHex(value);
     selected.element.style.setProperty("color", color, "important");
-    setSelected((current) => (current ? { ...current, color } : current));
+
+    const nextSelected = { ...selected, color };
+    setSelected(nextSelected);
+    setPending((current) => ({
+      ...current,
+      [selected.key]: {
+        element_key: selected.key,
+        color,
+        label: selected.label,
+        action: "upsert",
+      },
+    }));
+    setMessage("");
   }
 
-  async function saveSelected() {
+  function queueRestoreSelected() {
     if (!selected || !canEdit) return;
+
+    const saved = styles.find((item) => item.element_key === selected.key);
+    selected.element.style.removeProperty("color");
+
+    setPending((current) => ({
+      ...current,
+      [selected.key]: {
+        element_key: selected.key,
+        color: saved?.color || "#102f55",
+        label: selected.label,
+        action: "delete",
+      },
+    }));
+    setSelected((current) =>
+      current
+        ? {
+            ...current,
+            color: rgbToHex(getComputedStyle(current.element).color),
+          }
+        : current,
+    );
+    setMessage("Restauración agregada a cambios pendientes.");
+  }
+
+  async function saveAll() {
+    if (!canEdit || pendingCount === 0) return;
+
     setSaving(true);
     setMessage("");
 
@@ -256,62 +310,59 @@ export default function ClubTextColorEditor() {
       return;
     }
 
-    const color = normalizeHex(selected.color);
-    const payload = {
-      element_key: selected.key,
-      color,
-      label: selected.label,
-      updated_by: user.id,
-      updated_at: new Date().toISOString(),
-    };
+    const changes = Object.values(pending);
+    const upserts = changes.filter((item) => item.action === "upsert");
+    const deletes = changes.filter((item) => item.action === "delete");
 
-    const { error } = await supabase
-      .from("club_profile_text_styles")
-      .upsert(payload, { onConflict: "element_key" });
+    if (upserts.length > 0) {
+      const now = new Date().toISOString();
+      const payload = upserts.map((item) => ({
+        element_key: item.element_key,
+        color: normalizeHex(item.color),
+        label: item.label,
+        updated_by: user.id,
+        updated_at: now,
+      }));
 
-    if (error) {
-      console.error("Error guardando color:", error);
-      setMessage("No se pudo guardar. Supabase rechazó el cambio.");
-      setSaving(false);
-      return;
+      const { error } = await supabase
+        .from("club_profile_text_styles")
+        .upsert(payload, { onConflict: "element_key" });
+
+      if (error) {
+        console.error("Error guardando colores:", error);
+        setMessage("No se pudieron guardar todos los cambios.");
+        setSaving(false);
+        return;
+      }
     }
 
-    const next: SavedStyle[] = [
-      ...styles.filter((item) => item.element_key !== selected.key),
-      { element_key: selected.key, color, label: selected.label },
-    ];
+    if (deletes.length > 0) {
+      const keys = deletes.map((item) => item.element_key);
+      const { error } = await supabase
+        .from("club_profile_text_styles")
+        .delete()
+        .in("element_key", keys);
 
-    setStyles(next);
-    applyStyles(next);
-    setMessage("Guardado y aplicado.");
+      if (error) {
+        console.error("Error restaurando colores:", error);
+        setMessage("Se guardaron colores, pero falló alguna restauración.");
+        setSaving(false);
+        return;
+      }
+    }
+
+    setPending({});
+    await reloadStyles();
+    setMessage("Todos los cambios fueron guardados.");
     setSaving(false);
   }
 
-  async function restoreSelected() {
-    if (!selected || !canEdit) return;
-    setSaving(true);
-    setMessage("");
-
-    const { error } = await supabase
-      .from("club_profile_text_styles")
-      .delete()
-      .eq("element_key", selected.key);
-
-    if (error) {
-      console.error("Error restaurando color:", error);
-      setMessage("No se pudo restaurar.");
-      setSaving(false);
-      return;
-    }
-
-    selected.element.style.removeProperty("color");
-    setStyles((current) =>
-      current.filter((item) => item.element_key !== selected.key),
-    );
+  function discardPending() {
+    setPending({});
     setSelected(null);
     clearOutline();
-    setMessage("Restaurado al diseño original.");
-    setSaving(false);
+    void reloadStyles();
+    setMessage("Cambios pendientes descartados.");
   }
 
   if (!canEdit) return null;
@@ -327,10 +378,10 @@ export default function ClubTextColorEditor() {
           onClick={() => setOpen(true)}
           className="rounded-2xl border border-white/20 bg-[#0b2747] px-5 py-3 text-sm font-black uppercase tracking-[0.08em] text-white shadow-2xl hover:bg-[#173f73]"
         >
-          Editar colores
+          Editar colores{pendingCount > 0 ? ` (${pendingCount})` : ""}
         </button>
       ) : (
-        <div className="w-[360px] max-w-[calc(100vw-24px)] rounded-3xl border border-slate-200 bg-white p-4 text-[#102f55] shadow-2xl">
+        <div className="w-[380px] max-w-[calc(100vw-24px)] rounded-3xl border border-slate-200 bg-white p-4 text-[#102f55] shadow-2xl">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#245f8e]">
@@ -368,9 +419,17 @@ export default function ClubTextColorEditor() {
 
           <p className="mt-2 text-xs leading-5 text-slate-600">
             {selecting
-              ? "Hacé clic sobre cualquier texto de la ficha."
-              : "Activá la selección y elegí directamente el texto que querés cambiar."}
+              ? "Seleccioná todos los textos que quieras y cambiales el color. No hace falta guardar uno por uno."
+              : "Activá la selección y editá todos los textos que quieras antes de guardar."}
           </p>
+
+          {pendingCount > 0 ? (
+            <div className="mt-3 rounded-2xl border border-[#245f8e]/30 bg-slate-50 px-3 py-2">
+              <p className="text-xs font-black uppercase text-[#102f55]">
+                {pendingCount} {pendingCount === 1 ? "cambio pendiente" : "cambios pendientes"}
+              </p>
+            </div>
+          ) : null}
 
           {selected ? (
             <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3">
@@ -410,26 +469,35 @@ export default function ClubTextColorEditor() {
                 ))}
               </div>
 
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  disabled={saving}
-                  onClick={() => void saveSelected()}
-                  className="rounded-xl bg-[#102f55] px-3 py-3 text-xs font-black uppercase text-white disabled:opacity-50"
-                >
-                  {saving ? "Guardando..." : "Guardar"}
-                </button>
-                <button
-                  type="button"
-                  disabled={saving}
-                  onClick={() => void restoreSelected()}
-                  className="rounded-xl border border-slate-300 bg-white px-3 py-3 text-xs font-black uppercase text-[#102f55] hover:bg-slate-100 disabled:opacity-50"
-                >
-                  Restaurar
-                </button>
-              </div>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={queueRestoreSelected}
+                className="mt-4 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-xs font-black uppercase text-[#102f55] hover:bg-slate-100 disabled:opacity-50"
+              >
+                Restaurar este texto
+              </button>
             </div>
           ) : null}
+
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              disabled={saving || pendingCount === 0}
+              onClick={() => void saveAll()}
+              className="rounded-xl bg-[#102f55] px-3 py-3 text-xs font-black uppercase text-white disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {saving ? "Guardando..." : `Guardar todos${pendingCount > 0 ? ` (${pendingCount})` : ""}`}
+            </button>
+            <button
+              type="button"
+              disabled={saving || pendingCount === 0}
+              onClick={discardPending}
+              className="rounded-xl border border-slate-300 bg-white px-3 py-3 text-xs font-black uppercase text-[#102f55] hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Descartar cambios
+            </button>
+          </div>
 
           {message ? (
             <p className="mt-3 rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-[#102f55]">
@@ -438,7 +506,7 @@ export default function ClubTextColorEditor() {
           ) : null}
 
           <p className="mt-4 text-[11px] leading-5 text-slate-500">
-            Solo visible para usuarios con permisos administrativos.
+            Solo visible para usuarios con permisos administrativos. Los cambios se guardan juntos cuando tocás “Guardar todos”.
           </p>
         </div>
       )}
