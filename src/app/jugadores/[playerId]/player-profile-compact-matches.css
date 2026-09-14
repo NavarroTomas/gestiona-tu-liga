@@ -1,0 +1,162 @@
+/* Compacta Partidos jugados e Historial para evitar cards demasiado verticales */
+
+/* Contenedor principal de la zona final */
+.player-profile-redesign main > section > section:nth-of-type(8) {
+  align-items: start !important;
+}
+
+/* Columna Partidos jugados */
+.player-profile-redesign main > section > section:nth-of-type(8) > div {
+  padding: 22px !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+/* Cada partido: banda horizontal compacta */
+.player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] > div {
+  background: #102f55 !important;
+  border: 1px solid #245f8e !important;
+  border-radius: 10px !important;
+  padding: 12px 14px !important;
+  min-height: 0 !important;
+  box-shadow: none !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] > div > div {
+  display: grid !important;
+  grid-template-columns: minmax(180px, 260px) minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 14px !important;
+}
+
+/* Equipo / temporada */
+.player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] > div > div > div:first-child {
+  padding-right: 12px !important;
+  border-right: 1px solid rgba(255,255,255,.18) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] > div > div > div:first-child a {
+  color: #ffffff !important;
+  font-size: 15px !important;
+  line-height: 1.15 !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] > div > div > div:first-child p {
+  color: #b8c8d8 !important;
+  margin-top: 5px !important;
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+}
+
+/* Stats en una sola fila cuando entra */
+.player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] > div > div > div:last-child {
+  display: grid !important;
+  grid-template-columns: repeat(7, minmax(58px, 1fr)) !important;
+  gap: 7px !important;
+}
+
+/* Mini-stat, sin torres altas */
+.player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] > div > div > div:last-child > div {
+  min-height: 58px !important;
+  padding: 8px 6px !important;
+  border-radius: 8px !important;
+  background: #173f73 !important;
+  border: 1px solid #2e6797 !important;
+  box-shadow: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] > div > div > div:last-child > div p:first-child {
+  margin: 0 !important;
+  color: #c8d7e5 !important;
+  font-size: 8px !important;
+  line-height: 1.1 !important;
+  letter-spacing: .08em !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] > div > div > div:last-child > div p:last-child {
+  margin-top: 5px !important;
+  color: #ffffff !important;
+  font-size: 19px !important;
+  line-height: 1 !important;
+}
+
+/* Historial lateral también más bajo y limpio */
+.player-profile-redesign main > section > section:nth-of-type(8) > aside {
+  padding: 22px !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(8) > aside > div {
+  max-height: 720px !important;
+  gap: 8px !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(8) > aside a {
+  background: #f4f6f8 !important;
+  border: 1px solid #d7dde3 !important;
+  border-radius: 8px !important;
+  padding: 11px 12px !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(8) > aside a p,
+.player-profile-redesign main > section > section:nth-of-type(8) > aside a span {
+  color: #102f55 !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(8) > aside a div[class*="grid-cols-[1fr_70px_1fr]"] {
+  grid-template-columns: minmax(0,1fr) 58px minmax(0,1fr) !important;
+  gap: 6px !important;
+}
+
+/* Tablet: 4 stats arriba + 3 abajo, sigue siendo compacto */
+@media (max-width: 1180px) {
+  .player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] > div > div {
+    grid-template-columns: minmax(170px, 220px) minmax(0, 1fr) !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] > div > div > div:last-child {
+    grid-template-columns: repeat(4, minmax(58px, 1fr)) !important;
+  }
+}
+
+/* Mobile: horizontal primero, sin tarjetas gigantes */
+@media (max-width: 767px) {
+  .player-profile-redesign main > section > section:nth-of-type(8) > div {
+    padding: 14px !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] > div {
+    padding: 11px !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] > div > div {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] > div > div > div:first-child {
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(255,255,255,.18) !important;
+    padding: 0 0 9px !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] > div > div > div:last-child {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] > div > div > div:last-child > div {
+    min-height: 52px !important;
+    padding: 7px 4px !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(8) > div > div[class*="space-y-4"] > div > div > div:last-child > div p:last-child {
+    font-size: 17px !important;
+  }
+}
