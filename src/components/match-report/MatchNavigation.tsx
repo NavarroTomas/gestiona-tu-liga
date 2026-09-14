@@ -22,8 +22,12 @@ export default function MatchNavigation({
         ) : null}
       </div>
 
-      <Link href="/fixture" className="match-report-back-link">
-        Volver al fixture
+      <Link href="/fixture" className="match-report-back-link" aria-label="Volver al fixture">
+        <span className="match-report-back-icon" aria-hidden="true">←</span>
+        <span className="match-report-back-copy">
+          <small>Volver</small>
+          <strong>Fixture</strong>
+        </span>
       </Link>
 
       <div className="sm:text-right">
