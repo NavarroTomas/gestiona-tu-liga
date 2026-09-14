@@ -1,0 +1,281 @@
+/* Perfil público de jugador - tema APA */
+.player-profile-redesign {
+  --player-page: #f3f4f6;
+  --player-white: #ffffff;
+  --player-soft: #f5f6f8;
+  --player-navy-deep: #0b2747;
+  --player-navy: #123f69;
+  --player-blue: #245f8e;
+  --player-blue-2: #1d4d79;
+  --player-text: #102f55;
+  --player-border: #d1d5db;
+}
+
+.player-profile-redesign main {
+  background: var(--player-page) !important;
+  color: var(--player-text) !important;
+}
+
+.player-profile-redesign main > section {
+  max-width: 1500px !important;
+}
+
+.player-profile-redesign main > section > a:first-child {
+  background: var(--player-white) !important;
+  border-color: var(--player-border) !important;
+  color: var(--player-text) !important;
+  box-shadow: none !important;
+}
+
+/* HERO */
+.player-profile-redesign main > section > section:nth-of-type(1) {
+  background: var(--player-navy) !important;
+  border-color: #28618f !important;
+  box-shadow: none !important;
+  color: var(--player-white) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(1) > div.absolute {
+  display: none !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(1) h1,
+.player-profile-redesign main > section > section:nth-of-type(1) h2,
+.player-profile-redesign main > section > section:nth-of-type(1) h3,
+.player-profile-redesign main > section > section:nth-of-type(1) p,
+.player-profile-redesign main > section > section:nth-of-type(1) span,
+.player-profile-redesign main > section > section:nth-of-type(1) a {
+  color: var(--player-white) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(1) h1 span {
+  background: none !important;
+  color: var(--player-white) !important;
+  -webkit-text-fill-color: var(--player-white) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(1) div[class*="rounded-full"] {
+  background: var(--player-white) !important;
+  border-color: rgba(255,255,255,.45) !important;
+  box-shadow: none !important;
+  color: var(--player-text) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(1) [class*="bg-black/35"],
+.player-profile-redesign main > section > section:nth-of-type(1) [class*="bg-white/[0.04]"],
+.player-profile-redesign main > section > section:nth-of-type(1) [class*="bg-sky-400/10"],
+.player-profile-redesign main > section > section:nth-of-type(1) [class*="bg-yellow-400/10"],
+.player-profile-redesign main > section > section:nth-of-type(1) [class*="bg-green-400/10"],
+.player-profile-redesign main > section > section:nth-of-type(1) [class*="bg-cyan-400/10"] {
+  background: var(--player-blue-2) !important;
+  border-color: #356b94 !important;
+  color: var(--player-white) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(1) [class*="text-yellow"],
+.player-profile-redesign main > section > section:nth-of-type(1) [class*="text-sky"],
+.player-profile-redesign main > section > section:nth-of-type(1) [class*="text-green"],
+.player-profile-redesign main > section > section:nth-of-type(1) [class*="text-cyan"],
+.player-profile-redesign main > section > section:nth-of-type(1) [class*="text-purple"],
+.player-profile-redesign main > section > section:nth-of-type(1) [class*="text-zinc"] {
+  color: var(--player-white) !important;
+}
+
+/* TRAYECTORIA */
+.player-profile-redesign main > section > section:nth-of-type(2) {
+  background: var(--player-white) !important;
+  border-color: var(--player-border) !important;
+  box-shadow: none !important;
+  color: var(--player-text) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(2) > div.absolute {
+  display: none !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(2) h2,
+.player-profile-redesign main > section > section:nth-of-type(2) h3,
+.player-profile-redesign main > section > section:nth-of-type(2) p,
+.player-profile-redesign main > section > section:nth-of-type(2) span {
+  color: var(--player-text) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(2) [class*="bg-black"],
+.player-profile-redesign main > section > section:nth-of-type(2) [class*="bg-white/[0.04]"] {
+  background: var(--player-soft) !important;
+  border-color: var(--player-border) !important;
+}
+
+/* RESUMEN DE STATS - grid suelto */
+.player-profile-redesign main > section > section:nth-of-type(3) > div {
+  background: var(--player-navy) !important;
+  border-color: #28618f !important;
+  color: var(--player-white) !important;
+  box-shadow: none !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(3) > div * {
+  color: var(--player-white) !important;
+}
+
+/* MEJOR PARTIDO */
+.player-profile-redesign main > section > section:nth-of-type(4) {
+  background: var(--player-blue) !important;
+  border-color: #3476a8 !important;
+  box-shadow: none !important;
+  color: var(--player-white) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(4) > div.absolute {
+  display: none !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(4) * {
+  color: var(--player-white) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(4) [class*="bg-green"],
+.player-profile-redesign main > section > section:nth-of-type(4) [class*="bg-yellow"],
+.player-profile-redesign main > section > section:nth-of-type(4) [class*="bg-black"] {
+  background: var(--player-navy-deep) !important;
+  border-color: #356b94 !important;
+}
+
+/* EVOLUCION */
+.player-profile-redesign main > section > section:nth-of-type(5) {
+  background: var(--player-white) !important;
+  border-color: var(--player-border) !important;
+  color: var(--player-text) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(5) h2,
+.player-profile-redesign main > section > section:nth-of-type(5) h3,
+.player-profile-redesign main > section > section:nth-of-type(5) p,
+.player-profile-redesign main > section > section:nth-of-type(5) span {
+  color: var(--player-text) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(5) [class*="bg-black"],
+.player-profile-redesign main > section > section:nth-of-type(5) [class*="bg-white/[0.04]"] {
+  background: var(--player-soft) !important;
+  border-color: var(--player-border) !important;
+}
+
+/* CARRERA POR TEMPORADA */
+.player-profile-redesign main > section > section:nth-of-type(6) {
+  background: var(--player-white) !important;
+  border-color: var(--player-border) !important;
+  color: var(--player-text) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(6) h2,
+.player-profile-redesign main > section > section:nth-of-type(6) th,
+.player-profile-redesign main > section > section:nth-of-type(6) td,
+.player-profile-redesign main > section > section:nth-of-type(6) a {
+  color: var(--player-text) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(6) table,
+.player-profile-redesign main > section > section:nth-of-type(6) thead,
+.player-profile-redesign main > section > section:nth-of-type(6) tbody,
+.player-profile-redesign main > section > section:nth-of-type(6) tr {
+  background: var(--player-white) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(6) td {
+  border-color: #e5e7eb !important;
+}
+
+/* ESTADISTICAS ACUMULADAS */
+.player-profile-redesign main > section > section:nth-of-type(7) {
+  background: var(--player-navy-deep) !important;
+  border-color: #255a83 !important;
+  color: var(--player-white) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(7) h2,
+.player-profile-redesign main > section > section:nth-of-type(7) p,
+.player-profile-redesign main > section > section:nth-of-type(7) span {
+  color: var(--player-white) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(7) > div > div {
+  background: var(--player-blue-2) !important;
+  border-color: #356b94 !important;
+  box-shadow: none !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(7) > div > div * {
+  color: var(--player-white) !important;
+}
+
+/* PARTIDOS JUGADOS + HISTORIAL */
+.player-profile-redesign main > section > section:nth-of-type(8) {
+  background: transparent !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(8) > div,
+.player-profile-redesign main > section > section:nth-of-type(8) > aside {
+  background: var(--player-white) !important;
+  border-color: var(--player-border) !important;
+  color: var(--player-text) !important;
+  box-shadow: none !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(8) h2,
+.player-profile-redesign main > section > section:nth-of-type(8) h3,
+.player-profile-redesign main > section > section:nth-of-type(8) p,
+.player-profile-redesign main > section > section:nth-of-type(8) span,
+.player-profile-redesign main > section > section:nth-of-type(8) a {
+  color: var(--player-text) !important;
+}
+
+.player-profile-redesign main > section > section:nth-of-type(8) [class*="bg-black"],
+.player-profile-redesign main > section > section:nth-of-type(8) [class*="bg-white/[0.04]"] {
+  background: var(--player-soft) !important;
+  border-color: var(--player-border) !important;
+}
+
+/* Elimina restos de acentos amarillos/purple/cyan fuera del hero */
+.player-profile-redesign main > section > section:not(:first-of-type) [class*="text-yellow"],
+.player-profile-redesign main > section > section:not(:first-of-type) [class*="text-purple"],
+.player-profile-redesign main > section > section:not(:first-of-type) [class*="text-cyan"],
+.player-profile-redesign main > section > section:not(:first-of-type) [class*="text-sky"] {
+  color: var(--player-text) !important;
+}
+
+/* Prevención de overflow */
+.player-profile-redesign main > section > section,
+.player-profile-redesign main > section > section > *,
+.player-profile-redesign main > section > section article,
+.player-profile-redesign main > section > section a,
+.player-profile-redesign main > section > section div {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.player-profile-redesign h1,
+.player-profile-redesign h2,
+.player-profile-redesign h3,
+.player-profile-redesign p,
+.player-profile-redesign span,
+.player-profile-redesign a,
+.player-profile-redesign td,
+.player-profile-redesign th {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 767px) {
+  .player-profile-redesign main > section {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .player-profile-redesign main > section > section {
+    border-radius: 18px !important;
+  }
+
+  .player-profile-redesign main > section > section:nth-of-type(1) h1 {
+    font-size: clamp(2.25rem, 13vw, 4rem) !important;
+  }
+}
