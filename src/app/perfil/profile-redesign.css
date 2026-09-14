@@ -1,0 +1,436 @@
+.apa-profile-redesign {
+  --profile-page: #f3f4f6;
+  --profile-surface: #ffffff;
+  --profile-soft: #f7f9fc;
+  --profile-navy: #102f55;
+  --profile-navy-deep: #0b2747;
+  --profile-blue: #245f8e;
+  --profile-border: #d8e2ec;
+  --profile-muted: #6f8194;
+  color: var(--profile-navy);
+}
+
+.apa-profile-redesign *,
+.apa-profile-redesign *::before,
+.apa-profile-redesign *::after {
+  box-sizing: border-box;
+}
+
+.apa-profile-redesign > main {
+  min-height: 100vh !important;
+  background: var(--profile-page) !important;
+  color: var(--profile-navy) !important;
+  padding: 34px 20px 56px !important;
+}
+
+.apa-profile-redesign > main > section {
+  max-width: 1320px !important;
+  margin: 0 auto !important;
+  display: grid !important;
+  gap: 22px !important;
+}
+
+/* Hero de cuenta */
+.apa-profile-redesign > main > section > section:first-child {
+  position: relative !important;
+  overflow: hidden !important;
+  border: 1px solid #28577f !important;
+  border-radius: 28px !important;
+  background: linear-gradient(120deg, var(--profile-navy-deep) 0%, #123f69 72%, #1f4f85 100%) !important;
+  box-shadow: none !important;
+  padding: 34px 38px !important;
+  color: #fff !important;
+}
+
+.apa-profile-redesign > main > section > section:first-child > div.absolute {
+  display: none !important;
+}
+
+.apa-profile-redesign > main > section > section:first-child > div.relative {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 28px !important;
+}
+
+.apa-profile-redesign > main > section > section:first-child p[class*="tracking-[0.45em]"] {
+  color: #b9d7eb !important;
+  letter-spacing: .2em !important;
+  font-size: 12px !important;
+}
+
+.apa-profile-redesign > main > section > section:first-child h1 {
+  margin-top: 10px !important;
+  color: #fff !important;
+  font-size: clamp(42px, 5vw, 70px) !important;
+  font-style: normal !important;
+  letter-spacing: -0.045em !important;
+  line-height: .95 !important;
+}
+
+.apa-profile-redesign > main > section > section:first-child h1 + p {
+  max-width: 760px !important;
+  margin-top: 16px !important;
+  color: #d4e2ed !important;
+  font-size: 15px !important;
+  line-height: 1.7 !important;
+}
+
+.apa-profile-redesign > main > section > section:first-child > div.relative > div:last-child {
+  min-width: 250px !important;
+  display: grid !important;
+  grid-template-columns: 86px minmax(0, 1fr) !important;
+  grid-template-rows: auto auto auto !important;
+  column-gap: 16px !important;
+  align-items: center !important;
+  padding: 18px !important;
+  border: 1px solid rgba(255,255,255,.24) !important;
+  border-radius: 20px !important;
+  background: rgba(255,255,255,.08) !important;
+  text-align: left !important;
+}
+
+.apa-profile-redesign > main > section > section:first-child > div.relative > div:last-child > div:first-child {
+  grid-row: 1 / 4 !important;
+  width: 86px !important;
+  height: 86px !important;
+  margin: 0 !important;
+  border: 3px solid rgba(255,255,255,.75) !important;
+  background: #fff !important;
+  color: var(--profile-navy) !important;
+  font-size: 28px !important;
+}
+
+.apa-profile-redesign > main > section > section:first-child > div.relative > div:last-child > p {
+  margin: 0 !important;
+}
+
+.apa-profile-redesign > main > section > section:first-child > div.relative > div:last-child > p:nth-of-type(1) {
+  color: #fff !important;
+  font-size: 17px !important;
+  line-height: 1.15 !important;
+}
+
+.apa-profile-redesign > main > section > section:first-child > div.relative > div:last-child > p:nth-of-type(2) {
+  color: #b9d7eb !important;
+  font-size: 11px !important;
+  letter-spacing: .12em !important;
+}
+
+.apa-profile-redesign > main > section > section:first-child > div.relative > div:last-child > p:nth-of-type(3) {
+  color: #fff !important;
+  font-size: 10px !important;
+  opacity: .72 !important;
+}
+
+/* Estado en disputa */
+.apa-profile-redesign section[class*="border-orange"] {
+  border: 1px solid #e2b27c !important;
+  background: #fff8ef !important;
+  box-shadow: none !important;
+  color: var(--profile-navy) !important;
+}
+
+.apa-profile-redesign section[class*="border-orange"] > div.absolute {
+  display: none !important;
+}
+
+.apa-profile-redesign section[class*="border-orange"] h2,
+.apa-profile-redesign section[class*="border-orange"] p {
+  color: var(--profile-navy) !important;
+}
+
+.apa-profile-redesign section[class*="border-orange"] [class*="text-orange"] {
+  color: #b76524 !important;
+}
+
+/* Layout principal */
+.apa-profile-redesign > main > section > section[class*="lg:grid-cols"] {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 360px !important;
+  align-items: start !important;
+  gap: 22px !important;
+}
+
+.apa-profile-redesign > main > section > section[class*="lg:grid-cols"] > section,
+.apa-profile-redesign > main > section > section[class*="lg:grid-cols"] > aside > section {
+  border: 1px solid var(--profile-border) !important;
+  border-radius: 24px !important;
+  background: var(--profile-surface) !important;
+  color: var(--profile-navy) !important;
+  box-shadow: 0 10px 26px rgba(16,47,85,.055) !important;
+}
+
+.apa-profile-redesign > main > section > section[class*="lg:grid-cols"] > section {
+  padding: 30px !important;
+}
+
+.apa-profile-redesign > main > section > section[class*="lg:grid-cols"] > section h2 {
+  margin: 0 !important;
+  color: var(--profile-navy) !important;
+  font-size: 30px !important;
+  letter-spacing: -.035em !important;
+  text-transform: none !important;
+}
+
+.apa-profile-redesign > main > section > section[class*="lg:grid-cols"] > section h2::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 4px;
+  margin-top: 12px;
+  border-radius: 999px;
+  background: var(--profile-blue);
+}
+
+/* Formulario */
+.apa-profile-redesign label {
+  margin-bottom: 8px !important;
+  color: #506a80 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+}
+
+.apa-profile-redesign input:not([type="file"]),
+.apa-profile-redesign textarea {
+  width: 100% !important;
+  border: 1px solid #cfdbe5 !important;
+  border-radius: 14px !important;
+  background: var(--profile-soft) !important;
+  color: var(--profile-navy) !important;
+  padding: 14px 16px !important;
+  outline: none !important;
+  box-shadow: none !important;
+  font-size: 15px !important;
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease !important;
+}
+
+.apa-profile-redesign input:not([type="file"]):focus,
+.apa-profile-redesign textarea:focus {
+  border-color: #6fa8cf !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 4px rgba(36,95,142,.08) !important;
+}
+
+.apa-profile-redesign textarea {
+  min-height: 120px !important;
+  resize: vertical !important;
+}
+
+.apa-profile-redesign input::placeholder,
+.apa-profile-redesign textarea::placeholder {
+  color: #9aaaba !important;
+}
+
+.apa-profile-redesign [class*="border-yellow"] {
+  border-color: #d9e3eb !important;
+  background: #f4f7fa !important;
+}
+
+.apa-profile-redesign [class*="border-yellow"] p,
+.apa-profile-redesign [class*="border-yellow"] span {
+  color: var(--profile-navy) !important;
+}
+
+.apa-profile-redesign [class*="border-yellow"] [class*="text-yellow"] {
+  color: var(--profile-blue) !important;
+}
+
+.apa-profile-redesign [class*="text-zinc"] {
+  color: var(--profile-muted) !important;
+}
+
+.apa-profile-redesign [class*="text-white"] {
+  color: var(--profile-navy) !important;
+}
+
+.apa-profile-redesign [class*="text-green"] {
+  color: #197a56 !important;
+}
+
+.apa-profile-redesign [class*="text-red"] {
+  color: #b23b46 !important;
+}
+
+.apa-profile-redesign [class*="text-orange"] {
+  color: #b76524 !important;
+}
+
+/* Mensajes y guardar */
+.apa-profile-redesign p[class*="border-sky-400/20"] {
+  border-color: #bdd5e5 !important;
+  background: #edf6fb !important;
+  color: var(--profile-navy) !important;
+}
+
+.apa-profile-redesign button[class*="bg-sky-400"] {
+  min-height: 52px !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: var(--profile-blue) !important;
+  color: #fff !important;
+  font-size: 14px !important;
+  letter-spacing: .04em !important;
+  box-shadow: none !important;
+}
+
+.apa-profile-redesign button[class*="bg-sky-400"]:hover {
+  background: var(--profile-navy) !important;
+  color: #fff !important;
+}
+
+/* Sidebar */
+.apa-profile-redesign aside {
+  display: grid !important;
+  gap: 16px !important;
+}
+
+.apa-profile-redesign aside > section {
+  padding: 22px !important;
+}
+
+.apa-profile-redesign aside > section > p:first-child {
+  color: var(--profile-blue) !important;
+  font-size: 12px !important;
+  letter-spacing: .12em !important;
+}
+
+.apa-profile-redesign aside > section:first-child > div {
+  align-items: center !important;
+}
+
+.apa-profile-redesign aside > section:first-child > div > div:first-child {
+  width: 104px !important;
+  height: 104px !important;
+  border: 3px solid #d9e4ec !important;
+  background: var(--profile-soft) !important;
+  color: var(--profile-navy) !important;
+}
+
+.apa-profile-redesign aside label[class*="cursor-pointer"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 48px !important;
+  border: 1px solid #b9cfdf !important;
+  border-radius: 13px !important;
+  background: #fff !important;
+  color: var(--profile-navy) !important;
+  letter-spacing: .03em !important;
+  text-transform: none !important;
+}
+
+.apa-profile-redesign aside label[class*="cursor-pointer"]:hover {
+  border-color: #7eaccd !important;
+  background: #edf6fb !important;
+  color: var(--profile-navy) !important;
+}
+
+.apa-profile-redesign aside > section:nth-of-type(2) p {
+  color: #5f7488 !important;
+  font-size: 14px !important;
+  line-height: 1.55 !important;
+}
+
+.apa-profile-redesign aside > section:nth-of-type(2) span {
+  color: var(--profile-navy) !important;
+}
+
+.apa-profile-redesign aside > a {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 50px !important;
+  border: 1px solid var(--profile-blue) !important;
+  border-radius: 14px !important;
+  background: var(--profile-blue) !important;
+  color: #fff !important;
+  font-size: 14px !important;
+  letter-spacing: .03em !important;
+  text-transform: none !important;
+}
+
+.apa-profile-redesign aside > a:hover {
+  background: var(--profile-navy) !important;
+  color: #fff !important;
+}
+
+.apa-profile-redesign aside > button:last-child {
+  min-height: 48px !important;
+  border: 1px solid #e2c6c9 !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  color: #a33d46 !important;
+  font-size: 14px !important;
+  text-transform: none !important;
+}
+
+.apa-profile-redesign aside > button:last-child:hover {
+  background: #fff2f3 !important;
+  color: #8f2f38 !important;
+}
+
+/* Loading */
+.apa-profile-redesign > main[class*="bg-black"] {
+  background: var(--profile-page) !important;
+  color: var(--profile-navy) !important;
+}
+
+.apa-profile-redesign > main[class*="bg-black"] p {
+  color: var(--profile-navy) !important;
+  letter-spacing: .08em !important;
+}
+
+@media (max-width: 980px) {
+  .apa-profile-redesign > main > section > section[class*="lg:grid-cols"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .apa-profile-redesign aside {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .apa-profile-redesign aside > a,
+  .apa-profile-redesign aside > button:last-child {
+    min-height: 52px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .apa-profile-redesign > main {
+    padding: 18px 12px 36px !important;
+  }
+
+  .apa-profile-redesign > main > section {
+    gap: 16px !important;
+  }
+
+  .apa-profile-redesign > main > section > section:first-child {
+    padding: 24px 20px !important;
+    border-radius: 20px !important;
+  }
+
+  .apa-profile-redesign > main > section > section:first-child > div.relative {
+    grid-template-columns: 1fr !important;
+  }
+
+  .apa-profile-redesign > main > section > section:first-child > div.relative > div:last-child {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .apa-profile-redesign > main > section > section[class*="lg:grid-cols"] > section,
+  .apa-profile-redesign > main > section > section[class*="lg:grid-cols"] > aside > section {
+    border-radius: 18px !important;
+  }
+
+  .apa-profile-redesign > main > section > section[class*="lg:grid-cols"] > section {
+    padding: 20px !important;
+  }
+
+  .apa-profile-redesign aside {
+    grid-template-columns: 1fr !important;
+  }
+}
