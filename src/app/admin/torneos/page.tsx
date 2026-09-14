@@ -16,14 +16,6 @@ const tools = [
     description: "Generá el round-robin de Primera y Segunda y programá fechas, días y horarios.",
     permission: "fixtures.manage",
   },
-  {
-    href: "/admin/copas",
-    eyebrow: "Compatibilidad histórica",
-    title: "Copas antiguas",
-    description: "Herramienta heredada. Se mantiene temporalmente solo para comparar funciones pendientes antes de retirarla.",
-    permission: "competitions.manage",
-    legacy: true,
-  },
 ];
 
 export default function AdminTorneosPage() {
@@ -31,7 +23,7 @@ export default function AdminTorneosPage() {
     <AdminToolHub
       eyebrow="Organización deportiva"
       title="Competición"
-      description="Liga, copas y fases especiales quedan agrupadas bajo una sola responsabilidad. El panel antiguo de copas ya no es una herramienta principal."
+      description="Liga, copas y fases especiales quedan agrupadas bajo una sola responsabilidad. La herramienta antigua de copas queda fuera del flujo normal mientras terminamos su retiro técnico."
       tools={tools}
     />
   );
