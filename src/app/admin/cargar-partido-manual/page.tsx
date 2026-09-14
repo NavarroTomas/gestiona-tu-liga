@@ -43,6 +43,8 @@ type RosterRow = {
   estado: string | null;
 };
 
+type ParticipantView = "todos" | "local" | "visitante";
+
 function emptyPlayer(equipo = ""): PlayerMatchStats {
   return {
     nombre: "",
@@ -76,11 +78,11 @@ export default function CargarPartidoManualPage() {
   const [grupo, setGrupo] = useState("A");
   const [fase, setFase] = useState("Octavos");
   const [fecha, setFecha] = useState("");
-
   const [partidos, setPartidos] = useState<AdminMatch[]>([]);
   const [partidoId, setPartidoId] = useState("");
   const [roster, setRoster] = useState<RosterRow[]>([]);
   const [players, setPlayers] = useState<PlayerMatchStats[]>([]);
+  const [participantView, setParticipantView] = useState<ParticipantView>("todos");
   const [golesLocal, setGolesLocal] = useState(0);
   const [golesVisitante, setGolesVisitante] = useState(0);
   const [txtSegments, setTxtSegments] = useState(0);
@@ -143,6 +145,7 @@ export default function CargarPartidoManualPage() {
       setPlayers([]);
       setRoster([]);
       setTxtSegments(0);
+      setParticipantView("todos");
       if (!partido) return;
 
       const score = String(partido.resultado || "").match(/^(\d+)\s*-\s*(\d+)$/);
@@ -151,10 +154,7 @@ export default function CargarPartidoManualPage() {
 
       try {
         const [rosterRows, segments] = await Promise.all([
-          fetchMatchRoster({
-            temporada,
-            teams: [partido.local, partido.visitante],
-          }),
+          fetchMatchRoster({ temporada, teams: [partido.local, partido.visitante] }),
           fetchTxtSegments(partido.partido_id).catch(() => []),
         ]);
         if (cancelled) return;
@@ -177,8 +177,7 @@ export default function CargarPartidoManualPage() {
         (!team || row.equipo === team) &&
         String(row.estado || "activo").toLowerCase() !== "inactivo" &&
         !players.some(
-          (player) =>
-            player.playerId && row.playerid && player.playerId === row.playerid,
+          (player) => player.playerId && row.playerid && player.playerId === row.playerid,
         ),
     );
 
@@ -191,7 +190,23 @@ export default function CargarPartidoManualPage() {
         posicion: row.posicion || "",
       })),
     ]);
+
+    if (partido && team === partido.local) setParticipantView("local");
+    if (partido && team === partido.visitante) setParticipantView("visitante");
   }
+
+  const visiblePlayers = useMemo(() => {
+    return players
+      .map((player, index) => ({ player, index }))
+      .filter(({ player }) => {
+        if (!partido || participantView === "todos") return true;
+        if (participantView === "local") return player.equipo === partido.local;
+        return player.equipo === partido.visitante;
+      });
+  }, [players, participantView, partido]);
+
+  const localCount = partido ? players.filter((player) => player.equipo === partido.local).length : 0;
+  const visitorCount = partido ? players.filter((player) => player.equipo === partido.visitante).length : 0;
 
   const resultado = `${golesLocal}-${golesVisitante}`;
   const teamStats = useMemo(() => {
@@ -204,12 +219,7 @@ export default function CargarPartidoManualPage() {
 
   const validation = useMemo(() => {
     if (!partido) return [];
-    return validateMatchDraft({
-      match: partido,
-      resultado,
-      players,
-      teams: teamStats,
-    });
+    return validateMatchDraft({ match: partido, resultado, players, teams: teamStats });
   }, [partido, resultado, players, teamStats]);
 
   async function save() {
@@ -217,14 +227,11 @@ export default function CargarPartidoManualPage() {
     setMensaje("");
 
     if (txtSegments > 0) {
-      setMensaje(
-        "Este partido tiene TXT guardados. Para no romper la evidencia original, corregilo desde Importar TXT o desde el Centro de partidos.",
-      );
+      setMensaje("Este partido tiene TXT guardados. Para no romper la evidencia original, corregilo desde Importar TXT o desde el Centro de partidos.");
       return;
     }
 
-    const errors = validation.filter((issue) => issue.level === "error");
-    if (errors.length > 0) {
+    if (validation.some((issue) => issue.level === "error")) {
       setMensaje("Corregí las inconsistencias antes de guardar.");
       return;
     }
@@ -238,10 +245,7 @@ export default function CargarPartidoManualPage() {
     try {
       const enrichedPlayers = players
         .filter((player) => player.nombre.trim() && player.equipo.trim())
-        .map((player) => ({
-          ...player,
-          rating_apa: calculateRatingAPA(player),
-        }));
+        .map((player) => ({ ...player, rating_apa: calculateRatingAPA(player) }));
 
       await commitAdminMatch({
         match: partido,
@@ -282,15 +286,11 @@ export default function CargarPartidoManualPage() {
             <p className="text-xs font-black uppercase tracking-[0.22em] text-[#a9c8df]">Carga excepcional</p>
             <h1 className="mt-2 text-4xl font-black tracking-[-0.04em] md:text-6xl">Carga manual</h1>
             <p className="mt-4 max-w-3xl text-sm leading-6 text-[#d4e2ed] md:text-base">
-              Usala para históricos, W.O. o partidos sin archivo MatchStats. Ahora trabaja sobre un partido programado y usa el mismo motor transaccional que el resto del sistema.
+              Usala para históricos, W.O. o partidos sin archivo MatchStats. Trabaja sobre el fixture oficial y usa el mismo motor transaccional que el resto del sistema.
             </p>
           </header>
 
-          {mensaje && (
-            <div className="rounded-2xl border border-[#d8c7a8] bg-[#fffaf2] p-4 text-sm font-semibold text-[#73551d]">
-              {mensaje}
-            </div>
-          )}
+          {mensaje && <div className="rounded-2xl border border-[#d8c7a8] bg-[#fffaf2] p-4 text-sm font-semibold text-[#73551d]">{mensaje}</div>}
 
           <section className="rounded-[26px] border border-[#d8e2ec] bg-white p-5 shadow-sm md:p-6">
             <div className="mb-5">
@@ -299,52 +299,23 @@ export default function CargarPartidoManualPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-6">
-              <select className="input" value={temporada} onChange={(e) => setTemporada(e.target.value)}>
-                {TEMPORADAS.map((item) => <option key={item}>{item}</option>)}
-              </select>
-              <select className="input" value={competicion} onChange={(e) => setCompeticion(e.target.value as MatchCompetition)}>
-                {MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-              </select>
-              {competicion === "liga" && (
-                <select className="input" value={division} onChange={(e) => setDivision(e.target.value)}>
-                  {MATCH_DIVISIONS.map((item) => <option key={item}>{item}</option>)}
-                </select>
-              )}
-              {competicion === "copa_clasificatoria" && (
-                <select className="input" value={grupo} onChange={(e) => setGrupo(e.target.value)}>
-                  {MATCH_GROUPS.map((item) => <option key={item}>{item}</option>)}
-                </select>
-              )}
-              {["copa_argentina", "copa_apa", "copa_campeones", "playoffs"].includes(competicion) && (
-                <select className="input" value={fase} onChange={(e) => setFase(e.target.value)}>
-                  {phaseOptions.map((item) => <option key={item}>{item}</option>)}
-                </select>
-              )}
+              <select className="input" value={temporada} onChange={(e) => setTemporada(e.target.value)}>{TEMPORADAS.map((item) => <option key={item}>{item}</option>)}</select>
+              <select className="input" value={competicion} onChange={(e) => setCompeticion(e.target.value as MatchCompetition)}>{MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
+              {competicion === "liga" && <select className="input" value={division} onChange={(e) => setDivision(e.target.value)}>{MATCH_DIVISIONS.map((item) => <option key={item}>{item}</option>)}</select>}
+              {competicion === "copa_clasificatoria" && <select className="input" value={grupo} onChange={(e) => setGrupo(e.target.value)}>{MATCH_GROUPS.map((item) => <option key={item}>{item}</option>)}</select>}
+              {["copa_argentina", "copa_apa", "copa_campeones", "playoffs"].includes(competicion) && <select className="input" value={fase} onChange={(e) => setFase(e.target.value)}>{phaseOptions.map((item) => <option key={item}>{item}</option>)}</select>}
               <input className="input" value={fecha} onChange={(e) => setFecha(e.target.value)} placeholder="Fecha (opcional)" />
               <select className="input xl:col-span-2" value={partidoId} onChange={(e) => setPartidoId(e.target.value)}>
                 {partidos.length === 0 && <option value="">Sin partidos en este contexto</option>}
-                {partidos.map((item) => (
-                  <option key={item.id} value={String(item.id)}>
-                    F{item.fecha || "-"} · {item.local} {item.resultado || "vs"} {item.visitante}
-                  </option>
-                ))}
+                {partidos.map((item) => <option key={item.id} value={String(item.id)}>F{item.fecha || "-"} · {item.local} {item.resultado || "vs"} {item.visitante}</option>)}
               </select>
             </div>
 
             {partido && (
               <div className="mt-5 grid gap-3 md:grid-cols-3">
-                <div className="rounded-2xl bg-[#f5f7f9] p-4">
-                  <span className="text-[10px] font-black uppercase tracking-[0.12em] text-[#72879a]">Partido</span>
-                  <strong className="mt-1 block text-lg">{partido.local} vs {partido.visitante}</strong>
-                </div>
-                <div className="rounded-2xl bg-[#f5f7f9] p-4">
-                  <span className="text-[10px] font-black uppercase tracking-[0.12em] text-[#72879a]">ID estable</span>
-                  <strong className="mt-1 block break-all text-sm">{stableMatchId(partido)}</strong>
-                </div>
-                <div className="rounded-2xl bg-[#f5f7f9] p-4">
-                  <span className="text-[10px] font-black uppercase tracking-[0.12em] text-[#72879a]">Evidencia TXT</span>
-                  <strong className="mt-1 block text-lg">{txtSegments} archivo{txtSegments === 1 ? "" : "s"}</strong>
-                </div>
+                <div className="rounded-2xl bg-[#f5f7f9] p-4"><span className="text-[10px] font-black uppercase tracking-[0.12em] text-[#72879a]">Partido</span><strong className="mt-1 block text-lg">{partido.local} vs {partido.visitante}</strong></div>
+                <div className="rounded-2xl bg-[#f5f7f9] p-4"><span className="text-[10px] font-black uppercase tracking-[0.12em] text-[#72879a]">ID estable</span><strong className="mt-1 block break-all text-sm">{stableMatchId(partido)}</strong></div>
+                <div className="rounded-2xl bg-[#f5f7f9] p-4"><span className="text-[10px] font-black uppercase tracking-[0.12em] text-[#72879a]">Evidencia TXT</span><strong className="mt-1 block text-lg">{txtSegments} archivo{txtSegments === 1 ? "" : "s"}</strong></div>
               </div>
             )}
           </section>
@@ -363,46 +334,55 @@ export default function CargarPartidoManualPage() {
               </section>
 
               <section className="rounded-[26px] border border-[#d8e2ec] bg-[#f8fafc] p-5 md:p-6">
-                <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                   <div>
                     <p className="text-xs font-black uppercase tracking-[0.16em] text-[#245f8e]">3. Participantes</p>
                     <h2 className="mt-1 text-2xl font-black">Jugadores del partido</h2>
-                    <p className="mt-2 text-sm text-[#687d8f]">Podés cargar la plantilla oficial y quitar quienes no participaron.</p>
+                    <p className="mt-2 text-sm text-[#687d8f]">Cargá cada plantilla por separado y filtrá la vista para no mezclar los dos equipos.</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <button type="button" className="rounded-xl border border-[#cbd9e3] bg-white px-4 py-2 text-xs font-black uppercase text-[#102f55]" onClick={() => addRoster(partido.local)}>Plantilla local</button>
-                    <button type="button" className="rounded-xl border border-[#cbd9e3] bg-white px-4 py-2 text-xs font-black uppercase text-[#102f55]" onClick={() => addRoster(partido.visitante)}>Plantilla visitante</button>
-                    <button type="button" className="rounded-xl bg-[#245f8e] px-4 py-2 text-xs font-black uppercase text-white" onClick={() => setPlayers((current) => [...current, emptyPlayer(partido.local)])}>Jugador manual</button>
+                    <button type="button" className="rounded-xl border border-[#cbd9e3] bg-white px-4 py-2 text-xs font-black uppercase text-[#102f55]" onClick={() => addRoster(partido.local)}>Cargar plantilla local</button>
+                    <button type="button" className="rounded-xl border border-[#cbd9e3] bg-white px-4 py-2 text-xs font-black uppercase text-[#102f55]" onClick={() => addRoster(partido.visitante)}>Cargar plantilla visitante</button>
+                    <button type="button" className="rounded-xl bg-[#245f8e] px-4 py-2 text-xs font-black uppercase text-white" onClick={() => { setPlayers((current) => [...current, emptyPlayer(partido.local)]); setParticipantView("local"); }}>Jugador manual</button>
                   </div>
                 </div>
 
-                <div className="mt-5 space-y-4">
-                  {players.length === 0 && (
-                    <div className="rounded-2xl border border-dashed border-[#cbd9e3] bg-white p-7 text-center text-sm text-[#74899b]">
-                      No cargaste jugadores. El resultado puede guardarse igualmente para casos administrativos, pero no generará estadísticas individuales.
-                    </div>
+                <div className="mt-5 flex flex-wrap gap-2 border-b border-[#dfe7ed] pb-4">
+                  <button type="button" className="admin-match-tab" data-active={participantView === "todos"} onClick={() => setParticipantView("todos")}>Todos · {players.length}</button>
+                  <button type="button" className="admin-match-tab" data-active={participantView === "local"} onClick={() => setParticipantView("local")}>{partido.local} · {localCount}</button>
+                  <button type="button" className="admin-match-tab" data-active={participantView === "visitante"} onClick={() => setParticipantView("visitante")}>{partido.visitante} · {visitorCount}</button>
+                </div>
+
+                {participantView === "todos" && players.length > 0 && (
+                  <div className="mt-4 grid gap-2 md:grid-cols-2">
+                    <div className="admin-match-team-heading"><span>{partido.local}</span><span>{localCount} jugadores</span></div>
+                    <div className="admin-match-team-heading"><span>{partido.visitante}</span><span>{visitorCount} jugadores</span></div>
+                  </div>
+                )}
+
+                <div className="mt-4 space-y-4">
+                  {players.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-[#cbd9e3] bg-white p-7 text-center text-sm text-[#74899b]">No cargaste jugadores. Podés cargar cada plantilla por separado o guardar únicamente el resultado para un caso administrativo.</div>
+                  ) : visiblePlayers.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-[#cbd9e3] bg-white p-7 text-center text-sm text-[#74899b]">No hay jugadores cargados para esta plantilla.</div>
+                  ) : (
+                    visiblePlayers.map(({ player, index }) => (
+                      <MatchPlayerEditor
+                        key={`${player.playerId || player.nombre || "player"}-${index}`}
+                        player={player}
+                        index={index}
+                        onChange={(next) => setPlayers((current) => current.map((item, i) => (i === index ? next : item)))}
+                        onRemove={() => setPlayers((current) => current.filter((_, i) => i !== index))}
+                      />
+                    ))
                   )}
-                  {players.map((player, index) => (
-                    <MatchPlayerEditor
-                      key={`${player.playerId || player.nombre || "player"}-${index}`}
-                      player={player}
-                      index={index}
-                      onChange={(next) => setPlayers((current) => current.map((item, i) => (i === index ? next : item)))}
-                      onRemove={() => setPlayers((current) => current.filter((_, i) => i !== index))}
-                    />
-                  ))}
                 </div>
               </section>
 
               <section className="rounded-[26px] border border-[#d8e2ec] bg-white p-5 shadow-sm md:p-6">
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-[#245f8e]">4. Validación y guardado</p>
                 <div className="mt-4"><MatchValidationPanel issues={validation} /></div>
-                <button
-                  type="button"
-                  disabled={loading || validation.some((issue) => issue.level === "error")}
-                  onClick={save}
-                  className="mt-5 min-h-12 rounded-xl bg-[#245f8e] px-6 text-sm font-black uppercase tracking-[0.08em] text-white disabled:cursor-not-allowed disabled:opacity-50"
-                >
+                <button type="button" disabled={loading || validation.some((issue) => issue.level === "error")} onClick={save} className="mt-5 min-h-12 rounded-xl bg-[#245f8e] px-6 text-sm font-black uppercase tracking-[0.08em] text-white disabled:cursor-not-allowed disabled:opacity-50">
                   {loading ? "Guardando..." : "Guardar partido de forma segura"}
                 </button>
               </section>
