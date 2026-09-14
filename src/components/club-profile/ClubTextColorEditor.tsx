@@ -56,12 +56,12 @@ function buildElementKey(element: HTMLElement, root: HTMLElement) {
   let current: HTMLElement | null = element;
 
   while (current && current !== root) {
-    const node = current;
-    const parent = node.parentElement;
+    const node: HTMLElement = current;
+    const parent: HTMLElement | null = node.parentElement;
     if (!parent) break;
 
-    const sameTag = Array.from(parent.children).filter(
-      (child) => child.tagName === node.tagName,
+    const sameTag: Element[] = Array.from(parent.children).filter(
+      (child: Element) => child.tagName === node.tagName,
     );
     const index = sameTag.indexOf(node) + 1;
     segments.unshift(`${node.tagName.toLowerCase()}:nth-of-type(${index})`);
