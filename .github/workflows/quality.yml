@@ -33,7 +33,18 @@ jobs:
         run: npm run lint
 
       - name: Typecheck
-        run: npm run typecheck
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run typecheck 2>&1 | tee typecheck.log
+
+      - name: Upload typecheck diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: typecheck-diagnostics
+          path: typecheck.log
+          retention-days: 1
 
       - name: Security regression checks
         run: npm run test:security
