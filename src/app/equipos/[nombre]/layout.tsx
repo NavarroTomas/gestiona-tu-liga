@@ -23,13 +23,13 @@ export default function ClubProfileLayout({
 
   useEffect(() => {
     const root = rootRef.current;
-    if (!root) return;
+    if (!(root instanceof HTMLDivElement)) return;
 
     const emojiPattern = /[\p{Extended_Pictographic}\uFE0F]/gu;
 
     function cleanTextNodes() {
       const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-      let node = walker.nextNode();
+      let node: Node | null = walker.nextNode();
 
       while (node) {
         const value = node.nodeValue || "";
