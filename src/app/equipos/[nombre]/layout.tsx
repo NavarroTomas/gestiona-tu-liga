@@ -5,18 +5,14 @@ import ClubTextColorEditor from "@/components/club-profile/ClubTextColorEditor";
 import "./club-profile-redesign.css";
 import "./club-profile-contrast.css";
 import "./club-profile-final-fixes.css";
+import "./club-profile-global-theme.css";
 
 /**
  * Layout visual para todas las fichas públicas de club.
  *
- * Además de aplicar el sistema visual común, elimina pictogramas emoji
- * heredados de la versión anterior. La capa de contraste se carga después
- * del rediseño base y los ajustes finales se cargan últimos para que las
- * correcciones aprobadas por sección no vuelvan a ser pisadas por reglas
- * genéricas.
- *
- * El editor visual de colores aparece únicamente para usuarios presentes
- * en public.admins. Los colores guardados se cargan para todos los visitantes.
+ * La hoja global-theme se carga al final para fijar la paleta aprobada como
+ * estándar de todos los clubes. El editor visual puede seguir aplicando
+ * overrides puntuales guardados por administradores.
  */
 export default function ClubProfileLayout({
   children,
