@@ -26,6 +26,29 @@ export type TournamentMatch = {
   estado?: string | null;
 };
 
+export type TournamentSeason = {
+  id: string | number;
+  nombre: string;
+  numero?: number | null;
+  activa?: boolean | null;
+  estado?: string | null;
+  fecha_inicio?: string | null;
+  fecha_fin?: string | null;
+  campeon?: string | null;
+  configuracion?: Record<string, unknown> | null;
+};
+
+export type CompetitionConfig = {
+  id: string;
+  temporada: string;
+  slug: string;
+  nombre: string;
+  tipo: string;
+  activa: boolean;
+  orden: number;
+  reglas: Record<string, any>;
+};
+
 export type StandingRow = {
   equipo: string;
   pts: number;
@@ -36,6 +59,13 @@ export type StandingRow = {
   gf: number;
   gc: number;
   dg: number;
+};
+
+export type StandingRules = {
+  winPoints?: number;
+  drawPoints?: number;
+  lossPoints?: number;
+  tieBreakers?: Array<"pts" | "dg" | "gf" | "pg" | "equipo">;
 };
 
 function seasonNumber(value: string) {
@@ -52,7 +82,119 @@ export function sortSeasons(values: string[]) {
   });
 }
 
+export async function fetchSeasonRecords() {
+  const { data, error } = await supabase
+    .from("temporadas")
+    .select("id,nombre,numero,activa,estado,fecha_inicio,fecha_fin,campeon,configuracion")
+    .order("numero", { ascending: false, nullsFirst: false });
+  if (error) throw error;
+  return (data || []) as TournamentSeason[];
+}
+
+export async function createTournamentSeason(input: {
+  nombre: string;
+  numero?: number | null;
+  estado?: string;
+  activa?: boolean;
+  fecha_inicio?: string | null;
+  fecha_fin?: string | null;
+  cloneFrom?: string | null;
+}) {
+  const { data, error } = await supabase
+    .from("temporadas")
+    .insert({
+      nombre: input.nombre.trim(),
+      numero: input.numero ?? null,
+      estado: input.estado || "borrador",
+      activa: Boolean(input.activa),
+      fecha_inicio: input.fecha_inicio || null,
+      fecha_fin: input.fecha_fin || null,
+      updated_at: new Date().toISOString(),
+    })
+    .select("id,nombre,numero,activa,estado,fecha_inicio,fecha_fin,campeon,configuracion")
+    .single();
+  if (error) throw error;
+
+  if (input.cloneFrom) {
+    const previous = await fetchCompetitionConfigs(input.cloneFrom);
+    if (previous.length) {
+      const { error: cloneError } = await supabase.from("competicion_config").insert(
+        previous.map((config) => ({
+          temporada: input.nombre.trim(),
+          slug: config.slug,
+          nombre: config.nombre,
+          tipo: config.tipo,
+          activa: config.activa,
+          orden: config.orden,
+          reglas: config.reglas || {},
+        })),
+      );
+      if (cloneError) throw cloneError;
+    }
+  }
+
+  return data as TournamentSeason;
+}
+
+export async function updateTournamentSeason(id: string | number, patch: Partial<TournamentSeason>) {
+  const { data, error } = await supabase
+    .from("temporadas")
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("id,nombre,numero,activa,estado,fecha_inicio,fecha_fin,campeon,configuracion")
+    .single();
+  if (error) throw error;
+  return data as TournamentSeason;
+}
+
+export async function fetchCompetitionConfigs(temporada: string) {
+  const { data, error } = await supabase
+    .from("competicion_config")
+    .select("id,temporada,slug,nombre,tipo,activa,orden,reglas")
+    .eq("temporada", temporada)
+    .order("orden", { ascending: true });
+  if (error) throw error;
+  return (data || []) as CompetitionConfig[];
+}
+
+export async function saveCompetitionConfig(config: CompetitionConfig) {
+  const { data, error } = await supabase
+    .from("competicion_config")
+    .upsert({
+      id: config.id || undefined,
+      temporada: config.temporada,
+      slug: config.slug,
+      nombre: config.nombre,
+      tipo: config.tipo,
+      activa: config.activa,
+      orden: Number(config.orden || 0),
+      reglas: config.reglas || {},
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "temporada,slug" })
+    .select("id,temporada,slug,nombre,tipo,activa,orden,reglas")
+    .single();
+  if (error) throw error;
+  return data as CompetitionConfig;
+}
+
+export async function createCompetitionConfig(input: Omit<CompetitionConfig, "id">) {
+  const { data, error } = await supabase
+    .from("competicion_config")
+    .insert({ ...input, reglas: input.reglas || {} })
+    .select("id,temporada,slug,nombre,tipo,activa,orden,reglas")
+    .single();
+  if (error) throw error;
+  return data as CompetitionConfig;
+}
+
 export async function fetchTournamentSeasons() {
+  try {
+    const records = await fetchSeasonRecords();
+    if (records.length) return sortSeasons(records.map((row) => row.nombre));
+  } catch {
+    // Compatibilidad con instalaciones anteriores a la tabla extendida.
+  }
+
   const [matchesRes, clubsRes] = await Promise.all([
     supabase.from("partidos").select("temporada"),
     supabase.from("v_clubes_temporada_public").select("temporada"),
@@ -124,7 +266,12 @@ export function parseScore(result?: string | null) {
 export function calculateStandings(
   matches: TournamentMatch[],
   sanctions: Array<{ equipo: string; puntos_descontados: number }> = [],
+  rules: StandingRules = {},
 ) {
+  const winPoints = Number(rules.winPoints ?? 3);
+  const drawPoints = Number(rules.drawPoints ?? 1);
+  const lossPoints = Number(rules.lossPoints ?? 0);
+  const tieBreakers = rules.tieBreakers?.length ? rules.tieBreakers : ["pts", "dg", "gf", "equipo"];
   const map = new Map<string, StandingRow>();
   const ensure = (team: string) => {
     if (!map.has(team)) {
@@ -150,16 +297,18 @@ export function calculateStandings(
     if (score.local > score.visitante) {
       local.pg += 1;
       visitor.pp += 1;
-      local.pts += 3;
+      local.pts += winPoints;
+      visitor.pts += lossPoints;
     } else if (score.local < score.visitante) {
       visitor.pg += 1;
       local.pp += 1;
-      visitor.pts += 3;
+      visitor.pts += winPoints;
+      local.pts += lossPoints;
     } else {
       local.pe += 1;
       visitor.pe += 1;
-      local.pts += 1;
-      visitor.pts += 1;
+      local.pts += drawPoints;
+      visitor.pts += drawPoints;
     }
   }
 
@@ -169,9 +318,18 @@ export function calculateStandings(
     row.pts -= Number(sanction.puntos_descontados || 0);
   }
 
-  return Array.from(map.values()).sort((a, b) =>
-    b.pts - a.pts || b.dg - a.dg || b.gf - a.gf || a.equipo.localeCompare(b.equipo, "es"),
-  );
+  return Array.from(map.values()).sort((a, b) => {
+    for (const key of tieBreakers) {
+      if (key === "equipo") {
+        const cmp = a.equipo.localeCompare(b.equipo, "es");
+        if (cmp !== 0) return cmp;
+        continue;
+      }
+      const diff = Number(b[key]) - Number(a[key]);
+      if (diff !== 0) return diff;
+    }
+    return a.equipo.localeCompare(b.equipo, "es");
+  });
 }
 
 export function generateRoundRobin(teamsInput: string[], doubleRound = false) {
