@@ -19,9 +19,8 @@ export type HeaderDropdownItem = {
  *
  * No usamos íconos dentro del desplegable para mantener el diseño limpio.
  *
- * La sección de estadísticas sigue existiendo y se accede desde equipos,
- * partidos, fixture y otros puntos de la web; simplemente no aparece como
- * acceso independiente en el navbar.
+ * Las estadísticas de cada partido se abren desde Fixture. No existe una
+ * landing general de estadísticas ni un acceso independiente en el navbar.
  */
 export const COMPETITION_HEADER_MENU: HeaderDropdownItem[] = [
   {
