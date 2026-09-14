@@ -227,7 +227,8 @@ export default function PerfilPublicoPage() {
   const logrosDesbloqueados = logros.filter((logro) => logro.activo).length;
 
   useEffect(() => {
-    if (!perfil || loading) return;
+    const currentProfile = perfil;
+    if (!currentProfile || loading) return;
 
     async function notificarLogros() {
       const activos = logros.filter((logro) => logro.activo);
@@ -236,7 +237,7 @@ export default function PerfilPublicoPage() {
       const { data: yaNotificados, error } = await supabase
         .from("logros_notificados")
         .select("logro_key")
-        .eq("user_id", perfil.id);
+        .eq("user_id", currentProfile.id);
 
       if (error) {
         console.log(error);
@@ -248,7 +249,7 @@ export default function PerfilPublicoPage() {
       if (nuevos.length === 0) return;
 
       const { error: logrosError } = await supabase.from("logros_notificados").insert(
-        nuevos.map((logro) => ({ user_id: perfil.id, logro_key: logro.key })),
+        nuevos.map((logro) => ({ user_id: currentProfile.id, logro_key: logro.key })),
       );
 
       if (logrosError) {
@@ -258,11 +259,11 @@ export default function PerfilPublicoPage() {
 
       const { error: notificacionesError } = await supabase.from("notificaciones").insert(
         nuevos.map((logro) => ({
-          user_id: perfil.id,
+          user_id: currentProfile.id,
           tipo: "achievement",
           titulo: "Logro desbloqueado",
           mensaje: `${logro.titulo}: ${logro.descripcion}`,
-          href: `/u/${perfil.username}`,
+          href: `/u/${currentProfile.username}`,
           leida: false,
         })),
       );
@@ -271,7 +272,7 @@ export default function PerfilPublicoPage() {
     }
 
     notificarLogros();
-  }, [perfil?.id, loading, logrosDesbloqueados]);
+  }, [perfil, loading, logros, logrosDesbloqueados]);
 
   if (loading) {
     return (
