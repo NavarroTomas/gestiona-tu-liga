@@ -50,6 +50,11 @@ import type { AdminMatch, MatchCompetition } from "@/lib/adminMatches/types";
 
 const TEMPORADAS = ["Temporada 4"];
 
+const APA_FIELD_CLASS =
+  "min-h-[48px] w-full rounded-xl border border-[#35699a] bg-[#123f69] px-4 text-sm font-semibold text-white outline-none transition hover:bg-[#173f73] focus:border-[#69b6ff] focus:ring-2 focus:ring-[#69b6ff]/20 disabled:cursor-not-allowed disabled:opacity-50";
+
+const APA_FILE_CLASS = `${APA_FIELD_CLASS} file:mr-4 file:border-0 file:bg-[#245f8e] file:px-4 file:py-2 file:text-xs file:font-black file:uppercase file:tracking-[0.06em] file:text-white`;
+
 export default function TxtMatchImporter() {
   const [temporada, setTemporada] = useState("Temporada 4");
   const [competicion, setCompeticion] = useState<MatchCompetition>("liga");
@@ -57,6 +62,7 @@ export default function TxtMatchImporter() {
   const [grupo, setGrupo] = useState("A");
   const [fase, setFase] = useState("Octavos");
   const [fecha, setFecha] = useState("");
+  const [fechasDisponibles, setFechasDisponibles] = useState<string[]>([]);
   const [partidos, setPartidos] = useState<AdminMatch[]>([]);
   const [partidoRowId, setPartidoRowId] = useState("");
 
@@ -104,13 +110,30 @@ export default function TxtMatchImporter() {
               : undefined,
         });
         if (cancelled) return;
-        const rounds = Array.from(new Set(all.map((item) => String(item.fecha || "")).filter(Boolean))).sort((a, b) => Number(a) - Number(b));
+
+        const rounds = Array.from(
+          new Set(all.map((item) => String(item.fecha || "")).filter(Boolean)),
+        ).sort((a, b) => {
+          const numberA = Number(a);
+          const numberB = Number(b);
+          if (Number.isFinite(numberA) && Number.isFinite(numberB)) return numberA - numberB;
+          return a.localeCompare(b, "es");
+        });
+
+        setFechasDisponibles(rounds);
+
         const activeRound = fecha && rounds.includes(fecha) ? fecha : rounds[0] || "";
         if (activeRound !== fecha) setFecha(activeRound);
-        const scoped = activeRound ? all.filter((item) => String(item.fecha || "") === activeRound) : all;
+
+        const scoped = activeRound
+          ? all.filter((item) => String(item.fecha || "") === activeRound)
+          : all;
+
         setPartidos(scoped);
         setPartidoRowId((current) =>
-          scoped.some((item) => String(item.id) === current) ? current : String(scoped[0]?.id || ""),
+          scoped.some((item) => String(item.id) === current)
+            ? current
+            : String(scoped[0]?.id || ""),
         );
       } catch (error: any) {
         if (!cancelled) setMensaje(error?.message || "No pude cargar los partidos programados.");
@@ -462,13 +485,22 @@ export default function TxtMatchImporter() {
           <section className="rounded-[26px] border border-[#d8e2ec] bg-white p-5 shadow-sm md:p-6">
             <p className="text-xs font-black uppercase tracking-[0.15em] text-[#245f8e]">1. Contexto</p>
             <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-6">
-              <select className="input" value={temporada} onChange={(e) => setTemporada(e.target.value)}>{TEMPORADAS.map((item) => <option key={item}>{item}</option>)}</select>
-              <select className="input" value={competicion} onChange={(e) => setCompeticion(e.target.value as MatchCompetition)}>{MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
-              {competicion === "liga" && <select className="input" value={division} onChange={(e) => setDivision(e.target.value)}>{MATCH_DIVISIONS.map((item) => <option key={item}>{item}</option>)}</select>}
-              {competicion === "copa_clasificatoria" && <select className="input" value={grupo} onChange={(e) => setGrupo(e.target.value)}>{MATCH_GROUPS.map((item) => <option key={item}>{item}</option>)}</select>}
-              {["copa_argentina", "copa_apa", "copa_campeones", "playoffs"].includes(competicion) && <select className="input" value={fase} onChange={(e) => setFase(e.target.value)}>{phaseOptions.map((item) => <option key={item}>{item}</option>)}</select>}
-              <input className="input" value={fecha} onChange={(e) => setFecha(e.target.value)} placeholder="Fecha" />
-              <select className="input xl:col-span-2" value={partidoRowId} onChange={(e) => setPartidoRowId(e.target.value)}>
+              <select className={APA_FIELD_CLASS} value={temporada} onChange={(e) => setTemporada(e.target.value)}>{TEMPORADAS.map((item) => <option key={item}>{item}</option>)}</select>
+              <select className={APA_FIELD_CLASS} value={competicion} onChange={(e) => setCompeticion(e.target.value as MatchCompetition)}>{MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
+              {competicion === "liga" && <select className={APA_FIELD_CLASS} value={division} onChange={(e) => setDivision(e.target.value)}>{MATCH_DIVISIONS.map((item) => <option key={item}>{item}</option>)}</select>}
+              {competicion === "copa_clasificatoria" && <select className={APA_FIELD_CLASS} value={grupo} onChange={(e) => setGrupo(e.target.value)}>{MATCH_GROUPS.map((item) => <option key={item}>{item}</option>)}</select>}
+              {["copa_argentina", "copa_apa", "copa_campeones", "playoffs"].includes(competicion) && <select className={APA_FIELD_CLASS} value={fase} onChange={(e) => setFase(e.target.value)}>{phaseOptions.map((item) => <option key={item}>{item}</option>)}</select>}
+              <select
+                className={APA_FIELD_CLASS}
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+                disabled={fechasDisponibles.length === 0}
+                aria-label="Fecha"
+              >
+                {fechasDisponibles.length === 0 && <option value="">Sin fechas</option>}
+                {fechasDisponibles.map((item) => <option key={item} value={item}>Fecha {item}</option>)}
+              </select>
+              <select className={`${APA_FIELD_CLASS} xl:col-span-2`} value={partidoRowId} onChange={(e) => setPartidoRowId(e.target.value)}>
                 {partidos.length === 0 && <option value="">Sin partidos</option>}
                 {partidos.map((item) => <option key={item.id} value={String(item.id)}>{item.local} {item.resultado || "vs"} {item.visitante}</option>)}
               </select>
@@ -490,17 +522,17 @@ export default function TxtMatchImporter() {
                 type="file"
                 multiple
                 accept=".txt,.json,application/json,text/plain"
-                className="input"
+                className={APA_FILE_CLASS}
                 onChange={(e) => {
                   setFiles(Array.from(e.target.files || []));
                   resetAnalysis();
                 }}
               />
-              <select className="input" value={mode} onChange={(e) => { setMode(e.target.value as TxtLoadMode); resetAnalysis(); }}>
+              <select className={APA_FIELD_CLASS} value={mode} onChange={(e) => { setMode(e.target.value as TxtLoadMode); resetAnalysis(); }}>
                 <option value="reemplazar">Reemplazar carga completa</option>
                 <option value="agregar">Agregar a TXT existentes</option>
               </select>
-              <select className="input" value={order} onChange={(e) => { setOrder(e.target.value as OrdenTxt); resetAnalysis(); }}>
+              <select className={APA_FIELD_CLASS} value={order} onChange={(e) => { setOrder(e.target.value as OrdenTxt); resetAnalysis(); }}>
                 <option value="normal">Team 1 = local</option>
                 <option value="invertido">Team 2 = local</option>
               </select>
@@ -546,7 +578,7 @@ export default function TxtMatchImporter() {
                           <strong className="block">{raw.rawName}</strong>
                           <span className="text-xs text-[#758a9b]">{raw.team} · {raw.rawPlayerId || "sin PlayerID"}</span>
                         </div>
-                        <select className="input" value={resolution?.action === "ignore" ? "__ignore" : resolution?.action === "new" ? "__new" : resolution?.canonicalPlayerId || "__new"} onChange={(e) => changeResolution(raw.rawKey, e.target.value)}>
+                        <select className={APA_FIELD_CLASS} value={resolution?.action === "ignore" ? "__ignore" : resolution?.action === "new" ? "__new" : resolution?.canonicalPlayerId || "__new"} onChange={(e) => changeResolution(raw.rawKey, e.target.value)}>
                           <option value="__new">Guardar como jugador detectado</option>
                           <option value="__ignore">Ignorar</option>
                           {roster.filter((row) => row.equipo === raw.team).map((row) => <option key={row.playerid || row.jugador || "row"} value={row.playerid || ""}>{row.jugador} · {row.playerid}</option>)}
@@ -591,8 +623,8 @@ export default function TxtMatchImporter() {
                         return (
                           <tr key={key} className="border-b border-[#edf1f4]">
                             <td className="p-2 font-bold">{player.nombre}</td><td className="p-2 text-[#667d8f]">{player.equipo}</td>
-                            <td className="p-2"><input type="number" min="0" className="input w-24" value={correction?.goals ?? player.goals ?? 0} onChange={(e) => setCorrections((current) => ({ ...current, [key]: { goals: Math.max(0, Number(e.target.value || 0)), assists: correction?.assists ?? Number(player.assists || 0) } }))} /></td>
-                            <td className="p-2"><input type="number" min="0" className="input w-24" value={correction?.assists ?? player.assists ?? 0} onChange={(e) => setCorrections((current) => ({ ...current, [key]: { goals: correction?.goals ?? Number(player.goals || 0), assists: Math.max(0, Number(e.target.value || 0)) } }))} /></td>
+                            <td className="p-2"><input type="number" min="0" className={`${APA_FIELD_CLASS} w-24`} value={correction?.goals ?? player.goals ?? 0} onChange={(e) => setCorrections((current) => ({ ...current, [key]: { goals: Math.max(0, Number(e.target.value || 0)), assists: correction?.assists ?? Number(player.assists || 0) } }))} /></td>
+                            <td className="p-2"><input type="number" min="0" className={`${APA_FIELD_CLASS} w-24`} value={correction?.assists ?? player.assists ?? 0} onChange={(e) => setCorrections((current) => ({ ...current, [key]: { goals: correction?.goals ?? Number(player.goals || 0), assists: Math.max(0, Number(e.target.value || 0)) } }))} /></td>
                             <td className="p-2">{Number(player.mvp || 0) > 0 ? "Sí" : "-"}</td>
                           </tr>
                         );
