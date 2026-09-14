@@ -78,109 +78,115 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     })).filter((group) => group.items.length > 0);
   }, [permissions]);
 
+  const currentGroup = useMemo(() => {
+    return (
+      groups.find((group) => group.items.some((item) => isActive(pathname, item.href))) ||
+      groups[0]
+    );
+  }, [groups, pathname]);
+
   const currentItem = useMemo(() => {
     return groups
       .flatMap((group) => group.items)
       .find((item) => isActive(pathname, item.href));
   }, [groups, pathname]);
 
-  const label =
-    identity?.display_name || identity?.username || "Administrador APA";
+  const label = identity?.display_name || identity?.username || "Administrador APA";
   const initial = label.slice(0, 1).toUpperCase();
 
   return (
     <div className={styles.shell}>
-      <div
-        className={`${styles.backdrop} ${mobileOpen ? styles.backdropOpen : ""}`}
-        onClick={() => setMobileOpen(false)}
-      />
+      <header className={styles.header}>
+        <div className={styles.topRow}>
+          <div className={styles.brandWrap}>
+            <Link href="/admin" className={styles.brand}>
+              <span className={styles.brandMark}>APA</span>
+              <span className={styles.brandCopy}>
+                <strong>Panel Admin</strong>
+                <small>PSO Argentina</small>
+              </span>
+            </Link>
 
-      <aside className={`${styles.sidebar} ${mobileOpen ? styles.sidebarOpen : ""}`}>
-        <div className={styles.brand}>
-          <div className={styles.brandMark}>APA</div>
-          <div>
-            <strong>Panel Admin</strong>
-            <span>PSO Argentina</span>
-          </div>
-        </div>
-
-        <nav className={styles.nav} aria-label="Navegación administrativa">
-          {loading ? (
-            <div className={styles.navLoading}>Cargando accesos...</div>
-          ) : (
-            groups.map((group) => (
-              <section key={group.label} className={styles.navGroup}>
-                <p className={styles.groupLabel}>{group.label}</p>
-                <div className={styles.groupItems}>
-                  {group.items.map((item) => {
-                    const active = isActive(pathname, item.href);
-
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className={`${styles.navItem} ${active ? styles.navItemActive : ""}`}
-                      >
-                        <span className={styles.navIndicator} />
-                        <span className={styles.navCopy}>
-                          <strong>{item.label}</strong>
-                          {item.legacy && <small>Heredado</small>}
-                        </span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </section>
-            ))
-          )}
-        </nav>
-
-        <div className={styles.sidebarFooter}>
-          <div className={styles.identity}>
-            <div className={styles.avatar}>
-              {identity?.avatar_url ? (
-                <img src={identity.avatar_url} alt={label} />
-              ) : (
-                initial
-              )}
-            </div>
-            <div className={styles.identityCopy}>
-              <strong>{label}</strong>
-              <span>{identity?.visible_role || "Staff APA"}</span>
-            </div>
+            <button
+              className={styles.menuButton}
+              type="button"
+              onClick={() => setMobileOpen((value) => !value)}
+              aria-label="Abrir navegación administrativa"
+              aria-expanded={mobileOpen}
+            >
+              <span />
+              <span />
+              <span />
+            </button>
           </div>
 
-          <Link className={styles.backToSite} href="/">
-            Volver al sitio
-          </Link>
-        </div>
-      </aside>
-
-      <div className={styles.workspace}>
-        <div className={styles.topbar}>
-          <button
-            className={styles.menuButton}
-            type="button"
-            onClick={() => setMobileOpen((value) => !value)}
-            aria-label="Abrir navegación administrativa"
+          <nav
+            className={`${styles.categoryNav} ${mobileOpen ? styles.categoryNavOpen : ""}`}
+            aria-label="Categorías administrativas"
           >
-            <span />
-            <span />
-            <span />
-          </button>
+            {loading ? (
+              <span className={styles.loading}>Cargando accesos...</span>
+            ) : (
+              groups.map((group) => {
+                const active = currentGroup?.label === group.label;
+                const target = group.items[0]?.href || "/admin";
 
+                return (
+                  <Link
+                    key={group.label}
+                    href={target}
+                    className={`${styles.categoryLink} ${active ? styles.categoryLinkActive : ""}`}
+                  >
+                    {group.label}
+                  </Link>
+                );
+              })
+            )}
+          </nav>
+
+          <div className={styles.accountZone}>
+            <Link className={styles.siteShortcut} href="/">
+              Sitio público
+            </Link>
+
+            <div className={styles.identity}>
+              <div className={styles.avatar}>
+                {identity?.avatar_url ? <img src={identity.avatar_url} alt={label} /> : initial}
+              </div>
+              <div className={styles.identityCopy}>
+                <strong>{label}</strong>
+                <span>{identity?.visible_role || "Staff APA"}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.subnavRow}>
           <div className={styles.context}>
-            <span>Administración</span>
+            <span>{currentGroup?.label || "Administración"}</span>
             <strong>{currentItem?.label || "Panel APA"}</strong>
           </div>
 
-          <Link className={styles.siteShortcut} href="/">
-            Sitio público
-          </Link>
-        </div>
+          <nav className={styles.subnav} aria-label="Herramientas de la categoría">
+            {(currentGroup?.items || []).map((item) => {
+              const active = isActive(pathname, item.href);
 
-        <div className={styles.content}>{children}</div>
-      </div>
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`${styles.subnavLink} ${active ? styles.subnavLinkActive : ""}`}
+                >
+                  <span>{item.label}</span>
+                  {item.legacy && <small>Heredado</small>}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+      </header>
+
+      <main className={styles.content}>{children}</main>
     </div>
   );
 }
