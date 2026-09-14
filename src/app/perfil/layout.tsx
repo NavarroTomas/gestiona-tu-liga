@@ -1,3 +1,4 @@
+import ProfileAvatarCropManager from "@/components/profile/ProfileAvatarCropManager";
 import "./profile-redesign.css";
 
 export default function PerfilLayout({
@@ -5,5 +6,10 @@ export default function PerfilLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <div className="apa-profile-redesign">{children}</div>;
+  return (
+    <div className="apa-profile-redesign">
+      {children}
+      <ProfileAvatarCropManager />
+    </div>
+  );
 }
