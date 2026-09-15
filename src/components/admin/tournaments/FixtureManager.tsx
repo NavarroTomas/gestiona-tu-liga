@@ -31,7 +31,13 @@ import {
   tournamentStyles as styles,
 } from "./TournamentUi";
 
-type View = "participantes" | "fixture" | "calendario";
+type View = "resumen" | "partidos" | "programacion" | "tabla" | "avanzado";
+type SetupStep = "clubes" | "formato" | "preview";
+
+function prettyDivision(value: string) {
+  if (!value) return "División";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
 
 export default function FixtureManager() {
   const [seasons, setSeasons] = useState<string[]>([]);
@@ -42,7 +48,8 @@ export default function FixtureManager() {
   const [matches, setMatches] = useState<TournamentMatch[]>([]);
   const [configs, setConfigs] = useState<CompetitionConfig[]>([]);
   const [doubleRound, setDoubleRound] = useState(false);
-  const [view, setView] = useState<View>("participantes");
+  const [view, setView] = useState<View>("resumen");
+  const [setupStep, setSetupStep] = useState<SetupStep>("clubes");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [bulkRound, setBulkRound] = useState("");
@@ -75,8 +82,8 @@ export default function FixtureManager() {
         if (!active) return;
         setTeams(rows);
         setConfigs(configRows);
-        const divisions = Array.from(new Set(rows.map((row) => normalizeDivision(row.division)).filter(Boolean))).sort();
-        setDivision((current) => current && divisions.includes(current) ? current : divisions[0] || "primera");
+        const divisionRows = Array.from(new Set(rows.map((row) => normalizeDivision(row.division)).filter(Boolean))).sort();
+        setDivision((current) => current && divisionRows.includes(current) ? current : divisionRows[0] || "primera");
       })
       .catch((error: any) => active && setMessage(error?.message || "No pude cargar los clubes de la temporada."))
       .finally(() => active && setLoading(false));
@@ -92,9 +99,7 @@ export default function FixtureManager() {
   }, [configs, division]);
 
   useEffect(() => {
-    if (!matches.length && leagueConfig) {
-      setDoubleRound(Boolean(leagueConfig.reglas?.ida_vuelta));
-    }
+    if (!matches.length && leagueConfig) setDoubleRound(Boolean(leagueConfig.reglas?.ida_vuelta));
   }, [leagueConfig?.id, matches.length]);
 
   useEffect(() => {
@@ -112,8 +117,10 @@ export default function FixtureManager() {
         setMatches(matchRows);
         const divisionTeams = teamRows.filter((row) => normalizeDivision(row.division) === division);
         setSelectedTeams(divisionTeams.map((row) => row.nombre));
+        setView(matchRows.length ? "resumen" : "resumen");
+        setSetupStep("clubes");
       })
-      .catch((error: any) => active && setMessage(error?.message || "No pude cargar el fixture."))
+      .catch((error: any) => active && setMessage(error?.message || "No pude cargar la liga."))
       .finally(() => active && setLoading(false));
 
     return () => { active = false; };
@@ -129,6 +136,13 @@ export default function FixtureManager() {
     [teams, division],
   );
 
+  const preview = useMemo(() => generateRoundRobin(selectedTeams, doubleRound), [selectedTeams, doubleRound]);
+  const previewRounds = useMemo(() => {
+    const map = new Map<number, typeof preview>();
+    for (const game of preview) map.set(game.fecha, [...(map.get(game.fecha) || []), game]);
+    return Array.from(map.entries()).sort(([a], [b]) => a - b);
+  }, [preview]);
+
   const rounds = useMemo(() => groupMatchesByRound(matches), [matches]);
   const standings = useMemo(() => calculateStandings(matches, [], {
     winPoints: Number(leagueConfig?.reglas?.puntos_victoria ?? 3),
@@ -136,11 +150,14 @@ export default function FixtureManager() {
     lossPoints: Number(leagueConfig?.reglas?.puntos_derrota ?? 0),
     tieBreakers: leagueConfig?.reglas?.desempates,
   }), [matches, leagueConfig]);
+
   const loadedCount = useMemo(() => matches.filter(isLoadedMatch).length, [matches]);
   const pendingCount = matches.length - loadedCount;
+  const unscheduledCount = useMemo(() => matches.filter((match) => !isLoadedMatch(match) && (!match.dia || !match.hora)).length, [matches]);
+  const completedRounds = useMemo(() => rounds.filter(([, games]) => games.length > 0 && games.every(isLoadedMatch)).length, [rounds]);
 
   function toggleTeam(name: string) {
-    if (matches.length > 0) return;
+    if (matches.length) return;
     setSelectedTeams((current) => current.includes(name) ? current.filter((item) => item !== name) : [...current, name]);
   }
 
@@ -149,26 +166,24 @@ export default function FixtureManager() {
     setMatches(rows);
   }
 
-  async function generateFixture() {
+  async function createFixture() {
     if (selectedTeams.length < 2) {
-      setMessage("Seleccioná al menos dos clubes.");
+      setMessage("Elegí al menos dos clubes para crear la liga.");
       return;
     }
-
+    if (!preview.length) {
+      setMessage("No hay partidos para crear con esta configuración.");
+      return;
+    }
     if (matches.some(isLoadedMatch)) {
-      setMessage("No se puede regenerar: hay partidos ya cargados. Corregilos o anulalos desde Centro de partidos.");
+      setMessage("No se puede reemplazar esta liga porque ya tiene partidos cargados.");
       return;
     }
-
-    const preview = generateRoundRobin(selectedTeams, doubleRound);
-    if (!window.confirm(`Se van a generar ${preview.length} partidos para ${temporada} · ${division}. ¿Continuar?`)) return;
 
     setLoading(true);
     setMessage("");
     try {
-      if (matches.length) {
-        await safeDeleteScheduledMatches({ temporada, competicion: "liga", division });
-      }
+      if (matches.length) await safeDeleteScheduledMatches({ temporada, competicion: "liga", division });
 
       const payload = preview.map((game) => ({
         local: game.local,
@@ -189,11 +204,11 @@ export default function FixtureManager() {
 
       const { error } = await supabase.from("partidos").insert(payload);
       if (error) throw error;
-      setMessage(`Fixture generado correctamente: ${payload.length} partidos.`);
       await reloadMatches();
-      setView("fixture");
+      setMessage(`Liga creada correctamente con ${payload.length} partidos.`);
+      setView("resumen");
     } catch (error: any) {
-      setMessage(error?.message || "No pude generar el fixture.");
+      setMessage(error?.message || "No pude crear la liga.");
     } finally {
       setLoading(false);
     }
@@ -202,19 +217,19 @@ export default function FixtureManager() {
   async function deleteFixture() {
     if (!matches.length) return;
     if (matches.some(isLoadedMatch)) {
-      setMessage("No se puede eliminar el fixture porque ya existen partidos cargados.");
+      setMessage("Esta liga ya tiene partidos cargados. No se puede eliminar completa desde acá.");
       return;
     }
-    if (!window.confirm(`Eliminar los ${matches.length} partidos programados de ${temporada} · ${division}?`)) return;
+    if (!window.confirm(`Eliminar todos los partidos programados de ${prettyDivision(division)}?`)) return;
 
     setLoading(true);
     try {
       await safeDeleteScheduledMatches({ temporada, competicion: "liga", division });
-      setMessage("Fixture eliminado.");
       await reloadMatches();
-      setView("participantes");
+      setMessage("Liga eliminada. Ahora podés volver a configurarla desde cero.");
+      setSetupStep("clubes");
     } catch (error: any) {
-      setMessage(error?.message || "No pude eliminar el fixture.");
+      setMessage(error?.message || "No pude eliminar la liga.");
     } finally {
       setLoading(false);
     }
@@ -226,12 +241,13 @@ export default function FixtureManager() {
     const next = { ...match, ...patch };
 
     const collision = matches.some((item) =>
-      String(item.id) !== String(matchId) &&
-      String(item.fecha || "") === String(next.fecha || "") &&
-      [item.local, item.visitante].some((team) => team && [next.local, next.visitante].includes(team)),
+      String(item.id) !== String(matchId)
+      && String(item.fecha || "") === String(next.fecha || "")
+      && [item.local, item.visitante].some((team) => team && [next.local, next.visitante].includes(team)),
     );
+
     if (collision) {
-      setMessage("Ese cambio provoca que un club tenga dos partidos en la misma fecha.");
+      setMessage("Ese cambio haría que un club tenga dos partidos en la misma fecha.");
       return;
     }
 
@@ -243,28 +259,34 @@ export default function FixtureManager() {
     }).eq("id", matchId);
 
     if (error) {
-      setMessage("No pude actualizar la programación.");
+      setMessage("No pude guardar la reprogramación.");
       return;
     }
+
     setMatches((current) => current.map((item) => String(item.id) === String(matchId) ? next : item));
   }
 
   async function applyBulkSchedule() {
     if (!bulkRound) {
-      setMessage("Elegí una fecha para aplicar la programación.");
+      setMessage("Elegí una fecha para programar.");
       return;
     }
     const targets = matches.filter((match) => String(match.fecha) === bulkRound);
     if (!targets.length) return;
+
     setLoading(true);
     try {
       const ids = targets.map((match) => match.id);
-      const { error } = await supabase.from("partidos").update({ dia: bulkDay || null, hora: bulkTime || null }).in("id", ids);
+      const { error } = await supabase.from("partidos").update({
+        dia: bulkDay || null,
+        hora: bulkTime || null,
+      }).in("id", ids);
       if (error) throw error;
+
       setMatches((current) => current.map((match) => ids.includes(match.id) ? { ...match, dia: bulkDay, hora: bulkTime } : match));
-      setMessage(`Programación aplicada a ${targets.length} partidos de la Fecha ${bulkRound}.`);
+      setMessage(`Fecha ${bulkRound} programada para ${targets.length} partidos.`);
     } catch (error: any) {
-      setMessage(error?.message || "No pude aplicar la programación masiva.");
+      setMessage(error?.message || "No pude programar la fecha completa.");
     } finally {
       setLoading(false);
     }
@@ -274,10 +296,13 @@ export default function FixtureManager() {
     <PermissionGuard permission="fixtures.manage">
       <TournamentPage>
         <TournamentBackLink />
+
         <TournamentHero
-          eyebrow="Liga · estructura y calendario"
-          title="Fixture y programación"
-          description="Definí participantes, generá el calendario y programá fechas. Los resultados oficiales se administran únicamente desde Centro de partidos."
+          eyebrow="Liga"
+          title={prettyDivision(division) || "Fixture"}
+          description={matches.length
+            ? "La liga ya está creada. Desde acá podés revisar partidos, programar fechas, ver la tabla y resolver excepciones."
+            : "Creá la liga paso a paso. Elegís clubes, formato y revisás una vista previa antes de guardar nada."}
         >
           <div className={styles.toolbar}>
             <Field label="Temporada">
@@ -287,129 +312,220 @@ export default function FixtureManager() {
             </Field>
             <Field label="División">
               <Select value={division} onChange={(e) => setDivision(e.target.value)} disabled={!divisions.length}>
-                {divisions.map((item) => <option key={item} value={item}>{item.charAt(0).toUpperCase() + item.slice(1)}</option>)}
+                {divisions.map((item) => <option key={item} value={item}>{prettyDivision(item)}</option>)}
               </Select>
             </Field>
+            <Link href="/admin/torneos/configuracion" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+              Cambiar reglas
+            </Link>
           </div>
-          <div className={styles.kpis}>
-            <div className={styles.kpi}><div className={styles.kpiLabel}>Clubes</div><div className={styles.kpiValue}>{selectedTeams.length}</div></div>
-            <div className={styles.kpi}><div className={styles.kpiLabel}>Partidos</div><div className={styles.kpiValue}>{matches.length}</div></div>
-            <div className={styles.kpi}><div className={styles.kpiLabel}>Cargados</div><div className={styles.kpiValue}>{loadedCount}</div></div>
-            <div className={styles.kpi}><div className={styles.kpiLabel}>Pendientes</div><div className={styles.kpiValue}>{pendingCount}</div></div>
-          </div>
-        </TournamentHero>
 
-        {leagueConfig && (
-          <div className={styles.notice}>
-            Reglas activas: {leagueConfig.nombre} · victoria {leagueConfig.reglas?.puntos_victoria ?? 3} pts · empate {leagueConfig.reglas?.puntos_empate ?? 1} pt · {doubleRound ? "ida y vuelta" : "una vuelta"}. Estas reglas se editan desde “Temporadas y reglas”.
-          </div>
-        )}
+          {matches.length > 0 && (
+            <div className={styles.kpis}>
+              <div className={styles.kpi}><div className={styles.kpiLabel}>Clubes</div><div className={styles.kpiValue}>{selectedTeams.length}</div></div>
+              <div className={styles.kpi}><div className={styles.kpiLabel}>Partidos</div><div className={styles.kpiValue}>{matches.length}</div></div>
+              <div className={styles.kpi}><div className={styles.kpiLabel}>Jugados</div><div className={styles.kpiValue}>{loadedCount}</div></div>
+              <div className={styles.kpi}><div className={styles.kpiLabel}>Sin horario</div><div className={styles.kpiValue}>{unscheduledCount}</div></div>
+            </div>
+          )}
+        </TournamentHero>
 
         {message && <div className={`${styles.notice} ${message.toLowerCase().includes("no se puede") ? styles.noticeDanger : ""}`}>{message}</div>}
 
-        <Tabs value={view} onChange={setView} items={[
-          { value: "participantes", label: "Participantes" },
-          { value: "fixture", label: `Fixture (${matches.length})` },
-          { value: "calendario", label: "Calendario" },
-        ]} />
-
-        {view === "participantes" && (
-          <TournamentPanel
-            eyebrow="Paso 1"
-            title="Participantes de la liga"
-            description={matches.length ? "El fixture ya existe. Para cambiar participantes primero debe eliminarse, siempre que no haya partidos cargados." : "Seleccioná los clubes que formarán parte de esta división."}
-            action={<span className={styles.badge}>{selectedTeams.length} seleccionados</span>}
-          >
-            <div className={styles.grid4}>
-              {divisionTeams.map((team) => {
-                const active = selectedTeams.includes(team.nombre);
-                return (
-                  <button
-                    key={team.nombre}
-                    type="button"
-                    className={active ? styles.primary : styles.secondary}
-                    disabled={matches.length > 0}
-                    onClick={() => toggleTeam(team.nombre)}
-                  >
-                    {active ? "✓ " : ""}{team.nombre}
-                  </button>
-                );
-              })}
-            </div>
-            {!divisionTeams.length && <div className={styles.empty}>No hay clubes activos para esta división y temporada.</div>}
-            <div className={styles.toolbar}>
-              <label className={styles.rowMeta}><input type="checkbox" checked={doubleRound} onChange={(e) => setDoubleRound(e.target.checked)} disabled={matches.length > 0} /> Ida y vuelta</label>
-              <button className={styles.primary} type="button" disabled={loading || selectedTeams.length < 2} onClick={generateFixture}>{matches.length ? "Regenerar fixture" : "Generar fixture"}</button>
-              {matches.length > 0 && <button className={styles.danger} type="button" disabled={loading || loadedCount > 0} onClick={deleteFixture}>Eliminar fixture</button>}
-            </div>
-          </TournamentPanel>
-        )}
-
-        {view === "fixture" && (
-          <div className={styles.split}>
-            <TournamentPanel eyebrow="Calendario" title="Partidos por fecha" description="La estructura del torneo se edita acá; el resultado queda en modo lectura.">
-              <div className={styles.list}>
-                {rounds.map(([round, games]) => (
-                  <div key={round}>
-                    <p className={styles.sectionEyebrow}>Fecha {round}</p>
-                    <div className={styles.list} style={{ marginTop: 8 }}>
-                      {games.map((match) => (
-                        <div key={String(match.id)} className={styles.row}>
-                          <div>
-                            <div className={styles.rowTitle}>{match.local} <span style={{ color: "#245f8e" }}>{match.resultado || "vs"}</span> {match.visitante}</div>
-                            <div className={styles.rowMeta}>{match.dia || "Día sin definir"} · {match.hora || "Hora sin definir"}</div>
-                          </div>
-                          <div className={styles.actions}>
-                            <span className={`${styles.badge} ${isLoadedMatch(match) ? styles.badgeGood : ""}`}>{isLoadedMatch(match) ? "Cargado" : "Programado"}</span>
-                            {isLoadedMatch(match) && <Link className={styles.secondary} href={`/admin/partidos/${match.id}`}>Ver partido</Link>}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+        {!matches.length ? (
+          <div style={{ marginTop: 22 }}>
+            <TournamentPanel
+              eyebrow="Crear liga"
+              title={setupStep === "clubes" ? "1. Elegí los clubes" : setupStep === "formato" ? "2. Elegí el formato" : "3. Revisá antes de crear"}
+              description={setupStep === "clubes"
+                ? "Marcá quiénes participan. Esto no crea partidos todavía."
+                : setupStep === "formato"
+                  ? "Definí si juegan una sola vuelta o ida y vuelta. Los puntos y desempates se pueden cambiar aparte."
+                  : "Esta es la estructura que se va a crear. Si algo no te gusta, volvés atrás y lo cambiás."}
+            >
+              {setupStep === "clubes" && (
+                <>
+                  <div className={styles.grid4}>
+                    {divisionTeams.map((team) => {
+                      const active = selectedTeams.includes(team.nombre);
+                      return (
+                        <button key={team.nombre} type="button" className={active ? styles.primary : styles.secondary} onClick={() => toggleTeam(team.nombre)}>
+                          {active ? "✓ " : ""}{team.nombre}
+                        </button>
+                      );
+                    })}
                   </div>
-                ))}
-                {!matches.length && <div className={styles.empty}>Todavía no hay fixture generado.</div>}
-              </div>
-            </TournamentPanel>
+                  {!divisionTeams.length && <div className={styles.empty}>No hay clubes activos en esta división.</div>}
+                  <div className={styles.toolbar}>
+                    <span className={styles.badge}>{selectedTeams.length} clubes elegidos</span>
+                    <button className={styles.primary} type="button" disabled={selectedTeams.length < 2} onClick={() => setSetupStep("formato")}>Continuar →</button>
+                  </div>
+                </>
+              )}
 
-            <TournamentPanel eyebrow="Tabla" title="Vista de posiciones" description="Usa las reglas configuradas para esta liga y temporada.">
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead><tr><th>#</th><th>Club</th><th>PTS</th><th>PJ</th><th>DG</th></tr></thead>
-                  <tbody>{standings.map((row, index) => <tr key={row.equipo}><td>{index + 1}</td><td><strong>{row.equipo}</strong></td><td>{row.pts}</td><td>{row.pj}</td><td>{row.dg}</td></tr>)}</tbody>
-                </table>
-              </div>
+              {setupStep === "formato" && (
+                <>
+                  <div className={styles.grid2}>
+                    <button type="button" className={!doubleRound ? styles.primary : styles.secondary} onClick={() => setDoubleRound(false)}>
+                      Una vuelta
+                    </button>
+                    <button type="button" className={doubleRound ? styles.primary : styles.secondary} onClick={() => setDoubleRound(true)}>
+                      Ida y vuelta
+                    </button>
+                  </div>
+                  <div className={styles.notice}>
+                    Con {selectedTeams.length} clubes se crearán <strong>{preview.length} partidos</strong> en <strong>{previewRounds.length} fechas</strong>.
+                    {leagueConfig && <> Puntuación: victoria {leagueConfig.reglas?.puntos_victoria ?? 3}, empate {leagueConfig.reglas?.puntos_empate ?? 1}, derrota {leagueConfig.reglas?.puntos_derrota ?? 0}.</>}
+                  </div>
+                  <div className={styles.toolbar}>
+                    <button className={styles.secondary} type="button" onClick={() => setSetupStep("clubes")}>← Volver</button>
+                    <button className={styles.primary} type="button" onClick={() => setSetupStep("preview")}>Ver vista previa →</button>
+                  </div>
+                </>
+              )}
+
+              {setupStep === "preview" && (
+                <>
+                  <div className={styles.list}>
+                    {previewRounds.slice(0, 4).map(([round, games]) => (
+                      <div key={round}>
+                        <p className={styles.sectionEyebrow}>Fecha {round}</p>
+                        <div className={styles.list} style={{ marginTop: 8 }}>
+                          {games.map((game, index) => (
+                            <div key={`${round}-${index}`} className={styles.row}>
+                              <strong>{game.local} vs {game.visitante}</strong>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                    {previewRounds.length > 4 && <div className={styles.empty}>Vista resumida: faltan {previewRounds.length - 4} fechas más.</div>}
+                  </div>
+                  <div className={styles.toolbar}>
+                    <button className={styles.secondary} type="button" onClick={() => setSetupStep("formato")}>← Cambiar formato</button>
+                    <button className={styles.primary} type="button" disabled={loading} onClick={createFixture}>Crear liga</button>
+                  </div>
+                </>
+              )}
             </TournamentPanel>
           </div>
-        )}
+        ) : (
+          <>
+            <Tabs value={view} onChange={setView} items={[
+              { value: "resumen", label: "Resumen" },
+              { value: "partidos", label: `Partidos (${matches.length})` },
+              { value: "programacion", label: "Programar fechas" },
+              { value: "tabla", label: "Tabla" },
+              { value: "avanzado", label: "Opciones avanzadas" },
+            ]} />
 
-        {view === "calendario" && (
-          <TournamentPanel eyebrow="Programación" title="Días y horarios" description="Podés programar una fecha completa de una vez y después ajustar partidos puntuales.">
-            <div className={styles.grid3}>
-              <Field label="Fecha">
-                <Select value={bulkRound} onChange={(e) => setBulkRound(e.target.value)}><option value="">Seleccionar</option>{rounds.map(([round]) => <option key={round} value={round}>Fecha {round}</option>)}</Select>
-              </Field>
-              <Field label="Día"><Input value={bulkDay} onChange={(e) => setBulkDay(e.target.value)} placeholder="Ej: Domingo 20/09" /></Field>
-              <Field label="Hora"><Input value={bulkTime} onChange={(e) => setBulkTime(e.target.value)} placeholder="Ej: 21:00" /></Field>
-            </div>
-            <div className={styles.toolbar}><button className={styles.primary} type="button" onClick={applyBulkSchedule} disabled={loading || !bulkRound}>Aplicar a toda la fecha</button></div>
-
-            <div className={styles.list} style={{ marginTop: 22 }}>
-              {matches.map((match) => (
-                <div key={String(match.id)} className={styles.row}>
-                  <div style={{ flex: 1 }}>
-                    <div className={styles.rowTitle}>F{match.fecha} · {match.local} vs {match.visitante}</div>
-                    <div className={styles.grid3} style={{ marginTop: 10 }}>
-                      <Field label="Fecha"><Input value={String(match.fecha || "")} onChange={(e) => updateSchedule(match.id, { fecha: e.target.value })} /></Field>
-                      <Field label="Día"><Input value={match.dia || ""} onChange={(e) => updateSchedule(match.id, { dia: e.target.value })} /></Field>
-                      <Field label="Hora"><Input value={match.hora || ""} onChange={(e) => updateSchedule(match.id, { hora: e.target.value })} /></Field>
-                    </div>
+            {view === "resumen" && (
+              <div className={styles.split}>
+                <TournamentPanel eyebrow="Estado" title="Cómo va la liga" description="Resumen de la situación actual sin mezclar configuración técnica.">
+                  <div className={styles.list}>
+                    <div className={styles.row}><div><div className={styles.rowTitle}>Formato</div><div className={styles.rowMeta}>{doubleRound ? "Ida y vuelta" : "Una vuelta"}</div></div><span className={styles.badge}>{rounds.length} fechas</span></div>
+                    <div className={styles.row}><div><div className={styles.rowTitle}>Progreso</div><div className={styles.rowMeta}>{loadedCount} jugados · {pendingCount} pendientes</div></div><span className={styles.badge}>{completedRounds}/{rounds.length} fechas completas</span></div>
+                    <div className={styles.row}><div><div className={styles.rowTitle}>Programación</div><div className={styles.rowMeta}>{unscheduledCount ? `${unscheduledCount} partidos todavía sin día u horario` : "Todos los partidos pendientes tienen programación"}</div></div><span className={`${styles.badge} ${unscheduledCount ? styles.badgeWarn : styles.badgeGood}`}>{unscheduledCount ? "Revisar" : "Al día"}</span></div>
                   </div>
+                </TournamentPanel>
+
+                <TournamentPanel eyebrow="Qué hacer ahora" title="Acciones rápidas" description="Solo mostramos lo que normalmente necesitás durante la temporada.">
+                  <div className={styles.list}>
+                    {unscheduledCount > 0 && <button className={styles.primary} type="button" onClick={() => setView("programacion")}>Programar partidos sin horario</button>}
+                    <button className={styles.secondary} type="button" onClick={() => setView("partidos")}>Ver todos los partidos</button>
+                    <button className={styles.secondary} type="button" onClick={() => setView("tabla")}>Ver tabla</button>
+                    <Link href="/admin/torneos/acciones-avanzadas" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Resolver una excepción</Link>
+                  </div>
+                </TournamentPanel>
+              </div>
+            )}
+
+            {view === "partidos" && (
+              <TournamentPanel eyebrow="Fixture" title="Partidos por fecha" description="Los resultados son solo lectura acá. Para corregir un resultado entrá al Centro de partidos.">
+                <div className={styles.list}>
+                  {rounds.map(([round, games]) => (
+                    <div key={round}>
+                      <p className={styles.sectionEyebrow}>Fecha {round}</p>
+                      <div className={styles.list} style={{ marginTop: 8 }}>
+                        {games.map((match) => (
+                          <div key={String(match.id)} className={styles.row}>
+                            <div>
+                              <div className={styles.rowTitle}>{match.local} <span style={{ color: "#245f8e" }}>{match.resultado || "vs"}</span> {match.visitante}</div>
+                              <div className={styles.rowMeta}>{match.dia || "Día sin definir"} · {match.hora || "Hora sin definir"}</div>
+                            </div>
+                            <div className={styles.actions}>
+                              <span className={`${styles.badge} ${isLoadedMatch(match) ? styles.badgeGood : ""}`}>{isLoadedMatch(match) ? "Jugado" : "Pendiente"}</span>
+                              {isLoadedMatch(match) && <Link className={styles.secondary} href={`/admin/partidos/${match.id}`}>Ver partido</Link>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-              {!matches.length && <div className={styles.empty}>Generá el fixture antes de programar fechas.</div>}
-            </div>
-          </TournamentPanel>
+              </TournamentPanel>
+            )}
+
+            {view === "programacion" && (
+              <TournamentPanel eyebrow="Calendario" title="Programar días y horarios" description="Podés programar una fecha completa y después ajustar partidos puntuales.">
+                <div className={styles.grid3}>
+                  <Field label="Fecha">
+                    <Select value={bulkRound} onChange={(e) => setBulkRound(e.target.value)}>
+                      <option value="">Elegir fecha</option>
+                      {rounds.map(([round]) => <option key={round} value={round}>Fecha {round}</option>)}
+                    </Select>
+                  </Field>
+                  <Field label="Día"><Input value={bulkDay} onChange={(e) => setBulkDay(e.target.value)} placeholder="Ej: Domingo 20/09" /></Field>
+                  <Field label="Hora"><Input type="time" value={bulkTime} onChange={(e) => setBulkTime(e.target.value)} /></Field>
+                </div>
+                <div className={styles.toolbar}><button className={styles.primary} type="button" onClick={applyBulkSchedule} disabled={loading || !bulkRound}>Programar toda la fecha</button></div>
+
+                <div className={styles.list} style={{ marginTop: 22 }}>
+                  {matches.map((match) => (
+                    <div key={String(match.id)} className={styles.row}>
+                      <div style={{ flex: 1 }}>
+                        <div className={styles.rowTitle}>Fecha {match.fecha} · {match.local} vs {match.visitante}</div>
+                        <div className={styles.grid3} style={{ marginTop: 10 }}>
+                          <Field label="Fecha"><Input value={String(match.fecha || "")} onChange={(e) => updateSchedule(match.id, { fecha: e.target.value })} /></Field>
+                          <Field label="Día"><Input value={match.dia || ""} onChange={(e) => updateSchedule(match.id, { dia: e.target.value })} placeholder="Ej: Domingo 20/09" /></Field>
+                          <Field label="Hora"><Input type="time" value={match.hora || ""} onChange={(e) => updateSchedule(match.id, { hora: e.target.value })} /></Field>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </TournamentPanel>
+            )}
+
+            {view === "tabla" && (
+              <TournamentPanel eyebrow="Posiciones" title={`Tabla de ${prettyDivision(division)}`} description="La tabla usa los puntos y desempates configurados para esta liga.">
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead><tr><th>#</th><th>Club</th><th>PTS</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>DG</th></tr></thead>
+                    <tbody>{standings.map((row, index) => <tr key={row.equipo}><td>{index + 1}</td><td><strong>{row.equipo}</strong></td><td>{row.pts}</td><td>{row.pj}</td><td>{row.pg}</td><td>{row.pe}</td><td>{row.pp}</td><td>{row.dg}</td></tr>)}</tbody>
+                  </table>
+                </div>
+              </TournamentPanel>
+            )}
+
+            {view === "avanzado" && (
+              <div className={styles.list}>
+                <TournamentPanel eyebrow="Reglas" title="Cambiar formato y puntuación" description="Para cambios estructurales de la competición usá el editor de temporada y reglas.">
+                  <div className={styles.actions}>
+                    <Link href="/admin/torneos/configuracion" className={styles.primary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Abrir configuración</Link>
+                  </div>
+                </TournamentPanel>
+                <TournamentPanel eyebrow="Excepciones" title="Cambios manuales" description="Crear un partido excepcional, moverlo de fecha, cambiar participantes o corregir estructura.">
+                  <div className={styles.actions}>
+                    <Link href="/admin/torneos/acciones-avanzadas" className={styles.primary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Abrir acciones avanzadas</Link>
+                  </div>
+                </TournamentPanel>
+                <TournamentPanel eyebrow="Zona de riesgo" title="Eliminar esta liga" description={loadedCount ? "No se puede borrar completa porque ya tiene partidos cargados." : "Elimina todos los partidos programados de esta división. Después podés crearla de nuevo con otra estructura."}>
+                  <button className={styles.danger} type="button" disabled={loading || loadedCount > 0} onClick={deleteFixture}>Eliminar liga completa</button>
+                </TournamentPanel>
+              </div>
+            )}
+          </>
         )}
       </TournamentPage>
     </PermissionGuard>
