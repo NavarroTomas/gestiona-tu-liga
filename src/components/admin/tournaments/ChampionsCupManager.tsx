@@ -89,7 +89,10 @@ export default function ChampionsCupManager() {
   }, [suggested.join("|"), championsMatches.length]);
 
   const used = new Set(participants.filter(Boolean));
-  const canCreate = participants.every(Boolean) && new Set(participants).size === 4 && !championsMatches.length;
+  const selectedParticipants = participants.filter(Boolean);
+  const canCreate = selectedParticipants.length >= 3
+    && new Set(selectedParticipants).size === selectedParticipants.length
+    && !championsMatches.length;
 
   function setParticipant(index: number, value: string) {
     setParticipants((current) => current.map((item, itemIndex) => itemIndex === index ? value : item));
@@ -97,17 +100,66 @@ export default function ChampionsCupManager() {
 
   async function createCup() {
     if (!canCreate) {
-      setMessage("Elegí cuatro equipos distintos.");
+      setMessage("Elegí al menos tres equipos distintos. Un lugar puede quedar sin rival para dar pase directo.");
       return;
     }
+
+    const pairs = [
+      [participants[0], participants[3]],
+      [participants[1], participants[2]],
+    ];
+    const directFinalists: string[] = [];
+    const semifinals: Array<Record<string, string | null>> = [];
+
+    pairs.forEach(([first, second], index) => {
+      const pair = [first, second].filter(Boolean);
+      if (pair.length === 1) {
+        directFinalists.push(pair[0]);
+        return;
+      }
+      if (pair.length === 2) {
+        semifinals.push({
+          local: pair[0],
+          visitante: pair[1],
+          resultado: null,
+          fecha: "1",
+          temporada,
+          division: "copa",
+          competicion: "copa_campeones",
+          fase: "semifinal",
+          ronda: `Copa de Campeones · Semifinal ${index + 1}`,
+          estado: "programado",
+        });
+      }
+    });
+
     setLoading(true);
+    setMessage("");
     try {
-      const { error } = await supabase.from("partidos").insert([
-        { local: participants[0], visitante: participants[3], resultado: null, fecha: "1", temporada, division: "copa", competicion: "copa_campeones", fase: "semifinal", ronda: "Copa de Campeones · Semifinal 1", estado: "programado" },
-        { local: participants[1], visitante: participants[2], resultado: null, fecha: "1", temporada, division: "copa", competicion: "copa_campeones", fase: "semifinal", ronda: "Copa de Campeones · Semifinal 2", estado: "programado" },
-      ]);
-      if (error) throw error;
-      setMessage("Copa de Campeones creada.");
+      if (semifinals.length) {
+        const { error } = await supabase.from("partidos").insert(semifinals);
+        if (error) throw error;
+      }
+
+      if (directFinalists.length) {
+        const { error } = await supabase.from("partidos").insert({
+          local: directFinalists[0],
+          visitante: directFinalists[1] || null,
+          resultado: null,
+          fecha: "2",
+          temporada,
+          division: "copa",
+          competicion: "copa_campeones",
+          fase: "final",
+          ronda: "Copa de Campeones · Final",
+          estado: "programado",
+        });
+        if (error) throw error;
+      }
+
+      setMessage(directFinalists.length
+        ? `${directFinalists[0]} pasó directamente a la final. Copa de Campeones creada.`
+        : "Copa de Campeones creada.");
       await load();
     } catch (error: any) {
       setMessage(error?.message || "No pude crear la Copa de Campeones.");
@@ -210,7 +262,7 @@ export default function ChampionsCupManager() {
     <PermissionGuard permission="competitions.manage">
       <TournamentPage>
         <TournamentBackLink />
-        <TournamentHero eyebrow="Copa de Campeones" title="Copa de Campeones" description="Elegí los equipos y resolvé cualquier excepción sin inventar resultados.">
+        <TournamentHero eyebrow="Copa de Campeones" title="Copa de Campeones" description="Elegí los equipos. Si uno queda sin rival, pasa directo a la final.">
           <div className={styles.toolbar}>
             <Field label="Temporada">
               <Select value={temporada} onChange={(event) => setTemporada(event.target.value)}>
@@ -224,21 +276,21 @@ export default function ChampionsCupManager() {
         {message && <div className={styles.notice}>{message}</div>}
 
         {!championsMatches.length ? (
-          <TournamentPanel eyebrow="Participantes" title="Elegí 4 equipos" description="Podés usar los sugeridos o cambiar cualquiera.">
+          <TournamentPanel eyebrow="Participantes" title="Elegí 3 o 4 equipos" description="Dejá un lugar como Sin rival para dar un pase directo.">
             <div className={styles.toolbar}><button type="button" className={styles.secondary} onClick={() => setParticipants(suggested)}>Usar sugeridos</button></div>
             <div className={styles.grid2}>
               {participants.map((value, index) => (
                 <Field key={index} label={`Participante ${index + 1}`}>
                   <Select value={value} onChange={(event) => setParticipant(index, event.target.value)}>
-                    <option value="">Elegir equipo</option>
+                    <option value="">Sin rival · pase directo</option>
                     {teams.filter((team) => team.nombre === value || !used.has(team.nombre)).map((team) => <option key={team.nombre} value={team.nombre}>{team.nombre}</option>)}
                   </Select>
                 </Field>
               ))}
             </div>
             <div className={styles.notice}>
-              Semifinal 1: <strong>{participants[0] || "Por definir"}</strong> vs <strong>{participants[3] || "Por definir"}</strong><br />
-              Semifinal 2: <strong>{participants[1] || "Por definir"}</strong> vs <strong>{participants[2] || "Por definir"}</strong>
+              Semifinal 1: <strong>{participants[0] || "Sin rival"}</strong> vs <strong>{participants[3] || "Sin rival"}</strong><br />
+              Semifinal 2: <strong>{participants[1] || "Sin rival"}</strong> vs <strong>{participants[2] || "Sin rival"}</strong>
             </div>
             <div className={styles.toolbar}><button className={styles.primary} type="button" onClick={createCup} disabled={!canCreate || loading}>Crear Copa de Campeones</button></div>
           </TournamentPanel>
