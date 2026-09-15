@@ -7,6 +7,7 @@ import ClubGeneralSection from "./ClubGeneralSection";
 import ClubList from "./ClubList";
 import ClubSeasonSection from "./ClubSeasonSection";
 import ClubVisualSection from "./ClubVisualSection";
+import DiscordTransferPreviewPanel from "./DiscordTransferPreviewPanel";
 import {
   DEFAULT_ASSIGNMENT,
   DEFAULT_CLUB,
@@ -174,6 +175,10 @@ export default function ClubsManager() {
         {message && <div className={styles.notice}>{message}</div>}
 
         <div style={{ marginTop: 22 }}>
+          <DiscordTransferPreviewPanel />
+        </div>
+
+        <div style={{ marginTop: 18 }}>
           <ClubList
             clubs={filteredClubs}
             search={search}
