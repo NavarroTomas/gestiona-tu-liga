@@ -35,11 +35,11 @@ function TeamLogo({
   const logo = name && !isBye ? getLogo(name) : null;
 
   return (
-    <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center">
       {logo ? (
         <img src={logo} alt={safeName} className="h-full w-full object-contain" />
       ) : (
-        <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-[#dce8f0] text-[7px] font-black text-[#7890a7]">
+        <span className="flex h-9 w-9 items-center justify-center rounded-[8px] bg-[#dce8f0] text-[9px] font-black text-[#7890a7]">
           {!name || isBye ? "—" : safeName.slice(0, 2).toUpperCase()}
         </span>
       )}
@@ -49,10 +49,10 @@ function TeamLogo({
 
 function PlaceholderTeamRow() {
   return (
-    <div className="flex h-[27px] items-center gap-2 border-b border-[#e7eff5] px-3 last:border-b-0">
-      <span className="h-6 w-6 rounded-[7px] bg-[#dce8f0]" />
-      <span className="h-4 w-[112px] rounded bg-[#dce8f0]" />
-      <span className="ml-auto border-l border-[#dce8f0] pl-4 text-[12px] font-black text-[#9db0bf]">-</span>
+    <div className="flex h-11 items-center gap-3 border-b border-[#e7eff5] px-4 last:border-b-0">
+      <span className="h-9 w-9 rounded-[8px] bg-[#dce8f0]" />
+      <span className="h-5 w-[150px] rounded bg-[#dce8f0]" />
+      <span className="ml-auto border-l border-[#dce8f0] pl-5 text-[14px] font-black text-[#9db0bf]">-</span>
     </div>
   );
 }
@@ -68,7 +68,7 @@ function MatchCard({
 }) {
   if (!match) {
     return (
-      <div className={`overflow-hidden rounded-[8px] border bg-white ${final ? "border-[#b9dbef]" : "border-[#d5e6f0]"}`}>
+      <div className={`overflow-hidden rounded-[10px] border bg-white ${final ? "border-[#b9dbef]" : "border-[#d5e6f0]"}`}>
         <PlaceholderTeamRow />
         <PlaceholderTeamRow />
       </div>
@@ -84,12 +84,12 @@ function MatchCard({
     const isWinner = Boolean(name) && !isBye && winner === name;
 
     return (
-      <div className={`flex h-[27px] items-center gap-2 border-b border-[#e7eff5] px-3 last:border-b-0 ${isWinner ? "bg-[#f0f9fe]" : "bg-white"}`}>
+      <div className={`flex h-11 items-center gap-3 border-b border-[#e7eff5] px-4 last:border-b-0 ${isWinner ? "bg-[#f0f9fe]" : "bg-white"}`}>
         <TeamLogo name={name} getLogo={getLogo} />
-        <span className={`min-w-0 flex-1 truncate text-[10px] ${isBye ? "font-semibold italic text-[#8ea5b8]" : isWinner ? "font-black text-[#102f55]" : "font-bold text-[#355d83]"}`}>
+        <span className={`min-w-0 flex-1 truncate text-[12px] ${isBye ? "font-semibold italic text-[#8ea5b8]" : isWinner ? "font-black text-[#102f55]" : "font-bold text-[#355d83]"}`}>
           {safeName}
         </span>
-        <strong className={`min-w-[24px] border-l border-[#dce8f0] pl-3 text-center text-[12px] ${isWinner ? "text-[#102f55]" : "text-[#6b8298]"}`}>
+        <strong className={`min-w-[34px] border-l border-[#dce8f0] pl-4 text-center text-[14px] ${isWinner ? "text-[#102f55]" : "text-[#6b8298]"}`}>
           {!name || isBye ? "-" : getKnockoutScore(match, side)}
         </strong>
       </div>
@@ -99,7 +99,7 @@ function MatchCard({
   return (
     <div
       title={title}
-      className={`overflow-hidden rounded-[8px] border bg-white shadow-[0_1px_0_rgba(16,47,85,.02)] ${
+      className={`overflow-hidden rounded-[10px] border bg-white shadow-[0_1px_0_rgba(16,47,85,.02)] ${
         final ? "border-[#9fd2ed]" : "border-[#d5e6f0]"
       }`}
     >
@@ -111,34 +111,21 @@ function MatchCard({
 
 function StageHeader({ title }: { title: string }) {
   return (
-    <header className="flex h-[52px] flex-col items-center justify-center border-b border-[#e2edf4] bg-[linear-gradient(180deg,#edf7fd_0%,#f5fbfe_100%)] text-center">
-      <strong className="text-[13px] font-black uppercase tracking-[-.02em] text-[#102f55]">{title}</strong>
-      <span className="mt-0.5 text-[10px] font-bold text-[#8ea5b8]">-</span>
+    <header className="flex h-[58px] flex-col items-center justify-center border-b border-[#e2edf4] bg-[linear-gradient(180deg,#edf7fd_0%,#f5fbfe_100%)] text-center">
+      <strong className="text-[14px] font-black uppercase tracking-[-.02em] text-[#102f55]">{title}</strong>
+      <span className="mt-0.5 text-[11px] font-bold text-[#8ea5b8]">-</span>
     </header>
   );
 }
 
 function TrophyIcon() {
   return (
-    <svg viewBox="0 0 64 72" className="h-[78px] w-[70px] text-[#cedce6]" aria-hidden="true">
+    <svg viewBox="0 0 64 72" className="h-[92px] w-[84px] text-[#cedce6]" aria-hidden="true">
       <path fill="currentColor" d="M18 6h28v8h10v8c0 12-6 19-17 21-1 4-3 7-7 9v7h11v7H21v-7h11v-7c-4-2-6-5-7-9C14 41 8 34 8 22v-8h10V6Zm0 15h-4v1c0 7 3 12 9 14-3-5-5-10-5-15Zm28 0c0 5-2 10-5 15 6-2 9-7 9-14v-1h-4Z" />
     </svg>
   );
 }
 
-/**
- * CUADRO VISUAL COMPARTIDO PARA COPAS DE ELIMINACIÓN
- * --------------------------------------------------
- * `rounds` decide qué fases se muestran EN ESA TEMPORADA.
- *
- * Ejemplos:
- * - ["quarterfinals", "semifinals", "final"] -> empieza en Cuartos.
- * - ["roundOf16", "quarterfinals", "semifinals", "final"] -> con Octavos.
- * - ["semifinals", "final"] -> empieza directamente en Semifinales.
- *
- * No agregues ni borres columnas manualmente acá para cambiar una temporada:
- * hacelo en el archivo de configuración de la copa.
- */
 export default function KnockoutBracket({
   bracket,
   getLogo,
@@ -151,10 +138,10 @@ export default function KnockoutBracket({
   showThirdPlace: boolean;
 }) {
   const champion = getKnockoutWinner(bracket.final);
-  const bodyHeight = 560;
-  const columnWidth = 310;
-  const columnGap = 16;
-  const cardInset = 16;
+  const bodyHeight = 620;
+  const columnWidth = 390;
+  const columnGap = 20;
+  const cardInset = 20;
   const totalWidth = rounds.length * columnWidth + Math.max(0, rounds.length - 1) * columnGap;
 
   const connectorPaths: string[] = [];
@@ -184,19 +171,19 @@ export default function KnockoutBracket({
 
   return (
     <section>
-      <div className="overflow-x-auto pb-2">
+      <div className="overflow-x-auto pb-3">
         <div
-          className="relative overflow-hidden rounded-[10px] border border-[#d7e6f0] bg-white"
+          className="relative overflow-hidden rounded-[12px] border border-[#d7e6f0] bg-white"
           style={{ minWidth: totalWidth, width: totalWidth }}
         >
           <svg
-            className="pointer-events-none absolute left-0 top-[52px] z-10"
+            className="pointer-events-none absolute left-0 top-[58px] z-10"
             width={totalWidth}
             height={bodyHeight}
             viewBox={`0 0 ${totalWidth} ${bodyHeight}`}
             aria-hidden="true"
           >
-            <g fill="none" stroke="#9fcdea" strokeWidth="1.2" vectorEffect="non-scaling-stroke">
+            <g fill="none" stroke="#9fcdea" strokeWidth="1.4" vectorEffect="non-scaling-stroke">
               {connectorPaths.map((path, index) => (
                 <path key={`${path}-${index}`} d={path} />
               ))}
@@ -223,27 +210,27 @@ export default function KnockoutBracket({
                   <StageHeader title={meta.title} />
 
                   {isFinal ? (
-                    <div className="relative px-4" style={{ height: bodyHeight }}>
-                      <div className="absolute left-1/2 top-[78px] flex -translate-x-1/2 flex-col items-center text-center">
+                    <div className="relative px-5" style={{ height: bodyHeight }}>
+                      <div className="absolute left-1/2 top-[82px] flex -translate-x-1/2 flex-col items-center text-center">
                         {champion && getLogo(champion) ? (
-                          <img src={getLogo(champion) || ""} alt={champion} className="mb-2 h-16 w-16 object-contain" />
+                          <img src={getLogo(champion) || ""} alt={champion} className="mb-3 h-20 w-20 object-contain" />
                         ) : (
                           <TrophyIcon />
                         )}
                         {champion && (
-                          <span className="mt-1 max-w-[190px] truncate text-[10px] font-black uppercase tracking-[.04em] text-[#355d83]">
+                          <span className="mt-1 max-w-[230px] truncate text-[12px] font-black uppercase tracking-[.04em] text-[#355d83]">
                             {champion}
                           </span>
                         )}
                       </div>
 
-                      <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2">
+                      <div className="absolute left-5 right-5 top-1/2 -translate-y-1/2">
                         <MatchCard match={bracket.final} getLogo={getLogo} final />
                       </div>
                     </div>
                   ) : (
                     <div
-                      className="grid px-4"
+                      className="grid px-5"
                       style={{ height: bodyHeight, gridTemplateRows: `repeat(${meta.count}, minmax(0, 1fr))` }}
                     >
                       {matches.map((match, index) => (
@@ -263,8 +250,8 @@ export default function KnockoutBracket({
       </div>
 
       {showThirdPlace && (
-        <div className="mt-3 max-w-[420px] rounded-[10px] border border-[#d7e6f0] bg-white p-3">
-          <p className="mb-2 text-[9px] font-black uppercase tracking-[.14em] text-[#7890a7]">3.º puesto</p>
+        <div className="mt-4 max-w-[520px] rounded-[12px] border border-[#d7e6f0] bg-white p-4">
+          <p className="mb-3 text-[10px] font-black uppercase tracking-[.14em] text-[#7890a7]">3.º puesto</p>
           <MatchCard match={bracket.thirdPlace} getLogo={getLogo} />
         </div>
       )}
