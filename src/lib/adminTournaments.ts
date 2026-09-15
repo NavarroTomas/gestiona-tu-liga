@@ -188,22 +188,25 @@ export async function createCompetitionConfig(input: Omit<CompetitionConfig, "id
 }
 
 export async function fetchTournamentSeasons() {
-  try {
-    const records = await fetchSeasonRecords();
-    if (records.length) return sortSeasons(records.map((row) => row.nombre));
-  } catch {
-    // Compatibilidad con instalaciones anteriores a la tabla extendida.
-  }
-
-  const [matchesRes, clubsRes] = await Promise.all([
+  const [recordsRes, matchesRes, clubsRes] = await Promise.allSettled([
+    fetchSeasonRecords(),
     supabase.from("partidos").select("temporada"),
     supabase.from("v_clubes_temporada_public").select("temporada"),
   ]);
 
-  const values = [
-    ...((matchesRes.data || []) as Array<{ temporada?: string | null }>).map((row) => row.temporada || ""),
-    ...((clubsRes.data || []) as Array<{ temporada?: string | null }>).map((row) => row.temporada || ""),
-  ];
+  const values: string[] = [];
+
+  if (recordsRes.status === "fulfilled") {
+    values.push(...recordsRes.value.map((row) => row.nombre));
+  }
+
+  if (matchesRes.status === "fulfilled") {
+    values.push(...((matchesRes.value.data || []) as Array<{ temporada?: string | null }>).map((row) => row.temporada || ""));
+  }
+
+  if (clubsRes.status === "fulfilled") {
+    values.push(...((clubsRes.value.data || []) as Array<{ temporada?: string | null }>).map((row) => row.temporada || ""));
+  }
 
   const seasons = sortSeasons(values);
   return seasons.length ? seasons : ["Temporada 4"];
@@ -227,6 +230,18 @@ export async function fetchTournamentTeams(temporada: string) {
   })) as TournamentTeam[];
 }
 
+export function normalizeDivision(value?: string | null) {
+  const v = String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+
+  if (["primera", "primera division"].includes(v)) return "primera";
+  if (["segunda", "segunda division"].includes(v)) return "segunda";
+  return v;
+}
+
 export async function fetchTournamentMatches(params: {
   temporada: string;
   competicion?: string;
@@ -239,18 +254,15 @@ export async function fetchTournamentMatches(params: {
     .order("fecha", { ascending: true });
 
   if (params.competicion) query = query.eq("competicion", params.competicion);
-  if (params.division) query = query.eq("division", params.division);
 
   const { data, error } = await query;
   if (error) throw error;
-  return (data || []) as TournamentMatch[];
-}
 
-export function normalizeDivision(value?: string | null) {
-  const v = String(value || "").toLowerCase().trim();
-  if (["primera", "primera division", "primera división"].includes(v)) return "primera";
-  if (["segunda", "segunda division", "segunda división"].includes(v)) return "segunda";
-  return v;
+  const rows = (data || []) as TournamentMatch[];
+  if (!params.division) return rows;
+
+  const expectedDivision = normalizeDivision(params.division);
+  return rows.filter((row) => normalizeDivision(row.division) === expectedDivision);
 }
 
 export function isLoadedMatch(match: TournamentMatch) {
@@ -400,12 +412,9 @@ export async function safeDeleteScheduledMatches(filters: {
     throw new Error("Hay partidos cargados. Anulalos o corregilos desde Centro de partidos antes de regenerar/eliminar esta estructura.");
   }
 
-  let query = supabase
-    .from("partidos")
-    .delete()
-    .eq("temporada", filters.temporada)
-    .eq("competicion", filters.competicion);
-  if (filters.division) query = query.eq("division", filters.division);
-  const { error } = await query;
+  if (!matches.length) return;
+
+  const ids = matches.map((match) => match.id);
+  const { error } = await supabase.from("partidos").delete().in("id", ids);
   if (error) throw error;
 }
