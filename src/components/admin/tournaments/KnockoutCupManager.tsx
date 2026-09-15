@@ -61,15 +61,13 @@ export default function KnockoutCupManager({ title, competition }: Props) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchTournamentSeasons()
-      .then((rows) => {
-        setSeasons(rows);
-        setTemporada(rows[0] || "Temporada 4");
-      })
-      .catch(() => {
-        setSeasons(["Temporada 4"]);
-        setTemporada("Temporada 4");
-      });
+    fetchTournamentSeasons().then((rows) => {
+      setSeasons(rows);
+      setTemporada(rows[0] || "Temporada 4");
+    }).catch(() => {
+      setSeasons(["Temporada 4"]);
+      setTemporada("Temporada 4");
+    });
   }, []);
 
   async function load() {
@@ -103,6 +101,16 @@ export default function KnockoutCupManager({ title, competition }: Props) {
   const final = matches.find((match) => String(match.fase).toLowerCase() === "final");
   const champion = winnerOf(final);
 
+  async function addTeamToTarget(target: TournamentMatch, team: string) {
+    if (target.local === team || target.visitante === team) return false;
+    if (!target.visitante) {
+      const { error } = await supabase.from("partidos").update({ visitante: team }).eq("id", target.id);
+      if (error) throw error;
+      return true;
+    }
+    return false;
+  }
+
   async function placeInNextRound(source: TournamentMatch, team: string) {
     if (!team || isLoadedMatch(source)) return;
     const phase = String(source.fase || "eliminacion").toLowerCase();
@@ -117,20 +125,21 @@ export default function KnockoutCupManager({ title, competition }: Props) {
 
       const nextPhase = nextPhaseFor(phase, sourcePhase.length);
       const targetIndex = Math.floor(sourceIndex / 2);
-      const goesLocal = sourceIndex % 2 === 0;
       const targetRows = matches.filter((match) => String(match.fase || "").toLowerCase() === nextPhase).sort(sortRound);
       const target = targetRows[targetIndex];
 
       if (target) {
-        const patch = goesLocal ? { local: team } : { visitante: team };
-        const { error } = await supabase.from("partidos").update(patch).eq("id", target.id);
-        if (error) throw error;
+        const changed = await addTeamToTarget(target, team);
+        if (!changed && target.local !== team && target.visitante !== team) {
+          setMessage("Ese cruce de la siguiente ronda ya tiene los dos lugares ocupados.");
+          return;
+        }
       } else {
         const nextFecha = String(Math.max(...matches.map((match) => Number(match.fecha) || 0), 0) + 1);
         const roundName = nextPhase === "final" ? `${title} · Final` : `${title} · ${labelPhase(nextPhase)} ${targetIndex + 1}`;
         const { error } = await supabase.from("partidos").insert({
-          local: goesLocal ? team : null,
-          visitante: goesLocal ? null : team,
+          local: team,
+          visitante: null,
           resultado: null,
           fecha: nextFecha,
           temporada,
@@ -166,29 +175,26 @@ export default function KnockoutCupManager({ title, competition }: Props) {
     try {
       const [phase, sourceRows] = active;
       const nextPhase = nextPhaseFor(phase, sourceRows.length);
-      const targetRows = matches.filter((match) => String(match.fase || "").toLowerCase() === nextPhase).sort(sortRound);
       let changed = false;
 
       for (let index = 0; index < sourceRows.length; index += 1) {
         const winner = winnerOf(sourceRows[index]);
         if (!winner) continue;
+
         const targetIndex = Math.floor(index / 2);
-        const goesLocal = index % 2 === 0;
+        const targetRows = (await fetchTournamentMatches({ temporada, competicion }))
+          .filter((match) => String(match.fase || "").toLowerCase() === nextPhase)
+          .sort(sortRound);
         const target = targetRows[targetIndex];
 
         if (target) {
-          const currentValue = goesLocal ? target.local : target.visitante;
-          if (!currentValue) {
-            const { error } = await supabase.from("partidos").update(goesLocal ? { local: winner } : { visitante: winner }).eq("id", target.id);
-            if (error) throw error;
-            changed = true;
-          }
+          changed = (await addTeamToTarget(target, winner)) || changed;
         } else {
           const nextFecha = String(Math.max(...matches.map((match) => Number(match.fecha) || 0), 0) + 1);
           const roundName = nextPhase === "final" ? `${title} · Final` : `${title} · ${labelPhase(nextPhase)} ${targetIndex + 1}`;
           const { error } = await supabase.from("partidos").insert({
-            local: goesLocal ? winner : null,
-            visitante: goesLocal ? null : winner,
+            local: winner,
+            visitante: null,
             resultado: null,
             fecha: nextFecha,
             temporada,
