@@ -1,4 +1,4 @@
-export type CupsTabId = "resumen" | "grupos" | "partidos" | "estadisticas" | "equipos";
+export type CupsTabId = "grupos" | "partidos" | "equipos";
 
 /**
  * CONFIGURACIÓN CENTRAL DE "CLASIFICACIÓN A COPAS"
@@ -52,10 +52,8 @@ export const CUPS_CONFIG = {
   },
 
   tabs: [
-    { id: "resumen" as CupsTabId, label: "Resumen", href: "/competicion/copas" },
     { id: "grupos" as CupsTabId, label: "Grupos", href: "/competicion/copas" },
     { id: "partidos" as CupsTabId, label: "Partidos", href: "/fixture" },
-    { id: "estadisticas" as CupsTabId, label: "Estadísticas", href: "/estadisticas" },
     { id: "equipos" as CupsTabId, label: "Equipos", href: "/clubes" },
   ],
 } as const;
