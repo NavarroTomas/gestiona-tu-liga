@@ -10,18 +10,19 @@ function TeamLogo({
   name,
   getLogo,
 }: {
-  name: string;
+  name?: string | null;
   getLogo: (name?: string | null) => string | null;
 }) {
-  const logo = getLogo(name);
+  const safeName = name?.trim() || "Por definir";
+  const logo = name ? getLogo(name) : null;
 
   return (
-    <span className="flex h-8 w-8 shrink-0 items-center justify-center">
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center">
       {logo ? (
-        <img src={logo} alt={name} className="h-full w-full object-contain" />
+        <img src={logo} alt={safeName} className="h-full w-full object-contain" />
       ) : (
-        <span className="flex h-8 w-8 items-center justify-center rounded-[7px] bg-[#e2edf4] text-[8px] font-black text-[#6d879e]">
-          {name.slice(0, 2).toUpperCase()}
+        <span className="flex h-10 w-10 items-center justify-center rounded-[9px] bg-[#e2edf4] text-[9px] font-black text-[#6d879e]">
+          {name ? safeName.slice(0, 2).toUpperCase() : "—"}
         </span>
       )}
     </span>
@@ -30,12 +31,12 @@ function TeamLogo({
 
 function PlaceholderMatch({ label }: { label: string }) {
   return (
-    <div className="overflow-hidden rounded-[9px] border border-[#d7e6f0] bg-white">
-      <div className="border-b border-[#e7eff5] bg-[#f8fbfd] px-3 py-1.5 text-[8px] font-black uppercase tracking-[.12em] text-[#91a5b7]">
+    <div className="overflow-hidden rounded-[12px] border border-[#d7e6f0] bg-white">
+      <div className="border-b border-[#e7eff5] bg-[#f8fbfd] px-4 py-2.5 text-[9px] font-black uppercase tracking-[.12em] text-[#91a5b7]">
         Por definir
       </div>
-      <div className="flex h-[72px] items-center justify-center px-4 text-center">
-        <span className="text-[10px] font-bold uppercase tracking-[.06em] text-[#8aa0b3]">{label}</span>
+      <div className="flex h-[104px] items-center justify-center px-5 text-center">
+        <span className="text-[12px] font-bold uppercase tracking-[.05em] text-[#8aa0b3]">{label}</span>
       </div>
     </div>
   );
@@ -58,28 +59,30 @@ function MatchCard({
   const hasResult = Boolean(match.resultado);
   const meta = [match.dia, match.hora].filter(Boolean).join(" · ");
 
-  const TeamRow = ({ name, side }: { name: string; side: "home" | "away" }) => {
-    const isWinner = winner === name;
+  const TeamRow = ({ name, side }: { name?: string | null; side: "home" | "away" }) => {
+    const safeName = name?.trim() || "Por definir";
+    const isWinner = Boolean(name) && winner === name;
+
     return (
-      <div className={`flex min-h-[42px] items-center gap-2.5 border-b border-[#e7eff5] px-3 last:border-b-0 ${isWinner ? "bg-[#eef8fe]" : "bg-white"}`}>
+      <div className={`flex min-h-[58px] items-center gap-3 border-b border-[#e7eff5] px-4 last:border-b-0 ${isWinner ? "bg-[#eef8fe]" : "bg-white"}`}>
         <TeamLogo name={name} getLogo={getLogo} />
-        <span className={`min-w-0 flex-1 truncate text-[11px] ${isWinner ? "font-black text-[#102f55]" : "font-bold text-[#355d83]"}`}>
-          {name}
+        <span className={`min-w-0 flex-1 truncate text-[13px] ${isWinner ? "font-black text-[#102f55]" : "font-bold text-[#355d83]"}`}>
+          {safeName}
         </span>
-        <strong className={`min-w-[28px] border-l border-[#dce8f0] pl-3 text-center text-[13px] ${isWinner ? "text-[#102f55]" : "text-[#6b8298]"}`}>
-          {hasResult ? getPlayoffScore(match, side) : "—"}
+        <strong className={`min-w-[38px] border-l border-[#dce8f0] pl-4 text-center text-[16px] ${isWinner ? "text-[#102f55]" : "text-[#6b8298]"}`}>
+          {name && hasResult ? getPlayoffScore(match, side) : "—"}
         </strong>
       </div>
     );
   };
 
   const content = (
-    <div className={`overflow-hidden rounded-[9px] border bg-white transition ${accent ? "border-[#9fd2ed]" : "border-[#d7e6f0]"} hover:border-[#86c8eb]`}>
-      <div className="flex items-center justify-between gap-3 border-b border-[#e7eff5] bg-[#f8fbfd] px-3 py-1.5">
-        <span className={`text-[8px] font-black uppercase tracking-[.11em] ${hasResult ? "text-[#3188bd]" : "text-[#7890a7]"}`}>
+    <div className={`overflow-hidden rounded-[12px] border bg-white transition ${accent ? "border-[#9fd2ed]" : "border-[#d7e6f0]"} hover:border-[#86c8eb]`}>
+      <div className="flex min-h-[34px] items-center justify-between gap-3 border-b border-[#e7eff5] bg-[#f8fbfd] px-4 py-2">
+        <span className={`text-[9px] font-black uppercase tracking-[.11em] ${hasResult ? "text-[#3188bd]" : "text-[#7890a7]"}`}>
           {hasResult ? "Finalizado" : meta ? "Programado" : "Pendiente"}
         </span>
-        <span className="truncate text-[8px] font-bold uppercase tracking-[.08em] text-[#8aa0b3]">{meta || "Sin fecha"}</span>
+        <span className="truncate text-[9px] font-bold uppercase tracking-[.08em] text-[#8aa0b3]">{meta || "Sin fecha"}</span>
       </div>
       <TeamRow name={match.local} side="home" />
       <TeamRow name={match.visitante} side="away" />
@@ -99,21 +102,13 @@ function MatchCard({
 function StageHeader({ stageId }: { stageId: PlayoffStageId }) {
   const stage = PLAYOFFS_CONFIG.stageDefinitions[stageId];
   return (
-    <header className="flex h-[78px] flex-col items-center justify-center border-b border-[#e2edf4] bg-[linear-gradient(180deg,#edf7fd_0%,#f7fbfe_100%)] px-4 text-center">
-      <strong className="text-[13px] font-black uppercase tracking-[-.02em] text-[#102f55]">{stage.label}</strong>
-      <span className="mt-1 max-w-[250px] text-[9px] font-bold leading-4 text-[#7d95aa]">{stage.description}</span>
+    <header className="flex h-[92px] flex-col items-center justify-center border-b border-[#e2edf4] bg-[linear-gradient(180deg,#edf7fd_0%,#f7fbfe_100%)] px-5 text-center">
+      <strong className="text-[15px] font-black uppercase tracking-[-.02em] text-[#102f55]">{stage.label}</strong>
+      <span className="mt-1.5 max-w-[310px] text-[10px] font-bold leading-4 text-[#7d95aa]">{stage.description}</span>
     </header>
   );
 }
 
-/**
- * CAMINO VISUAL DE LOS PLAYOFFS
- * -----------------------------
- * Este archivo controla únicamente el aspecto del cuadro.
- *
- * Para cambiar fases, textos, cantidad de partidos o formato por temporada,
- * NO edites este componente: usá `src/config/playoffs.ts`.
- */
 export default function PlayoffsRoad({
   road,
   getLogo,
@@ -123,10 +118,10 @@ export default function PlayoffsRoad({
   getLogo: (name?: string | null) => string | null;
   stages: readonly PlayoffStageId[];
 }) {
-  const bodyHeight = 420;
-  const columnWidth = 350;
-  const columnGap = 18;
-  const inset = 18;
+  const bodyHeight = 520;
+  const columnWidth = 430;
+  const columnGap = 22;
+  const inset = 22;
   const totalWidth = stages.length * columnWidth + Math.max(0, stages.length - 1) * columnGap;
   const connectorPaths: string[] = [];
 
@@ -163,18 +158,15 @@ export default function PlayoffsRoad({
   });
 
   return (
-    <section className="overflow-x-auto pb-2">
-      <div className="relative overflow-hidden rounded-[10px] border border-[#d7e6f0] bg-white" style={{ minWidth: totalWidth, width: totalWidth }}>
-        <svg className="pointer-events-none absolute left-0 top-[78px] z-10" width={totalWidth} height={bodyHeight} viewBox={`0 0 ${totalWidth} ${bodyHeight}`} aria-hidden="true">
-          <g fill="none" stroke="#9fcdea" strokeWidth="1.2" vectorEffect="non-scaling-stroke">
+    <section className="overflow-x-auto pb-3">
+      <div className="relative overflow-hidden rounded-[12px] border border-[#d7e6f0] bg-white" style={{ minWidth: totalWidth, width: totalWidth }}>
+        <svg className="pointer-events-none absolute left-0 top-[92px] z-10" width={totalWidth} height={bodyHeight} viewBox={`0 0 ${totalWidth} ${bodyHeight}`} aria-hidden="true">
+          <g fill="none" stroke="#9fcdea" strokeWidth="1.4" vectorEffect="non-scaling-stroke">
             {connectorPaths.map((path, index) => <path key={`${path}-${index}`} d={path} />)}
           </g>
         </svg>
 
-        <div
-          className="relative z-20 grid bg-[#f8fbfd]"
-          style={{ gridTemplateColumns: `repeat(${stages.length}, ${columnWidth}px)`, columnGap }}
-        >
+        <div className="relative z-20 grid bg-[#f8fbfd]" style={{ gridTemplateColumns: `repeat(${stages.length}, ${columnWidth}px)`, columnGap }}>
           {stages.map((stageId, stageIndex) => {
             const definition = PLAYOFFS_CONFIG.stageDefinitions[stageId];
             const stageMatches = road[stageId];
@@ -186,19 +178,11 @@ export default function PlayoffsRoad({
                 className={`${stageIndex < stages.length - 1 ? "border-r border-[#e6eff5]" : ""} ${accent ? "bg-[linear-gradient(90deg,#f7fbfe_0%,#eef8fe_100%)]" : "bg-[linear-gradient(90deg,#f8fbfd_0%,#fbfdff_100%)]"}`}
               >
                 <StageHeader stageId={stageId} />
-                <div
-                  className="grid px-[18px]"
-                  style={{ height: bodyHeight, gridTemplateRows: `repeat(${definition.matchCount}, minmax(0, 1fr))` }}
-                >
+                <div className="grid px-[22px]" style={{ height: bodyHeight, gridTemplateRows: `repeat(${definition.matchCount}, minmax(0, 1fr))` }}>
                   {stageMatches.map((match, index) => (
                     <div key={`${stageId}-${index}`} className="flex items-center">
                       <div className="w-full">
-                        <MatchCard
-                          match={match}
-                          placeholder={definition.placeholders[index] || definition.label}
-                          getLogo={getLogo}
-                          accent={accent}
-                        />
+                        <MatchCard match={match} placeholder={definition.placeholders[index] || definition.label} getLogo={getLogo} accent={accent} />
                       </div>
                     </div>
                   ))}
