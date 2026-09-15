@@ -61,13 +61,15 @@ export default function KnockoutCupManager({ title, competition }: Props) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchTournamentSeasons().then((rows) => {
-      setSeasons(rows);
-      setTemporada(rows[0] || "Temporada 4");
-    }).catch(() => {
-      setSeasons(["Temporada 4"]);
-      setTemporada("Temporada 4");
-    });
+    fetchTournamentSeasons()
+      .then((rows) => {
+        setSeasons(rows);
+        setTemporada(rows[0] || "Temporada 4");
+      })
+      .catch(() => {
+        setSeasons(["Temporada 4"]);
+        setTemporada("Temporada 4");
+      });
   }, []);
 
   async function load() {
@@ -101,16 +103,6 @@ export default function KnockoutCupManager({ title, competition }: Props) {
   const final = matches.find((match) => String(match.fase).toLowerCase() === "final");
   const champion = winnerOf(final);
 
-  async function addTeamToTarget(target: TournamentMatch, team: string) {
-    if (target.local === team || target.visitante === team) return false;
-    if (!target.visitante) {
-      const { error } = await supabase.from("partidos").update({ visitante: team }).eq("id", target.id);
-      if (error) throw error;
-      return true;
-    }
-    return false;
-  }
-
   async function placeInNextRound(source: TournamentMatch, team: string) {
     if (!team || isLoadedMatch(source)) return;
     const phase = String(source.fase || "eliminacion").toLowerCase();
@@ -129,11 +121,17 @@ export default function KnockoutCupManager({ title, competition }: Props) {
       const target = targetRows[targetIndex];
 
       if (target) {
-        const changed = await addTeamToTarget(target, team);
-        if (!changed && target.local !== team && target.visitante !== team) {
-          setMessage("Ese cruce de la siguiente ronda ya tiene los dos lugares ocupados.");
+        if (target.local === team || target.visitante === team) {
+          setMessage(`${team} ya está en la siguiente ronda.`);
           return;
         }
+        const patch = !target.local ? { local: team } : !target.visitante ? { visitante: team } : null;
+        if (!patch) {
+          setMessage("Ese cruce ya tiene dos equipos. Podés modificarlo desde Más opciones.");
+          return;
+        }
+        const { error } = await supabase.from("partidos").update(patch).eq("id", target.id);
+        if (error) throw error;
       } else {
         const nextFecha = String(Math.max(...matches.map((match) => Number(match.fecha) || 0), 0) + 1);
         const roundName = nextPhase === "final" ? `${title} · Final` : `${title} · ${labelPhase(nextPhase)} ${targetIndex + 1}`;
@@ -175,20 +173,23 @@ export default function KnockoutCupManager({ title, competition }: Props) {
     try {
       const [phase, sourceRows] = active;
       const nextPhase = nextPhaseFor(phase, sourceRows.length);
+      const targetRows = matches.filter((match) => String(match.fase || "").toLowerCase() === nextPhase).sort(sortRound);
       let changed = false;
 
       for (let index = 0; index < sourceRows.length; index += 1) {
         const winner = winnerOf(sourceRows[index]);
         if (!winner) continue;
-
         const targetIndex = Math.floor(index / 2);
-        const targetRows = (await fetchTournamentMatches({ temporada, competicion }))
-          .filter((match) => String(match.fase || "").toLowerCase() === nextPhase)
-          .sort(sortRound);
         const target = targetRows[targetIndex];
 
         if (target) {
-          changed = (await addTeamToTarget(target, winner)) || changed;
+          if (target.local === winner || target.visitante === winner) continue;
+          const patch = !target.local ? { local: winner } : !target.visitante ? { visitante: winner } : null;
+          if (patch) {
+            const { error } = await supabase.from("partidos").update(patch).eq("id", target.id);
+            if (error) throw error;
+            changed = true;
+          }
         } else {
           const nextFecha = String(Math.max(...matches.map((match) => Number(match.fecha) || 0), 0) + 1);
           const roundName = nextPhase === "final" ? `${title} · Final` : `${title} · ${labelPhase(nextPhase)} ${targetIndex + 1}`;
