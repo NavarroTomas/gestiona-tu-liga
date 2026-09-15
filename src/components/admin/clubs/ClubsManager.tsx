@@ -26,11 +26,10 @@ import {
   TournamentBackLink,
   TournamentHero,
   TournamentPage,
-  TournamentPanel,
   tournamentStyles as styles,
 } from "@/components/admin/tournaments/TournamentUi";
 
-type View = "datos" | "competencia" | "visual" | "opciones";
+type View = "datos" | "competencia" | "visual";
 
 export default function ClubsManager() {
   const [clubs, setClubs] = useState<AdminClub[]>([]);
@@ -169,19 +168,12 @@ export default function ClubsManager() {
         <TournamentHero
           eyebrow="Clubes"
           title="Administrar clubes"
-          description="Cada sección modifica una sola parte del club. Datos, competencia e identidad visual están separados para que sea claro qué estás tocando."
-        >
-          <div className={styles.kpis}>
-            <div className={styles.kpi}><div className={styles.kpiLabel}>Clubes</div><div className={styles.kpiValue}>{clubs.length}</div></div>
-            <div className={styles.kpi}><div className={styles.kpiLabel}>Seleccionado</div><div className={styles.kpiValue}>{club.id ? "1" : "—"}</div></div>
-            <div className={styles.kpi}><div className={styles.kpiLabel}>Temporada</div><div className={styles.kpiValue} style={{ fontSize: 18 }}>{assignment.temporada}</div></div>
-            <div className={styles.kpi}><div className={styles.kpiLabel}>Estado</div><div className={styles.kpiValue} style={{ fontSize: 18 }}>{assignment.activo ? "Activo" : "Inactivo"}</div></div>
-          </div>
-        </TournamentHero>
+          description="Elegí un club y editá solo la parte que necesitás. El directorio completo queda oculto hasta que lo buscás."
+        />
 
         {message && <div className={styles.notice}>{message}</div>}
 
-        <div className={styles.split} style={{ marginTop: 22 }}>
+        <div style={{ marginTop: 22 }}>
           <ClubList
             clubs={filteredClubs}
             search={search}
@@ -191,62 +183,57 @@ export default function ClubsManager() {
             onSelect={selectClub}
             onNew={startNewClub}
           />
+        </div>
 
-          <div>
-            <Tabs<View>
-              value={view}
-              onChange={setView}
-              items={[
-                { value: "datos", label: "Datos del club" },
-                { value: "competencia", label: "Temporada y división" },
-                { value: "visual", label: "Identidad visual" },
-                { value: "opciones", label: "Más opciones" },
-              ]}
+        <div style={{ marginTop: 18 }}>
+          <Tabs<View>
+            value={view}
+            onChange={setView}
+            items={[
+              { value: "datos", label: "Datos" },
+              { value: "competencia", label: "Temporada" },
+              { value: "visual", label: "Visual" },
+            ]}
+          />
+
+          {view === "datos" && <ClubGeneralSection club={club} onChange={patchClub} />}
+          {view === "competencia" && <ClubSeasonSection assignment={assignment} seasons={seasons} onChange={patchAssignment} />}
+          {view === "visual" && (
+            <ClubVisualSection
+              club={club}
+              assignment={assignment}
+              uploading={uploading}
+              onChange={patchClub}
+              onUpload={handleUpload}
             />
+          )}
 
-            {view === "datos" && <ClubGeneralSection club={club} onChange={patchClub} />}
-            {view === "competencia" && <ClubSeasonSection assignment={assignment} seasons={seasons} onChange={patchAssignment} />}
-            {view === "visual" && (
-              <ClubVisualSection
-                club={club}
-                assignment={assignment}
-                uploading={uploading}
-                onChange={patchClub}
-                onUpload={handleUpload}
-              />
-            )}
-            {view === "opciones" && (
-              <TournamentPanel
-                eyebrow="4 · Excepciones"
-                title="Más opciones"
-                description="Las acciones poco frecuentes o destructivas quedan separadas del flujo normal."
-              >
-                <div className={styles.list}>
-                  <div className={styles.row}>
-                    <div><div className={styles.rowTitle}>Ver ficha pública</div><div className={styles.rowMeta}>Abrí cómo se ve el club fuera del admin.</div></div>
-                    {club.slug ? <Link href={`/clubes/${club.slug}`} className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Abrir</Link> : <span className={styles.badge}>Sin slug</span>}
-                  </div>
-
-                  {club.id ? (
-                    <div className={styles.row}>
-                      <div><div className={styles.rowTitle}>Eliminar club</div><div className={styles.rowMeta}>Acción destructiva. No forma parte de la edición normal.</div></div>
-                      <button type="button" className={styles.danger} disabled={saving} onClick={handleDelete}>Eliminar</button>
-                    </div>
-                  ) : (
-                    <div className={styles.empty}>Primero creá el club para habilitar opciones adicionales.</div>
-                  )}
-                </div>
-              </TournamentPanel>
-            )}
-
-            <div className={styles.actions} style={{ marginTop: 16 }}>
-              <button type="button" className={styles.primary} disabled={saving || uploading !== null} onClick={handleSave}>
-                {saving ? "Guardando..." : club.id ? "Guardar cambios" : "Crear club"}
-              </button>
-              <button type="button" className={styles.secondary} disabled={saving} onClick={startNewClub}>Cancelar</button>
-            </div>
+          <div className={styles.actions} style={{ marginTop: 16 }}>
+            <button type="button" className={styles.primary} disabled={saving || uploading !== null} onClick={handleSave}>
+              {saving ? "Guardando..." : club.id ? "Guardar cambios" : "Crear club"}
+            </button>
+            <button type="button" className={styles.secondary} disabled={saving} onClick={startNewClub}>Cancelar</button>
           </div>
         </div>
+
+        <section className={styles.advancedBar}>
+          <div>
+            <strong>Más opciones</strong>
+            <p>Acciones poco frecuentes quedan fuera del flujo normal.</p>
+          </div>
+          <div className={styles.actions}>
+            {club.slug && (
+              <Link href={`/clubes/${club.slug}`} className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                Ver ficha pública
+              </Link>
+            )}
+            {club.id && (
+              <button type="button" className={styles.danger} disabled={saving} onClick={handleDelete}>
+                Eliminar club
+              </button>
+            )}
+          </div>
+        </section>
       </TournamentPage>
     </PermissionGuard>
   );
