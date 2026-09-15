@@ -26,10 +26,31 @@ function placeholderMatch(
   };
 }
 
+function realSemifinalTeams(bracket: KnockoutBracket) {
+  return new Set(
+    bracket.semifinals
+      .flatMap((match) => [match?.local, match?.visitante])
+      .filter((team): team is string => Boolean(team)),
+  );
+}
+
+function directFinalists(bracket: KnockoutBracket) {
+  if (!bracket.final) return [];
+
+  const semifinalTeams = realSemifinalTeams(bracket);
+  return [bracket.final.local, bracket.final.visitante]
+    .filter((team): team is string => Boolean(team))
+    .filter((team) => !semifinalTeams.has(team));
+}
+
 /**
- * Mientras no exista un cruce real en Supabase, completa el cuadro con los
- * clasificados esperados de la Copa de Campeones. Un partido real siempre
- * tiene prioridad y reemplaza automáticamente al placeholder.
+ * Completa el cuadro visual sin tapar excepciones administrativas reales.
+ *
+ * Prioridad:
+ * 1. Cruces reales guardados en Supabase.
+ * 2. Si existe un finalista real que no salió de una semifinal existente,
+ *    mostrarlo como "Equipo vs Sin rival" (pase directo).
+ * 3. Recién si no hay datos reales, usar los placeholders teóricos de la copa.
  */
 export function withCopaCampeonesPlaceholders(
   bracket: KnockoutBracket,
@@ -37,13 +58,31 @@ export function withCopaCampeonesPlaceholders(
 ): KnockoutBracket {
   const semifinalPairs = COPA_CAMPEONES_CONFIG.placeholderMatchups.semifinals;
   const finalPair = COPA_CAMPEONES_CONFIG.placeholderMatchups.final;
+  const byeTeams = directFinalists(bracket);
+  let byeIndex = 0;
+
+  const semifinals = [0, 1].map((index) => {
+    const realMatch = bracket.semifinals[index];
+    if (realMatch) return realMatch;
+
+    const directTeam = byeTeams[byeIndex];
+    if (directTeam) {
+      byeIndex += 1;
+      return placeholderMatch(directTeam, "Sin rival", season, "semifinal", index);
+    }
+
+    return placeholderMatch(
+      semifinalPairs[index][0],
+      semifinalPairs[index][1],
+      season,
+      "semifinal",
+      index,
+    );
+  });
 
   return {
     ...bracket,
-    semifinals: [
-      bracket.semifinals[0] || placeholderMatch(semifinalPairs[0][0], semifinalPairs[0][1], season, "semifinal", 0),
-      bracket.semifinals[1] || placeholderMatch(semifinalPairs[1][0], semifinalPairs[1][1], season, "semifinal", 1),
-    ],
+    semifinals,
     final:
       bracket.final ||
       placeholderMatch(finalPair[0], finalPair[1], season, "final", 0),
