@@ -5,28 +5,6 @@ export type CopaCampeonesSeasonFormat = {
   showThirdPlace: boolean;
 };
 
-/**
- * CONFIGURACIÓN CENTRAL DE COPA DE CAMPEONES
- * ------------------------------------------
- * Esta competición reúne a los campeones de los torneos principales.
- * Para cambios normales, editá este archivo y no la página.
- *
- * TEMPORADA 4
- * El formato actual es:
- *   Semifinales -> Final
- *
- * Si una temporada futura cambia el formato, modificá `formatsBySeason`.
- * Ejemplo con una ronda previa:
- *   rounds: ["quarterfinals", "semifinals", "final"]
- *
- * PARTICIPANTES ESPERADOS
- * Los textos de `placeholderMatchups` se muestran mientras todavía no existe
- * el partido real en Supabase. Cuando cargues el cruce, el dato real lo reemplaza.
- *
- * IMPORTANTE
- * `competitionKey` debe coincidir con el valor guardado en `partidos.competicion`.
- * Si en tu BD usás otro nombre, cambialo solamente acá.
- */
 export const COPA_CAMPEONES_CONFIG = {
   competitionKey: "copa_campeones",
 
@@ -47,10 +25,6 @@ export const COPA_CAMPEONES_CONFIG = {
     },
   } satisfies Record<string, CopaCampeonesSeasonFormat>,
 
-  /**
-   * Cruces base de la temporada mientras todavía no se cargaron partidos.
-   * Podés cambiar quién enfrenta a quién sin tocar el componente visual.
-   */
   placeholderMatchups: {
     semifinals: [
       ["Campeón Primera División", "Campeón Copa APA"],
@@ -68,10 +42,8 @@ export const COPA_CAMPEONES_CONFIG = {
   },
 
   tabs: [
-    { id: "resumen", label: "Resumen", href: "/competicion/copa-campeones" },
     { id: "cuadro", label: "Cuadro", href: "/competicion/copa-campeones" },
     { id: "resultados", label: "Resultados", href: "/fixture" },
-    { id: "estadisticas", label: "Estadísticas", href: "/estadisticas" },
     { id: "equipos", label: "Equipos", href: "/clubes" },
   ],
 } as const;
