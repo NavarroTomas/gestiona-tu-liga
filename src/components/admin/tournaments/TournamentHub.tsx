@@ -265,9 +265,9 @@ export default function TournamentHub() {
       <section className={styles.advancedBar}>
         <div>
           <strong>¿Necesitás hacer algo fuera de lo normal?</strong>
-          <p>Las excepciones, reglas, nuevas competiciones y cambios estructurales están en Configuración avanzada.</p>
+          <p>Creá cruces manuales, reubicá partidos vacíos, cambiá participantes, fases, fechas o estados sin tocar código.</p>
         </div>
-        {canCompetition && <Link href="/admin/torneos/configuracion" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Abrir opciones avanzadas</Link>}
+        {canCompetition && <Link href="/admin/torneos/acciones-avanzadas" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Abrir acciones avanzadas</Link>}
       </section>
     </TournamentPage>
   );
