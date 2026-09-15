@@ -13,36 +13,22 @@ import {
   type CompetitionConfig,
   type TournamentMatch,
 } from "@/lib/adminTournaments";
-import {
-  Field,
-  Select,
-  TournamentHero,
-  TournamentPage,
-  tournamentStyles as styles,
-} from "./TournamentUi";
+import { Field, Select, TournamentHero, TournamentPage, tournamentStyles as styles } from "./TournamentUi";
 
 type CompetitionSummary = {
   key: string;
   title: string;
   subtitle: string;
   matches: TournamentMatch[];
-  manageHref: string;
-  configSlug?: string;
+  href: string;
 };
 
 function statusFor(matches: TournamentMatch[]) {
-  if (!matches.length) return { label: "Sin iniciar", tone: "neutral" as const };
+  if (!matches.length) return "Sin iniciar";
   const loaded = matches.filter(isLoadedMatch).length;
-  if (loaded === matches.length) return { label: "Finalizada / al día", tone: "good" as const };
-  if (loaded > 0) return { label: "En curso", tone: "warn" as const };
-  return { label: "Programada", tone: "neutral" as const };
-}
-
-function latestNumericRound(matches: TournamentMatch[]) {
-  const numbers = matches
-    .map((match) => Number(match.fecha))
-    .filter((value) => Number.isFinite(value));
-  return numbers.length ? Math.max(...numbers) : null;
+  if (loaded === matches.length) return "Al día";
+  if (loaded > 0) return "En curso";
+  return "Programada";
 }
 
 export default function TournamentHub() {
@@ -77,7 +63,6 @@ export default function TournamentHub() {
     let active = true;
     setLoading(true);
     setMessage("");
-
     Promise.all([
       fetchTournamentMatches({ temporada: season }),
       fetchCompetitionConfigs(season),
@@ -89,108 +74,118 @@ export default function TournamentHub() {
         setConfigs(configRows);
         setTeamCount(teams.length);
       })
-      .catch((error: any) => active && setMessage(error?.message || "No pude cargar el estado de la temporada."))
+      .catch((error: any) => active && setMessage(error?.message || "No pude cargar la temporada."))
       .finally(() => active && setLoading(false));
-
     return () => { active = false; };
   }, [season]);
 
   const competitions = useMemo<CompetitionSummary[]>(() => {
-    const first = matches.filter((match) => match.competicion === "liga" && normalizeDivision(match.division) === "primera");
-    const second = matches.filter((match) => match.competicion === "liga" && normalizeDivision(match.division) === "segunda");
-    const classified = matches.filter((match) => match.competicion === "copa_clasificatoria");
-    const argentina = matches.filter((match) => match.competicion === "copa_argentina");
-    const apa = matches.filter((match) => match.competicion === "copa_apa");
-    const champions = matches.filter((match) => match.competicion === "copa_campeones");
-    const playoffs = matches.filter((match) => match.competicion === "playoffs");
-
-    const result: CompetitionSummary[] = [
-      { key: "liga_primera", title: "Primera División", subtitle: "Liga · fixture, calendario y tabla", matches: first, manageHref: "/admin/fixture", configSlug: "liga_primera" },
-      { key: "liga_segunda", title: "Segunda División", subtitle: "Liga · fixture, calendario y tabla", matches: second, manageHref: "/admin/fixture", configSlug: "liga_segunda" },
-      { key: "copa_clasificatoria", title: "Clasificatoria", subtitle: "Grupos y clasificación a copas", matches: classified, manageHref: "/admin/competicion", configSlug: "copa_clasificatoria" },
-      { key: "copa_argentina", title: "Copa Argentina", subtitle: "Eliminación directa", matches: argentina, manageHref: "/admin/competicion", configSlug: "copa_argentina" },
-      { key: "copa_apa", title: "Copa APA", subtitle: "Eliminación directa", matches: apa, manageHref: "/admin/competicion", configSlug: "copa_apa" },
-      { key: "copa_campeones", title: "Copa de Campeones", subtitle: "Elegí participantes y cruces", matches: champions, manageHref: "/admin/torneos/copa-campeones", configSlug: "copa_campeones" },
-      { key: "playoffs", title: "Playoffs de ascenso", subtitle: "Ascenso, descenso y promoción", matches: playoffs, manageHref: "/admin/competicion", configSlug: "playoffs" },
+    const base: CompetitionSummary[] = [
+      {
+        key: "liga_primera",
+        title: "Primera División",
+        subtitle: "Liga, fechas y tabla",
+        matches: matches.filter((match) => match.competicion === "liga" && normalizeDivision(match.division) === "primera"),
+        href: "/admin/fixture",
+      },
+      {
+        key: "liga_segunda",
+        title: "Segunda División",
+        subtitle: "Liga, fechas y tabla",
+        matches: matches.filter((match) => match.competicion === "liga" && normalizeDivision(match.division) === "segunda"),
+        href: "/admin/fixture",
+      },
+      {
+        key: "copa_clasificatoria",
+        title: "Clasificatoria",
+        subtitle: "Grupos",
+        matches: matches.filter((match) => match.competicion === "copa_clasificatoria"),
+        href: "/admin/competicion",
+      },
+      {
+        key: "copa_argentina",
+        title: "Copa Argentina",
+        subtitle: "Cruces y pases directos",
+        matches: matches.filter((match) => match.competicion === "copa_argentina"),
+        href: "/admin/torneos/copa-argentina",
+      },
+      {
+        key: "copa_apa",
+        title: "Copa APA",
+        subtitle: "Cruces y pases directos",
+        matches: matches.filter((match) => match.competicion === "copa_apa"),
+        href: "/admin/torneos/copa-apa",
+      },
+      {
+        key: "copa_campeones",
+        title: "Copa de Campeones",
+        subtitle: "Elegir participantes y cruces",
+        matches: matches.filter((match) => match.competicion === "copa_campeones"),
+        href: "/admin/torneos/copa-campeones",
+      },
+      {
+        key: "playoffs",
+        title: "Playoffs de ascenso",
+        subtitle: "Ascenso y promoción",
+        matches: matches.filter((match) => match.competicion === "playoffs"),
+        href: "/admin/competicion",
+      },
     ];
 
-    const configuredKeys = new Set(result.map((item) => item.key));
+    const known = new Set(base.map((item) => item.key));
     for (const config of configs) {
-      if (!configuredKeys.has(config.slug)) {
-        result.push({
+      if (!known.has(config.slug)) {
+        base.push({
           key: config.slug,
           title: config.nombre,
-          subtitle: `Competición ${config.tipo}`,
+          subtitle: "Competición personalizada",
           matches: matches.filter((match) => match.competicion === config.slug),
-          manageHref: "/admin/competicion",
-          configSlug: config.slug,
+          href: "/admin/competicion",
         });
       }
     }
-
-    return result;
+    return base;
   }, [matches, configs]);
 
   const nextActions = useMemo(() => {
-    const actions: Array<{ title: string; detail: string; href: string }> = [];
-    const leagueMatches = matches.filter((match) => match.competicion === "liga");
-    const unscheduled = leagueMatches.filter((match) => !isLoadedMatch(match) && (!match.dia || !match.hora));
-    if (unscheduled.length) {
-      actions.push({ title: `Programar ${unscheduled.length} partido${unscheduled.length === 1 ? "" : "s"}`, detail: "Hay partidos de liga todavía sin día u horario.", href: "/admin/fixture" });
+    const actions: Array<{ title: string; href: string }> = [];
+    const league = matches.filter((match) => match.competicion === "liga");
+    const withoutSchedule = league.filter((match) => !isLoadedMatch(match) && (!match.dia || !match.hora));
+    if (withoutSchedule.length) actions.push({ title: `Programar ${withoutSchedule.length} partidos`, href: "/admin/fixture" });
+
+    for (const [key, title, href] of [
+      ["copa_argentina", "Copa Argentina", "/admin/torneos/copa-argentina"],
+      ["copa_apa", "Copa APA", "/admin/torneos/copa-apa"],
+      ["copa_campeones", "Copa de Campeones", "/admin/torneos/copa-campeones"],
+    ] as const) {
+      const rows = matches.filter((match) => match.competicion === key);
+      if (rows.length && rows.some((match) => isLoadedMatch(match))) actions.push({ title: `Revisar ${title}`, href });
     }
 
-    const pendingResults = matches.filter((match) => match.competicion !== "liga" && !isLoadedMatch(match));
-    if (pendingResults.length) {
-      actions.push({ title: `${pendingResults.length} partido${pendingResults.length === 1 ? "" : "s"} de copa pendientes`, detail: "Cuando se carguen los resultados vas a poder avanzar las fases correspondientes.", href: "/admin/competicion" });
-    }
-
-    for (const cup of ["copa_argentina", "copa_apa"]) {
-      const cupMatches = matches.filter((match) => match.competicion === cup);
-      if (cupMatches.length && cupMatches.every(isLoadedMatch)) {
-        actions.push({ title: `Revisar siguiente fase de ${cup === "copa_argentina" ? "Copa Argentina" : "Copa APA"}`, detail: "Todos los partidos creados de esta copa ya tienen resultado.", href: "/admin/competicion" });
-      }
-    }
-
-    if (!leagueMatches.length) {
-      actions.push({ title: "Crear el fixture de liga", detail: "Todavía no hay partidos de liga para esta temporada.", href: "/admin/fixture" });
-    }
-
-    if (!actions.length) {
-      actions.push({ title: "Temporada al día", detail: "No detecté tareas urgentes. Podés revisar reglas, participantes o calendario.", href: "/admin/torneos/configuracion" });
-    }
-
-    return actions.slice(0, 5);
+    if (!actions.length) actions.push({ title: "Revisar configuración de temporada", href: "/admin/torneos/configuracion" });
+    return actions.slice(0, 4);
   }, [matches]);
 
   const loaded = matches.filter(isLoadedMatch).length;
-  const pending = matches.length - loaded;
 
   return (
     <TournamentPage>
       <Link href="/admin" className={styles.backLink}>← Volver al panel</Link>
 
-      <TournamentHero
-        eyebrow="Centro de temporada"
-        title={season || "Torneos"}
-        description="Acá ves qué está pasando, qué falta hacer y entrás directamente a la competición que querés administrar."
-      >
+      <TournamentHero eyebrow="Torneos" title={season || "Temporada"} description="Elegí qué querés administrar.">
         <div className={styles.toolbar}>
           <Field label="Temporada">
             <Select value={season} onChange={(event) => setSeason(event.target.value)}>
-              {seasons.map((item) => <option key={item} value={item}>{item}</option>)}
+              {seasons.map((item) => <option key={item}>{item}</option>)}
             </Select>
           </Field>
-          {canCompetition && (
-            <Link href="/admin/torneos/configuracion" className={styles.primary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
-              Configurar temporada
-            </Link>
-          )}
+          {canCompetition && <Link href="/admin/torneos/configuracion" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Configurar temporada</Link>}
         </div>
         <div className={styles.kpis}>
           <div className={styles.kpi}><div className={styles.kpiLabel}>Clubes</div><div className={styles.kpiValue}>{teamCount}</div></div>
           <div className={styles.kpi}><div className={styles.kpiLabel}>Partidos</div><div className={styles.kpiValue}>{matches.length}</div></div>
           <div className={styles.kpi}><div className={styles.kpiLabel}>Cargados</div><div className={styles.kpiValue}>{loaded}</div></div>
-          <div className={styles.kpi}><div className={styles.kpiLabel}>Pendientes</div><div className={styles.kpiValue}>{pending}</div></div>
+          <div className={styles.kpi}><div className={styles.kpiLabel}>Pendientes</div><div className={styles.kpiValue}>{matches.length - loaded}</div></div>
         </div>
       </TournamentHero>
 
@@ -198,76 +193,41 @@ export default function TournamentHub() {
 
       <section className={styles.commandSection}>
         <div className={styles.commandHeader}>
-          <div>
-            <p className={styles.sectionEyebrow}>Qué falta hacer</p>
-            <h2 className={styles.commandTitle}>Próximas acciones</h2>
-          </div>
-          <span className={styles.badge}>{loading ? "Cargando" : `${nextActions.length} sugerencias`}</span>
+          <div><p className={styles.sectionEyebrow}>Ahora</p><h2 className={styles.commandTitle}>Qué podés hacer</h2></div>
+          {loading && <span className={styles.badge}>Cargando</span>}
         </div>
         <div className={styles.actionGrid}>
-          {nextActions.map((action) => (
-            <Link key={`${action.title}-${action.href}`} href={action.href} className={styles.actionCard}>
-              <div>
-                <strong>{action.title}</strong>
-                <p>{action.detail}</p>
-              </div>
-              <span>Ir →</span>
-            </Link>
-          ))}
+          {nextActions.map((action) => <Link key={action.title} href={action.href} className={styles.actionCard}><strong>{action.title}</strong><span>Ir →</span></Link>)}
         </div>
       </section>
 
       <section className={styles.commandSection}>
         <div className={styles.commandHeader}>
-          <div>
-            <p className={styles.sectionEyebrow}>Temporada</p>
-            <h2 className={styles.commandTitle}>Competiciones</h2>
-          </div>
-          {canCompetition && <Link href="/admin/torneos/configuracion" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>+ Crear competición</Link>}
+          <div><p className={styles.sectionEyebrow}>Temporada</p><h2 className={styles.commandTitle}>Competiciones</h2></div>
         </div>
-
         <div className={styles.competitionList}>
           {competitions.map((competition) => {
-            const status = statusFor(competition.matches);
-            const round = latestNumericRound(competition.matches);
-            const loadedCount = competition.matches.filter(isLoadedMatch).length;
+            const allowed = competition.key.startsWith("liga_") ? canFixture : canCompetition;
             return (
               <article key={competition.key} className={styles.competitionRow}>
                 <div className={styles.competitionMain}>
-                  <div>
-                    <div className={styles.competitionTitle}>{competition.title}</div>
-                    <div className={styles.rowMeta}>{competition.subtitle}</div>
-                  </div>
-                  <span className={`${styles.badge} ${status.tone === "good" ? styles.badgeGood : status.tone === "warn" ? styles.badgeWarn : ""}`}>{status.label}</span>
+                  <div><div className={styles.competitionTitle}>{competition.title}</div><div className={styles.rowMeta}>{competition.subtitle}</div></div>
+                  <span className={styles.badge}>{statusFor(competition.matches)}</span>
                 </div>
-
-                <div className={styles.competitionStats}>
-                  <span>{competition.matches.length} partidos</span>
-                  <span>{loadedCount} cargados</span>
-                  {round !== null && <span>Última fecha {round}</span>}
-                </div>
-
-                <div className={styles.actions}>
-                  {(competition.key.startsWith("liga_") ? canFixture : canCompetition) && (
-                    <Link href={competition.manageHref} className={styles.primary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Administrar</Link>
-                  )}
-                  {canCompetition && (
-                    <Link href="/admin/torneos/configuracion" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Configurar</Link>
-                  )}
-                </div>
+                <div className={styles.competitionStats}><span>{competition.matches.length} partidos</span><span>{competition.matches.filter(isLoadedMatch).length} cargados</span></div>
+                {allowed && <div className={styles.actions}><Link href={competition.href} className={styles.primary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Abrir</Link></div>}
               </article>
             );
           })}
         </div>
       </section>
 
-      <section className={styles.advancedBar}>
-        <div>
-          <strong>Más opciones</strong>
-          <p>Solo para excepciones: cambiar cruces, mover partidos o resolver casos raros.</p>
-        </div>
-        {canCompetition && <Link href="/admin/torneos/acciones-avanzadas" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Abrir</Link>}
-      </section>
+      {canCompetition && (
+        <section className={styles.advancedBar}>
+          <div><strong>Más opciones</strong><p>Para excepciones y cambios poco comunes.</p></div>
+          <Link href="/admin/torneos/acciones-avanzadas" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Abrir</Link>
+        </section>
+      )}
     </TournamentPage>
   );
 }
