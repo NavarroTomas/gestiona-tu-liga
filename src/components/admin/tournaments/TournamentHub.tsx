@@ -110,7 +110,7 @@ export default function TournamentHub() {
       { key: "copa_clasificatoria", title: "Clasificatoria", subtitle: "Grupos y clasificación a copas", matches: classified, manageHref: "/admin/competicion", configSlug: "copa_clasificatoria" },
       { key: "copa_argentina", title: "Copa Argentina", subtitle: "Eliminación directa", matches: argentina, manageHref: "/admin/competicion", configSlug: "copa_argentina" },
       { key: "copa_apa", title: "Copa APA", subtitle: "Eliminación directa", matches: apa, manageHref: "/admin/competicion", configSlug: "copa_apa" },
-      { key: "copa_campeones", title: "Copa de Campeones", subtitle: "Campeones de la temporada", matches: champions, manageHref: "/admin/competicion", configSlug: "copa_campeones" },
+      { key: "copa_campeones", title: "Copa de Campeones", subtitle: "Elegí participantes y cruces", matches: champions, manageHref: "/admin/torneos/copa-campeones", configSlug: "copa_campeones" },
       { key: "playoffs", title: "Playoffs de ascenso", subtitle: "Ascenso, descenso y promoción", matches: playoffs, manageHref: "/admin/competicion", configSlug: "playoffs" },
     ];
 
@@ -172,7 +172,7 @@ export default function TournamentHub() {
       <TournamentHero
         eyebrow="Centro de temporada"
         title={season || "Torneos"}
-        description="Acá ves qué está pasando, qué falta hacer y entrás directamente a la competición que querés administrar. No necesitás conocer cómo está armado el sistema por dentro."
+        description="Acá ves qué está pasando, qué falta hacer y entrás directamente a la competición que querés administrar."
       >
         <div className={styles.toolbar}>
           <Field label="Temporada">
@@ -182,7 +182,7 @@ export default function TournamentHub() {
           </Field>
           {canCompetition && (
             <Link href="/admin/torneos/configuracion" className={styles.primary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
-              ⚙ Configurar temporada
+              Configurar temporada
             </Link>
           )}
         </div>
@@ -222,7 +222,6 @@ export default function TournamentHub() {
           <div>
             <p className={styles.sectionEyebrow}>Temporada</p>
             <h2 className={styles.commandTitle}>Competiciones</h2>
-            <p className={styles.panelText}>Entrá a una competición para trabajarla. La configuración avanzada siempre queda disponible por separado.</p>
           </div>
           {canCompetition && <Link href="/admin/torneos/configuracion" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>+ Crear competición</Link>}
         </div>
@@ -264,10 +263,10 @@ export default function TournamentHub() {
 
       <section className={styles.advancedBar}>
         <div>
-          <strong>¿Necesitás hacer algo fuera de lo normal?</strong>
-          <p>Creá cruces manuales, reubicá partidos vacíos, cambiá participantes, fases, fechas o estados sin tocar código.</p>
+          <strong>Más opciones</strong>
+          <p>Solo para excepciones: cambiar cruces, mover partidos o resolver casos raros.</p>
         </div>
-        {canCompetition && <Link href="/admin/torneos/acciones-avanzadas" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Abrir acciones avanzadas</Link>}
+        {canCompetition && <Link href="/admin/torneos/acciones-avanzadas" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Abrir</Link>}
       </section>
     </TournamentPage>
   );
