@@ -121,22 +121,21 @@ export default function ChampionsCupManager() {
     setLoading(true);
     setMessage("");
     try {
-      const sourceIndex = semis.findIndex((match) => String(match.id) === String(source.id));
-      if (sourceIndex < 0) return;
-      const goesLocal = sourceIndex === 0;
-
       if (final) {
-        const current = goesLocal ? final.local : final.visitante;
-        if (current && current !== team) {
-          setMessage("Ese lugar de la final ya está ocupado. Podés cambiarlo desde Más opciones.");
+        if (final.local === team || final.visitante === team) {
+          setMessage(`${team} ya está en la final.`);
           return;
         }
-        const { error } = await supabase.from("partidos").update(goesLocal ? { local: team } : { visitante: team }).eq("id", final.id);
+        if (final.visitante) {
+          setMessage("La final ya tiene los dos lugares ocupados. Usá Más opciones si querés reemplazar un finalista.");
+          return;
+        }
+        const { error } = await supabase.from("partidos").update({ visitante: team }).eq("id", final.id);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("partidos").insert({
-          local: goesLocal ? team : null,
-          visitante: goesLocal ? null : team,
+          local: team,
+          visitante: null,
           resultado: null,
           fecha: "2",
           temporada,
@@ -164,9 +163,9 @@ export default function ChampionsCupManager() {
     setLoading(true);
     setMessage("");
     try {
-      const winners = semis.map((match) => winnerOf(match));
+      const winners = semis.map((match) => winnerOf(match)).filter(Boolean) as string[];
       if (!final) {
-        if (winners.some((winner) => !winner)) {
+        if (winners.length !== 2) {
           setMessage("Faltan resultados o un pase directo en alguna semifinal.");
           return;
         }
@@ -180,16 +179,20 @@ export default function ChampionsCupManager() {
         return;
       }
 
-      const patch: Record<string, string> = {};
-      if (!final.local && winners[0]) patch.local = winners[0];
-      if (!final.visitante && winners[1]) patch.visitante = winners[1];
-      if (!Object.keys(patch).length) {
-        setMessage(final.local && final.visitante ? "La final ya está completa." : "Todavía falta definir el otro finalista.");
+      if (final.visitante) {
+        setMessage("La final ya está completa.");
         return;
       }
-      const { error } = await supabase.from("partidos").update(patch).eq("id", final.id);
+
+      const otherFinalist = winners.find((team) => team !== final.local);
+      if (!otherFinalist) {
+        setMessage("Todavía falta definir el otro finalista.");
+        return;
+      }
+
+      const { error } = await supabase.from("partidos").update({ visitante: otherFinalist }).eq("id", final.id);
       if (error) throw error;
-      setMessage("Final actualizada con el ganador disponible.");
+      setMessage("Final completada.");
       await load();
     } catch (error: any) {
       setMessage(error?.message || "No pude completar la final.");
@@ -202,7 +205,7 @@ export default function ChampionsCupManager() {
     <PermissionGuard permission="competitions.manage">
       <TournamentPage>
         <TournamentBackLink />
-        <TournamentHero eyebrow="Copa de Campeones" title="Copa de Campeones" description="Elegí los equipos y resolvé cualquier excepción sin inventar resultados.">
+        <TournamentHero eyebrow="Copa de Campeones" title="Copa de Campeones" description="Elegí los equipos y resolvé excepciones sin inventar resultados.">
           <div className={styles.toolbar}>
             <Field label="Temporada">
               <Select value={temporada} onChange={(event) => setTemporada(event.target.value)}>
@@ -216,7 +219,7 @@ export default function ChampionsCupManager() {
         {message && <div className={styles.notice}>{message}</div>}
 
         {!championsMatches.length ? (
-          <TournamentPanel eyebrow="Participantes" title="Elegí 4 equipos" description="Podés usar los sugeridos o cambiar cualquiera.">
+          <TournamentPanel eyebrow="Participantes" title="Elegí 4 equipos" description="Usá los sugeridos o cambiá cualquiera.">
             <div className={styles.toolbar}><button type="button" className={styles.secondary} onClick={() => setParticipants(suggested)}>Usar sugeridos</button></div>
             <div className={styles.grid2}>
               {participants.map((value, index) => (
