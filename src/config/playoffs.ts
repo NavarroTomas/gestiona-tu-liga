@@ -41,10 +41,6 @@ export const PLAYOFFS_CONFIG = {
     alt: "Playoffs de Ascenso APA",
   },
 
-  /**
-   * Acá definís qué significa cada etapa y cuántos partidos muestra.
-   * Podés cambiar textos sin tocar el componente visual.
-   */
   stageDefinitions: {
     semifinals: {
       label: "Semifinales",
@@ -69,27 +65,20 @@ export const PLAYOFFS_CONFIG = {
     },
   },
 
-  /**
-   * Formato de cada temporada. Podés reordenar o quitar etapas.
-   * Si una temporada no tuviera Promoción, por ejemplo:
-   * stages: ["semifinals", "promotionFinal"]
-   */
   formatsBySeason: {
     "Temporada 4": {
       stages: ["semifinals", "promotionFinal", "promotion"],
     },
   } satisfies Record<string, PlayoffSeasonFormat>,
 
+  // La navegación pública solo muestra secciones que existen realmente.
   tabs: [
-    { id: "resumen", label: "Resumen", href: "/competicion/playoffs" },
     { id: "camino", label: "Camino al ascenso", href: "/competicion/playoffs" },
     { id: "resultados", label: "Resultados", href: "/fixture/playoffs" },
-    { id: "estadisticas", label: "Estadísticas", href: "/estadisticas" },
     { id: "equipos", label: "Equipos", href: "/clubes" },
   ],
 } as const;
 
-/** Devuelve el formato de la temporada seleccionada. */
 export function getPlayoffsSeasonFormat(season: string): PlayoffSeasonFormat {
   const formats = PLAYOFFS_CONFIG.formatsBySeason as Record<string, PlayoffSeasonFormat>;
   return formats[season] || formats[PLAYOFFS_CONFIG.defaultSeason];
