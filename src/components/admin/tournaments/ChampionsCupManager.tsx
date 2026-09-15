@@ -26,9 +26,7 @@ import {
 } from "./TournamentUi";
 
 function finalWinner(matches: TournamentMatch[], competition: string) {
-  const final = matches.find(
-    (match) => match.competicion === competition && String(match.fase || "").toLowerCase() === "final",
-  );
+  const final = matches.find((match) => match.competicion === competition && String(match.fase || "").toLowerCase() === "final");
   return winnerOf(final);
 }
 
@@ -42,15 +40,13 @@ export default function ChampionsCupManager() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchTournamentSeasons()
-      .then((rows) => {
-        setSeasons(rows);
-        setTemporada(rows[0] || "Temporada 4");
-      })
-      .catch(() => {
-        setSeasons(["Temporada 4"]);
-        setTemporada("Temporada 4");
-      });
+    fetchTournamentSeasons().then((rows) => {
+      setSeasons(rows);
+      setTemporada(rows[0] || "Temporada 4");
+    }).catch(() => {
+      setSeasons(["Temporada 4"]);
+      setTemporada("Temporada 4");
+    });
   }, []);
 
   async function load() {
@@ -73,19 +69,12 @@ export default function ChampionsCupManager() {
 
   useEffect(() => { load(); }, [temporada]);
 
-  const championsMatches = useMemo(
-    () => matches.filter((match) => match.competicion === "copa_campeones"),
-    [matches],
-  );
+  const championsMatches = useMemo(() => matches.filter((match) => match.competicion === "copa_campeones"), [matches]);
+  const semis = useMemo(() => championsMatches.filter((match) => match.fase === "semifinal"), [championsMatches]);
+  const final = useMemo(() => championsMatches.find((match) => match.fase === "final"), [championsMatches]);
 
-  const firstTable = useMemo(
-    () => calculateStandings(matches.filter((match) => match.competicion === "liga" && normalizeDivision(match.division) === "primera")),
-    [matches],
-  );
-  const secondTable = useMemo(
-    () => calculateStandings(matches.filter((match) => match.competicion === "liga" && normalizeDivision(match.division) === "segunda")),
-    [matches],
-  );
+  const firstTable = useMemo(() => calculateStandings(matches.filter((match) => match.competicion === "liga" && normalizeDivision(match.division) === "primera")), [matches]);
+  const secondTable = useMemo(() => calculateStandings(matches.filter((match) => match.competicion === "liga" && normalizeDivision(match.division) === "segunda")), [matches]);
 
   const suggested = useMemo(() => [
     firstTable[0]?.equipo || "",
@@ -111,21 +100,11 @@ export default function ChampionsCupManager() {
       setMessage("Elegí cuatro equipos distintos.");
       return;
     }
-
     setLoading(true);
-    setMessage("");
     try {
       const { error } = await supabase.from("partidos").insert([
-        {
-          local: participants[0], visitante: participants[3], resultado: null, fecha: "1", temporada,
-          division: "copa", competicion: "copa_campeones", fase: "semifinal",
-          ronda: "Copa de Campeones · Semifinal 1", estado: "programado",
-        },
-        {
-          local: participants[1], visitante: participants[2], resultado: null, fecha: "1", temporada,
-          division: "copa", competicion: "copa_campeones", fase: "semifinal",
-          ronda: "Copa de Campeones · Semifinal 2", estado: "programado",
-        },
+        { local: participants[0], visitante: participants[3], resultado: null, fecha: "1", temporada, division: "copa", competicion: "copa_campeones", fase: "semifinal", ronda: "Copa de Campeones · Semifinal 1", estado: "programado" },
+        { local: participants[1], visitante: participants[2], resultado: null, fecha: "1", temporada, division: "copa", competicion: "copa_campeones", fase: "semifinal", ronda: "Copa de Campeones · Semifinal 2", estado: "programado" },
       ]);
       if (error) throw error;
       setMessage("Copa de Campeones creada.");
@@ -137,107 +116,150 @@ export default function ChampionsCupManager() {
     }
   }
 
-  async function createFinal() {
-    const semis = championsMatches.filter((match) => match.fase === "semifinal");
-    const final = championsMatches.find((match) => match.fase === "final");
-    if (final) {
-      setMessage("La final ya existe.");
-      return;
-    }
-    const winners = semis.map(winnerOf);
-    if (semis.length !== 2 || winners.some((winner) => !winner)) {
-      setMessage("Primero tienen que estar cargados los dos resultados de semifinales.");
-      return;
-    }
+  async function passDirect(source: TournamentMatch, team: string) {
+    if (!team || isLoadedMatch(source)) return;
+    setLoading(true);
+    setMessage("");
+    try {
+      const sourceIndex = semis.findIndex((match) => String(match.id) === String(source.id));
+      if (sourceIndex < 0) return;
+      const goesLocal = sourceIndex === 0;
 
-    const { error } = await supabase.from("partidos").insert({
-      local: winners[0], visitante: winners[1], resultado: null, fecha: "2", temporada,
-      division: "copa", competicion: "copa_campeones", fase: "final",
-      ronda: "Copa de Campeones · Final", estado: "programado",
-    });
-    if (error) {
-      setMessage("No pude crear la final.");
-      return;
+      if (final) {
+        const current = goesLocal ? final.local : final.visitante;
+        if (current && current !== team) {
+          setMessage("Ese lugar de la final ya está ocupado. Podés cambiarlo desde Más opciones.");
+          return;
+        }
+        const { error } = await supabase.from("partidos").update(goesLocal ? { local: team } : { visitante: team }).eq("id", final.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("partidos").insert({
+          local: goesLocal ? team : null,
+          visitante: goesLocal ? null : team,
+          resultado: null,
+          fecha: "2",
+          temporada,
+          division: "copa",
+          competicion: "copa_campeones",
+          fase: "final",
+          ronda: "Copa de Campeones · Final",
+          estado: "programado",
+        });
+        if (error) throw error;
+      }
+
+      const { error: cancelError } = await supabase.from("partidos").update({ estado: "cancelado" }).eq("id", source.id);
+      if (cancelError) throw cancelError;
+      setMessage(`${team} pasó directamente a la final.`);
+      await load();
+    } catch (error: any) {
+      setMessage(error?.message || "No pude aplicar el pase directo.");
+    } finally {
+      setLoading(false);
     }
-    setMessage("Final creada.");
-    await load();
+  }
+
+  async function createOrCompleteFinal() {
+    setLoading(true);
+    setMessage("");
+    try {
+      const winners = semis.map((match) => winnerOf(match));
+      if (!final) {
+        if (winners.some((winner) => !winner)) {
+          setMessage("Faltan resultados o un pase directo en alguna semifinal.");
+          return;
+        }
+        const { error } = await supabase.from("partidos").insert({
+          local: winners[0], visitante: winners[1], resultado: null, fecha: "2", temporada,
+          division: "copa", competicion: "copa_campeones", fase: "final", ronda: "Copa de Campeones · Final", estado: "programado",
+        });
+        if (error) throw error;
+        setMessage("Final creada.");
+        await load();
+        return;
+      }
+
+      const patch: Record<string, string> = {};
+      if (!final.local && winners[0]) patch.local = winners[0];
+      if (!final.visitante && winners[1]) patch.visitante = winners[1];
+      if (!Object.keys(patch).length) {
+        setMessage(final.local && final.visitante ? "La final ya está completa." : "Todavía falta definir el otro finalista.");
+        return;
+      }
+      const { error } = await supabase.from("partidos").update(patch).eq("id", final.id);
+      if (error) throw error;
+      setMessage("Final actualizada con el ganador disponible.");
+      await load();
+    } catch (error: any) {
+      setMessage(error?.message || "No pude completar la final.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <PermissionGuard permission="competitions.manage">
       <TournamentPage>
         <TournamentBackLink />
-
-        <TournamentHero
-          eyebrow="Copa de Campeones"
-          title="Elegí quién juega"
-          description="Cuatro equipos. Dos semifinales. Una final."
-        >
+        <TournamentHero eyebrow="Copa de Campeones" title="Copa de Campeones" description="Elegí los equipos y resolvé cualquier excepción sin inventar resultados.">
           <div className={styles.toolbar}>
             <Field label="Temporada">
               <Select value={temporada} onChange={(event) => setTemporada(event.target.value)}>
                 {seasons.map((season) => <option key={season}>{season}</option>)}
               </Select>
             </Field>
+            <Link href="/admin/torneos/acciones-avanzadas" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Más opciones</Link>
           </div>
         </TournamentHero>
 
         {message && <div className={styles.notice}>{message}</div>}
 
         {!championsMatches.length ? (
-          <TournamentPanel
-            eyebrow="Participantes"
-            title="4 equipos"
-            description="Podés usar los sugeridos o elegir cualquier club manualmente."
-            action={<button type="button" className={styles.secondary} onClick={() => setParticipants(suggested)}>Usar sugeridos</button>}
-          >
+          <TournamentPanel eyebrow="Participantes" title="Elegí 4 equipos" description="Podés usar los sugeridos o cambiar cualquiera.">
+            <div className={styles.toolbar}><button type="button" className={styles.secondary} onClick={() => setParticipants(suggested)}>Usar sugeridos</button></div>
             <div className={styles.grid2}>
               {participants.map((value, index) => (
                 <Field key={index} label={`Participante ${index + 1}`}>
                   <Select value={value} onChange={(event) => setParticipant(index, event.target.value)}>
                     <option value="">Elegir equipo</option>
-                    {teams
-                      .filter((team) => team.nombre === value || !used.has(team.nombre))
-                      .map((team) => <option key={team.nombre} value={team.nombre}>{team.nombre}</option>)}
+                    {teams.filter((team) => team.nombre === value || !used.has(team.nombre)).map((team) => <option key={team.nombre} value={team.nombre}>{team.nombre}</option>)}
                   </Select>
                 </Field>
               ))}
             </div>
-
             <div className={styles.notice}>
-              Semifinal 1: <strong>{participants[0] || "Participante 1"}</strong> vs <strong>{participants[3] || "Participante 4"}</strong><br />
-              Semifinal 2: <strong>{participants[1] || "Participante 2"}</strong> vs <strong>{participants[2] || "Participante 3"}</strong>
+              Semifinal 1: <strong>{participants[0] || "Por definir"}</strong> vs <strong>{participants[3] || "Por definir"}</strong><br />
+              Semifinal 2: <strong>{participants[1] || "Por definir"}</strong> vs <strong>{participants[2] || "Por definir"}</strong>
             </div>
-
-            <div className={styles.toolbar}>
-              <button className={styles.primary} type="button" onClick={createCup} disabled={!canCreate || loading}>Crear Copa de Campeones</button>
-              <Link href="/admin/torneos/acciones-avanzadas" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Más opciones</Link>
-            </div>
+            <div className={styles.toolbar}><button className={styles.primary} type="button" onClick={createCup} disabled={!canCreate || loading}>Crear Copa de Campeones</button></div>
           </TournamentPanel>
         ) : (
-          <TournamentPanel
-            eyebrow="Copa creada"
-            title="Partidos"
-            description="Los resultados se cargan desde Centro de partidos."
-          >
+          <TournamentPanel eyebrow="Llave" title="Partidos" description="Usá Más opciones solo cuando pase algo excepcional.">
             <div className={styles.list}>
               {championsMatches.map((match) => (
                 <div key={String(match.id)} className={styles.row}>
                   <div>
-                    <div className={styles.rowTitle}>{match.local} <span style={{ color: "#245f8e" }}>{match.resultado || "vs"}</span> {match.visitante}</div>
-                    <div className={styles.rowMeta}>{match.ronda || match.fase}</div>
+                    <div className={styles.rowTitle}>{match.local || "Por definir"} <span style={{ color: "#245f8e" }}>{match.resultado || "vs"}</span> {match.visitante || "Por definir"}</div>
+                    <div className={styles.rowMeta}>{match.estado === "cancelado" ? "Pase directo" : match.ronda || match.fase}</div>
                   </div>
                   <div className={styles.actions}>
-                    <span className={`${styles.badge} ${isLoadedMatch(match) ? styles.badgeGood : ""}`}>{isLoadedMatch(match) ? "Cargado" : "Pendiente"}</span>
-                    <Link href={`/admin/partidos/${match.id}`} className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Abrir</Link>
+                    {isLoadedMatch(match) && <Link href={`/admin/partidos/${match.id}`} className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Abrir</Link>}
+                    {match.fase === "semifinal" && !isLoadedMatch(match) && match.estado !== "cancelado" && (
+                      <details>
+                        <summary className={styles.secondary} style={{ display: "inline-flex", alignItems: "center", cursor: "pointer", listStyle: "none" }}>Más opciones</summary>
+                        <div className={styles.actions} style={{ marginTop: 8 }}>
+                          {match.local && <button className={styles.secondary} type="button" onClick={() => passDirect(match, match.local)}>Pasar {match.local} a la final</button>}
+                          {match.visitante && <button className={styles.secondary} type="button" onClick={() => passDirect(match, match.visitante!)}>Pasar {match.visitante} a la final</button>}
+                        </div>
+                      </details>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
-
             <div className={styles.toolbar}>
-              {!championsMatches.some((match) => match.fase === "final") && <button className={styles.primary} type="button" onClick={createFinal}>Crear final</button>}
-              <Link href="/admin/torneos/acciones-avanzadas" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Más opciones</Link>
+              {!winnerOf(final) && <button className={styles.primary} type="button" onClick={createOrCompleteFinal} disabled={loading}>{final ? "Completar final" : "Crear final"}</button>}
             </div>
           </TournamentPanel>
         )}
