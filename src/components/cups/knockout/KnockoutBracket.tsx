@@ -19,6 +19,10 @@ function getRoundMatches(bracket: KnockoutBracketData, round: KnockoutRoundId) {
   return [bracket.final];
 }
 
+function isByeLabel(name?: string | null) {
+  return (name || "").trim().toLowerCase() === "sin rival";
+}
+
 function TeamLogo({
   name,
   getLogo,
@@ -27,7 +31,8 @@ function TeamLogo({
   getLogo: (name?: string | null) => string | null;
 }) {
   const safeName = name?.trim() || "Por definir";
-  const logo = name ? getLogo(name) : null;
+  const isBye = isByeLabel(name);
+  const logo = name && !isBye ? getLogo(name) : null;
 
   return (
     <span className="flex h-6 w-6 shrink-0 items-center justify-center">
@@ -35,7 +40,7 @@ function TeamLogo({
         <img src={logo} alt={safeName} className="h-full w-full object-contain" />
       ) : (
         <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-[#dce8f0] text-[7px] font-black text-[#7890a7]">
-          {name ? safeName.slice(0, 2).toUpperCase() : "—"}
+          {!name || isBye ? "—" : safeName.slice(0, 2).toUpperCase()}
         </span>
       )}
     </span>
@@ -75,16 +80,17 @@ function MatchCard({
 
   const TeamRow = ({ name, side }: { name?: string | null; side: "home" | "away" }) => {
     const safeName = name?.trim() || "Por definir";
-    const isWinner = Boolean(name) && winner === name;
+    const isBye = isByeLabel(name);
+    const isWinner = Boolean(name) && !isBye && winner === name;
 
     return (
       <div className={`flex h-[27px] items-center gap-2 border-b border-[#e7eff5] px-3 last:border-b-0 ${isWinner ? "bg-[#f0f9fe]" : "bg-white"}`}>
         <TeamLogo name={name} getLogo={getLogo} />
-        <span className={`min-w-0 flex-1 truncate text-[10px] ${isWinner ? "font-black text-[#102f55]" : "font-bold text-[#355d83]"}`}>
+        <span className={`min-w-0 flex-1 truncate text-[10px] ${isBye ? "font-semibold italic text-[#8ea5b8]" : isWinner ? "font-black text-[#102f55]" : "font-bold text-[#355d83]"}`}>
           {safeName}
         </span>
         <strong className={`min-w-[24px] border-l border-[#dce8f0] pl-3 text-center text-[12px] ${isWinner ? "text-[#102f55]" : "text-[#6b8298]"}`}>
-          {name ? getKnockoutScore(match, side) : "-"}
+          {!name || isBye ? "-" : getKnockoutScore(match, side)}
         </strong>
       </div>
     );
