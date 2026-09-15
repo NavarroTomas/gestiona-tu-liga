@@ -97,10 +97,10 @@ export default function TournamentHub() {
       },
       {
         key: "copa_clasificatoria",
-        title: "Clasificatoria",
-        subtitle: "Grupos",
+        title: "Clasificación a Copas",
+        subtitle: "Grupos, clasificados y publicación",
         matches: matches.filter((match) => match.competicion === "copa_clasificatoria"),
-        href: "/admin/competicion",
+        href: "/admin/torneos/clasificacion-copas",
       },
       {
         key: "copa_argentina",
@@ -119,16 +119,16 @@ export default function TournamentHub() {
       {
         key: "copa_campeones",
         title: "Copa de Campeones",
-        subtitle: "Elegir participantes y cruces",
+        subtitle: "Participantes, cruces y excepciones",
         matches: matches.filter((match) => match.competicion === "copa_campeones"),
         href: "/admin/torneos/copa-campeones",
       },
       {
         key: "playoffs",
-        title: "Playoffs de ascenso",
-        subtitle: "Ascenso y promoción",
+        title: "Playoffs de Ascenso",
+        subtitle: "Semifinales, final y promoción",
         matches: matches.filter((match) => match.competicion === "playoffs"),
-        href: "/admin/competicion",
+        href: "/admin/torneos/playoffs-ascenso",
       },
     ];
 
@@ -153,6 +153,16 @@ export default function TournamentHub() {
     const withoutSchedule = league.filter((match) => !isLoadedMatch(match) && (!match.dia || !match.hora));
     if (withoutSchedule.length) actions.push({ title: `Programar ${withoutSchedule.length} partidos`, href: "/admin/fixture" });
 
+    const qualification = matches.filter((match) => match.competicion === "copa_clasificatoria");
+    if (qualification.length && qualification.some((match) => isLoadedMatch(match))) {
+      actions.push({ title: "Revisar clasificación a copas", href: "/admin/torneos/clasificacion-copas" });
+    }
+
+    const playoffs = matches.filter((match) => match.competicion === "playoffs");
+    if (playoffs.length) {
+      actions.push({ title: "Revisar playoffs de ascenso", href: "/admin/torneos/playoffs-ascenso" });
+    }
+
     for (const [key, title, href] of [
       ["copa_argentina", "Copa Argentina", "/admin/torneos/copa-argentina"],
       ["copa_apa", "Copa APA", "/admin/torneos/copa-apa"],
@@ -172,7 +182,7 @@ export default function TournamentHub() {
     <TournamentPage>
       <Link href="/admin" className={styles.backLink}>← Volver al panel</Link>
 
-      <TournamentHero eyebrow="Torneos" title={season || "Temporada"} description="Elegí qué querés administrar.">
+      <TournamentHero eyebrow="Torneos" title={season || "Temporada"} description="Cada competición tiene su propio espacio. Entrá solamente a lo que querés modificar.">
         <div className={styles.toolbar}>
           <Field label="Temporada">
             <Select value={season} onChange={(event) => setSeason(event.target.value)}>
@@ -193,7 +203,7 @@ export default function TournamentHub() {
 
       <section className={styles.commandSection}>
         <div className={styles.commandHeader}>
-          <div><p className={styles.sectionEyebrow}>Ahora</p><h2 className={styles.commandTitle}>Qué podés hacer</h2></div>
+          <div><p className={styles.sectionEyebrow}>Ahora</p><h2 className={styles.commandTitle}>Qué requiere atención</h2></div>
           {loading && <span className={styles.badge}>Cargando</span>}
         </div>
         <div className={styles.actionGrid}>
@@ -224,7 +234,7 @@ export default function TournamentHub() {
 
       {canCompetition && (
         <section className={styles.advancedBar}>
-          <div><strong>Más opciones</strong><p>Para excepciones y cambios poco comunes.</p></div>
+          <div><strong>Más opciones</strong><p>Excepciones, partidos manuales y cambios poco comunes quedan separados del flujo normal.</p></div>
           <Link href="/admin/torneos/acciones-avanzadas" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Abrir</Link>
         </section>
       )}
