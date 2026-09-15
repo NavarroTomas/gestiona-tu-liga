@@ -126,11 +126,12 @@ export default function ChampionsCupManager() {
           setMessage(`${team} ya está en la final.`);
           return;
         }
-        if (final.visitante) {
-          setMessage("La final ya tiene los dos lugares ocupados. Usá Más opciones si querés reemplazar un finalista.");
+        const patch = !final.local ? { local: team } : !final.visitante ? { visitante: team } : null;
+        if (!patch) {
+          setMessage("La final ya tiene dos equipos. Podés modificarla desde Más opciones.");
           return;
         }
-        const { error } = await supabase.from("partidos").update({ visitante: team }).eq("id", final.id);
+        const { error } = await supabase.from("partidos").update(patch).eq("id", final.id);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("partidos").insert({
@@ -164,8 +165,11 @@ export default function ChampionsCupManager() {
     setMessage("");
     try {
       const winners = semis.map((match) => winnerOf(match)).filter(Boolean) as string[];
+      const existingFinalists = [final?.local, final?.visitante].filter(Boolean) as string[];
+      const candidates = winners.filter((team) => !existingFinalists.includes(team));
+
       if (!final) {
-        if (winners.length !== 2) {
+        if (winners.length < 2) {
           setMessage("Faltan resultados o un pase directo en alguna semifinal.");
           return;
         }
@@ -179,20 +183,21 @@ export default function ChampionsCupManager() {
         return;
       }
 
-      if (final.visitante) {
+      if (final.local && final.visitante) {
         setMessage("La final ya está completa.");
         return;
       }
 
-      const otherFinalist = winners.find((team) => team !== final.local);
-      if (!otherFinalist) {
+      const nextTeam = candidates[0];
+      if (!nextTeam) {
         setMessage("Todavía falta definir el otro finalista.");
         return;
       }
 
-      const { error } = await supabase.from("partidos").update({ visitante: otherFinalist }).eq("id", final.id);
+      const patch = final.local ? { visitante: nextTeam } : { local: nextTeam };
+      const { error } = await supabase.from("partidos").update(patch).eq("id", final.id);
       if (error) throw error;
-      setMessage("Final completada.");
+      setMessage("Final actualizada con el otro clasificado.");
       await load();
     } catch (error: any) {
       setMessage(error?.message || "No pude completar la final.");
@@ -205,7 +210,7 @@ export default function ChampionsCupManager() {
     <PermissionGuard permission="competitions.manage">
       <TournamentPage>
         <TournamentBackLink />
-        <TournamentHero eyebrow="Copa de Campeones" title="Copa de Campeones" description="Elegí los equipos y resolvé excepciones sin inventar resultados.">
+        <TournamentHero eyebrow="Copa de Campeones" title="Copa de Campeones" description="Elegí los equipos y resolvé cualquier excepción sin inventar resultados.">
           <div className={styles.toolbar}>
             <Field label="Temporada">
               <Select value={temporada} onChange={(event) => setTemporada(event.target.value)}>
@@ -219,7 +224,7 @@ export default function ChampionsCupManager() {
         {message && <div className={styles.notice}>{message}</div>}
 
         {!championsMatches.length ? (
-          <TournamentPanel eyebrow="Participantes" title="Elegí 4 equipos" description="Usá los sugeridos o cambiá cualquiera.">
+          <TournamentPanel eyebrow="Participantes" title="Elegí 4 equipos" description="Podés usar los sugeridos o cambiar cualquiera.">
             <div className={styles.toolbar}><button type="button" className={styles.secondary} onClick={() => setParticipants(suggested)}>Usar sugeridos</button></div>
             <div className={styles.grid2}>
               {participants.map((value, index) => (
