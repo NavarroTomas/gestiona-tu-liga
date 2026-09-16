@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./typography-fixed.css";
 import "./theme-worldcup-mural.css";
+import "./admin-awards-fixes.css";
 import APAHeader from "../components/APAHeader";
 import BienvenidaAPA from "../components/BienvenidaAPA";
 import IntroAPA from "../components/IntroAPA";
