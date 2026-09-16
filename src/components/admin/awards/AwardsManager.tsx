@@ -1,428 +1,186 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import PermissionGuard from "@/components/PermissionGuard";
 import GestorSteamRapido from "@/components/GestorSteamRapido";
 import { supabase } from "@/lib/supabase";
 
 type PremioKey = "balon_oro" | "the_best" | "raiko_trophy" | "bota_oro" | "golden_boy";
-
-type StatRow = {
-  partido_id: string | null;
-  playerId: string | null;
-  nombre: string | null;
-  equipo: string | null;
-  temporada: string | null;
-  division: string | null;
-  posicion: string | null;
-  goals: number | null;
-  assists: number | null;
-  mvp: number | null;
-  rating_apa: number | null;
-  tackles: number | null;
-  interceptions: number | null;
-  gKSaves: number | null;
-  gKCatches: number | null;
-};
-
-type MatchRow = {
-  id: string | number;
-  partido_id: string | null;
-  temporada: string | null;
-  division: string | null;
-  competicion: string | null;
-  fase: string | null;
-};
-
-type TitleRow = {
-  equipo: string;
-  competicion: string;
-  temporada: string;
-  division: string | null;
-};
-
-type SavedAward = {
-  id: number;
-  temporada: string;
-  division: string | null;
-  premio: string;
-  playerid: string;
-  nombre: string;
-  equipo: string | null;
-  puntos: number | null;
-  posicion: number | null;
-  created_at: string | null;
-};
-
-type ProfileRow = {
-  id: string;
-  playerid: string | null;
-};
-
-type Candidate = {
-  playerid: string;
-  nombre: string;
-  equipo: string;
-  divisionPrincipal: string;
-  posicionPrincipal: string;
-  partidos: number;
-  goles: number;
-  asistencias: number;
-  mvps: number;
-  ratingPromedio: number;
-  atajadas: number;
-  atrapadas: number;
-  individualRaw: number;
-  regularidadRaw: number;
-  competenciaRaw: number;
-  meritoRaw: number;
-  golesPonderados: number;
-  puntos: number;
-  posicion: number;
-  desglose: {
-    individual: number;
-    merito: number;
-    competencia: number;
-    regularidad: number;
-  };
-  steamId?: string | null;
-  steamHours?: number | null;
-  steamFound?: boolean;
-};
-
-const PREMIO_CONFIG: Record<PremioKey, { nombre: string; icono: string; descripcion: string }> = {
-  balon_oro: {
-    nombre: "Balón de Oro",
-    icono: "🏆",
-    descripcion: "Mejor temporada global: rendimiento, títulos, nivel competitivo y regularidad.",
-  },
-  the_best: {
-    nombre: "The Best",
-    icono: "🏅",
-    descripcion: "Mejor jugador de Segunda División usando el mismo modelo equilibrado.",
-  },
-  raiko_trophy: {
-    nombre: "Raiko Trophy",
-    icono: "🧤",
-    descripcion: "Mejor arquero. Atajadas y atrapadas importan, pero sin usar el score bruto de PSO.",
-  },
-  bota_oro: {
-    nombre: "Bota de Oro",
-    icono: "⚽",
-    descripcion: "Máximo goleador oficial, ponderado por la importancia de la competición.",
-  },
-  golden_boy: {
-    nombre: "Golden Boy",
-    icono: "⭐",
-    descripcion: "Mejor promesa elegible con menos de 1000 horas de PSO.",
-  },
-};
+type MatchRow = { id: string | number; partido_id?: string | null; temporada?: string | null; division?: string | null; competicion?: string | null; fase?: string | null; local?: string | null; visitante?: string | null; resultado?: string | null };
+type StatRow = { partido_id?: string | null; nombre?: string | null; playerId?: string | null; playerid?: string | null; equipo?: string | null; temporada?: string | null; division?: string | null; posicion?: string | null; goals?: number | null; assists?: number | null; mvp?: number | null; rating_apa?: number | null; score?: number | null; tackles?: number | null; interceptions?: number | null; gKSaves?: number | null; gKCatches?: number | null };
+type SavedAward = { id: number; temporada: string; division: string | null; premio: string; playerid: string; nombre: string; equipo: string | null; puntos: number | null; posicion: number | null };
+type TitleRow = { temporada: string; competicion: string; equipo: string; division: string | null };
+type Candidate = { playerid: string; nombre: string; equipo: string; divisionPrincipal: string; posicionPrincipal: string; partidos: number; goles: number; asistencias: number; mvps: number; ratingPromedio: number; atajadas: number; atrapadas: number; individualRaw: number; regularidadRaw: number; competenciaRaw: number; meritoRaw: number; golesPonderados: number; raikoRaw: number; puntos: number; posicion: number; desglose: { individual: number; merito: number; competencia: number; regularidad: number } };
 
 const DIVISIONES = ["Todas", "Primera", "Segunda"];
+const PREMIO_CONFIG: Record<PremioKey, { nombre: string; icono: string; descripcion: string }> = {
+  balon_oro: { nombre: "Balón de Oro", icono: "🏆", descripcion: "Mejor temporada completa: rendimiento individual, títulos/premios, nivel competitivo y regularidad." },
+  the_best: { nombre: "The Best", icono: "🏅", descripcion: "Mejor jugador de Segunda División con el mismo modelo equilibrado del Balón de Oro." },
+  raiko_trophy: { nombre: "Raiko Trophy", icono: "🧤", descripcion: "Mejor arquero. Atajadas, atrapadas, rating, MVP y contexto competitivo sin usar score bruto." },
+  bota_oro: { nombre: "Bota de Oro", icono: "⚽", descripcion: "Máximo goleador oficial, ponderado por importancia de la competición." },
+  golden_boy: { nombre: "Golden Boy", icono: "⭐", descripcion: "Mejor jugador elegible con menos de 1000 horas de PSO." },
+};
 
-function normalizar(value?: string | null) {
-  return String(value || "").toLowerCase().trim();
-}
-
-function pesoCompeticion(competicion?: string | null, division?: string | null, fase?: string | null) {
-  const c = normalizar(competicion || "liga");
-  const d = normalizar(division);
-  const f = normalizar(fase);
-
+function norm(value?: string | null) { return String(value || "").trim().toLowerCase(); }
+function playerId(row: StatRow) { return String(row.playerId || row.playerid || "").trim(); }
+function gkSaves(row: StatRow) { return Number(row.gKSaves || 0); }
+function gkCatches(row: StatRow) { return Number(row.gKCatches || 0); }
+function competitionWeight(comp?: string | null, division?: string | null, fase?: string | null) {
+  const c = norm(comp || "liga");
+  const d = norm(division);
+  const f = norm(fase);
   if (c === "copa_campeones") return 1.2;
+  if (c.includes("playoff") || f.includes("playoff") || f.includes("promoc")) return 0.75;
+  if (c === "liga") return d.includes("primera") ? 1 : d.includes("segunda") ? 0.8 : 0.9;
   if (c === "copa_argentina") return 1;
   if (c === "copa_apa") return 0.8;
-  if (c === "copa_clasificatoria") return 0.75;
-  if (c.includes("playoff") || f.includes("playoff") || f.includes("promoc")) return 0.75;
-  if (c === "liga" && d.includes("segunda")) return 0.8;
-  return 1;
+  if (c === "copa_clasificatoria") return 0.7;
+  return 0.9;
 }
-
-function puntosTitulo(titulo: TitleRow) {
-  const c = normalizar(titulo.competicion);
-  const d = normalizar(titulo.division);
-  if (c === "copa_campeones") return 45;
-  if (c === "liga" && d.includes("primera")) return 40;
-  if (c === "liga" && d.includes("segunda")) return 26;
-  if (c === "copa_argentina") return 32;
-  if (c === "copa_apa") return 22;
-  if (c.includes("playoff")) return 18;
-  if (c === "copa_clasificatoria") return 12;
+function individualPerMatch(row: StatRow) {
+  const pos = norm(row.posicion).toUpperCase();
+  const rating = Math.max(0, Number(row.rating_apa || 0) - 5);
+  const common = Number(row.goals || 0) * 8 + Number(row.assists || 0) * 5 + Number(row.mvp || 0) * 8 + rating * 3;
+  if (pos === "GK") return common + Math.min(gkSaves(row), 8) * 1.2 + Math.min(gkCatches(row), 5) * 0.8;
+  return common + Math.min(Number(row.tackles || 0) + Number(row.interceptions || 0), 16) * 0.18;
+}
+function raikoPerMatch(row: StatRow) {
+  const rating = Math.max(0, Number(row.rating_apa || 0) - 5);
+  return Math.min(gkSaves(row), 10) * 2.4 + Math.min(gkCatches(row), 7) * 1.3 + Number(row.mvp || 0) * 7 + rating * 4;
+}
+function resultGoals(result?: string | null) {
+  const parts = String(result || "").split("-").map((n) => Number(n.trim()));
+  return parts.length === 2 && parts.every(Number.isFinite) ? { local: parts[0], visitante: parts[1] } : null;
+}
+function inferLeagueChampions(matches: MatchRow[]) {
+  const tables = new Map<string, Map<string, { pts: number; gd: number; gf: number }>>();
+  matches.filter((m) => norm(m.competicion || "liga") === "liga").forEach((m) => {
+    const score = resultGoals(m.resultado); if (!score || !m.local || !m.visitante) return;
+    const key = String(m.division || "Sin división"); if (!tables.has(key)) tables.set(key, new Map());
+    const table = tables.get(key)!;
+    const ensure = (team: string) => { if (!table.has(team)) table.set(team, { pts: 0, gd: 0, gf: 0 }); return table.get(team)!; };
+    const local = ensure(m.local); const away = ensure(m.visitante);
+    local.gf += score.local; away.gf += score.visitante; local.gd += score.local - score.visitante; away.gd += score.visitante - score.local;
+    if (score.local > score.visitante) local.pts += 3; else if (score.visitante > score.local) away.pts += 3; else { local.pts += 1; away.pts += 1; }
+  });
+  const champions: TitleRow[] = [];
+  tables.forEach((table, division) => {
+    const top = [...table.entries()].sort((a, b) => b[1].pts - a[1].pts || b[1].gd - a[1].gd || b[1].gf - a[1].gf)[0];
+    if (top) champions.push({ temporada: "", competicion: "liga", equipo: top[0], division });
+  });
+  return champions;
+}
+function titleMerit(title: TitleRow) {
+  const c = norm(title.competicion); const d = norm(title.division);
+  if (c === "copa_campeones") return 32;
+  if (c === "liga" && d.includes("primera")) return 30;
+  if (c === "copa_argentina") return 24;
+  if (c === "liga" && d.includes("segunda")) return 18;
+  if (c === "copa_apa") return 16;
+  if (c.includes("playoff")) return 10;
   return 12;
 }
-
-function puntosPremioAnterior(premio: string) {
-  if (premio === "bota_oro") return 18;
-  if (premio === "raiko_trophy") return 15;
-  if (premio === "the_best") return 8;
-  if (premio === "golden_boy") return 6;
+function awardMerit(key: string) {
+  if (key === "bota_oro") return 18;
+  if (key === "raiko_trophy") return 15;
+  if (key === "the_best") return 12;
+  if (key === "golden_boy") return 8;
   return 0;
 }
-
-function normalizarComponente(value: number, max: number) {
-  if (max <= 0) return 0;
-  return Math.min(100, Math.max(0, (value / max) * 100));
-}
+function normalizeMetric(value: number, max: number) { return max > 0 ? Math.min(100, (value / max) * 100) : 0; }
 
 export default function AwardsManager() {
   const [temporada, setTemporada] = useState("Temporada 4");
-  const [temporadas, setTemporadas] = useState<string[]>(["Temporada 4"]);
   const [division, setDivision] = useState("Todas");
   const [premio, setPremio] = useState<PremioKey>("balon_oro");
+  const [temporadas, setTemporadas] = useState<string[]>(["Temporada 4"]);
   const [stats, setStats] = useState<StatRow[]>([]);
   const [matches, setMatches] = useState<MatchRow[]>([]);
   const [titles, setTitles] = useState<TitleRow[]>([]);
   const [savedAwards, setSavedAwards] = useState<SavedAward[]>([]);
-  const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [steamByPlayer, setSteamByPlayer] = useState<Record<string, string>>({});
   const [steamCache, setSteamCache] = useState<Record<string, { found: boolean; hours: number }>>({});
+  const [profiles, setProfiles] = useState<Array<{ id: string; playerid: string | null }>>([]);
   const [loading, setLoading] = useState(true);
   const [checkingSteam, setCheckingSteam] = useState(false);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    supabase
-      .from("temporadas")
-      .select("nombre")
-      .order("created_at", { ascending: true })
-      .then(({ data }) => {
-        const values = Array.from(new Set((data || []).map((row: any) => String(row.nombre || "").trim()).filter(Boolean)));
-        if (values.length) {
-          setTemporadas(values);
-          setTemporada(values[values.length - 1]);
-        }
-      });
+    supabase.from("temporadas").select("nombre").order("created_at", { ascending: true }).then(({ data }) => {
+      const values = (data || []).map((r: any) => String(r.nombre || "")).filter(Boolean);
+      if (values.length) { setTemporadas(values); setTemporada(values[values.length - 1]); }
+    });
   }, []);
 
-  useEffect(() => {
-    void loadData();
-  }, [temporada]);
-
-  async function loadData() {
-    setLoading(true);
-    setMessage("");
-
-    const [matchesRes, titlesRes, awardsRes, plantillasRes] = await Promise.all([
-      supabase
-        .from("partidos")
-        .select("id,partido_id,temporada,division,competicion,fase")
-        .eq("temporada", temporada),
-      supabase
-        .from("titulos")
-        .select("equipo,competicion,temporada,division")
-        .eq("temporada", temporada),
-      supabase
-        .from("premios_apa")
-        .select("id,temporada,division,premio,playerid,nombre,equipo,puntos,posicion,created_at")
-        .order("created_at", { ascending: false }),
+  const loadData = useCallback(async () => {
+    setLoading(true); setMessage("");
+    const [matchesRes, awardsRes, titlesRes, squadsRes] = await Promise.all([
+      supabase.from("partidos").select("id,partido_id,temporada,division,competicion,fase,local,visitante,resultado").eq("temporada", temporada),
+      supabase.from("premios_apa").select("id,temporada,division,premio,playerid,nombre,equipo,puntos,posicion").order("id", { ascending: false }),
+      supabase.from("titulos").select("temporada,competicion,equipo,division").eq("temporada", temporada),
       supabase.from("plantillas").select("playerid,steam_id"),
     ]);
+    const seasonMatches = (matchesRes.data || []) as MatchRow[];
+    const ids = seasonMatches.map((m) => String(m.partido_id || m.id)).filter(Boolean);
+    const statsRes = ids.length ? await supabase.from("estadisticas_jugadores").select("partido_id,nombre,playerId,equipo,temporada,division,posicion,goals,assists,mvp,rating_apa,score,tackles,interceptions,gKSaves,gKCatches").eq("temporada", temporada).in("partido_id", ids) : { data: [], error: null } as any;
+    const pids = [...new Set(((statsRes.data || []) as StatRow[]).map(playerId).filter(Boolean))];
+    const profilesRes = pids.length ? await supabase.from("profiles").select("id,playerid").in("playerid", pids) : { data: [], error: null } as any;
+    if (matchesRes.error || statsRes.error) setMessage("No se pudieron cargar todos los datos del ranking.");
+    setMatches(seasonMatches); setStats((statsRes.data || []) as StatRow[]); setSavedAwards((awardsRes.data || []) as SavedAward[]);
+    const dbTitles = (titlesRes.data || []) as TitleRow[];
+    const inferred = inferLeagueChampions(seasonMatches).map((t) => ({ ...t, temporada }));
+    const titleKeys = new Set(dbTitles.map((t) => `${norm(t.competicion)}|${norm(t.division)}|${norm(t.equipo)}`));
+    setTitles([...dbTitles, ...inferred.filter((t) => !titleKeys.has(`${norm(t.competicion)}|${norm(t.division)}|${norm(t.equipo)}`))]);
+    const steamMap: Record<string, string> = {}; (squadsRes.data || []).forEach((r: any) => { if (r.playerid && r.steam_id) steamMap[String(r.playerid)] = String(r.steam_id); }); setSteamByPlayer(steamMap);
+    setProfiles((profilesRes.data || []) as Array<{ id: string; playerid: string | null }>); setLoading(false);
+  }, [temporada]);
 
-    if (matchesRes.error) {
-      setMessage(`Error cargando partidos: ${matchesRes.error.message}`);
-      setLoading(false);
-      return;
-    }
-
-    const matchRows = (matchesRes.data || []) as MatchRow[];
-    setMatches(matchRows);
-    setTitles((titlesRes.data || []) as TitleRow[]);
-    setSavedAwards((awardsRes.data || []) as SavedAward[]);
-
-    const ids = matchRows.map((m) => String(m.partido_id || m.id)).filter(Boolean);
-    let statRows: StatRow[] = [];
-    if (ids.length) {
-      const { data, error } = await supabase
-        .from("estadisticas_jugadores")
-        .select("partido_id,playerId,nombre,equipo,temporada,division,posicion,goals,assists,mvp,rating_apa,tackles,interceptions,gKSaves,gKCatches")
-        .eq("temporada", temporada)
-        .in("partido_id", ids);
-      if (error) setMessage(`Error cargando estadísticas: ${error.message}`);
-      statRows = (data || []) as StatRow[];
-    }
-    setStats(statRows);
-
-    const playerIds = Array.from(new Set(statRows.map((s) => String(s.playerId || "").trim()).filter(Boolean)));
-    if (playerIds.length) {
-      const { data } = await supabase.from("profiles").select("id,playerid").in("playerid", playerIds);
-      setProfiles((data || []) as ProfileRow[]);
-    } else setProfiles([]);
-
-    const steamMap: Record<string, string> = {};
-    (plantillasRes.data || []).forEach((row: any) => {
-      if (row.playerid && row.steam_id) steamMap[String(row.playerid)] = String(row.steam_id);
-    });
-    setSteamByPlayer(steamMap);
-    setLoading(false);
-  }
+  useEffect(() => { void loadData(); }, [loadData]);
 
   const candidatesBase = useMemo(() => {
-    const matchById: Record<string, MatchRow> = {};
-    matches.forEach((m) => {
-      matchById[String(m.partido_id || m.id)] = m;
+    const matchById = new Map(matches.map((m) => [String(m.partido_id || m.id), m]));
+    const map = new Map<string, any>();
+    stats.forEach((row) => {
+      const match = matchById.get(String(row.partido_id || "")); if (!match) return;
+      const officialDivision = String(match.division || row.division || ""); if (division !== "Todas" && norm(officialDivision) !== norm(division)) return;
+      const id = playerId(row); if (!id) return;
+      const weight = competitionWeight(match.competicion, officialDivision, match.fase);
+      if (!map.has(id)) map.set(id, { playerid: id, nombre: row.nombre || "Jugador APA", equipo: row.equipo || "Sin club", divisiones: {}, posiciones: {}, partidos: 0, goles: 0, asistencias: 0, mvps: 0, ratingTotal: 0, ratings: 0, atajadas: 0, atrapadas: 0, individualRaw: 0, competenciaRaw: 0, golesPonderados: 0, raikoRaw: 0 });
+      const c = map.get(id); c.partidos += 1; c.goles += Number(row.goals || 0); c.asistencias += Number(row.assists || 0); c.mvps += Number(row.mvp || 0); c.atajadas += gkSaves(row); c.atrapadas += gkCatches(row); c.individualRaw += individualPerMatch(row) * weight; c.competenciaRaw += weight; c.golesPonderados += Number(row.goals || 0) * weight; c.raikoRaw += raikoPerMatch(row) * weight;
+      if (Number(row.rating_apa || 0) > 0) { c.ratingTotal += Number(row.rating_apa); c.ratings += 1; }
+      c.divisiones[officialDivision] = (c.divisiones[officialDivision] || 0) + 1; const pos = String(row.posicion || "OUT").toUpperCase(); c.posiciones[pos] = (c.posiciones[pos] || 0) + 1; c.nombre = row.nombre || c.nombre; c.equipo = row.equipo || c.equipo;
     });
-
-    const teamMerit: Record<string, number> = {};
-    titles.forEach((title) => {
-      const team = String(title.equipo || "").trim();
-      if (!team) return;
-      teamMerit[team] = (teamMerit[team] || 0) + puntosTitulo(title);
+    return [...map.values()].map((c) => {
+      const divisionPrincipal = Object.entries(c.divisiones).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || "Sin división";
+      const posicionPrincipal = Object.entries(c.posiciones).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || "OUT";
+      const ratingPromedio = c.ratings ? c.ratingTotal / c.ratings : 0;
+      const titlesForTeam = titles.filter((t) => norm(t.equipo) === norm(c.equipo));
+      const awardsForPlayer = savedAwards.filter((a) => a.temporada === temporada && a.playerid === c.playerid && a.premio !== "balon_oro");
+      const meritoRaw = titlesForTeam.reduce((sum, t) => sum + titleMerit(t), 0) + awardsForPlayer.reduce((sum, a) => sum + awardMerit(a.premio), 0);
+      const competenciaRaw = c.partidos ? c.competenciaRaw / c.partidos : 0;
+      const regularidadRaw = Math.min(1, c.partidos / 10) * 0.55 + Math.min(1, Math.max(0, ratingPromedio - 5) / 4) * 0.45;
+      return { ...c, divisionPrincipal, posicionPrincipal, ratingPromedio: Math.round(ratingPromedio * 100) / 100, meritoRaw, competenciaRaw, regularidadRaw };
     });
-
-    const personalMerit: Record<string, number> = {};
-    savedAwards
-      .filter((a) => a.temporada === temporada && a.premio !== "balon_oro")
-      .forEach((a) => {
-        personalMerit[a.playerid] = (personalMerit[a.playerid] || 0) + puntosPremioAnterior(a.premio);
-      });
-
-    const map: Record<string, any> = {};
-
-    stats.forEach((s) => {
-      const pid = String(s.playerId || "").trim();
-      if (!pid) return;
-      const match = matchById[String(s.partido_id || "")];
-      if (!match) return;
-      const officialDivision = String(match.division || s.division || "Sin división");
-      if (division !== "Todas" && normalizar(officialDivision) !== normalizar(division)) return;
-
-      const weight = pesoCompeticion(match.competicion, officialDivision, match.fase);
-      const pos = String(s.posicion || "OUT").toUpperCase();
-      const goals = Number(s.goals || 0);
-      const assists = Number(s.assists || 0);
-      const mvps = Number(s.mvp || 0);
-      const rating = Number(s.rating_apa || 0);
-      const saves = Number(s.gKSaves || 0);
-      const catches = Number(s.gKCatches || 0);
-      const tackles = Number(s.tackles || 0);
-      const interceptions = Number(s.interceptions || 0);
-
-      if (!map[pid]) {
-        map[pid] = {
-          playerid: pid,
-          nombre: s.nombre || pid,
-          equipo: s.equipo || "Sin club",
-          partidos: 0,
-          goles: 0,
-          asistencias: 0,
-          mvps: 0,
-          atajadas: 0,
-          atrapadas: 0,
-          ratingTotal: 0,
-          ratings: 0,
-          individualRaw: 0,
-          regularidadRaw: 0,
-          competenciaTotal: 0,
-          posiciones: {},
-          divisiones: {},
-          golesPonderados: 0,
-        };
-      }
-
-      const row = map[pid];
-      row.partidos += 1;
-      row.goles += goals;
-      row.asistencias += assists;
-      row.mvps += mvps;
-      row.atajadas += saves;
-      row.atrapadas += catches;
-      row.golesPonderados += goals * weight;
-      row.competenciaTotal += weight;
-      row.posiciones[pos] = (row.posiciones[pos] || 0) + 1;
-      row.divisiones[officialDivision] = (row.divisiones[officialDivision] || 0) + 1;
-      if (rating > 0) {
-        row.ratingTotal += rating;
-        row.ratings += 1;
-      }
-
-      const ratingContribution = Math.max(0, rating - 5) * 2.2;
-      const gkContribution = pos === "GK" ? Math.min(12, saves * 1.25 + catches * 0.8) : 0;
-      const fieldDefensiveContribution = pos !== "GK" ? Math.min(5, tackles * 0.25 + interceptions * 0.45) : 0;
-      const attackingContribution = goals * 8 + assists * 5;
-      const mvpContribution = mvps * 8;
-
-      row.individualRaw += (attackingContribution + mvpContribution + ratingContribution + gkContribution + fieldDefensiveContribution) * weight;
-      row.regularidadRaw += (ratingContribution + Math.min(8, mvps * 4)) * weight;
-      row.nombre = s.nombre || row.nombre;
-      row.equipo = s.equipo || row.equipo;
-    });
-
-    return Object.values(map).map((row: any) => {
-      const posicionPrincipal = Object.entries(row.posiciones).sort((a: any, b: any) => Number(b[1]) - Number(a[1]))[0]?.[0] || "OUT";
-      const divisionPrincipal = Object.entries(row.divisiones).sort((a: any, b: any) => Number(b[1]) - Number(a[1]))[0]?.[0] || "Sin división";
-      return {
-        playerid: row.playerid,
-        nombre: row.nombre,
-        equipo: row.equipo,
-        divisionPrincipal,
-        posicionPrincipal,
-        partidos: row.partidos,
-        goles: row.goles,
-        asistencias: row.asistencias,
-        mvps: row.mvps,
-        ratingPromedio: row.ratings ? Math.round((row.ratingTotal / row.ratings) * 100) / 100 : 0,
-        atajadas: row.atajadas,
-        atrapadas: row.atrapadas,
-        individualRaw: row.individualRaw,
-        regularidadRaw: row.partidos ? row.regularidadRaw / row.partidos : 0,
-        competenciaRaw: row.partidos ? row.competenciaTotal / row.partidos : 0,
-        meritoRaw: (teamMerit[row.equipo] || 0) + (personalMerit[row.playerid] || 0),
-        golesPonderados: row.golesPonderados,
-      };
-    });
-  }, [matches, stats, titles, savedAwards, temporada, division]);
+  }, [stats, matches, division, titles, savedAwards, temporada]);
 
   const candidates = useMemo(() => {
-    let base = candidatesBase;
-    if (premio === "the_best") base = base.filter((c) => normalizar(c.divisionPrincipal).includes("segunda"));
-    if (premio === "raiko_trophy") base = base.filter((c) => c.posicionPrincipal === "GK");
-
-    const maxIndividual = Math.max(1, ...base.map((c) => c.individualRaw));
-    const maxMerit = Math.max(1, ...base.map((c) => c.meritoRaw));
-    const maxCompetition = Math.max(1, ...base.map((c) => c.competenciaRaw));
-    const maxRegularity = Math.max(1, ...base.map((c) => c.regularidadRaw));
-
-    let rows: Candidate[] = base.map((c) => {
-      const individual = normalizarComponente(c.individualRaw, maxIndividual);
-      const merito = normalizarComponente(c.meritoRaw, maxMerit);
-      const competencia = normalizarComponente(c.competenciaRaw, maxCompetition);
-      const regularidad = normalizarComponente(c.regularidadRaw, maxRegularity);
-
+    const pool = candidatesBase.filter((c) => premio !== "the_best" || norm(c.divisionPrincipal).includes("segunda"));
+    const maxIndividual = Math.max(0, ...pool.map((c) => c.individualRaw)); const maxMerit = Math.max(0, ...pool.map((c) => c.meritoRaw));
+    const enriched = pool.map((c) => {
+      let individual = normalizeMetric(c.individualRaw, maxIndividual); const merito = normalizeMetric(c.meritoRaw, maxMerit); const competencia = Math.min(100, (c.competenciaRaw / 1.2) * 100); const regularidad = Math.min(100, c.regularidadRaw * 100);
       let puntos = individual * 0.55 + merito * 0.25 + competencia * 0.1 + regularidad * 0.1;
-      if (premio === "bota_oro") puntos = c.golesPonderados * 1000 + c.asistencias * 10 + c.mvps;
-      if (premio === "raiko_trophy") {
-        const gkRaw = c.atajadas * 2 + c.atrapadas * 1.2 + c.mvps * 8 + c.ratingPromedio * 4 + c.meritoRaw * 0.35;
-        puntos = gkRaw;
-      }
+      if (premio === "bota_oro") puntos = c.golesPonderados * 10000 + c.asistencias * 10 + c.mvps;
+      if (premio === "raiko_trophy") puntos = c.raikoRaw;
+      return { ...c, puntos: Math.round(puntos * 10) / 10, desglose: { individual: Math.round(individual), merito: Math.round(merito), competencia: Math.round(competencia), regularidad: Math.round(regularidad) } } as Candidate;
+    }).filter((c) => premio !== "raiko_trophy" || (c.posicionPrincipal === "GK" && (c.atajadas > 0 || c.atrapadas > 0)));
 
-      const steamId = steamByPlayer[c.playerid] || null;
-      const steam = steamId ? steamCache[steamId] : undefined;
-      return {
-        ...c,
-        puntos: Math.round(puntos * 10) / 10,
-        posicion: 0,
-        desglose: {
-          individual: Math.round(individual),
-          merito: Math.round(merito),
-          competencia: Math.round(competencia),
-          regularidad: Math.round(regularidad),
-        },
-        steamId,
-        steamHours: steam?.hours,
-        steamFound: steam?.found,
-      };
+    let eligible = enriched;
+    if (premio === "golden_boy") eligible = enriched.filter((c) => {
+      const steam = steamByPlayer[c.playerid]; const info = steam ? steamCache[steam] : null; return !!steam && !!info?.found && info.hours > 0 && info.hours < 1000;
     });
-
-    if (premio === "golden_boy") rows = rows.filter((c) => c.steamFound && Number(c.steamHours || 0) > 0 && Number(c.steamHours || 0) < 1000);
-
-    return rows
-      .sort((a, b) => {
-        if (premio === "bota_oro") return b.golesPonderados - a.golesPonderados || b.asistencias - a.asistencias;
-        return b.puntos - a.puntos;
-      })
-      .map((c, index) => ({ ...c, posicion: index + 1 }));
+    return eligible.sort((a, b) => b.puntos - a.puntos).map((c, i) => ({ ...c, posicion: i + 1 }));
   }, [candidatesBase, premio, steamByPlayer, steamCache]);
 
   async function checkSteamHours() {
@@ -492,10 +250,10 @@ export default function AwardsManager() {
         <div className="mx-auto max-w-[1500px] space-y-5 px-4 py-7 md:px-8">
           <Link href="/admin/historia" className="text-xs font-black uppercase tracking-[0.16em] text-[#245f8e]">← Volver a historia</Link>
 
-          <section className="rounded-[24px] bg-gradient-to-br from-[#0b2747] via-[#123f69] to-[#245f8e] p-6 text-white md:p-8">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/70">Premios APA</p>
-            <h1 className="mt-2 text-3xl font-black uppercase md:text-5xl">Ranking de premios</h1>
-            <p className="mt-3 max-w-3xl text-sm text-white/80">El Balón de Oro ya no usa el score bruto de PSO. El ranking separa rendimiento, mérito colectivo/premios, nivel competitivo y regularidad.</p>
+          <section className="rounded-[24px] bg-gradient-to-br from-[#0b2747] via-[#123f69] to-[#245f8e] p-6 !text-white md:p-8">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] !text-white/70">Premios APA</p>
+            <h1 className="mt-2 text-3xl font-black uppercase !text-white md:text-5xl">Ranking de premios</h1>
+            <p className="mt-3 max-w-3xl text-sm !text-white/80">El Balón de Oro ya no usa el score bruto de PSO. El ranking separa rendimiento, mérito colectivo/premios, nivel competitivo y regularidad.</p>
           </section>
 
           <section className="grid gap-5 xl:grid-cols-[330px_minmax(0,1fr)]">
@@ -525,7 +283,7 @@ export default function AwardsManager() {
                     <p className="mt-1 text-xs leading-5 text-[#245f8e]">{config.descripcion}</p>
                   </div>
                   {premio === "golden_boy" ? (
-                    <button onClick={checkSteamHours} disabled={checkingSteam} className="w-full rounded-xl bg-[#173f73] px-4 py-3 text-xs font-black uppercase text-white disabled:opacity-50">{checkingSteam ? "Consultando..." : "Consultar horas Steam"}</button>
+                    <button onClick={checkSteamHours} disabled={checkingSteam} className="w-full rounded-xl bg-[#173f73] px-4 py-3 text-xs font-black uppercase !text-white disabled:opacity-50">{checkingSteam ? "Consultando..." : "Consultar horas Steam"}</button>
                   ) : null}
                   <button onClick={() => void loadData()} className="w-full rounded-xl border border-[#cbd9e3] px-4 py-3 text-xs font-black uppercase">Actualizar datos</button>
                 </div>
@@ -558,7 +316,7 @@ export default function AwardsManager() {
                     <article key={c.playerid} className="rounded-2xl border border-[#d8e2ec] p-4">
                       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#123f69] text-lg font-black text-white">{c.posicion}</div>
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#123f69] text-lg font-black !text-white">{c.posicion}</div>
                           <div className="min-w-0">
                             <p className="truncate text-lg font-black uppercase">{c.nombre}</p>
                             <p className="text-xs font-bold text-[#245f8e]">{c.equipo} · {c.divisionPrincipal} · {c.posicionPrincipal} · {c.partidos} PJ</p>
@@ -576,7 +334,7 @@ export default function AwardsManager() {
                       </div>
                       <div className="mt-3 flex items-center justify-between border-t border-[#e5e7eb] pt-3">
                         <p className="text-sm font-black">{c.puntos.toFixed(1)} pts</p>
-                        <button onClick={() => void assignWinner(c)} disabled={savingId === c.playerid} className="rounded-xl bg-[#173f73] px-4 py-2 text-[10px] font-black uppercase text-white disabled:opacity-50">{savingId === c.playerid ? "Guardando..." : "Asignar ganador"}</button>
+                        <button onClick={() => void assignWinner(c)} disabled={savingId === c.playerid} className="rounded-xl bg-[#173f73] px-4 py-2 text-[10px] font-black uppercase !text-white disabled:opacity-50">{savingId === c.playerid ? "Guardando..." : "Asignar ganador"}</button>
                       </div>
                     </article>
                   ))}
