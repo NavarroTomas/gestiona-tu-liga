@@ -80,7 +80,7 @@ export default function ClubTextImporter({
     <section
       style={{
         marginTop: 22,
-        border: "1px solid #d8e2ec",
+        border: "1px solid #f3f4f6",
         borderRadius: 18,
         background: "#fff",
         overflow: "hidden",
@@ -108,7 +108,7 @@ export default function ClubTextImporter({
       </div>
 
       {open && (
-        <div style={{ borderTop: "1px solid #d8e2ec", padding: 20 }}>
+        <div style={{ borderTop: "1px solid #f3f4f6", padding: 20 }}>
           <textarea
             value={text}
             onChange={(event) => {
@@ -165,7 +165,7 @@ export default function ClubTextImporter({
 
 function Preview({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ border: "1px solid #d8e2ec", borderRadius: 12, padding: "10px 12px", background: "#f5f6f8" }}>
+    <div style={{ border: "1px solid #f3f4f6", borderRadius: 12, padding: "10px 12px", background: "#f5f6f8" }}>
       <div style={{ color: "#245f8e", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".08em" }}>{label}</div>
       <div style={{ color: "#0b2747", marginTop: 3, fontWeight: 800 }}>{value || "—"}</div>
     </div>
