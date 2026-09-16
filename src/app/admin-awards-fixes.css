@@ -1,0 +1,18 @@
+/* Temporary compatibility layer for /admin/premios.
+   The legacy global select rule forces white text/dark backgrounds and clashes
+   with the light admin redesign. Scope the correction to the award selectors. */
+select[class*="border-yellow-500"] {
+  color: #0b2747 !important;
+  background-color: #ffffff !important;
+  -webkit-text-fill-color: #0b2747;
+}
+
+select[class*="border-yellow-500"] option {
+  color: #0b2747 !important;
+  background-color: #ffffff !important;
+}
+
+select[class*="border-yellow-500"]:focus {
+  border-color: #245f8e !important;
+  box-shadow: 0 0 0 2px rgba(36, 95, 142, 0.12);
+}
