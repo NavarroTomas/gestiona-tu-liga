@@ -3,6 +3,7 @@
 import ClubsFilters from "@/components/clubs/ClubsFilters";
 import ClubsFooter from "@/components/clubs/ClubsFooter";
 import ClubsHero from "@/components/clubs/ClubsHero";
+import ClubsHonours from "@/components/clubs/ClubsHonours";
 import ClubsLeader from "@/components/clubs/ClubsLeader";
 import ClubsSummary from "@/components/clubs/ClubsSummary";
 import ClubsTable from "@/components/clubs/ClubsTable";
@@ -28,6 +29,8 @@ export default function ClubesPage() {
     loading,
     error,
     clubs,
+    divisionClubs,
+    titles,
     standings,
     leader,
     nextLeaderMatch,
@@ -66,6 +69,8 @@ export default function ClubesPage() {
       <ClubsSummary summary={summary} loading={loading} />
 
       <ClubsTable standings={standings} season={season} division={division} />
+
+      <ClubsHonours clubs={divisionClubs} titles={titles} />
 
       <ClubsFooter />
     </main>
