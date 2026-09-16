@@ -12,6 +12,7 @@ const columnas = [
       ["Torneos", "/competicion"],
       ["Fixture", "/fixture"],
       ["Historia", "/historia"],
+      ["Premios APA", "/entretenimiento/premios"],
     ],
   },
   {
@@ -20,14 +21,27 @@ const columnas = [
       ["Clubes", "/clubes"],
       ["Plantillas", "/plantillas"],
       ["Jugadores", "/jugadores"],
+      ["Mercado", "/mercado"],
     ],
   },
   {
     titulo: "APA",
     enlaces: [
       ["Guía", "/guia"],
-      ["Mercado", "/mercado"],
+      ["Noticias", "/noticias"],
       ["Entretenimiento", "/entretenimiento"],
+      ["Comunidad", "/guia"],
+    ],
+  },
+  {
+    titulo: "Legal",
+    enlaces: [
+      ["Política de privacidad", "/legal/privacidad"],
+      ["Términos de uso", "/legal/terminos"],
+      ["Política de cookies", "/legal/cookies"],
+      ["Aviso legal", "/legal/aviso-legal"],
+      ["Reglas de conducta", "/legal/conducta"],
+      ["Contacto", "/legal/contacto"],
     ],
   },
 ] as const;
@@ -49,7 +63,7 @@ export default function APAFooter() {
                 src="/logo-apa-oficial.webp"
                 alt="Logo PSO Argentina"
                 fill
-                sizes="58px"
+                sizes="72px"
                 className={estilos.logo}
               />
             </span>
@@ -60,7 +74,9 @@ export default function APAFooter() {
             </span>
           </Link>
 
-          <p className={estilos.lema}>El fútbol nos une.</p>
+          <p className={estilos.descripcion}>
+            Liga competitiva de Pro Soccer Online Argentina.
+          </p>
         </div>
 
         <nav className={estilos.columnas} aria-label="Navegación del pie de página">
@@ -79,11 +95,23 @@ export default function APAFooter() {
         </nav>
       </div>
 
+      <div className={estilos.zonaJugador}>
+        <div className={estilos.lineaCancha} aria-hidden="true" />
+        <div className={estilos.jugadorPendiente}>
+          <span>PLAYER PSO</span>
+          <small>Espacio preparado para una captura real del juego</small>
+        </div>
+      </div>
+
       <div className={estilos.base}>
         <div className={estilos.baseInterior}>
           <span>© {new Date().getFullYear()} APA PSO Argentina</span>
-          <span className={estilos.punto} aria-hidden="true" />
-          <span>Pro Soccer Online Argentina</span>
+          <div className={estilos.legalesBase}>
+            <Link href="/legal/privacidad">Privacidad</Link>
+            <Link href="/legal/terminos">Términos</Link>
+            <Link href="/legal/cookies">Cookies</Link>
+            <Link href="/legal/contacto">Contacto</Link>
+          </div>
         </div>
       </div>
     </footer>
