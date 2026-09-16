@@ -1,0 +1,134 @@
+.scope {
+  min-height: 100vh;
+  background: #f3f4f6;
+}
+
+.topbar {
+  width: min(1500px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 20px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #245f8e;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.topbar a {
+  color: #0b2747;
+  text-decoration: none;
+}
+
+.scope :global(main) {
+  min-height: auto !important;
+  background: transparent !important;
+  color: #0b2747 !important;
+}
+
+.scope :global(main > section) {
+  max-width: 1500px !important;
+  padding-top: 18px !important;
+}
+
+.scope :global(main section) {
+  box-shadow: none !important;
+}
+
+.scope :global(main > section > section:first-child) {
+  background: linear-gradient(135deg, #0b2747 0%, #123f69 55%, #245f8e 100%) !important;
+  border: 0 !important;
+  border-radius: 24px !important;
+  color: #fff !important;
+  padding: 28px !important;
+}
+
+.scope :global(main > section > section:first-child > div:not(:last-child)) {
+  display: none !important;
+}
+
+.scope :global(main > section > section:first-child p),
+.scope :global(main > section > section:first-child h1) {
+  color: #fff !important;
+}
+
+.scope :global(.text-yellow-300),
+.scope :global(.text-yellow-400),
+.scope :global(.text-sky-300),
+.scope :global(.text-sky-400),
+.scope :global(.text-zinc-300),
+.scope :global(.text-zinc-400),
+.scope :global(.text-zinc-500),
+.scope :global(.text-zinc-600) {
+  color: #245f8e !important;
+}
+
+.scope :global(main > section > section:first-child .text-yellow-300),
+.scope :global(main > section > section:first-child .text-zinc-400) {
+  color: #fff !important;
+}
+
+.scope :global(.bg-\[\#020714\]),
+.scope :global(.bg-black\/35),
+.scope :global(.bg-black\/25),
+.scope :global(.bg-white\/\[0\.04\]) {
+  background: #fff !important;
+}
+
+.scope :global([class*="border-yellow"]),
+.scope :global([class*="border-sky"]),
+.scope :global([class*="border-white"]) {
+  border-color: #f3f4f6 !important;
+}
+
+.scope :global(select),
+.scope :global(input) {
+  background: #123f69 !important;
+  color: #fff !important;
+  border-color: #245f8e !important;
+}
+
+.scope :global(select option) {
+  background: #123f69;
+  color: #fff;
+}
+
+.scope :global(button.bg-yellow-400),
+.scope :global(button.bg-sky-400),
+.scope :global(button[class*="bg-yellow"]),
+.scope :global(button[class*="bg-sky"]) {
+  background: #173f73 !important;
+  border-color: #173f73 !important;
+  color: #fff !important;
+}
+
+.scope :global(article) {
+  background: #fff !important;
+  border-color: #f3f4f6 !important;
+  color: #0b2747 !important;
+}
+
+.scope :global(article .text-white) {
+  color: #0b2747 !important;
+}
+
+.scope :global(article [class*="bg-yellow"]),
+.scope :global(article [class*="bg-orange"]),
+.scope :global(article [class*="bg-zinc"]),
+.scope :global(article [class*="bg-white"]) {
+  background: #f5f6f8 !important;
+  color: #0b2747 !important;
+}
+
+.scope :global(button[class*="border-red"]) {
+  background: #fff !important;
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    width: min(100% - 24px, 1500px);
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
