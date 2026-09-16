@@ -4,6 +4,7 @@ import "./typography-fixed.css";
 import "./theme-worldcup-mural.css";
 import "./admin-awards-fixes.css";
 import APAHeader from "../components/APAHeader";
+import APAFooter from "../components/APAFooter";
 import BienvenidaAPA from "../components/BienvenidaAPA";
 import IntroAPA from "../components/IntroAPA";
 import CookieConsent from "../components/CookieConsent";
@@ -141,6 +142,7 @@ export default function RootLayout({
         <BienvenidaAPA />
         <APAHeader />
         {children}
+        <APAFooter />
         <CookieConsent />
       </body>
     </html>
