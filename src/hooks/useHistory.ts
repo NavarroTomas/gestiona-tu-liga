@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { HISTORY_CONFIG, sortSeasons } from "@/config/history";
 import { supabase } from "@/lib/supabase";
+import type { HistoryTitleRow } from "@/components/history/HistoryHonours";
 import {
   aggregatePlayers,
   buildAwards,
@@ -21,10 +22,6 @@ import {
 
 /**
  * Fuente única de datos de /historia.
- *
- * La página no conoce Supabase ni hace cálculos: este hook detecta temporadas,
- * carga la temporada activa y el historial global, y devuelve el view-model ya
- * preparado para los componentes visuales.
  */
 export function useHistory(initialSeason: string = HISTORY_CONFIG.defaultSeason) {
   const [season, setSeason] = useState<string>(initialSeason);
@@ -40,6 +37,7 @@ export function useHistory(initialSeason: string = HISTORY_CONFIG.defaultSeason)
   const [seasonPlayers, setSeasonPlayers] = useState<HistoryPlayerRow[]>([]);
   const [seasonAwards, setSeasonAwards] = useState<HistoryAwardRow[]>([]);
   const [seasonSanctions, setSeasonSanctions] = useState<HistorySanction[]>([]);
+  const [seasonTitles, setSeasonTitles] = useState<HistoryTitleRow[]>([]);
 
   const [allMatches, setAllMatches] = useState<HistoryMatch[]>([]);
   const [allPlayers, setAllPlayers] = useState<HistoryPlayerRow[]>([]);
@@ -96,7 +94,7 @@ export function useHistory(initialSeason: string = HISTORY_CONFIG.defaultSeason)
       setLoading(true);
       setSeasonError(null);
 
-      const [matchesResult, clubsResult, playersResult, awardsResult, sanctionsResult] =
+      const [matchesResult, clubsResult, playersResult, awardsResult, sanctionsResult, titlesResult] =
         await Promise.all([
           supabase
             .from("partidos")
@@ -125,6 +123,10 @@ export function useHistory(initialSeason: string = HISTORY_CONFIG.defaultSeason)
             .from("sanciones_equipos")
             .select("temporada, equipo, puntos_descontados, competicion")
             .eq("temporada", season),
+          supabase
+            .from("titulos")
+            .select("id,equipo,competicion,temporada,division,descripcion")
+            .eq("temporada", season),
         ]);
 
       if (cancelled) return;
@@ -134,7 +136,8 @@ export function useHistory(initialSeason: string = HISTORY_CONFIG.defaultSeason)
         clubsResult.error ||
         playersResult.error ||
         awardsResult.error ||
-        sanctionsResult.error;
+        sanctionsResult.error ||
+        titlesResult.error;
 
       if (firstError) {
         console.error("Error cargando temporada histórica:", firstError);
@@ -146,6 +149,7 @@ export function useHistory(initialSeason: string = HISTORY_CONFIG.defaultSeason)
       setSeasonPlayers((playersResult.data || []) as HistoryPlayerRow[]);
       setSeasonAwards((awardsResult.data || []) as HistoryAwardRow[]);
       setSeasonSanctions((sanctionsResult.data || []) as HistorySanction[]);
+      setSeasonTitles((titlesResult.data || []) as HistoryTitleRow[]);
       setLoading(false);
     }
 
@@ -162,7 +166,6 @@ export function useHistory(initialSeason: string = HISTORY_CONFIG.defaultSeason)
     return sortSeasons(values);
   }, [allMatches]);
 
-  // La temporada más nueva disponible pasa a ser la activa automáticamente.
   useEffect(() => {
     if (initializedSeason.current || seasons.length === 0) return;
     initializedSeason.current = true;
@@ -266,6 +269,7 @@ export function useHistory(initialSeason: string = HISTORY_CONFIG.defaultSeason)
     champions,
     competitions,
     awards,
+    titles: seasonTitles,
     seasonRecords,
     historicalRecords,
   };
