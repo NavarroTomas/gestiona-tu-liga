@@ -5,6 +5,7 @@ import HistoryCompetitions from "@/components/history/HistoryCompetitions";
 import HistoryFooter from "@/components/history/HistoryFooter";
 import HistoryHero from "@/components/history/HistoryHero";
 import HistoryHighlights from "@/components/history/HistoryHighlights";
+import HistoryHonours from "@/components/history/HistoryHonours";
 import HistoryRecords from "@/components/history/HistoryRecords";
 import HistoryStandings from "@/components/history/HistoryStandings";
 import HistorySummary from "@/components/history/HistorySummary";
@@ -33,6 +34,7 @@ export default function HistoriaPage() {
     champions,
     competitions,
     awards,
+    titles,
     seasonRecords,
     historicalRecords,
   } = useHistory();
@@ -56,6 +58,8 @@ export default function HistoriaPage() {
         champions={champions}
         clubs={clubs}
       />
+
+      <HistoryHonours titles={titles} clubs={clubs} />
 
       <HistoryStandings tables={tables} clubs={clubs} />
 
