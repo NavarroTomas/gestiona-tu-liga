@@ -8,8 +8,8 @@
   width: 100%;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   background:
-    radial-gradient(circle at 84% 12%, rgba(86, 175, 226, 0.15), transparent 28%),
-    linear-gradient(120deg, var(--azul-profundo) 0%, var(--azul) 62%, var(--azul-medio) 100%);
+    radial-gradient(circle at 84% 10%, rgba(86, 175, 226, 0.14), transparent 26%),
+    linear-gradient(118deg, var(--azul-profundo) 0%, var(--azul) 58%, var(--azul-medio) 100%);
   color: white;
 }
 
@@ -17,41 +17,44 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.18;
+  opacity: 0.12;
   background-image:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 86px 86px;
-  mask-image: linear-gradient(to right, black, transparent 88%);
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 94px 94px;
+  mask-image: linear-gradient(to right, black, transparent 90%);
 }
 
-.interior {
+.superior {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: min(100%, 1648px);
   margin: 0 auto;
-  padding: clamp(52px, 6vw, 88px) clamp(20px, 3.2vw, 52px) clamp(40px, 4.4vw, 64px);
+  padding: clamp(64px, 7vw, 104px) clamp(20px, 3.2vw, 52px) clamp(52px, 5vw, 78px);
   display: grid;
-  grid-template-columns: minmax(260px, 0.8fr) minmax(700px, 1.7fr);
-  gap: clamp(48px, 7vw, 120px);
+  grid-template-columns: minmax(280px, 0.8fr) minmax(760px, 1.9fr);
+  gap: clamp(56px, 8vw, 130px);
   align-items: start;
 }
 
-.principal {
-  max-width: 360px;
+.marcaBloque {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
 }
 
 .marca {
   display: inline-flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
+  width: fit-content;
   color: inherit;
   text-decoration: none;
 }
 
 .logoCaja {
   position: relative;
-  width: clamp(58px, 4.6vw, 72px);
+  width: clamp(66px, 5vw, 84px);
   aspect-ratio: 1;
   flex: 0 0 auto;
 }
@@ -67,42 +70,56 @@
 }
 
 .marcaTexto strong {
-  font-size: clamp(28px, 2.2vw, 36px);
+  font-size: clamp(34px, 2.6vw, 44px);
   line-height: 0.9;
   font-weight: 900;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.055em;
   color: white;
 }
 
 .marcaTexto small {
-  margin-top: 8px;
-  padding-left: 2px;
-  font-size: 9px;
+  margin-top: 9px;
+  padding-left: 3px;
+  font-size: 10px;
   line-height: 1;
   font-weight: 900;
-  letter-spacing: 0.44em;
+  letter-spacing: 0.46em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.68);
 }
 
-.descripcion {
-  margin: 26px 0 0;
-  max-width: 290px;
-  font-size: 15px;
-  line-height: 1.7;
-  font-weight: 650;
-  color: rgba(255, 255, 255, 0.68);
+.identidad {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 340px;
+}
+
+.identidad span {
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: #8cc8ec;
+}
+
+.identidad strong {
+  font-size: clamp(16px, 1.15vw, 19px);
+  line-height: 1.45;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .columnas {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(30px, 4vw, 66px);
+  gap: clamp(34px, 4.5vw, 72px);
 }
 
 .columna h2 {
-  margin: 0 0 20px;
-  font-size: 12px;
+  margin: 0 0 24px;
+  font-size: 13px;
   line-height: 1;
   font-weight: 900;
   letter-spacing: 0.18em;
@@ -113,16 +130,16 @@
 .lista {
   display: flex;
   flex-direction: column;
-  gap: 13px;
+  gap: 15px;
 }
 
 .lista a {
   width: fit-content;
-  color: rgba(255, 255, 255, 0.86);
+  color: rgba(255, 255, 255, 0.88);
   text-decoration: none;
-  font-size: clamp(14px, 1vw, 16px);
+  font-size: clamp(15px, 1.05vw, 17px);
   line-height: 1.35;
-  font-weight: 700;
+  font-weight: 750;
   transition: color 150ms ease, transform 150ms ease;
 }
 
@@ -137,71 +154,53 @@
   position: relative;
   z-index: 1;
   width: min(100%, 1648px);
-  min-height: clamp(150px, 15vw, 240px);
+  min-height: clamp(170px, 18vw, 290px);
   margin: 0 auto;
   padding: 0 clamp(20px, 3.2vw, 52px);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  overflow: hidden;
 }
 
 .lineaCancha {
   position: absolute;
   left: clamp(20px, 3.2vw, 52px);
   right: clamp(20px, 3.2vw, 52px);
-  bottom: 30px;
+  bottom: 36px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(140, 200, 236, 0.55), transparent);
+  background: linear-gradient(90deg, transparent 0%, rgba(140, 200, 236, 0.52) 18%, rgba(140, 200, 236, 0.52) 82%, transparent 100%);
 }
 
-.jugadorPendiente {
-  position: relative;
-  z-index: 2;
-  width: min(720px, 72vw);
-  min-height: 130px;
-  border-bottom: 2px solid rgba(140, 200, 236, 0.3);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 7px;
-  padding-bottom: 22px;
-  color: rgba(255, 255, 255, 0.28);
-  text-align: center;
-}
-
-.jugadorPendiente span {
-  font-size: clamp(30px, 4vw, 58px);
+.marcaFondo {
+  position: absolute;
+  left: 50%;
+  bottom: -26px;
+  transform: translateX(-50%);
+  font-size: clamp(120px, 18vw, 290px);
+  line-height: 0.8;
   font-weight: 900;
-  letter-spacing: -0.05em;
-}
-
-.jugadorPendiente small {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: -0.08em;
+  color: rgba(255, 255, 255, 0.035);
+  user-select: none;
 }
 
 .base {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   border-top: 1px solid rgba(255, 255, 255, 0.11);
-  background: rgba(4, 20, 38, 0.22);
+  background: rgba(4, 20, 38, 0.28);
 }
 
 .baseInterior {
   width: min(100%, 1648px);
-  min-height: 70px;
+  min-height: 78px;
   margin: 0 auto;
   padding: 0 clamp(20px, 3.2vw, 52px);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 22px;
-  color: rgba(255, 255, 255, 0.56);
+  gap: 24px;
+  color: rgba(255, 255, 255, 0.58);
   font-size: 11px;
-  line-height: 1;
+  line-height: 1.25;
   font-weight: 800;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -215,7 +214,7 @@
 }
 
 .legalesBase a {
-  color: rgba(255, 255, 255, 0.58);
+  color: rgba(255, 255, 255, 0.62);
   text-decoration: none;
   transition: color 150ms ease;
 }
@@ -226,14 +225,21 @@
   outline: none;
 }
 
-@media (max-width: 1100px) {
-  .interior {
+@media (max-width: 1180px) {
+  .superior {
     grid-template-columns: 1fr;
-    gap: 40px;
+    gap: 48px;
   }
 
-  .principal {
-    max-width: none;
+  .marcaBloque {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+  }
+
+  .identidad {
+    max-width: 420px;
   }
 
   .columnas {
@@ -241,37 +247,38 @@
   }
 }
 
-@media (max-width: 640px) {
-  .interior {
-    padding-top: 42px;
-    padding-bottom: 34px;
+@media (max-width: 700px) {
+  .superior {
+    padding-top: 48px;
+    padding-bottom: 38px;
+  }
+
+  .marcaBloque {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .columnas {
     grid-template-columns: 1fr 1fr;
-    gap: 30px 22px;
+    gap: 34px 24px;
   }
 
   .lista a {
-    font-size: 14px;
+    font-size: 15px;
   }
 
   .zonaJugador {
-    min-height: 130px;
-  }
-
-  .jugadorPendiente {
-    width: 100%;
+    min-height: 135px;
   }
 
   .baseInterior {
-    min-height: 88px;
+    min-height: 108px;
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
-    gap: 12px;
-    padding-top: 18px;
-    padding-bottom: 18px;
+    gap: 14px;
+    padding-top: 20px;
+    padding-bottom: 20px;
   }
 
   .legalesBase {
