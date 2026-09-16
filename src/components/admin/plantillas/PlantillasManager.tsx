@@ -6,6 +6,7 @@ import PermissionGuard from "@/components/PermissionGuard";
 import AddPlayerPanel from "./AddPlayerPanel";
 import PlantillaPlayerList, { type PlantillaRow } from "./PlantillaPlayerList";
 import TransferPanel from "./TransferPanel";
+import TransferTextImporter, { type ImportedTransferDraft } from "./TransferTextImporter";
 import { supabase } from "@/lib/supabase";
 import { fetchTournamentSeasons } from "@/lib/adminTournaments";
 import {
@@ -228,6 +229,17 @@ export default function PlantillasManager() {
     setMessage("");
   }
 
+  function prepareImportedTransfer(draft: ImportedTransferDraft) {
+    setTransferPlayer(draft.player);
+    setTransferPlayerId(draft.playerid);
+    setFrom(draft.from);
+    setTo(draft.to);
+    setTransferType(draft.type);
+    setTransferDate("");
+    setView("mercado");
+    setMessage(draft.playerid ? "Movimiento detectado. Revisalo y aplicalo." : "Movimiento detectado. Completá el PSO ID antes de aplicar el fichaje.");
+  }
+
   async function releasePlayer(player: PlantillaRow) {
     if (!window.confirm(`¿Liberar a ${player.jugador || "este jugador"} de ${player.equipo || "su club"}?`)) return;
     const { error } = await supabase.from("plantillas").update({ estado: "baja" }).eq("id", player.id);
@@ -255,8 +267,12 @@ export default function PlantillasManager() {
     const cleanTo = to.trim();
     const needsDestination = transferType !== "Salida" && transferType !== "Libre";
 
-    if (!cleanPlayer || !cleanFrom || (needsDestination && !cleanTo)) {
-      setMessage("Completá jugador, origen y destino cuando corresponda.");
+    if (!cleanPlayer || (needsDestination && !cleanTo)) {
+      setMessage("Completá jugador y destino cuando corresponda.");
+      return;
+    }
+    if (needsDestination && !cleanId) {
+      setMessage("El PSO ID es obligatorio para dar de alta al jugador en el club destino.");
       return;
     }
     if (cleanFrom && cleanTo && cleanFrom === cleanTo) {
@@ -265,7 +281,7 @@ export default function PlantillasManager() {
     }
 
     const source = players.find((item) =>
-      item.equipo === cleanFrom &&
+      (!cleanFrom || item.equipo === cleanFrom) &&
       (cleanId ? item.playerid?.toLowerCase() === cleanId.toLowerCase() : item.jugador === cleanPlayer)
     ) || null;
 
@@ -406,22 +422,30 @@ export default function PlantillasManager() {
           )}
 
           {view === "mercado" && (
-            <TransferPanel
-              player={transferPlayer}
-              playerid={transferPlayerId}
-              from={from}
-              to={to}
-              type={transferType}
-              date={transferDate}
-              teams={teams}
-              onPlayer={setTransferPlayer}
-              onPlayerId={setTransferPlayerId}
-              onFrom={setFrom}
-              onTo={setTo}
-              onType={(value) => { setTransferType(value); if (value === "Salida" || value === "Libre") setTo(""); }}
-              onDate={setTransferDate}
-              onSave={applyTransfer}
-            />
+            <div style={{ display: "grid", gap: 14 }}>
+              <TransferTextImporter
+                players={players}
+                teams={teams}
+                selectedTeam={team}
+                onUse={prepareImportedTransfer}
+              />
+              <TransferPanel
+                player={transferPlayer}
+                playerid={transferPlayerId}
+                from={from}
+                to={to}
+                type={transferType}
+                date={transferDate}
+                teams={teams}
+                onPlayer={setTransferPlayer}
+                onPlayerId={setTransferPlayerId}
+                onFrom={setFrom}
+                onTo={setTo}
+                onType={(value) => { setTransferType(value); if (value === "Salida" || value === "Libre") setTo(""); }}
+                onDate={setTransferDate}
+                onSave={applyTransfer}
+              />
+            </div>
           )}
         </div>
       </TournamentPage>
