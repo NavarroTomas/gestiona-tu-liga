@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CLUBS_CONFIG, clubDivisionLabel, sortClubDivisions, sortClubSeasons } from "@/config/clubs";
 import { buildClubsViewModel } from "@/lib/clubs";
 import type { ClubPlayerRow, ClubRecord } from "@/lib/clubs/types";
+import type { ClubTitleRow } from "@/components/clubs/ClubsHonours";
 import type { FixtureMatch } from "@/lib/fixture";
 import type { LeagueSanction } from "@/lib/league/types";
 import { supabase } from "@/lib/supabase";
@@ -16,6 +17,7 @@ export function useClubs() {
   const [matches, setMatches] = useState<FixtureMatch[]>([]);
   const [sanctions, setSanctions] = useState<LeagueSanction[]>([]);
   const [players, setPlayers] = useState<ClubPlayerRow[]>([]);
+  const [titles, setTitles] = useState<ClubTitleRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const initializedSeason = useRef(false);
@@ -24,21 +26,31 @@ export function useClubs() {
     let cancelled = false;
 
     async function loadCatalog() {
-      const { data, error: catalogError } = await supabase
-        .from("v_clubes_temporada_public")
-        .select("club_id, nombre, slug, logo_url, division, temporada, activo, color_principal")
-        .eq("activo", true)
-        .order("temporada", { ascending: true })
-        .order("nombre", { ascending: true });
+      const [catalogResult, titlesResult] = await Promise.all([
+        supabase
+          .from("v_clubes_temporada_public")
+          .select("club_id, nombre, slug, logo_url, division, temporada, activo, color_principal")
+          .eq("activo", true)
+          .order("temporada", { ascending: true })
+          .order("nombre", { ascending: true }),
+        supabase
+          .from("titulos")
+          .select("id,equipo,competicion,temporada,division")
+          .order("temporada", { ascending: false }),
+      ]);
 
       if (cancelled) return;
-      if (catalogError) {
-        console.error("Error cargando catálogo de clubes:", catalogError);
+      if (catalogResult.error) {
+        console.error("Error cargando catálogo de clubes:", catalogResult.error);
         setError("No pudimos cargar el catálogo completo de clubes.");
         return;
       }
+      if (titlesResult.error) {
+        console.error("Error cargando palmarés de clubes:", titlesResult.error);
+      }
 
-      setCatalog((data || []) as ClubRecord[]);
+      setCatalog((catalogResult.data || []) as ClubRecord[]);
+      setTitles((titlesResult.data || []) as ClubTitleRow[]);
     }
 
     loadCatalog();
@@ -136,6 +148,11 @@ export function useClubs() {
     [matches, clubs, sanctions, players, division],
   );
 
+  const divisionClubs = useMemo(
+    () => clubs.filter((club) => clubDivisionLabel(String(club.division || "")) === division),
+    [clubs, division],
+  );
+
   return {
     season,
     setSeason,
@@ -146,6 +163,8 @@ export function useClubs() {
     loading,
     error,
     clubs,
+    divisionClubs,
+    titles,
     ...view,
   };
 }
