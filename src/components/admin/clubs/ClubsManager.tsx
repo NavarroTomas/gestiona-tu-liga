@@ -6,8 +6,8 @@ import PermissionGuard from "@/components/PermissionGuard";
 import ClubGeneralSection from "./ClubGeneralSection";
 import ClubList from "./ClubList";
 import ClubSeasonSection from "./ClubSeasonSection";
+import ClubTextImporter from "./ClubTextImporter";
 import ClubVisualSection from "./ClubVisualSection";
-import DiscordTransferPreviewPanel from "./DiscordTransferPreviewPanel";
 import {
   DEFAULT_ASSIGNMENT,
   DEFAULT_CLUB,
@@ -24,7 +24,6 @@ import {
 import { fetchTournamentSeasons } from "@/lib/adminTournaments";
 import {
   Tabs,
-  TournamentBackLink,
   TournamentHero,
   TournamentPage,
   tournamentStyles as styles,
@@ -80,6 +79,13 @@ export default function ClubsManager() {
     setClub({ ...DEFAULT_CLUB });
     setAssignment({ ...DEFAULT_ASSIGNMENT, temporada: seasons[0] || DEFAULT_ASSIGNMENT.temporada });
     setMessage("");
+    setView("datos");
+  }
+
+  function importClubData(patch: Partial<AdminClub>) {
+    setClub({ ...DEFAULT_CLUB, ...patch });
+    setAssignment({ ...DEFAULT_ASSIGNMENT, temporada: seasons[0] || DEFAULT_ASSIGNMENT.temporada });
+    setMessage("Datos detectados. Revisalos y guardá el club cuando esté listo.");
     setView("datos");
   }
 
@@ -165,18 +171,16 @@ export default function ClubsManager() {
   return (
     <PermissionGuard permission="clubs.manage">
       <TournamentPage>
-        <TournamentBackLink />
+        <Link href="/admin" className={styles.backLink}>← Volver al panel</Link>
         <TournamentHero
           eyebrow="Clubes"
           title="Administrar clubes"
-          description="Elegí un club y editá solo la parte que necesitás. El directorio completo queda oculto hasta que lo buscás."
+          description="Pegá el mensaje de Discord para crear un club rápido o buscá uno existente para editarlo."
         />
 
         {message && <div className={styles.notice}>{message}</div>}
 
-        <div style={{ marginTop: 22 }}>
-          <DiscordTransferPreviewPanel />
-        </div>
+        <ClubTextImporter onImport={importClubData} />
 
         <div style={{ marginTop: 18 }}>
           <ClubList
