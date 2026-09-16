@@ -30,7 +30,7 @@ const columnas = [
       ["Guía", "/guia"],
       ["Noticias", "/noticias"],
       ["Entretenimiento", "/entretenimiento"],
-      ["Comunidad", "/guia"],
+      ["Inicio", "/"],
     ],
   },
   {
@@ -55,15 +55,15 @@ export default function APAFooter() {
     <footer className={estilos.footer}>
       <div className={estilos.decoracion} aria-hidden="true" />
 
-      <div className={estilos.interior}>
-        <div className={estilos.principal}>
+      <div className={estilos.superior}>
+        <div className={estilos.marcaBloque}>
           <Link href="/" className={estilos.marca} aria-label="PSO Argentina - Inicio">
             <span className={estilos.logoCaja}>
               <Image
                 src="/logo-apa-oficial.webp"
                 alt="Logo PSO Argentina"
                 fill
-                sizes="72px"
+                sizes="84px"
                 className={estilos.logo}
               />
             </span>
@@ -74,9 +74,10 @@ export default function APAFooter() {
             </span>
           </Link>
 
-          <p className={estilos.descripcion}>
-            Liga competitiva de Pro Soccer Online Argentina.
-          </p>
+          <div className={estilos.identidad}>
+            <span>APA PSO Argentina</span>
+            <strong>Competición oficial de Pro Soccer Online.</strong>
+          </div>
         </div>
 
         <nav className={estilos.columnas} aria-label="Navegación del pie de página">
@@ -95,12 +96,9 @@ export default function APAFooter() {
         </nav>
       </div>
 
-      <div className={estilos.zonaJugador}>
+      <div className={estilos.zonaJugador} aria-label="Espacio visual para jugador de Pro Soccer Online">
         <div className={estilos.lineaCancha} aria-hidden="true" />
-        <div className={estilos.jugadorPendiente}>
-          <span>PLAYER PSO</span>
-          <small>Espacio preparado para una captura real del juego</small>
-        </div>
+        <div className={estilos.marcaFondo} aria-hidden="true">APA</div>
       </div>
 
       <div className={estilos.base}>
@@ -110,6 +108,8 @@ export default function APAFooter() {
             <Link href="/legal/privacidad">Privacidad</Link>
             <Link href="/legal/terminos">Términos</Link>
             <Link href="/legal/cookies">Cookies</Link>
+            <Link href="/legal/aviso-legal">Aviso legal</Link>
+            <Link href="/legal/conducta">Conducta</Link>
             <Link href="/legal/contacto">Contacto</Link>
           </div>
         </div>
