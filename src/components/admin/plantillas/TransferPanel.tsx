@@ -38,8 +38,8 @@ export default function TransferPanel({
   return (
     <TournamentPanel
       eyebrow="Mercado"
-      title="Registrar movimiento"
-      description="Fichajes y liberaciones actualizan la plantilla y dejan registro del movimiento."
+      title="Revisar movimiento"
+      description="Revisá lo detectado y aplicalo. Si el jugador estaba libre, el origen puede quedar vacío."
     >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 14 }}>
         <Field label="Jugador">
@@ -47,12 +47,12 @@ export default function TransferPanel({
         </Field>
 
         <Field label="PSO ID">
-          <Input value={playerid} onChange={(event) => onPlayerId(event.target.value)} placeholder="PSO ID" />
+          <Input value={playerid} onChange={(event) => onPlayerId(event.target.value)} placeholder={needsDestination ? "Obligatorio para fichar" : "PSO ID"} />
         </Field>
 
         <Field label="Origen">
           <Select value={from} onChange={(event) => onFrom(event.target.value)}>
-            <option value="">Elegir club</option>
+            <option value="">Libre / sin club</option>
             {teams.map((name) => <option key={`from-${name}`} value={name}>{name}</option>)}
           </Select>
         </Field>
