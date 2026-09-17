@@ -1,6 +1,6 @@
 import { COPA_CAMPEONES_CONFIG } from "@/config/copaCampeones";
 import type { CupMatch } from "@/lib/cups/types";
-import type { KnockoutBracket } from "@/lib/cups/knockout";
+import { getKnockoutWinner, type KnockoutBracket } from "@/lib/cups/knockout";
 
 function placeholderMatch(
   local: string,
@@ -43,14 +43,43 @@ function directFinalists(bracket: KnockoutBracket) {
     .filter((team) => !semifinalTeams.has(team));
 }
 
+function completedSemifinalWinners(bracket: KnockoutBracket) {
+  return bracket.semifinals
+    .map((match) => getKnockoutWinner(match))
+    .filter((team): team is string => Boolean(team));
+}
+
+function finalWithAdvancedWinners(bracket: KnockoutBracket) {
+  if (!bracket.final) return undefined;
+
+  const winners = completedSemifinalWinners(bracket);
+  const currentFinalists = [bracket.final.local, bracket.final.visitante]
+    .filter((team): team is string => Boolean(team));
+  const missingWinner = winners.find((team) => !currentFinalists.includes(team));
+
+  if (!missingWinner) return bracket.final;
+
+  if (!bracket.final.local) {
+    return { ...bracket.final, local: missingWinner };
+  }
+
+  if (!bracket.final.visitante) {
+    return { ...bracket.final, visitante: missingWinner };
+  }
+
+  return bracket.final;
+}
+
 /**
  * Completa el cuadro visual sin tapar excepciones administrativas reales.
  *
  * Prioridad:
  * 1. Cruces reales guardados en Supabase.
- * 2. Si existe un finalista real que no salió de una semifinal existente,
+ * 2. Si una semifinal ya tiene ganador y la final tiene un lugar vacío,
+ *    completar visualmente ese lugar con el ganador.
+ * 3. Si existe un finalista real que no salió de una semifinal existente,
  *    mostrarlo como "Equipo vs Sin rival" (pase directo).
- * 3. Recién si no hay datos reales, usar los placeholders teóricos de la copa.
+ * 4. Recién si no hay datos reales, usar los placeholders teóricos de la copa.
  */
 export function withCopaCampeonesPlaceholders(
   bracket: KnockoutBracket,
@@ -80,11 +109,13 @@ export function withCopaCampeonesPlaceholders(
     );
   });
 
+  const advancedFinal = finalWithAdvancedWinners(bracket);
+
   return {
     ...bracket,
     semifinals,
     final:
-      bracket.final ||
+      advancedFinal ||
       placeholderMatch(finalPair[0], finalPair[1], season, "final", 0),
   };
 }
