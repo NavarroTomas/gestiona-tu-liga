@@ -201,9 +201,7 @@ export function detectZeroStatPlayers(
   localTeam: string,
   visitorTeam: string,
 ) {
-  const suspicious: Record<string, boolean> = {};
-  const seenWithScore = new Set<string>();
-  const seenWithoutScore = new Set<string>();
+  const seen = new Map<string, { played: boolean }>();
 
   const visit = (player: any, team: string) => {
     const key = buildRawPlayerKey(
@@ -211,9 +209,9 @@ export function detectZeroStatPlayers(
       cleanText(player?.playerName),
       team,
     );
-    const score = numberValue(player?.score);
-    if (score > 0) seenWithScore.add(key);
-    else seenWithoutScore.add(key);
+    const current = seen.get(key) || { played: false };
+    if (numberValue(player?.score) > 0) current.played = true;
+    seen.set(key, current);
   };
 
   for (const segment of segments) {
@@ -221,10 +219,10 @@ export function detectZeroStatPlayers(
     segment.visitorPlayers.forEach((player) => visit(player, visitorTeam));
   }
 
-  for (const key of seenWithoutScore) {
-    if (!seenWithScore.has(key)) suspicious[key] = true;
+  const suspicious: Record<string, boolean> = {};
+  for (const [key, state] of seen.entries()) {
+    if (!state.played) suspicious[key] = true;
   }
-
   return suspicious;
 }
 
@@ -276,8 +274,25 @@ export function buildTxtCommitData({
     localTeam,
     visitorTeam,
   });
-  const teamStats = combineTeamStats(filteredSegments, localTeam, visitorTeam);
-  const players = combinePlayerStats(filteredSegments, resolutions, localTeam, visitorTeam);
+
+  const teamStats: TeamMatchStats[] = [
+    {
+      equipo: localTeam,
+      ...combineTeamStats(filteredSegments, "local"),
+    },
+    {
+      equipo: visitorTeam,
+      ...combineTeamStats(filteredSegments, "visitor"),
+    },
+  ];
+
+  const players = combinePlayerStats({
+    segments: filteredSegments,
+    resolutions,
+    localTeam,
+    visitorTeam,
+  });
+
   const correctedPlayers = players.map((player) => {
     const key = `${normalizeMatchText(player.equipo)}__${
       cleanText(player.playerId)
@@ -350,14 +365,14 @@ export function reconciliationRows({
     const playerAssists = players
       .filter((player) => normalizeMatchText(player.equipo) === normalizeMatchText(team))
       .reduce((sum, player) => sum + numberValue(player.assists), 0);
-    const row = teams.find(
-      (teamRow) => normalizeMatchText(teamRow.equipo) === normalizeMatchText(team),
+    const teamRow = teams.find(
+      (row) => normalizeMatchText(row.equipo) === normalizeMatchText(team),
     );
     return {
       team,
-      teamGoals: numberValue(row?.goals),
+      teamGoals: numberValue(teamRow?.goals),
       playerGoals,
-      teamAssists: numberValue(row?.assists),
+      teamAssists: numberValue(teamRow?.assists),
       playerAssists,
     };
   });
