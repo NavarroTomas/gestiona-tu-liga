@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type MouseEvent, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import LeagueHero from "@/components/home/LeagueHero";
 import HomeNewsStandings from "@/components/home/HomeNewsStandings";
@@ -9,6 +9,7 @@ import HomeCompetitionStrip from "@/components/home/HomeCompetitionStrip";
 import HomeMatchStrip from "@/components/home/HomeMatchStrip";
 import { usePublishedHomeDocument } from "@/lib/usePublishedSitePage";
 import {
+  elementInlineStyle,
   normalizeHomeEditorDocument,
   valueForBreakpoint,
   type EditorBreakpoint,
@@ -106,6 +107,22 @@ export default function HomeLeaguePortal({
     return found ? sum + Number(found[1]) + Number(found[2]) : sum;
   }, 0);
 
+  function elementProps(id: HomeEditorElementId) {
+    return {
+      "data-editor-element": id,
+      onClickCapture: (event: MouseEvent<HTMLElement>) => {
+        if (!editorMode) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onSelectElement?.(id);
+      },
+      className: editorMode
+        ? `relative cursor-pointer ${selectedElement === id ? "outline outline-2 outline-offset-2 outline-[#ffcc4d]" : "hover:outline hover:outline-1 hover:outline-offset-2 hover:outline-[#ffcc4d]/70"}`
+        : undefined,
+      style: elementInlineStyle(pageDocument.elements[id], editorBreakpoint),
+    };
+  }
+
   function shell(id: HomeSectionId, child: ReactNode) {
     const section = pageDocument.sections[id];
     if (!section.visible) return null;
@@ -145,19 +162,28 @@ export default function HomeLeaguePortal({
   function renderSection(id: HomeSectionId) {
     switch (id) {
       case "hero":
-        return shell(id, <LeagueHero temporada={temporada} editor={pageDocument.hero} breakpoint={editorBreakpoint} editorMode={editorMode} selectedElement={selectedElement} onSelectElement={onSelectElement} />);
-      case "news":
-        return shell(id, <HomeNewsStandings news={mergedNews} standings={standings} logoEquipo={logoEquipo} />);
+        return shell(id, <LeagueHero temporada={temporada} editor={pageDocument.hero} elements={pageDocument.elements} breakpoint={editorBreakpoint} editorMode={editorMode} selectedElement={selectedElement} onSelectElement={onSelectElement} />);
+      case "news": {
+        const props = elementProps("news.content");
+        return shell(id, <div {...props}><HomeNewsStandings news={mergedNews} standings={standings} logoEquipo={logoEquipo} /></div>);
+      }
       case "awards":
-        return shell(id, <div data-editor-element="awards.heading"><HomeAwards awards={awards} logoEquipo={logoEquipo} editor={pageDocument.awards} /></div>);
+        return shell(id, <HomeAwards awards={awards} logoEquipo={logoEquipo} editor={pageDocument.awards} elements={pageDocument.elements} breakpoint={editorBreakpoint} editorMode={editorMode} selectedElement={selectedElement} onSelectElement={onSelectElement} />);
       case "competitions":
-        return shell(id, <div data-editor-element="competitions.heading"><HomeCompetitionStrip editor={pageDocument.competitions} /></div>);
-      case "match":
-        return shell(id, <HomeMatchStrip featured={featured} upcoming={upcoming} clubs={clubs} />);
-      case "stats":
-        return shell(id, <section data-editor-element="stats.cards" className="grid sm:grid-cols-2 lg:grid-cols-4" style={{ gap: pageDocument.stats.cardGap }}>{[["Clubes", clubsCount], ["Partidos", matches.length], ["Jugadores", playersCount], ["Goles", goalsCount]].map(([label, value]) => <div key={String(label)} style={{ background: pageDocument.stats.background, color: pageDocument.stats.textColor, borderRadius: pageDocument.stats.radius, padding: pageDocument.stats.cardPadding }}><p className="text-[10px] font-black uppercase tracking-[0.18em] opacity-60">{label}</p><p className="mt-2 text-3xl font-black">{value}</p></div>)}</section>);
-      case "community":
-        return shell(id, <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between" style={{ background: pageDocument.community.background, color: pageDocument.community.textColor, borderRadius: pageDocument.community.radius, padding: pageDocument.community.padding }}><div data-editor-element="community.heading"><p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">{pageDocument.community.eyebrow}</p><h2 className="mt-1 text-2xl font-black uppercase">{pageDocument.community.title}</h2></div><a data-editor-element="community.button" href={pageDocument.community.buttonHref} target="_blank" rel="noreferrer" className="rounded-xl bg-white px-5 py-3 text-xs font-black uppercase text-[#0b2747]">{pageDocument.community.buttonLabel}</a></section>);
+        return shell(id, <HomeCompetitionStrip editor={pageDocument.competitions} elements={pageDocument.elements} breakpoint={editorBreakpoint} editorMode={editorMode} selectedElement={selectedElement} onSelectElement={onSelectElement} />);
+      case "match": {
+        const props = elementProps("match.content");
+        return shell(id, <div {...props}><HomeMatchStrip featured={featured} upcoming={upcoming} clubs={clubs} /></div>);
+      }
+      case "stats": {
+        const props = elementProps("stats.cards");
+        return shell(id, <section {...props} className={`${props.className ?? ""} grid sm:grid-cols-2 lg:grid-cols-4`} style={{ ...props.style, gap: pageDocument.stats.cardGap }}>{[["Clubes", clubsCount], ["Partidos", matches.length], ["Jugadores", playersCount], ["Goles", goalsCount]].map(([label, value]) => <div key={String(label)} style={{ background: pageDocument.stats.background, color: pageDocument.stats.textColor, borderRadius: pageDocument.stats.radius, padding: pageDocument.stats.cardPadding }}><p className="text-[10px] font-black uppercase tracking-[0.18em] opacity-60">{label}</p><p className="mt-2 text-3xl font-black">{value}</p></div>)}</section>);
+      }
+      case "community": {
+        const headingProps = elementProps("community.heading");
+        const buttonProps = elementProps("community.button");
+        return shell(id, <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between" style={{ background: pageDocument.community.background, color: pageDocument.community.textColor, borderRadius: pageDocument.community.radius, padding: pageDocument.community.padding }}><div {...headingProps}><p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">{pageDocument.community.eyebrow}</p><h2 className="mt-1 text-2xl font-black uppercase">{pageDocument.community.title}</h2></div><a {...buttonProps} href={pageDocument.community.buttonHref} target="_blank" rel="noreferrer" className={`${buttonProps.className ?? ""} rounded-xl bg-white px-5 py-3 text-xs font-black uppercase text-[#0b2747]`}>{pageDocument.community.buttonLabel}</a></section>);
+      }
     }
   }
 
