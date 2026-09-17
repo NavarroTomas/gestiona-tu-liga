@@ -45,10 +45,7 @@ export type UniversalEditorDocument = {
   pageKey: string;
   route: string;
   rules: Record<string, UniversalElementRule>;
-  page: {
-    background?: string;
-    fontFamily?: string;
-  };
+  page: { background?: string; fontFamily?: string };
 };
 
 export type SiteEditorPageDefinition = {
@@ -108,7 +105,12 @@ export function pageKeyForPathname(pathname: string): string | null {
 }
 
 export function styleForBreakpoint(rule: UniversalElementRule, breakpoint: UniversalBreakpoint): UniversalElementStyle {
-  return { ...rule.styles.desktop, ...(breakpoint === "tablet" ? rule.styles.tablet : {}), ...(breakpoint === "mobile" ? rule.styles.tablet : {}), ...(breakpoint === "mobile" ? rule.styles.mobile : {}) };
+  return {
+    ...rule.styles.desktop,
+    ...(breakpoint === "tablet" ? rule.styles.tablet : {}),
+    ...(breakpoint === "mobile" ? rule.styles.tablet : {}),
+    ...(breakpoint === "mobile" ? rule.styles.mobile : {}),
+  };
 }
 
 export function styleToCss(style: UniversalElementStyle): Record<string, string> {
