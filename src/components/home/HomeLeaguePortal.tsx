@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import LeagueHero from "@/components/home/LeagueHero";
 import HomeNewsStandings from "@/components/home/HomeNewsStandings";
@@ -124,6 +124,13 @@ export default function HomeLeaguePortal({
   }, 0);
 
   function elementProps(id: HomeEditorElementId) {
+    const elementStyle = pageDocument.elements[id];
+    const forceTextColor = elementStyle.color !== "inherit" && Boolean(elementStyle.color);
+    const selectionClass = editorMode
+      ? `relative cursor-pointer ${selectedElement === id ? "outline outline-2 outline-offset-2 outline-[#ffcc4d]" : "hover:outline hover:outline-1 hover:outline-offset-2 hover:outline-[#ffcc4d]/70"}`
+      : "";
+    const forceColorClass = forceTextColor ? "apa-editor-force-text-color" : "";
+
     return {
       "data-editor-element": id,
       onClickCapture: (event: MouseEvent<HTMLElement>) => {
@@ -132,16 +139,23 @@ export default function HomeLeaguePortal({
         event.stopPropagation();
         onSelectElement?.(id);
       },
-      className: editorMode
-        ? `relative cursor-pointer ${selectedElement === id ? "outline outline-2 outline-offset-2 outline-[#ffcc4d]" : "hover:outline hover:outline-1 hover:outline-offset-2 hover:outline-[#ffcc4d]/70"}`
-        : undefined,
-      style: elementInlineStyle(pageDocument.elements[id], activeBreakpoint),
+      className: `${selectionClass} ${forceColorClass}`.trim() || undefined,
+      style: {
+        ...elementInlineStyle(elementStyle, activeBreakpoint),
+        ...(forceTextColor ? { "--apa-editor-text-color": elementStyle.color } : {}),
+      } as CSSProperties,
     };
   }
 
   function shell(id: HomeSectionId, child: ReactNode) {
     const section = pageDocument.sections[id];
     if (!section.visible) return null;
+    const forceTextColor = section.textColor !== "inherit" && Boolean(section.textColor);
+    const selectionClass = editorMode
+      ? `relative transition ${selectedSection === id && !selectedElement ? "outline outline-2 outline-offset-4 outline-[#22a3ff]" : "hover:outline hover:outline-1 hover:outline-offset-4 hover:outline-[#22a3ff]/50"}`
+      : "";
+    const forceColorClass = forceTextColor ? "apa-editor-force-text-color" : "";
+
     return (
       <div
         key={id}
@@ -154,10 +168,11 @@ export default function HomeLeaguePortal({
           event.stopPropagation();
           onSelectSection?.(id);
         }}
-        className={editorMode ? `relative transition ${selectedSection === id && !selectedElement ? "outline outline-2 outline-offset-4 outline-[#22a3ff]" : "hover:outline hover:outline-1 hover:outline-offset-4 hover:outline-[#22a3ff]/50"}` : undefined}
+        className={`${selectionClass} ${forceColorClass}`.trim() || undefined}
         style={{
           background: section.background,
           color: section.textColor,
+          ...(forceTextColor ? { "--apa-editor-text-color": section.textColor } : {}),
           borderRadius: valueForBreakpoint(section.radius, activeBreakpoint),
           paddingTop: valueForBreakpoint(section.paddingY, activeBreakpoint),
           paddingBottom: valueForBreakpoint(section.paddingY, activeBreakpoint),
@@ -167,7 +182,7 @@ export default function HomeLeaguePortal({
           marginBottom: valueForBreakpoint(section.marginBottom, activeBreakpoint),
           border: section.borderWidth ? `${section.borderWidth}px solid ${section.borderColor}` : undefined,
           boxShadow: section.shadow === "none" ? undefined : section.shadow,
-        }}
+        } as CSSProperties}
       >
         {editorMode ? <span className="pointer-events-none absolute left-2 top-2 z-[70] rounded-md bg-[#102f55] px-2 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-white shadow-lg">{id}</span> : null}
         {child}
@@ -205,6 +220,7 @@ export default function HomeLeaguePortal({
 
   return (
     <main style={{ minHeight: "100vh", background: pageDocument.global.pageBackground, color: "#0b2747", fontFamily: pageDocument.global.fontFamily }}>
+      <style>{`.apa-editor-force-text-color, .apa-editor-force-text-color * { color: var(--apa-editor-text-color) !important; }`}</style>
       <div
         className="mx-auto px-4 py-5 md:px-8 md:py-8"
         style={{
