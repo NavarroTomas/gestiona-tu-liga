@@ -55,6 +55,20 @@ const APA_FIELD_CLASS =
 
 const APA_FILE_CLASS = `${APA_FIELD_CLASS} file:mr-4 file:border-0 file:bg-[#245f8e] file:px-4 file:py-2 file:text-xs file:font-black file:uppercase file:tracking-[0.06em] file:text-white`;
 
+function dedupeRoster(rows: TxtRosterRow[]) {
+  const seen = new Set<string>();
+
+  return rows.filter((row) => {
+    const playerId = cleanText(row.playerid);
+    if (!playerId) return false;
+
+    const key = `${normalizeMatchText(row.equipo)}__${playerId}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export default function TxtMatchImporter() {
   const [temporada, setTemporada] = useState("Temporada 4");
   const [competicion, setCompeticion] = useState<MatchCompetition>("liga");
@@ -162,8 +176,10 @@ export default function TxtMatchImporter() {
         if (cancelled) return;
         setExisting(segmentRows as TxtDbSegment[]);
         setRoster(
-          (rosterRows as TxtRosterRow[]).filter(
-            (row) => cleanText(row.playerid) && normalizeMatchText(row.estado || "activo") !== "inactivo",
+          dedupeRoster(
+            (rosterRows as TxtRosterRow[]).filter(
+              (row) => normalizeMatchText(row.estado || "activo") !== "inactivo",
+            ),
           ),
         );
       } catch (error: any) {
@@ -470,53 +486,44 @@ export default function TxtMatchImporter() {
         <div className="mx-auto max-w-[1500px] space-y-7 px-4 py-8 md:px-8 md:py-10">
           <AdminMatchBackLink />
 
-          <header className="rounded-[28px] bg-[#0b2747] p-7 text-white md:p-9">
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-[#a9c8df]">Flujo principal</p>
-            <h1 className="mt-2 text-4xl font-black tracking-[-0.04em] md:text-6xl">Importar MatchStats</h1>
-            <p className="mt-4 max-w-3xl text-sm leading-6 text-[#d4e2ed] md:text-base">
-              Analizá uno o varios TXT, resolvé jugadores y cuentas alternativas, conciliá el resultado y guardá todo el partido en una única transacción.
-            </p>
-          </header>
+          <section className="overflow-hidden rounded-[28px] border border-[#123f69] bg-[#0b2747] text-white shadow-sm">
+            <div className="grid gap-6 p-6 lg:grid-cols-[1.35fr_.65fr] lg:p-8">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-[#d6e6f4]">Centro de partidos</p>
+                <h1 className="mt-3 max-w-4xl text-3xl font-black tracking-[-0.04em] md:text-5xl">Importar MatchStats</h1>
+                <p className="mt-4 max-w-3xl text-sm font-medium leading-6 text-[#d6e6f4]">Leé uno o varios TXT, resolvé jugadores y guardá toda la carga como una única transacción auditable.</p>
+              </div>
+              <div className="rounded-2xl border border-[#245f8e] bg-[#102f55] p-5">
+                <p className="text-xs font-black uppercase tracking-[0.12em] text-[#d6e6f4]">Regla operativa</p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-white">Los resultados no se editan acá manualmente. El resultado final sale de los TXT elegidos.</p>
+              </div>
+            </div>
+          </section>
 
-          {mensaje && (
-            <div className="rounded-2xl border border-[#d8c7a8] bg-[#fffaf2] p-4 text-sm font-semibold text-[#73551d]">{mensaje}</div>
-          )}
+          {mensaje && <div className="rounded-2xl border border-[#b8c7d4] bg-white px-5 py-4 text-sm font-bold text-[#102f55]">{mensaje}</div>}
 
           <section className="rounded-[26px] border border-[#d8e2ec] bg-white p-5 shadow-sm md:p-6">
-            <p className="text-xs font-black uppercase tracking-[0.15em] text-[#245f8e]">1. Contexto</p>
-            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-6">
-              <select className={APA_FIELD_CLASS} value={temporada} onChange={(e) => setTemporada(e.target.value)}>{TEMPORADAS.map((item) => <option key={item}>{item}</option>)}</select>
-              <select className={APA_FIELD_CLASS} value={competicion} onChange={(e) => setCompeticion(e.target.value as MatchCompetition)}>{MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
-              {competicion === "liga" && <select className={APA_FIELD_CLASS} value={division} onChange={(e) => setDivision(e.target.value)}>{MATCH_DIVISIONS.map((item) => <option key={item}>{item}</option>)}</select>}
-              {competicion === "copa_clasificatoria" && <select className={APA_FIELD_CLASS} value={grupo} onChange={(e) => setGrupo(e.target.value)}>{MATCH_GROUPS.map((item) => <option key={item}>{item}</option>)}</select>}
-              {["copa_argentina", "copa_apa", "copa_campeones", "playoffs"].includes(competicion) && <select className={APA_FIELD_CLASS} value={fase} onChange={(e) => setFase(e.target.value)}>{phaseOptions.map((item) => <option key={item}>{item}</option>)}</select>}
-              <select
-                className={APA_FIELD_CLASS}
-                value={fecha}
-                onChange={(e) => setFecha(e.target.value)}
-                disabled={fechasDisponibles.length === 0}
-                aria-label="Fecha"
-              >
-                {fechasDisponibles.length === 0 && <option value="">Sin fechas</option>}
-                {fechasDisponibles.map((item) => <option key={item} value={item}>Fecha {item}</option>)}
-              </select>
-              <select className={`${APA_FIELD_CLASS} xl:col-span-2`} value={partidoRowId} onChange={(e) => setPartidoRowId(e.target.value)}>
-                {partidos.length === 0 && <option value="">Sin partidos</option>}
-                {partidos.map((item) => <option key={item.id} value={String(item.id)}>{item.local} {item.resultado || "vs"} {item.visitante}</option>)}
-              </select>
+            <p className="text-xs font-black uppercase tracking-[0.15em] text-[#245f8e]">1. Partido</p>
+            <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <label className="text-xs font-black uppercase tracking-[0.08em] text-[#173f73]">Temporada<select className={`${APA_FIELD_CLASS} mt-2`} value={temporada} onChange={(e) => setTemporada(e.target.value)}>{TEMPORADAS.map((item) => <option key={item}>{item}</option>)}</select></label>
+              <label className="text-xs font-black uppercase tracking-[0.08em] text-[#173f73]">Competición<select className={`${APA_FIELD_CLASS} mt-2`} value={competicion} onChange={(e) => { setCompeticion(e.target.value as MatchCompetition); setFecha(""); }}>{MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+              {competicion === "liga" && <label className="text-xs font-black uppercase tracking-[0.08em] text-[#173f73]">División<select className={`${APA_FIELD_CLASS} mt-2`} value={division} onChange={(e) => setDivision(e.target.value)}>{MATCH_DIVISIONS.map((item) => <option key={item}>{item}</option>)}</select></label>}
+              {competicion === "copa_clasificatoria" && <label className="text-xs font-black uppercase tracking-[0.08em] text-[#173f73]">Grupo<select className={`${APA_FIELD_CLASS} mt-2`} value={grupo} onChange={(e) => setGrupo(e.target.value)}>{MATCH_GROUPS.map((item) => <option key={item}>{item}</option>)}</select></label>}
+              {["copa_argentina", "copa_apa", "copa_campeones", "playoffs"].includes(competicion) && <label className="text-xs font-black uppercase tracking-[0.08em] text-[#173f73]">Fase<select className={`${APA_FIELD_CLASS} mt-2`} value={fase} onChange={(e) => { setFase(e.target.value); setFecha(""); }}>{phaseOptions.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>}
+              <label className="text-xs font-black uppercase tracking-[0.08em] text-[#173f73]">Fecha / ronda<select className={`${APA_FIELD_CLASS} mt-2`} value={fecha} onChange={(e) => setFecha(e.target.value)}>{fechasDisponibles.length ? fechasDisponibles.map((item) => <option key={item}>{item}</option>) : <option value="">Sin rondas</option>}</select></label>
             </div>
 
-            {partido && (
-              <div className="mt-5 flex flex-wrap gap-2">
-                <span className="rounded-xl bg-[#eef3f7] px-3 py-2 text-xs font-black">{partido.local} vs {partido.visitante}</span>
-                <span className="rounded-xl bg-[#eef3f7] px-3 py-2 text-xs font-black">{existing.length} TXT guardados</span>
-                {partido.resultado && <span className="rounded-xl bg-[#eaf4ed] px-3 py-2 text-xs font-black text-[#356847]">Resultado actual {partido.resultado}</span>}
-              </div>
-            )}
+            <label className="mt-4 block text-xs font-black uppercase tracking-[0.08em] text-[#173f73]">Partido<select className={`${APA_FIELD_CLASS} mt-2`} value={partidoRowId} onChange={(e) => setPartidoRowId(e.target.value)}>{partidos.length ? partidos.map((item) => <option key={item.id} value={String(item.id)}>{item.local} vs {item.visitante || "Sin rival"} {item.resultado ? `· ${item.resultado}` : ""}</option>) : <option value="">Sin partidos en esta ronda</option>}</select></label>
           </section>
 
           <section className="rounded-[26px] border border-[#d8e2ec] bg-white p-5 shadow-sm md:p-6">
-            <p className="text-xs font-black uppercase tracking-[0.15em] text-[#245f8e]">2. Archivos</p>
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.15em] text-[#245f8e]">2. Archivos</p>
+                <h2 className="mt-1 text-xl font-black">{partido ? `${partido.local} vs ${partido.visitante || "Sin rival"}` : "Elegí un partido"}</h2>
+              </div>
+              <span className="text-xs font-bold text-[#708699]">TXT guardados: {existing.length}</span>
+            </div>
             <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_220px_220px]">
               <input
                 type="file"
@@ -581,7 +588,7 @@ export default function TxtMatchImporter() {
                         <select className={APA_FIELD_CLASS} value={resolution?.action === "ignore" ? "__ignore" : resolution?.action === "new" ? "__new" : resolution?.canonicalPlayerId || "__new"} onChange={(e) => changeResolution(raw.rawKey, e.target.value)}>
                           <option value="__new">Guardar como jugador detectado</option>
                           <option value="__ignore">Ignorar</option>
-                          {roster.filter((row) => row.equipo === raw.team).map((row) => <option key={row.playerid || row.jugador || "row"} value={row.playerid || ""}>{row.jugador} · {row.playerid}</option>)}
+                          {roster.filter((row) => row.equipo === raw.team).map((row) => <option key={`${row.equipo}-${row.playerid}`} value={row.playerid || ""}>{row.jugador} · {row.playerid}</option>)}
                         </select>
                         <label className="inline-flex items-center gap-2 text-xs font-bold text-[#6d8294]">
                           <input type="checkbox" checked={Boolean(excluded[raw.rawKey])} onChange={(e) => setExcluded((current) => ({ ...current, [raw.rawKey]: e.target.checked }))} /> Excluir
