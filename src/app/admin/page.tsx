@@ -5,17 +5,30 @@ import Link from "next/link";
 import { getMyAdminPermissions, hasPermission } from "@/lib/adminPermissions";
 import { supabase } from "@/lib/supabase";
 
+type AdminGroup = "Diseño del sitio" | "Gestión deportiva" | "Contenido e historia" | "Administración";
+
 type AdminCard = {
   href: string;
-  group: "Gestión deportiva" | "Contenido e historia" | "Administración";
+  group: AdminGroup;
   eyebrow: string;
   title: string;
   description: string;
   permissions: string[];
   priority?: boolean;
+  editorOwnerOnly?: boolean;
 };
 
 const ADMIN_CARDS: AdminCard[] = [
+  {
+    href: "/admin/editor",
+    group: "Diseño del sitio",
+    eyebrow: "Edición visual en vivo",
+    title: "Editor visual",
+    description: "Editá el diseño del sitio, reordená secciones, ajustá textos y estilos, guardá borradores y publicá cuando quieras.",
+    permissions: [],
+    priority: true,
+    editorOwnerOnly: true,
+  },
   {
     href: "/admin/partidos",
     group: "Gestión deportiva",
@@ -86,7 +99,8 @@ const ADMIN_CARDS: AdminCard[] = [
   },
 ];
 
-const GROUP_ORDER: AdminCard["group"][] = [
+const GROUP_ORDER: AdminGroup[] = [
+  "Diseño del sitio",
   "Gestión deportiva",
   "Contenido e historia",
   "Administración",
@@ -98,6 +112,7 @@ function canAccess(userPermissions: string[], required: string[]) {
 
 export default function AdminPage() {
   const [permisos, setPermisos] = useState<string[]>([]);
+  const [editorOwner, setEditorOwner] = useState(false);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
@@ -111,25 +126,38 @@ export default function AdminPage() {
         } = await supabase.auth.getUser();
 
         if (!user || !active) return;
-        const misPermisos = await getMyAdminPermissions(user.id);
-        if (active) setPermisos(misPermisos);
+        const [misPermisos, ownerResult] = await Promise.all([
+          getMyAdminPermissions(user.id),
+          supabase.from("site_editor_owners").select("user_id").eq("user_id", user.id).maybeSingle(),
+        ]);
+
+        if (active) {
+          setPermisos(misPermisos);
+          setEditorOwner(Boolean(ownerResult.data));
+        }
       } catch (error) {
         console.error(error);
-        if (active) setPermisos([]);
+        if (active) {
+          setPermisos([]);
+          setEditorOwner(false);
+        }
       } finally {
         if (active) setCargando(false);
       }
     }
 
-    cargarPermisos();
+    void cargarPermisos();
     return () => {
       active = false;
     };
   }, []);
 
   const cardsVisibles = useMemo(
-    () => ADMIN_CARDS.filter((card) => canAccess(permisos, card.permissions)),
-    [permisos],
+    () =>
+      ADMIN_CARDS.filter((card) =>
+        card.editorOwnerOnly ? editorOwner : canAccess(permisos, card.permissions),
+      ),
+    [permisos, editorOwner],
   );
 
   const gruposVisibles = useMemo(
@@ -157,7 +185,7 @@ export default function AdminPage() {
             <p className="text-xs font-black uppercase tracking-[0.28em] text-[#245f8e]">Administración APA</p>
             <h1 className="mt-2 text-4xl font-black uppercase tracking-[-0.04em] md:text-6xl">Panel de control</h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-[#65798b] md:text-base">
-              Ocho áreas, una responsabilidad clara por cada acceso. Las funciones relacionadas ahora viven dentro de la misma herramienta.
+              Las herramientas aparecen según los accesos reales de cada cuenta. El editor visual está aislado del resto de permisos administrativos.
             </p>
           </div>
 
