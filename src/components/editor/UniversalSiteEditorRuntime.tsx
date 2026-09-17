@@ -135,7 +135,7 @@ export default function UniversalSiteEditorRuntime() {
       document.removeEventListener("click", onClick, true);
       window.removeEventListener("message", onMessage);
     };
-  }, [editing, pathname, searchParams]);
+  }, [editing, pathname]);
 
   return null;
 }
