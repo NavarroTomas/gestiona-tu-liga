@@ -35,6 +35,7 @@ export type UniversalElementRule = {
   text?: string;
   href?: string;
   src?: string;
+  removed?: boolean;
   styles: Record<UniversalBreakpoint, UniversalElementStyle>;
 };
 
