@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import "./typography-fixed.css";
 import "./theme-worldcup-mural.css";
@@ -8,6 +9,7 @@ import APAFooter from "../components/APAFooter";
 import BienvenidaAPA from "../components/BienvenidaAPA";
 import IntroAPA from "../components/IntroAPA";
 import CookieConsent from "../components/CookieConsent";
+import SiteEditorRuntime from "../components/site-editor/SiteEditorRuntime";
 import {
   Archivo,
   Inter,
@@ -138,6 +140,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="text-white overflow-x-hidden">
+        <Suspense fallback={null}>
+          <SiteEditorRuntime />
+        </Suspense>
         <IntroAPA />
         <BienvenidaAPA />
         <APAHeader />
