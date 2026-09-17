@@ -45,7 +45,7 @@ function IconoInstagram() {
 function IconoYoutube() {
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M21.2 7.25a2.7 2.7 0 0 0-1.9-1.91C17.62 4.88 12 4.88 12 4.88s-5.62 0-7.3.46a2.7 2.7 0 0 0-1.9 1.91C2.35 8.94 2.35 12 2.35 12s0 3.06.45 4.75a2.7 2.7 0 0 0 1.9 1.91c1.68.46 7.3.46 7.3.46s5.62 0 7.3-.46a2.7 2.7 0 0 0 1.9-1.91c.45-1.69.45-4.75.45-4.75s0-3.06-.45-4.75ZM10.1 15.15v-6.3L15.55 12l-5.45 3.15Z" />
+      <path d="M21.2 7.25a2.7 2.7 0 0 0-1.9-1.91C17.62 4.88 12 4.88 12 4.88s-5.62 0-7.3.46a2.7 2.7 0 0 0-1.9 1.91C2.35 8.94 2.35 12 2.35 12s0 3.06.45 4.75a2.7 2.7 0 0 0 1.9 1.91c1.68.46 7.3.46 7.3.46s5.62 0 7.3-.46a2.7 2.7 0 0 0 1.9-1.91c.45-1.69.45-4.75.45-4.75s0-3.06-.45-4.75a2.7 2.7 0 0 0-1.9-1.91ZM10.1 15.15v-6.3L15.55 12l-5.45 3.15Z" />
     </svg>
   );
 }
@@ -73,6 +73,29 @@ function menuItemActivo(pathname: string, href: string) {
   if (href === "/competicion") return pathname === "/competicion";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
+
+const redes = [
+  {
+    label: "Discord",
+    href: "https://discord.gg/WCyqeJMmCU",
+    icon: <IconoDiscord />,
+  },
+  {
+    label: "X",
+    href: "https://x.com/APAPSOARGENTINA",
+    icon: <IconoX />,
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/apapsoargentina/",
+    icon: <IconoInstagram />,
+  },
+  {
+    label: "YouTube",
+    href: "https://www.youtube.com/@APAPSOARGENTINA",
+    icon: <IconoYoutube />,
+  },
+];
 
 export default function APAHeader() {
   const pathname = usePathname();
@@ -187,17 +210,26 @@ export default function APAHeader() {
         </nav>
 
         <div className={estilos.acciones}>
-          <button className={estilos.icono} type="button" aria-label="Buscar">
+          <Link className={estilos.icono} href="/buscar" aria-label="Buscar en APA">
             <IconoBuscar />
-          </button>
+          </Link>
 
           <span className={estilos.separador} aria-hidden="true" />
 
           <div className={estilos.redes} aria-label="Redes sociales">
-            <button className={estilos.iconoRed} type="button" aria-label="Discord"><IconoDiscord /></button>
-            <button className={estilos.iconoRed} type="button" aria-label="X"><IconoX /></button>
-            <button className={estilos.iconoRed} type="button" aria-label="Instagram"><IconoInstagram /></button>
-            <button className={estilos.iconoRed} type="button" aria-label="YouTube"><IconoYoutube /></button>
+            {redes.map((red) => (
+              <a
+                key={red.label}
+                className={estilos.iconoRed}
+                href={red.href}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`Abrir ${red.label} de APA`}
+                title={red.label}
+              >
+                {red.icon}
+              </a>
+            ))}
           </div>
 
           <span className={`${estilos.separador} ${estilos.separadorFinal}`} aria-hidden="true" />
