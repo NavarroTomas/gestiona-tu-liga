@@ -40,6 +40,12 @@ type Props = {
   onSelectElement?: (element: HomeEditorElementId) => void;
 };
 
+function breakpointFromWidth(width: number): EditorBreakpoint {
+  if (width <= 640) return "mobile";
+  if (width <= 1024) return "tablet";
+  return "desktop";
+}
+
 export default function HomeLeaguePortal({
   editorDocument,
   editorMode = false,
@@ -55,8 +61,18 @@ export default function HomeLeaguePortal({
   const [news, setNews] = useState<HomeNews[]>([]);
   const [awards, setAwards] = useState<HomeAward[]>([]);
   const [stats, setStats] = useState<PlayerStat[]>([]);
+  const [runtimeBreakpoint, setRuntimeBreakpoint] = useState<EditorBreakpoint>("desktop");
   const { document: publishedDocument } = usePublishedHomeDocument(!editorDocument);
   const pageDocument = normalizeHomeEditorDocument(editorDocument ?? publishedDocument);
+  const activeBreakpoint = editorMode ? editorBreakpoint : runtimeBreakpoint;
+
+  useEffect(() => {
+    if (editorMode) return;
+    const syncBreakpoint = () => setRuntimeBreakpoint(breakpointFromWidth(window.innerWidth));
+    syncBreakpoint();
+    window.addEventListener("resize", syncBreakpoint, { passive: true });
+    return () => window.removeEventListener("resize", syncBreakpoint);
+  }, [editorMode]);
 
   useEffect(() => {
     let active = true;
@@ -119,7 +135,7 @@ export default function HomeLeaguePortal({
       className: editorMode
         ? `relative cursor-pointer ${selectedElement === id ? "outline outline-2 outline-offset-2 outline-[#ffcc4d]" : "hover:outline hover:outline-1 hover:outline-offset-2 hover:outline-[#ffcc4d]/70"}`
         : undefined,
-      style: elementInlineStyle(pageDocument.elements[id], editorBreakpoint),
+      style: elementInlineStyle(pageDocument.elements[id], activeBreakpoint),
     };
   }
 
@@ -142,13 +158,13 @@ export default function HomeLeaguePortal({
         style={{
           background: section.background,
           color: section.textColor,
-          borderRadius: valueForBreakpoint(section.radius, editorBreakpoint),
-          paddingTop: valueForBreakpoint(section.paddingY, editorBreakpoint),
-          paddingBottom: valueForBreakpoint(section.paddingY, editorBreakpoint),
-          paddingLeft: valueForBreakpoint(section.paddingX, editorBreakpoint),
-          paddingRight: valueForBreakpoint(section.paddingX, editorBreakpoint),
-          marginTop: valueForBreakpoint(section.marginTop, editorBreakpoint),
-          marginBottom: valueForBreakpoint(section.marginBottom, editorBreakpoint),
+          borderRadius: valueForBreakpoint(section.radius, activeBreakpoint),
+          paddingTop: valueForBreakpoint(section.paddingY, activeBreakpoint),
+          paddingBottom: valueForBreakpoint(section.paddingY, activeBreakpoint),
+          paddingLeft: valueForBreakpoint(section.paddingX, activeBreakpoint),
+          paddingRight: valueForBreakpoint(section.paddingX, activeBreakpoint),
+          marginTop: valueForBreakpoint(section.marginTop, activeBreakpoint),
+          marginBottom: valueForBreakpoint(section.marginBottom, activeBreakpoint),
           border: section.borderWidth ? `${section.borderWidth}px solid ${section.borderColor}` : undefined,
           boxShadow: section.shadow === "none" ? undefined : section.shadow,
         }}
@@ -162,15 +178,15 @@ export default function HomeLeaguePortal({
   function renderSection(id: HomeSectionId) {
     switch (id) {
       case "hero":
-        return shell(id, <LeagueHero temporada={temporada} editor={pageDocument.hero} elements={pageDocument.elements} breakpoint={editorBreakpoint} editorMode={editorMode} selectedElement={selectedElement} onSelectElement={onSelectElement} />);
+        return shell(id, <LeagueHero temporada={temporada} editor={pageDocument.hero} elements={pageDocument.elements} breakpoint={activeBreakpoint} editorMode={editorMode} selectedElement={selectedElement} onSelectElement={onSelectElement} />);
       case "news": {
         const props = elementProps("news.content");
         return shell(id, <div {...props}><HomeNewsStandings news={mergedNews} standings={standings} logoEquipo={logoEquipo} /></div>);
       }
       case "awards":
-        return shell(id, <HomeAwards awards={awards} logoEquipo={logoEquipo} editor={pageDocument.awards} elements={pageDocument.elements} breakpoint={editorBreakpoint} editorMode={editorMode} selectedElement={selectedElement} onSelectElement={onSelectElement} />);
+        return shell(id, <HomeAwards awards={awards} logoEquipo={logoEquipo} editor={pageDocument.awards} elements={pageDocument.elements} breakpoint={activeBreakpoint} editorMode={editorMode} selectedElement={selectedElement} onSelectElement={onSelectElement} />);
       case "competitions":
-        return shell(id, <HomeCompetitionStrip editor={pageDocument.competitions} elements={pageDocument.elements} breakpoint={editorBreakpoint} editorMode={editorMode} selectedElement={selectedElement} onSelectElement={onSelectElement} />);
+        return shell(id, <HomeCompetitionStrip editor={pageDocument.competitions} elements={pageDocument.elements} breakpoint={activeBreakpoint} editorMode={editorMode} selectedElement={selectedElement} onSelectElement={onSelectElement} />);
       case "match": {
         const props = elementProps("match.content");
         return shell(id, <div {...props}><HomeMatchStrip featured={featured} upcoming={upcoming} clubs={clubs} /></div>);
@@ -195,7 +211,7 @@ export default function HomeLeaguePortal({
           maxWidth: pageDocument.global.contentMaxWidth,
           display: "flex",
           flexDirection: "column",
-          gap: valueForBreakpoint(pageDocument.global.sectionGap, editorBreakpoint),
+          gap: valueForBreakpoint(pageDocument.global.sectionGap, activeBreakpoint),
         }}
       >
         {pageDocument.order.map(renderSection)}
