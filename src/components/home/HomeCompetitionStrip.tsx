@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { DEFAULT_HOME_EDITOR_DOCUMENT, type HomeEditorDocument } from "@/lib/siteEditor";
+import type { MouseEvent } from "react";
+import {
+  DEFAULT_HOME_EDITOR_DOCUMENT,
+  elementInlineStyle,
+  type EditorBreakpoint,
+  type HomeEditorDocument,
+  type HomeEditorElementId,
+} from "@/lib/siteEditor";
 
 const items = [
   ["Primera", "Liga oficial", "/competicion?division=primera", "I"],
@@ -10,18 +17,53 @@ const items = [
   ["Playoffs", "Definiciones", "/competicion", "PO"],
 ];
 
-export default function HomeCompetitionStrip({ editor = DEFAULT_HOME_EDITOR_DOCUMENT.competitions }: { editor?: HomeEditorDocument["competitions"] }) {
+type Props = {
+  editor?: HomeEditorDocument["competitions"];
+  elements?: HomeEditorDocument["elements"];
+  breakpoint?: EditorBreakpoint;
+  editorMode?: boolean;
+  selectedElement?: HomeEditorElementId | null;
+  onSelectElement?: (element: HomeEditorElementId) => void;
+};
+
+export default function HomeCompetitionStrip({
+  editor = DEFAULT_HOME_EDITOR_DOCUMENT.competitions,
+  elements = DEFAULT_HOME_EDITOR_DOCUMENT.elements,
+  breakpoint = "desktop",
+  editorMode = false,
+  selectedElement = null,
+  onSelectElement,
+}: Props) {
+  function selectable(id: HomeEditorElementId) {
+    return {
+      "data-editor-element": id,
+      onClick: (event: MouseEvent<HTMLElement>) => {
+        if (!editorMode) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onSelectElement?.(id);
+      },
+      className: editorMode
+        ? `relative cursor-pointer ${selectedElement === id ? "outline outline-2 outline-offset-2 outline-[#ffcc4d]" : "hover:outline hover:outline-1 hover:outline-offset-2 hover:outline-[#ffcc4d]/70"}`
+        : undefined,
+      style: elementInlineStyle(elements[id], breakpoint),
+    };
+  }
+
+  const headingSelection = selectable("competitions.heading");
+  const cardsSelection = selectable("competitions.cards");
+
   return (
     <section>
-      <div className="mb-4 flex items-end justify-between gap-4">
+      <div {...headingSelection} className={`${headingSelection.className ?? ""} mb-4 flex items-end justify-between gap-4`}>
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.22em]" style={{ color: editor.accentColor }}>{editor.eyebrow}</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.22em]" style={{ ...headingSelection.style, color: headingSelection.style.color ?? editor.accentColor }}>{editor.eyebrow}</p>
           <h2 className="mt-1 text-3xl font-black uppercase" style={{ color: editor.titleColor }}>{editor.title}</h2>
         </div>
         <Link href="/competicion" className="text-xs font-black" style={{ color: editor.accentColor }}>{editor.linkLabel}</Link>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div {...cardsSelection} className={`${cardsSelection.className ?? ""} grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6`}>
         {items.map(([title, desc, href, code]) => (
           <Link
             key={title}
