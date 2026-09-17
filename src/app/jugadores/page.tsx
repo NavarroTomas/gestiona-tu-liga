@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 
 type RankingTab = "general" | "goles" | "asistencias" | "mvps" | "rating";
 type RankingMode = "temporada" | "historico";
+type CompetitionFilter = "Primera" | "Segunda" | "Copa APA" | "Copa Argentina" | "Copa Campeones" | "Playoffs";
 
 type RankingJugadorRow = {
   temporada?: string | null;
@@ -21,6 +22,19 @@ type RankingJugadorRow = {
   mvp?: number | string | null;
   rating_apa_promedio?: number | string | null;
   score_total?: number | string | null;
+};
+
+type RawJugadorRow = {
+  partido_id?: string | null;
+  playerId?: string | null;
+  nombre?: string | null;
+  equipo?: string | null;
+  posicion?: string | null;
+  goals?: number | string | null;
+  assists?: number | string | null;
+  mvp?: number | string | null;
+  rating_apa?: number | string | null;
+  score?: number | string | null;
 };
 
 type Jugador = {
@@ -43,6 +57,13 @@ type ClubInfo = {
   logo_url?: string | null;
 };
 
+const CUP_COMPETITION_KEYS: Record<Exclude<CompetitionFilter, "Primera" | "Segunda">, string> = {
+  "Copa APA": "copa_apa",
+  "Copa Argentina": "copa_argentina",
+  "Copa Campeones": "copa_campeones",
+  Playoffs: "playoffs",
+};
+
 const selectStyle = {
   backgroundColor: "#ffffff",
   color: "#102f55",
@@ -62,6 +83,14 @@ function normalizeDivision(value?: string | null) {
   if (normalized.includes("primera")) return "primera";
   if (normalized.includes("segunda")) return "segunda";
   return normalized;
+}
+
+function isLeagueFilter(value: CompetitionFilter) {
+  return value === "Primera" || value === "Segunda";
+}
+
+function competitionDisplayLabel(value: CompetitionFilter) {
+  return isLeagueFilter(value) ? `${value} División` : value;
 }
 
 function seasonNumber(value: string) {
@@ -126,7 +155,7 @@ function MetricIcon({ type }: { type: RankingTab }) {
 
 export default function JugadoresPage() {
   const [temporada, setTemporada] = useState("Temporada 4");
-  const [division, setDivision] = useState("Primera");
+  const [division, setDivision] = useState<CompetitionFilter>("Primera");
   const [modo, setModo] = useState<RankingMode>("temporada");
   const [clubFilter, setClubFilter] = useState("Todos");
   const [activeTab, setActiveTab] = useState<RankingTab>("general");
@@ -159,25 +188,137 @@ export default function JugadoresPage() {
       setLoading(true);
       setErrorMsg(null);
 
-      let rankingQuery = supabase
-        .from("v_ranking_jugadores")
-        .select("temporada,division,playerId,nombre,equipo,posicion,partidos_jugados,goals,assists,mvp,rating_apa_promedio,score_total");
+      const clubsPromise = supabase
+        .from("v_clubes_temporada_public")
+        .select("nombre,slug,logo_url,division,temporada,activo")
+        .eq("temporada", temporada)
+        .eq("activo", true);
 
-      if (modo === "temporada") rankingQuery = rankingQuery.eq("temporada", temporada);
+      let list: Jugador[] = [];
+      let loadError: unknown = null;
 
-      const [rankingResult, clubsResult] = await Promise.all([
-        rankingQuery,
-        supabase
-          .from("v_clubes_temporada_public")
-          .select("nombre,slug,logo_url,division,temporada,activo")
+      if (modo === "historico" || isLeagueFilter(division)) {
+        let rankingQuery = supabase
+          .from("v_ranking_jugadores")
+          .select("temporada,division,playerId,nombre,equipo,posicion,partidos_jugados,goals,assists,mvp,rating_apa_promedio,score_total");
+
+        if (modo === "temporada") rankingQuery = rankingQuery.eq("temporada", temporada);
+
+        const rankingResult = await rankingQuery;
+        loadError = rankingResult.error;
+
+        if (!rankingResult.error) {
+          const divisionKey = normalizeDivision(division);
+          const baseRows = ((rankingResult.data || []) as RankingJugadorRow[]).filter((row) =>
+            modo === "historico" || normalizeDivision(row.division) === divisionKey,
+          );
+
+          const map = new Map<string, Jugador>();
+          for (const row of baseRows) {
+            const name = String(row.nombre || "").trim();
+            const playerId = String(row.playerId || "").trim();
+            if (!name && !playerId) continue;
+            const key = playerId || `${normalizeText(name)}-${normalizeText(row.equipo)}`;
+            const matches = Number(row.partidos_jugados || 0);
+            const rating = Number(row.rating_apa_promedio || 0);
+            const current = map.get(key) || {
+              nombre: name || "Sin nombre",
+              playerId,
+              equipo: String(row.equipo || "Sin Club"),
+              posicion: String(row.posicion || "Sin posición"),
+              partidos: 0,
+              goles: 0,
+              asistencias: 0,
+              mvps: 0,
+              score: 0,
+              ratingTotal: 0,
+              avatarUrl: null,
+            };
+            current.partidos += matches;
+            current.goles += Number(row.goals || 0);
+            current.asistencias += Number(row.assists || 0);
+            current.mvps += Number(row.mvp || 0);
+            current.score += Number(row.score_total || 0);
+            current.ratingTotal += rating * matches;
+            if (name) current.nombre = name;
+            if (playerId) current.playerId = playerId;
+            if (row.equipo) current.equipo = String(row.equipo);
+            if (row.posicion) current.posicion = String(row.posicion);
+            map.set(key, current);
+          }
+          list = Array.from(map.values());
+        }
+      } else {
+        const competitionKey = CUP_COMPETITION_KEYS[division];
+        const matchesResult = await supabase
+          .from("partidos")
+          .select("partido_id")
           .eq("temporada", temporada)
-          .eq("activo", true),
-      ]);
+          .eq("competicion", competitionKey);
+
+        loadError = matchesResult.error;
+
+        if (!matchesResult.error) {
+          const matchIds = Array.from(new Set((matchesResult.data || []).map((row: any) => String(row.partido_id || "").trim()).filter(Boolean)));
+
+          if (matchIds.length) {
+            const statsResult = await supabase
+              .from("estadisticas_jugadores")
+              .select("partido_id,playerId,nombre,equipo,posicion,goals,assists,mvp,rating_apa,score")
+              .eq("temporada", temporada)
+              .in("partido_id", matchIds);
+
+            loadError = statsResult.error;
+
+            if (!statsResult.error) {
+              const map = new Map<string, Jugador & { matchIds: Set<string> }>();
+              for (const row of (statsResult.data || []) as RawJugadorRow[]) {
+                const name = String(row.nombre || "").trim();
+                const playerId = String(row.playerId || "").trim();
+                if (!name && !playerId) continue;
+                const key = playerId || `${normalizeText(name)}-${normalizeText(row.equipo)}`;
+                const current = map.get(key) || {
+                  nombre: name || "Sin nombre",
+                  playerId,
+                  equipo: String(row.equipo || "Sin Club"),
+                  posicion: String(row.posicion || "Sin posición"),
+                  partidos: 0,
+                  goles: 0,
+                  asistencias: 0,
+                  mvps: 0,
+                  score: 0,
+                  ratingTotal: 0,
+                  avatarUrl: null,
+                  matchIds: new Set<string>(),
+                };
+                const matchId = String(row.partido_id || "").trim();
+                if (matchId && !current.matchIds.has(matchId)) {
+                  current.matchIds.add(matchId);
+                  current.partidos += 1;
+                }
+                current.goles += Number(row.goals || 0);
+                current.asistencias += Number(row.assists || 0);
+                current.mvps += Number(row.mvp || 0);
+                current.score += Number(row.score || 0);
+                current.ratingTotal += Number(row.rating_apa || 0);
+                if (name) current.nombre = name;
+                if (playerId) current.playerId = playerId;
+                if (row.equipo) current.equipo = String(row.equipo);
+                if (row.posicion) current.posicion = String(row.posicion);
+                map.set(key, current);
+              }
+              list = Array.from(map.values()).map(({ matchIds: _matchIds, ...player }) => player);
+            }
+          }
+        }
+      }
+
+      const clubsResult = await clubsPromise;
 
       if (cancelled) return;
 
-      if (rankingResult.error) {
-        console.error("Error cargando ranking de jugadores:", rankingResult.error);
+      if (loadError) {
+        console.error("Error cargando ranking de jugadores:", loadError);
         setJugadores([]);
         setErrorMsg("No se pudieron cargar los rankings de jugadores.");
         setLoading(false);
@@ -186,47 +327,9 @@ export default function JugadoresPage() {
 
       if (clubsResult.error) console.error("Error cargando clubes del ranking:", clubsResult.error);
 
-      const divisionKey = normalizeDivision(division);
-      const baseRows = ((rankingResult.data || []) as RankingJugadorRow[]).filter((row) =>
-        modo === "historico" || normalizeDivision(row.division) === divisionKey,
-      );
-
-      const map = new Map<string, Jugador>();
-      for (const row of baseRows) {
-        const name = String(row.nombre || "").trim();
-        const playerId = String(row.playerId || "").trim();
-        if (!name && !playerId) continue;
-        const key = playerId || `${normalizeText(name)}-${normalizeText(row.equipo)}`;
-        const matches = Number(row.partidos_jugados || 0);
-        const rating = Number(row.rating_apa_promedio || 0);
-        const current = map.get(key) || {
-          nombre: name || "Sin nombre",
-          playerId,
-          equipo: String(row.equipo || "Sin Club"),
-          posicion: String(row.posicion || "Sin posición"),
-          partidos: 0,
-          goles: 0,
-          asistencias: 0,
-          mvps: 0,
-          score: 0,
-          ratingTotal: 0,
-          avatarUrl: null,
-        };
-        current.partidos += matches;
-        current.goles += Number(row.goals || 0);
-        current.asistencias += Number(row.assists || 0);
-        current.mvps += Number(row.mvp || 0);
-        current.score += Number(row.score_total || 0);
-        current.ratingTotal += rating * matches;
-        if (name) current.nombre = name;
-        if (playerId) current.playerId = playerId;
-        if (row.equipo) current.equipo = String(row.equipo);
-        if (row.posicion) current.posicion = String(row.posicion);
-        map.set(key, current);
-      }
-
-      let list = Array.from(map.values());
       const playerIds = list.map((player) => player.playerId).filter(Boolean);
+      const divisionKey = normalizeDivision(division);
+      const leagueFilter = isLeagueFilter(division);
 
       if (playerIds.length) {
         const [profilesResult, rostersResult] = await Promise.all([
@@ -238,7 +341,11 @@ export default function JugadoresPage() {
           (profilesResult.data || []).forEach((row: any) => avatarMap.set(String(row.playerid || ""), row.avatar_url || null));
           const clubMap = new Map<string, string>();
           (rostersResult.data || [])
-            .filter((row: any) => modo === "historico" || (row.temporada === temporada && normalizeDivision(row.division) === divisionKey))
+            .filter((row: any) => {
+              if (modo === "historico") return true;
+              if (row.temporada !== temporada) return false;
+              return !leagueFilter || normalizeDivision(row.division) === divisionKey;
+            })
             .forEach((row: any) => {
               if (row.playerid && row.equipo) clubMap.set(String(row.playerid), String(row.equipo));
             });
@@ -251,7 +358,7 @@ export default function JugadoresPage() {
       }
 
       const filteredClubs = ((clubsResult.data || []) as any[])
-        .filter((club) => normalizeDivision(club.division) === divisionKey)
+        .filter((club) => !leagueFilter || normalizeDivision(club.division) === divisionKey)
         .map((club) => ({ nombre: String(club.nombre), slug: club.slug, logo_url: club.logo_url })) as ClubInfo[];
 
       if (!cancelled) {
@@ -357,10 +464,14 @@ export default function JugadoresPage() {
                     </select>
                   </label>
                   <label className="block">
-                    <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-[#567b96]">Categoría</span>
-                    <select value={division} onChange={(e) => setDivision(e.target.value)} style={selectStyle} className="h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
+                    <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-[#567b96]">Competición</span>
+                    <select value={division} onChange={(e) => setDivision(e.target.value as CompetitionFilter)} style={selectStyle} className="h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
                       <option value="Primera" style={selectStyle}>Primera División</option>
                       <option value="Segunda" style={selectStyle}>Segunda División</option>
+                      <option value="Copa APA" style={selectStyle}>Copa APA</option>
+                      <option value="Copa Argentina" style={selectStyle}>Copa Argentina</option>
+                      <option value="Copa Campeones" style={selectStyle}>Copa de Campeones</option>
+                      <option value="Playoffs" style={selectStyle}>Playoffs</option>
                     </select>
                   </label>
                 </>
@@ -458,7 +569,7 @@ export default function JugadoresPage() {
                     <div>
                       <h2 className="text-[20px] font-black uppercase text-[#102f55] sm:text-[23px]">Ranking de jugadores</h2>
                       <p className="mt-1 text-[11px] font-semibold text-[#6b879b]">
-                        {modo === "historico" ? "Archivo histórico APA" : `${temporada} · ${division} División`}
+                        {modo === "historico" ? "Archivo histórico APA" : `${temporada} · ${competitionDisplayLabel(division)}`}
                       </p>
                     </div>
                     <span className="text-[10px] font-bold uppercase tracking-wide text-[#7790a2]">{filteredPlayers.length} jugadores</span>
