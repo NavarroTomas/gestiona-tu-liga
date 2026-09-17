@@ -201,7 +201,7 @@ export function detectZeroStatPlayers(
   localTeam: string,
   visitorTeam: string,
 ) {
-  const seen = new Map<string, { played: boolean }>();
+  const scoreByPlayer = new Map<string, number>();
 
   const visit = (player: any, team: string) => {
     const key = buildRawPlayerKey(
@@ -209,9 +209,8 @@ export function detectZeroStatPlayers(
       cleanText(player?.playerName),
       team,
     );
-    const current = seen.get(key) || { played: false };
-    if (numberValue(player?.score) > 0) current.played = true;
-    seen.set(key, current);
+    const score = numberValue(player?.score);
+    scoreByPlayer.set(key, Math.max(scoreByPlayer.get(key) || 0, score));
   };
 
   for (const segment of segments) {
@@ -220,8 +219,8 @@ export function detectZeroStatPlayers(
   }
 
   const suspicious: Record<string, boolean> = {};
-  for (const [key, state] of seen.entries()) {
-    if (!state.played) suspicious[key] = true;
+  for (const [key, score] of scoreByPlayer.entries()) {
+    if (score <= 0) suspicious[key] = true;
   }
   return suspicious;
 }
@@ -251,6 +250,25 @@ export function filterExcludedPlayers({
     localPlayers: segment.localPlayers.filter((player) => keep(player, localTeam)),
     visitorPlayers: segment.visitorPlayers.filter((player) => keep(player, visitorTeam)),
   }));
+}
+
+function playerMvpOrder(a: PlayerMatchStats, b: PlayerMatchStats) {
+  const byScore = numberValue(b.score) - numberValue(a.score);
+  if (byScore !== 0) return byScore;
+
+  const byOverall = numberValue(b.overallRating) - numberValue(a.overallRating);
+  if (byOverall !== 0) return byOverall;
+
+  const byGoals = numberValue(b.goals) - numberValue(a.goals);
+  if (byGoals !== 0) return byGoals;
+
+  const byAssists = numberValue(b.assists) - numberValue(a.assists);
+  if (byAssists !== 0) return byAssists;
+
+  const byPlayerId = cleanText(a.playerId).localeCompare(cleanText(b.playerId), "es");
+  if (byPlayerId !== 0) return byPlayerId;
+
+  return normalizeMatchText(a.nombre).localeCompare(normalizeMatchText(b.nombre), "es");
 }
 
 export function buildTxtCommitData({
@@ -305,16 +323,32 @@ export function buildTxtCommitData({
       : player;
   });
 
-  const highestScore = correctedPlayers.reduce(
-    (max, player) => Math.max(max, numberValue(player.score)),
-    0,
-  );
+  const mvpWinner = correctedPlayers
+    .filter((player) => numberValue(player.score) > 0)
+    .slice()
+    .sort(playerMvpOrder)[0];
 
-  const playerStats: PlayerMatchStats[] = correctedPlayers.map((player) => ({
-    ...player,
-    mvp: highestScore > 0 && numberValue(player.score) === highestScore ? 1 : 0,
-    rating_apa: calculateRatingAPA(player),
-  }));
+  const mvpKey = mvpWinner
+    ? `${normalizeMatchText(mvpWinner.equipo)}__${
+        cleanText(mvpWinner.playerId)
+          ? `id:${cleanText(mvpWinner.playerId)}`
+          : `name:${normalizeMatchText(mvpWinner.nombre)}`
+      }`
+    : null;
+
+  const playerStats: PlayerMatchStats[] = correctedPlayers.map((player) => {
+    const playerKey = `${normalizeMatchText(player.equipo)}__${
+      cleanText(player.playerId)
+        ? `id:${cleanText(player.playerId)}`
+        : `name:${normalizeMatchText(player.nombre)}`
+    }`;
+
+    return {
+      ...player,
+      mvp: mvpKey && playerKey === mvpKey ? 1 : 0,
+      rating_apa: calculateRatingAPA(player),
+    };
+  });
 
   const txtSegments: MatchTxtSegmentInput[] = filteredSegments.map((segment) => ({
     archivo_nombre: segment.fileName,
@@ -365,14 +399,12 @@ export function reconciliationRows({
     const playerAssists = players
       .filter((player) => normalizeMatchText(player.equipo) === normalizeMatchText(team))
       .reduce((sum, player) => sum + numberValue(player.assists), 0);
-    const teamRow = teams.find(
-      (row) => normalizeMatchText(row.equipo) === normalizeMatchText(team),
-    );
+    const teamStats = teams.find((row) => normalizeMatchText(row.equipo) === normalizeMatchText(team));
     return {
       team,
-      teamGoals: numberValue(teamRow?.goals),
+      teamGoals: numberValue(teamStats?.goals),
       playerGoals,
-      teamAssists: numberValue(teamRow?.assists),
+      teamAssists: numberValue(teamStats?.assists),
       playerAssists,
     };
   });
