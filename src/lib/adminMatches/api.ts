@@ -16,6 +16,14 @@ export type MatchFilters = {
   fecha?: string;
 };
 
+function supabaseErrorMessage(error: any, fallback: string) {
+  if (!error) return fallback;
+  const parts = [error.message, error.details, error.hint, error.code]
+    .map((value) => String(value || "").trim())
+    .filter(Boolean);
+  return parts.length ? parts.join(" · ") : fallback;
+}
+
 export async function fetchAdminMatches(filters: MatchFilters = {}) {
   let query = supabase
     .from("partidos")
@@ -33,7 +41,7 @@ export async function fetchAdminMatches(filters: MatchFilters = {}) {
   if (filters.fecha) query = query.eq("fecha", filters.fecha);
 
   const { data, error } = await query;
-  if (error) throw error;
+  if (error) throw new Error(supabaseErrorMessage(error, "No pude cargar los partidos."));
   return (data || []) as AdminMatch[];
 }
 
@@ -45,7 +53,7 @@ export async function fetchMatchById(id: string | number) {
     )
     .eq("id", id)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw new Error(supabaseErrorMessage(error, "No pude cargar el partido."));
   return (data || null) as AdminMatch | null;
 }
 
@@ -57,8 +65,8 @@ export async function fetchMatchStats(matchId?: string | null) {
     supabase.from("estadisticas_jugadores").select("*").eq("partido_id", matchId).order("equipo", { ascending: true }).order("score", { ascending: false }),
   ]);
 
-  if (teamsResult.error) throw teamsResult.error;
-  if (playersResult.error) throw playersResult.error;
+  if (teamsResult.error) throw new Error(supabaseErrorMessage(teamsResult.error, "No pude cargar las estadísticas de equipos."));
+  if (playersResult.error) throw new Error(supabaseErrorMessage(playersResult.error, "No pude cargar las estadísticas de jugadores."));
 
   return {
     teams: (teamsResult.data || []) as TeamMatchStats[],
@@ -75,7 +83,7 @@ export async function fetchMatchRevisions(partidoRowId: string | number) {
     .eq("partido_row_id", Number(partidoRowId))
     .order("revision_number", { ascending: false })
     .limit(20);
-  if (error) throw error;
+  if (error) throw new Error(supabaseErrorMessage(error, "No pude cargar el historial del partido."));
   return (data || []) as MatchRevision[];
 }
 
@@ -88,7 +96,7 @@ export async function fetchTxtSegments(matchId?: string | null) {
     )
     .eq("partido_id", matchId)
     .order("created_at", { ascending: true });
-  if (error) throw error;
+  if (error) throw new Error(supabaseErrorMessage(error, "No pude cargar los TXT existentes."));
   return data || [];
 }
 
@@ -101,7 +109,7 @@ export async function fetchMatchRoster({ temporada, teams }: { temporada: string
     .in("equipo", teams.filter(Boolean))
     .order("equipo", { ascending: true })
     .order("jugador", { ascending: true });
-  if (error) throw error;
+  if (error) throw new Error(supabaseErrorMessage(error, "No pude cargar las plantillas del partido."));
   return data || [];
 }
 
@@ -112,7 +120,7 @@ export async function fetchPlayerAliases(playerIds: string[]) {
     .from("player_account_aliases")
     .select("alias_player_id,canonical_player_id,canonical_name")
     .in("alias_player_id", ids);
-  if (error) throw error;
+  if (error) throw new Error(supabaseErrorMessage(error, "No pude cargar los alias de jugadores."));
   return data || [];
 }
 
@@ -177,7 +185,9 @@ export async function commitAdminMatch(input: CommitMatchInput) {
     p_clear_segments: segments !== null,
     p_aliases: input.aliases || [],
   });
-  if (error) throw error;
+  if (error) {
+    throw new Error(supabaseErrorMessage(error, "No pude guardar la carga del partido."));
+  }
   return data;
 }
 
@@ -186,7 +196,7 @@ export async function voidAdminMatch(partidoRowId: string | number, reason?: str
     p_match_row_id: Number(partidoRowId),
     p_reason: reason || "Carga anulada desde el Centro de partidos",
   });
-  if (error) throw error;
+  if (error) throw new Error(supabaseErrorMessage(error, "No pude anular la carga."));
   return data;
 }
 
@@ -208,7 +218,7 @@ export async function updateAdminMatchSchedule({
     p_hora: hora ?? null,
     p_reason: "Programación actualizada desde el Centro de partidos",
   });
-  if (error) throw error;
+  if (error) throw new Error(supabaseErrorMessage(error, "No pude actualizar la programación."));
   return data;
 }
 
@@ -217,6 +227,6 @@ export async function restoreMatchRevision(revisionId: string, reason: string) {
     p_revision_id: revisionId,
     p_reason: reason,
   });
-  if (error) throw error;
+  if (error) throw new Error(supabaseErrorMessage(error, "No pude restaurar la revisión."));
   return data;
 }
