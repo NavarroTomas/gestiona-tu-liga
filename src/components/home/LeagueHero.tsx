@@ -1,49 +1,103 @@
 import Link from "next/link";
-import { DEFAULT_HOME_EDITOR_DOCUMENT, type HomeEditorDocument } from "@/lib/siteEditor";
+import {
+  DEFAULT_HOME_EDITOR_DOCUMENT,
+  valueForBreakpoint,
+  type EditorBreakpoint,
+  type HomeEditorDocument,
+  type HomeEditorElementId,
+  type TypographyStyle,
+} from "@/lib/siteEditor";
 
 type Props = {
   temporada: string;
   editor?: HomeEditorDocument["hero"];
+  breakpoint?: EditorBreakpoint;
+  editorMode?: boolean;
+  selectedElement?: HomeEditorElementId | null;
+  onSelectElement?: (element: HomeEditorElementId) => void;
 };
 
-export default function LeagueHero({ temporada, editor = DEFAULT_HOME_EDITOR_DOCUMENT.hero }: Props) {
+function textStyle(style: TypographyStyle, breakpoint: EditorBreakpoint) {
+  return {
+    fontSize: `${valueForBreakpoint(style.fontSize, breakpoint)}px`,
+    fontWeight: style.fontWeight,
+    lineHeight: style.lineHeight,
+    letterSpacing: `${style.letterSpacing}em`,
+    textTransform: style.textTransform,
+    textAlign: style.align,
+    color: style.color,
+    maxWidth: `${valueForBreakpoint(style.maxWidth, breakpoint)}px`,
+  } as const;
+}
+
+export default function LeagueHero({
+  temporada,
+  editor = DEFAULT_HOME_EDITOR_DOCUMENT.hero,
+  breakpoint = "desktop",
+  editorMode = false,
+  selectedElement = null,
+  onSelectElement,
+}: Props) {
+  const columns = Math.max(1, valueForBreakpoint(editor.contentColumns, breakpoint));
+  const selectable = (id: HomeEditorElementId) => ({
+    onClick: (event: React.MouseEvent) => {
+      if (!editorMode) return;
+      event.preventDefault();
+      event.stopPropagation();
+      onSelectElement?.(id);
+    },
+    className: editorMode
+      ? `relative cursor-pointer rounded-[6px] ${selectedElement === id ? "outline outline-2 outline-offset-2 outline-[#ffcc4d]" : "hover:outline hover:outline-1 hover:outline-offset-2 hover:outline-[#ffcc4d]/70"}`
+      : undefined,
+  });
+
   return (
     <section
       className="relative overflow-hidden px-6 text-white md:px-10"
       style={{
-        background: editor.background,
+        backgroundColor: editor.background,
+        backgroundImage: editor.backgroundImage ? `url(${editor.backgroundImage})` : undefined,
+        backgroundSize: editor.backgroundSize,
+        backgroundPosition: editor.backgroundPosition,
         color: editor.textColor,
-        borderRadius: editor.radius.desktop,
-        paddingTop: editor.paddingY.desktop,
-        paddingBottom: editor.paddingY.desktop,
+        borderRadius: valueForBreakpoint(editor.radius, breakpoint),
+        paddingTop: valueForBreakpoint(editor.paddingY, breakpoint),
+        paddingBottom: valueForBreakpoint(editor.paddingY, breakpoint),
       }}
     >
+      <div className="pointer-events-none absolute inset-0" style={{ background: `rgba(4,18,34,${editor.overlayOpacity})` }} />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(36,95,142,.85),transparent_26%),linear-gradient(115deg,rgba(255,255,255,.05),transparent_35%),linear-gradient(90deg,rgba(255,255,255,.035)_1px,transparent_1px)] [background-size:auto,auto,72px_72px]" />
       <div className="pointer-events-none absolute -right-10 top-1/2 h-[360px] w-[360px] -translate-y-1/2 rounded-full border border-white/10" />
       <div className="pointer-events-none absolute right-20 top-1/2 h-[220px] w-[220px] -translate-y-1/2 rounded-full border border-white/10" />
       <div className="pointer-events-none absolute bottom-0 right-0 text-[180px] font-black leading-none text-white/[0.035] md:text-[260px]">APA</div>
 
-      <div className="relative z-10 grid gap-10 lg:grid-cols-[1fr_420px] lg:items-end">
+      <div
+        className="relative z-10 grid items-end"
+        style={{
+          gridTemplateColumns: columns > 1 ? "minmax(0,1fr) minmax(300px,420px)" : "1fr",
+          gap: `${valueForBreakpoint(editor.cardGap, breakpoint) * 3}px`,
+        }}
+      >
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-full border border-white/15 bg-white/[0.08] px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em]">{editor.eyebrow}</span>
+            <span {...selectable("hero.eyebrow")} style={{ ...textStyle(editor.eyebrowStyle, breakpoint), border: "1px solid rgba(255,255,255,.15)", background: "rgba(255,255,255,.08)", borderRadius: 999, padding: "5px 12px" }}>{editor.eyebrow}</span>
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/55">{temporada}</span>
           </div>
-          <h1 className="mt-5 max-w-4xl text-5xl font-black uppercase leading-[0.9] tracking-[-0.05em] md:text-7xl">{editor.title}</h1>
-          <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/72 md:text-lg">{editor.subtitle}</p>
+          <h1 {...selectable("hero.title")} className={`${selectable("hero.title").className ?? ""} mt-5 uppercase`} style={textStyle(editor.titleStyle, breakpoint)}>{editor.title}</h1>
+          <p {...selectable("hero.subtitle")} className={`${selectable("hero.subtitle").className ?? ""} mt-5`} style={textStyle(editor.subtitleStyle, breakpoint)}>{editor.subtitle}</p>
           <div className="mt-7 flex flex-wrap gap-3">
-            <Link href="/competicion" className="rounded-xl bg-white px-5 py-3 text-xs font-black uppercase tracking-[0.08em] text-[#0b2747] transition hover:bg-[#f3f4f6]">{editor.primaryLabel}</Link>
-            <Link href="/fixture" className="rounded-xl border border-white/25 bg-white/[0.04] px-5 py-3 text-xs font-black uppercase tracking-[0.08em] text-white transition hover:bg-white/10">{editor.secondaryLabel}</Link>
+            <Link {...selectable("hero.primaryButton")} href={editor.primaryHref || "/competicion"} className={`${selectable("hero.primaryButton").className ?? ""} bg-white px-5 py-3 text-xs font-black uppercase tracking-[0.08em] text-[#0b2747] transition hover:bg-[#f3f4f6]`} style={{ borderRadius: editor.buttonRadius }}>{editor.primaryLabel}</Link>
+            <Link {...selectable("hero.secondaryButton")} href={editor.secondaryHref || "/fixture"} className={`${selectable("hero.secondaryButton").className ?? ""} border border-white/25 bg-white/[0.04] px-5 py-3 text-xs font-black uppercase tracking-[0.08em] text-white transition hover:bg-white/10`} style={{ borderRadius: editor.buttonRadius }}>{editor.secondaryLabel}</Link>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div {...selectable("hero.cards")} className={`${selectable("hero.cards").className ?? ""} grid grid-cols-2`} style={{ gap: valueForBreakpoint(editor.cardGap, breakpoint) }}>
           {[["Primera", "Tabla y partidos", "/competicion?division=primera", "01"],["Segunda", "Ascenso", "/competicion?division=segunda", "02"],["Copas", "Cruces y llaves", "/competicion", "03"],["Clubes", "Planteles e historia", "/clubes", "04"]].map(([label, desc, href, num]) => (
             <Link
               key={label}
               href={href}
-              className="group border border-white/10 p-4 backdrop-blur-sm transition hover:bg-white/[0.12]"
-              style={{ borderRadius: editor.cardRadius, background: editor.cardBackground }}
+              className="group p-4 backdrop-blur-sm transition hover:bg-white/[0.12]"
+              style={{ borderRadius: editor.cardRadius, background: editor.cardBackground, border: `1px solid ${editor.cardBorderColor}` }}
             >
               <div className="flex items-center justify-between gap-2"><span className="text-[10px] font-black tracking-[0.18em] text-white/45">{num}</span><span className="text-white/45 transition group-hover:translate-x-1">→</span></div>
               <p className="mt-8 text-sm font-black uppercase">{label}</p>
