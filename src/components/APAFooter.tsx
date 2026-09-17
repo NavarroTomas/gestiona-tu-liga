@@ -21,16 +21,13 @@ const columnas = [
       ["Clubes", "/clubes"],
       ["Plantillas", "/plantillas"],
       ["Jugadores", "/jugadores"],
-      ["Mercado", "/mercado"],
     ],
   },
   {
     titulo: "APA",
     enlaces: [
       ["Guía", "/guia"],
-      ["Noticias", "/noticias"],
       ["Entretenimiento", "/entretenimiento"],
-      ["Inicio", "/"],
     ],
   },
   {
@@ -51,13 +48,22 @@ export default function APAFooter() {
 
   if (pathname.startsWith("/admin")) return null;
 
+  function volverArriba() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   return (
     <footer className={estilos.footer}>
       <div className={estilos.decoracion} aria-hidden="true" />
 
       <div className={estilos.superior}>
         <div className={estilos.marcaBloque}>
-          <Link href="/" className={estilos.marca} aria-label="PSO Argentina - Inicio">
+          <button
+            type="button"
+            className={estilos.marca}
+            aria-label="Volver arriba"
+            onClick={volverArriba}
+          >
             <span className={estilos.logoCaja}>
               <Image
                 src="/logo-apa-oficial.webp"
@@ -72,7 +78,7 @@ export default function APAFooter() {
               <strong>PSO</strong>
               <small>Argentina</small>
             </span>
-          </Link>
+          </button>
 
           <div className={estilos.identidad}>
             <span>APA PSO Argentina</span>
