@@ -39,6 +39,15 @@ function elementSelector(element: Element): string {
 
 function applyCss(element: HTMLElement, css: Record<string, string>) {
   for (const [property, value] of Object.entries(css)) {
+    if (property === "color") {
+      const current = element.style.getPropertyValue("color");
+      const priority = element.style.getPropertyPriority("color");
+      if (current !== value || priority !== "important") {
+        element.style.setProperty("color", value, "important");
+      }
+      continue;
+    }
+
     const key = property as keyof CSSStyleDeclaration;
     if (element.style[key] !== value) {
       Object.assign(element.style, { [property]: value });
