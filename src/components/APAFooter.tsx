@@ -96,11 +96,6 @@ export default function APAFooter() {
         </nav>
       </div>
 
-      <div className={estilos.zonaJugador} aria-label="Espacio visual para jugador de Pro Soccer Online">
-        <div className={estilos.lineaCancha} aria-hidden="true" />
-        <div className={estilos.marcaFondo} aria-hidden="true">APA</div>
-      </div>
-
       <div className={estilos.base}>
         <div className={estilos.baseInterior}>
           <span>© {new Date().getFullYear()} APA PSO Argentina</span>
