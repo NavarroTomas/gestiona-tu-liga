@@ -42,14 +42,45 @@ export type HomeEditorElementId =
   | "hero.primaryButton"
   | "hero.secondaryButton"
   | "hero.cards"
+  | "news.content"
   | "awards.heading"
+  | "awards.cards"
   | "competitions.heading"
+  | "competitions.cards"
+  | "match.content"
   | "stats.cards"
   | "community.heading"
   | "community.button";
 
+export type ElementStyle = {
+  visible: boolean;
+  background: string;
+  color: string;
+  width: ResponsiveValue<number>;
+  maxWidth: ResponsiveValue<number>;
+  paddingX: ResponsiveValue<number>;
+  paddingY: ResponsiveValue<number>;
+  marginTop: ResponsiveValue<number>;
+  marginBottom: ResponsiveValue<number>;
+  translateX: ResponsiveValue<number>;
+  translateY: ResponsiveValue<number>;
+  scale: ResponsiveValue<number>;
+  rotate: ResponsiveValue<number>;
+  radius: ResponsiveValue<number>;
+  borderWidth: number;
+  borderColor: string;
+  shadow: string;
+  opacity: number;
+  fontSize: ResponsiveValue<number>;
+  fontWeight: number;
+  lineHeight: number;
+  letterSpacing: number;
+  textTransform: "none" | "uppercase" | "lowercase" | "capitalize";
+  textAlign: "left" | "center" | "right";
+};
+
 export type HomeEditorDocument = {
-  schemaVersion: 2;
+  schemaVersion: 3;
   pageKey: "home";
   order: HomeSectionId[];
   global: {
@@ -61,6 +92,7 @@ export type HomeEditorDocument = {
     animationEnabled: boolean;
   };
   sections: Record<HomeSectionId, SectionState>;
+  elements: Record<HomeEditorElementId, ElementStyle>;
   hero: {
     eyebrow: string;
     title: string;
@@ -129,6 +161,34 @@ export type HomeEditorDocument = {
   };
 };
 
+export const HOME_SECTION_ELEMENTS: Record<HomeSectionId, HomeEditorElementId[]> = {
+  hero: ["hero.eyebrow", "hero.title", "hero.subtitle", "hero.primaryButton", "hero.secondaryButton", "hero.cards"],
+  news: ["news.content"],
+  awards: ["awards.heading", "awards.cards"],
+  competitions: ["competitions.heading", "competitions.cards"],
+  match: ["match.content"],
+  stats: ["stats.cards"],
+  community: ["community.heading", "community.button"],
+};
+
+export const HOME_ELEMENT_LABELS: Record<HomeEditorElementId, string> = {
+  "hero.eyebrow": "Etiqueta",
+  "hero.title": "Título principal",
+  "hero.subtitle": "Subtítulo",
+  "hero.primaryButton": "Botón principal",
+  "hero.secondaryButton": "Botón secundario",
+  "hero.cards": "Tarjetas del Hero",
+  "news.content": "Noticias y tabla",
+  "awards.heading": "Encabezado de premios",
+  "awards.cards": "Tarjetas de premios",
+  "competitions.heading": "Encabezado de competiciones",
+  "competitions.cards": "Tarjetas de competiciones",
+  "match.content": "Partido destacado",
+  "stats.cards": "Tarjetas de estadísticas",
+  "community.heading": "Texto de comunidad",
+  "community.button": "Botón de comunidad",
+};
+
 const responsive = (desktop: number, tablet = desktop, mobile = tablet): ResponsiveValue<number> => ({ desktop, tablet, mobile });
 
 const defaultSection = (): SectionState => ({
@@ -143,6 +203,33 @@ const defaultSection = (): SectionState => ({
   borderWidth: 0,
   borderColor: "transparent",
   shadow: "none",
+});
+
+const defaultElement = (): ElementStyle => ({
+  visible: true,
+  background: "transparent",
+  color: "inherit",
+  width: responsive(100),
+  maxWidth: responsive(9999),
+  paddingX: responsive(0),
+  paddingY: responsive(0),
+  marginTop: responsive(0),
+  marginBottom: responsive(0),
+  translateX: responsive(0),
+  translateY: responsive(0),
+  scale: responsive(1),
+  rotate: responsive(0),
+  radius: responsive(0),
+  borderWidth: 0,
+  borderColor: "transparent",
+  shadow: "none",
+  opacity: 1,
+  fontSize: responsive(0),
+  fontWeight: 0,
+  lineHeight: 0,
+  letterSpacing: 0,
+  textTransform: "none",
+  textAlign: "left",
 });
 
 const typography = (
@@ -163,8 +250,25 @@ const typography = (
   maxWidth,
 });
 
+const elementDefaults = Object.fromEntries(
+  (Object.values(HOME_SECTION_ELEMENTS).flat() as HomeEditorElementId[]).map((id) => [id, defaultElement()]),
+) as Record<HomeEditorElementId, ElementStyle>;
+
+elementDefaults["hero.title"].fontSize = responsive(72, 58, 42);
+elementDefaults["hero.title"].fontWeight = 900;
+elementDefaults["hero.title"].lineHeight = 0.9;
+elementDefaults["hero.title"].letterSpacing = -0.05;
+elementDefaults["hero.subtitle"].fontSize = responsive(18, 17, 15);
+elementDefaults["hero.subtitle"].fontWeight = 500;
+elementDefaults["hero.subtitle"].lineHeight = 1.55;
+elementDefaults["hero.eyebrow"].fontSize = responsive(10, 10, 9);
+elementDefaults["hero.eyebrow"].fontWeight = 900;
+elementDefaults["hero.eyebrow"].letterSpacing = 0.2;
+elementDefaults["hero.cards"].maxWidth = responsive(420, 9999, 9999);
+elementDefaults["community.button"].width = responsive(100, 100, 100);
+
 export const DEFAULT_HOME_EDITOR_DOCUMENT: HomeEditorDocument = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   pageKey: "home",
   order: ["hero", "news", "awards", "competitions", "match", "stats", "community"],
   global: {
@@ -184,6 +288,7 @@ export const DEFAULT_HOME_EDITOR_DOCUMENT: HomeEditorDocument = {
     stats: defaultSection(),
     community: defaultSection(),
   },
+  elements: elementDefaults,
   hero: {
     eyebrow: "Liga APA PSO",
     title: "El fútbol de APA, en un solo lugar",
@@ -285,6 +390,26 @@ function normalizeSection(value: unknown, fallback: SectionState): SectionState 
   };
 }
 
+function normalizeElement(value: unknown, fallback: ElementStyle): ElementStyle {
+  const current = value && typeof value === "object" ? (value as Partial<ElementStyle>) : {};
+  return {
+    ...fallback,
+    ...current,
+    width: responsiveNumber(current.width, fallback.width),
+    maxWidth: responsiveNumber(current.maxWidth, fallback.maxWidth),
+    paddingX: responsiveNumber(current.paddingX, fallback.paddingX),
+    paddingY: responsiveNumber(current.paddingY, fallback.paddingY),
+    marginTop: responsiveNumber(current.marginTop, fallback.marginTop),
+    marginBottom: responsiveNumber(current.marginBottom, fallback.marginBottom),
+    translateX: responsiveNumber(current.translateX, fallback.translateX),
+    translateY: responsiveNumber(current.translateY, fallback.translateY),
+    scale: responsiveNumber(current.scale, fallback.scale),
+    rotate: responsiveNumber(current.rotate, fallback.rotate),
+    radius: responsiveNumber(current.radius, fallback.radius),
+    fontSize: responsiveNumber(current.fontSize, fallback.fontSize),
+  };
+}
+
 export function normalizeHomeEditorDocument(value: unknown): HomeEditorDocument {
   if (!value || typeof value !== "object") return structuredClone(DEFAULT_HOME_EDITOR_DOCUMENT);
   const input = value as Partial<HomeEditorDocument> & { schemaVersion?: number };
@@ -297,10 +422,15 @@ export function normalizeHomeEditorDocument(value: unknown): HomeEditorDocument 
   const sections = { ...base.sections };
   for (const id of base.order) sections[id] = normalizeSection(input.sections?.[id], base.sections[id]);
 
+  const elements = { ...base.elements };
+  for (const id of Object.keys(base.elements) as HomeEditorElementId[]) {
+    elements[id] = normalizeElement(input.elements?.[id], base.elements[id]);
+  }
+
   return {
     ...base,
     ...input,
-    schemaVersion: 2,
+    schemaVersion: 3,
     pageKey: "home",
     order,
     global: {
@@ -309,6 +439,7 @@ export function normalizeHomeEditorDocument(value: unknown): HomeEditorDocument 
       sectionGap: responsiveNumber(input.global?.sectionGap, base.global.sectionGap),
     },
     sections,
+    elements,
     hero: {
       ...base.hero,
       ...(input.hero || {}),
@@ -340,4 +471,33 @@ export function valueForBreakpoint<T>(value: ResponsiveValue<T>, breakpoint: Edi
 
 export function setResponsiveValue<T>(value: ResponsiveValue<T>, breakpoint: EditorBreakpoint, next: T): ResponsiveValue<T> {
   return { ...value, [breakpoint]: next };
+}
+
+export function elementInlineStyle(style: ElementStyle, breakpoint: EditorBreakpoint) {
+  const fontSize = valueForBreakpoint(style.fontSize, breakpoint);
+  return {
+    display: style.visible ? undefined : "none",
+    background: style.background === "transparent" ? undefined : style.background,
+    color: style.color === "inherit" ? undefined : style.color,
+    width: `${Math.max(1, Math.min(100, valueForBreakpoint(style.width, breakpoint)))}%`,
+    maxWidth: `${valueForBreakpoint(style.maxWidth, breakpoint)}px`,
+    paddingLeft: valueForBreakpoint(style.paddingX, breakpoint),
+    paddingRight: valueForBreakpoint(style.paddingX, breakpoint),
+    paddingTop: valueForBreakpoint(style.paddingY, breakpoint),
+    paddingBottom: valueForBreakpoint(style.paddingY, breakpoint),
+    marginTop: valueForBreakpoint(style.marginTop, breakpoint),
+    marginBottom: valueForBreakpoint(style.marginBottom, breakpoint),
+    borderRadius: valueForBreakpoint(style.radius, breakpoint),
+    border: style.borderWidth ? `${style.borderWidth}px solid ${style.borderColor}` : undefined,
+    boxShadow: style.shadow === "none" ? undefined : style.shadow,
+    opacity: style.opacity,
+    transform: `translate(${valueForBreakpoint(style.translateX, breakpoint)}px, ${valueForBreakpoint(style.translateY, breakpoint)}px) scale(${valueForBreakpoint(style.scale, breakpoint)}) rotate(${valueForBreakpoint(style.rotate, breakpoint)}deg)`,
+    transformOrigin: "center",
+    fontSize: fontSize > 0 ? `${fontSize}px` : undefined,
+    fontWeight: style.fontWeight > 0 ? style.fontWeight : undefined,
+    lineHeight: style.lineHeight > 0 ? style.lineHeight : undefined,
+    letterSpacing: style.letterSpacing !== 0 ? `${style.letterSpacing}em` : undefined,
+    textTransform: style.textTransform,
+    textAlign: style.textAlign,
+  } as const;
 }
