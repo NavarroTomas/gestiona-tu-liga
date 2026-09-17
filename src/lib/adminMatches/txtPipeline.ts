@@ -196,44 +196,35 @@ export function prepareTxtPlayers({
   return { segments: assigned, rawPlayers, resolutions };
 }
 
-const ZERO_FIELDS = [
-  "passes",
-  "keyPasses",
-  "assists",
-  "shots",
-  "shotsOnTarget",
-  "goals",
-  "tackles",
-  "keyTackles",
-  "interceptions",
-  "keyInterceptions",
-  "possessionsLost",
-  "gKSaves",
-  "gKCatches",
-  "score",
-] as const;
-
 export function detectZeroStatPlayers(
   segments: ParsedMatchSegment[],
   localTeam: string,
   visitorTeam: string,
 ) {
   const suspicious: Record<string, boolean> = {};
+  const seenWithScore = new Set<string>();
+  const seenWithoutScore = new Set<string>();
+
   const visit = (player: any, team: string) => {
-    const allZero = ZERO_FIELDS.every((field) => numberValue(player?.[field]) === 0);
-    if (!allZero) return;
     const key = buildRawPlayerKey(
       cleanText(player?.playerId),
       cleanText(player?.playerName),
       team,
     );
-    suspicious[key] = true;
+    const score = numberValue(player?.score);
+    if (score > 0) seenWithScore.add(key);
+    else seenWithoutScore.add(key);
   };
 
   for (const segment of segments) {
     segment.localPlayers.forEach((player) => visit(player, localTeam));
     segment.visitorPlayers.forEach((player) => visit(player, visitorTeam));
   }
+
+  for (const key of seenWithoutScore) {
+    if (!seenWithScore.has(key)) suspicious[key] = true;
+  }
+
   return suspicious;
 }
 
@@ -279,70 +270,49 @@ export function buildTxtCommitData({
   localTeam: string;
   visitorTeam: string;
 }) {
-  const validSegments = filterExcludedPlayers({
+  const filteredSegments = filterExcludedPlayers({
     segments,
     excluded,
     localTeam,
     visitorTeam,
   });
-
-  const players = combinePlayerStats({
-    segments: validSegments,
-    resolutions,
-    localTeam,
-    visitorTeam,
-  }).map((player) => {
+  const teamStats = combineTeamStats(filteredSegments, localTeam, visitorTeam);
+  const players = combinePlayerStats(filteredSegments, resolutions, localTeam, visitorTeam);
+  const correctedPlayers = players.map((player) => {
     const key = `${normalizeMatchText(player.equipo)}__${
       cleanText(player.playerId)
         ? `id:${cleanText(player.playerId)}`
         : `name:${normalizeMatchText(player.nombre)}`
     }`;
     const correction = corrections[key];
-    const row: PlayerMatchStats = {
-      ...player,
-      goals: correction ? Math.max(0, Number(correction.goals || 0)) : player.goals,
-      assists: correction ? Math.max(0, Number(correction.assists || 0)) : player.assists,
-      mvp: 0,
-    };
-    row.rating_apa = calculateRatingAPA(row);
-    return row;
+    return correction
+      ? { ...player, goals: correction.goals, assists: correction.assists }
+      : player;
   });
 
-  const best = [...players].sort((a, b) => numberValue(b.score) - numberValue(a.score))[0];
-  if (best) {
-    const bestKey = `${best.equipo}__${best.playerId || best.nombre}`;
-    for (const player of players) {
-      player.mvp = `${player.equipo}__${player.playerId || player.nombre}` === bestKey ? 1 : 0;
-    }
-  }
+  const highestScore = correctedPlayers.reduce(
+    (max, player) => Math.max(max, numberValue(player.score)),
+    0,
+  );
 
-  const localRaw = combineTeamStats(validSegments, "local");
-  const visitorRaw = combineTeamStats(validSegments, "visitor");
+  const playerStats: PlayerMatchStats[] = correctedPlayers.map((player) => ({
+    ...player,
+    mvp: highestScore > 0 && numberValue(player.score) === highestScore ? 1 : 0,
+    rating_apa: calculateRatingAPA(player),
+  }));
 
-  const teamStats: TeamMatchStats[] = [
-    { ...localRaw, equipo: localTeam },
-    { ...visitorRaw, equipo: visitorTeam },
-  ];
-
-  const txtSegments: MatchTxtSegmentInput[] = validSegments.map((segment) => ({
+  const txtSegments: MatchTxtSegmentInput[] = filteredSegments.map((segment) => ({
     archivo_nombre: segment.fileName,
     archivo_hash: segment.fileHash,
     orden_txt: segment.order,
-    duracion_minutos: segment.minutes || null,
-    goles_local: numberValue(segment.localStats?.goals),
-    goles_visitante: numberValue(segment.visitorStats?.goals),
+    duracion_minutos: segment.minutes,
+    goles_local: numberValue(segment.localTeam?.goals),
+    goles_visitante: numberValue(segment.visitorTeam?.goals),
     payload: segment.payload,
   }));
 
   const aliases: PlayerAliasInput[] = Object.values(resolutions)
-    .filter(
-      (resolution) =>
-        resolution.action === "map" &&
-        resolution.saveAlias &&
-        resolution.rawPlayerId &&
-        resolution.canonicalPlayerId &&
-        resolution.rawPlayerId !== resolution.canonicalPlayerId,
-    )
+    .filter((resolution) => resolution.saveAlias && resolution.action === "map")
     .map((resolution) => ({
       alias_player_id: resolution.rawPlayerId,
       canonical_player_id: resolution.canonicalPlayerId,
@@ -351,13 +321,14 @@ export function buildTxtCommitData({
       equipo: resolution.team,
     }));
 
+  const result = `${numberValue(teamStats[0]?.goals)}-${numberValue(teamStats[1]?.goals)}`;
+
   return {
-    validSegments,
-    players,
+    result,
     teamStats,
+    players: playerStats,
     txtSegments,
     aliases,
-    result: `${numberValue(localRaw.goals)}-${numberValue(visitorRaw.goals)}`,
   };
 }
 
@@ -373,14 +344,21 @@ export function reconciliationRows({
   visitorTeam: string;
 }) {
   return [localTeam, visitorTeam].map((team) => {
-    const teamStats = teams.find((item) => item.equipo === team);
-    const playerRows = players.filter((player) => player.equipo === team);
+    const playerGoals = players
+      .filter((player) => normalizeMatchText(player.equipo) === normalizeMatchText(team))
+      .reduce((sum, player) => sum + numberValue(player.goals), 0);
+    const playerAssists = players
+      .filter((player) => normalizeMatchText(player.equipo) === normalizeMatchText(team))
+      .reduce((sum, player) => sum + numberValue(player.assists), 0);
+    const row = teams.find(
+      (teamRow) => normalizeMatchText(teamRow.equipo) === normalizeMatchText(team),
+    );
     return {
       team,
-      teamGoals: numberValue(teamStats?.goals),
-      playerGoals: playerRows.reduce((sum, player) => sum + numberValue(player.goals), 0),
-      teamAssists: numberValue(teamStats?.assists),
-      playerAssists: playerRows.reduce((sum, player) => sum + numberValue(player.assists), 0),
+      teamGoals: numberValue(row?.goals),
+      playerGoals,
+      teamAssists: numberValue(row?.assists),
+      playerAssists,
     };
   });
 }
