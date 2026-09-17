@@ -14,6 +14,7 @@ import {
 
 const EDITOR_ATTR = "data-apa-editor-selected";
 const HOVER_ATTR = "data-apa-editor-hover";
+const REMOVED_ATTR = "data-apa-editor-removed";
 
 function getBreakpoint(): UniversalBreakpoint {
   if (window.innerWidth <= 640) return "mobile";
@@ -36,18 +37,59 @@ function elementSelector(element: Element): string {
   return `body > ${parts.join(" > ")}`;
 }
 
+function applyCss(element: HTMLElement, css: Record<string, string>) {
+  for (const [property, value] of Object.entries(css)) {
+    const key = property as keyof CSSStyleDeclaration;
+    if (element.style[key] !== value) {
+      Object.assign(element.style, { [property]: value });
+    }
+  }
+}
+
 function applyDocument(documentValue: UniversalEditorDocument, breakpoint: UniversalBreakpoint) {
   for (const rule of Object.values(documentValue.rules)) {
     const element = document.querySelector(rule.selector) as HTMLElement | null;
     if (!element) continue;
+
+    if (rule.removed) {
+      element.setAttribute(REMOVED_ATTR, "true");
+      if (element.style.display !== "none") element.style.display = "none";
+      continue;
+    }
+
+    if (element.getAttribute(REMOVED_ATTR) === "true") {
+      element.removeAttribute(REMOVED_ATTR);
+      element.style.removeProperty("display");
+    }
+
     const css = styleToCss(styleForBreakpoint(rule, breakpoint));
-    Object.assign(element.style, css);
-    if (rule.text !== undefined && !["INPUT", "TEXTAREA", "SELECT", "IMG"].includes(element.tagName)) element.textContent = rule.text;
-    if (rule.href !== undefined && element instanceof HTMLAnchorElement) element.href = rule.href;
-    if (rule.src !== undefined && element instanceof HTMLImageElement) element.src = rule.src;
+    applyCss(element, css);
+
+    if (
+      rule.text !== undefined &&
+      !["INPUT", "TEXTAREA", "SELECT", "IMG"].includes(element.tagName) &&
+      element.textContent !== rule.text
+    ) {
+      element.textContent = rule.text;
+    }
+
+    if (rule.href !== undefined && element instanceof HTMLAnchorElement) {
+      const currentHref = element.getAttribute("href") || "";
+      if (currentHref !== rule.href) element.setAttribute("href", rule.href);
+    }
+
+    if (rule.src !== undefined && element instanceof HTMLImageElement) {
+      const currentSrc = element.getAttribute("src") || "";
+      if (currentSrc !== rule.src) element.setAttribute("src", rule.src);
+    }
   }
-  if (documentValue.page.background) document.body.style.background = documentValue.page.background;
-  if (documentValue.page.fontFamily) document.body.style.fontFamily = documentValue.page.fontFamily;
+
+  if (documentValue.page.background && document.body.style.background !== documentValue.page.background) {
+    document.body.style.background = documentValue.page.background;
+  }
+  if (documentValue.page.fontFamily && document.body.style.fontFamily !== documentValue.page.fontFamily) {
+    document.body.style.fontFamily = documentValue.page.fontFamily;
+  }
 }
 
 export default function SiteEditorRuntime() {
@@ -70,18 +112,68 @@ export default function SiteEditorRuntime() {
   useEffect(() => {
     const pageKey = pageKeyForPathname(pathname);
     if (!pageKey || pageKey === "home" || editorMode) return;
+
     let active = true;
+    let frame = 0;
+
+    const reapply = () => {
+      if (!active || !currentDocument.current || frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        if (!active || !currentDocument.current) return;
+        applyDocument(currentDocument.current, getBreakpoint());
+      });
+    };
+
+    const observer = new MutationObserver((mutations) => {
+      const needsReapply = mutations.some((mutation) =>
+        mutation.type === "childList" || mutation.type === "characterData"
+      );
+      if (needsReapply) reapply();
+    });
+
     async function loadPublished() {
-      const { data } = await supabase.from("site_public_pages").select("document").eq("page_key", pageKey).maybeSingle();
-      if (!active || !data?.document) return;
-      const normalized = normalizeUniversalDocument(data.document, pageKey!, pathname);
+      const { data, error } = await supabase
+        .from("site_public_pages")
+        .select("document")
+        .eq("page_key", pageKey)
+        .maybeSingle();
+
+      if (!active) return;
+      if (error) {
+        console.error(`[APA editor] No se pudo cargar la versión publicada de ${pageKey}:`, error);
+        return;
+      }
+      if (!data?.document) return;
+
+      const normalized = normalizeUniversalDocument(data.document, pageKey, pathname);
       currentDocument.current = normalized;
       applyDocument(normalized, getBreakpoint());
+
+      observer.observe(document.body, {
+        subtree: true,
+        childList: true,
+        characterData: true,
+      });
+
+      window.setTimeout(reapply, 0);
+      window.setTimeout(reapply, 100);
+      window.setTimeout(reapply, 350);
+      window.setTimeout(reapply, 900);
     }
+
     void loadPublished();
-    const onResize = () => currentDocument.current && applyDocument(currentDocument.current, getBreakpoint());
+
+    const onResize = () => reapply();
     window.addEventListener("resize", onResize);
-    return () => { active = false; window.removeEventListener("resize", onResize); };
+
+    return () => {
+      active = false;
+      observer.disconnect();
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", onResize);
+      currentDocument.current = null;
+    };
   }, [editorMode, pathname]);
 
   useEffect(() => {
@@ -141,12 +233,14 @@ export default function SiteEditorRuntime() {
     document.addEventListener("click", onClick, true);
     window.addEventListener("message", onMessage);
     window.parent.postMessage({ type: "APA_EDITOR_READY", pathname }, window.location.origin);
+
     return () => {
       document.removeEventListener("mouseover", onMouseOver, true);
       document.removeEventListener("click", onClick, true);
       window.removeEventListener("message", onMessage);
       document.querySelectorAll(`[${EDITOR_ATTR}="true"], [${HOVER_ATTR}="true"]`).forEach((node) => {
-        node.removeAttribute(EDITOR_ATTR); node.removeAttribute(HOVER_ATTR);
+        node.removeAttribute(EDITOR_ATTR);
+        node.removeAttribute(HOVER_ATTR);
       });
     };
   }, [editorMode, pathname]);
