@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CLUBS_HEADER_MENU, COMPETITION_HEADER_MENU } from "@/config/navigation";
+import { SOCIAL_LINKS } from "@/config/social";
 import APAUserMenu from "./APAUserMenu";
 import estilos from "./APAHeader.module.css";
 
@@ -77,22 +78,22 @@ function menuItemActivo(pathname: string, href: string) {
 const redes = [
   {
     label: "Discord",
-    href: "https://discord.gg/WCyqeJMmCU",
+    href: SOCIAL_LINKS.discord,
     icon: <IconoDiscord />,
   },
   {
     label: "X",
-    href: "https://x.com/APAPSOARGENTINA",
+    href: SOCIAL_LINKS.x,
     icon: <IconoX />,
   },
   {
     label: "Instagram",
-    href: "https://www.instagram.com/apapsoargentina/",
+    href: SOCIAL_LINKS.instagram,
     icon: <IconoInstagram />,
   },
   {
     label: "YouTube",
-    href: "https://www.youtube.com/@APAPSOARGENTINA",
+    href: SOCIAL_LINKS.youtube,
     icon: <IconoYoutube />,
   },
 ];
