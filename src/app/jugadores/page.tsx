@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 
 type RankingTab = "general" | "goles" | "asistencias" | "mvps" | "rating";
 type RankingMode = "temporada" | "historico";
-type CompetitionFilter = "Primera" | "Segunda" | "Copa APA" | "Copa Argentina" | "Copa Campeones" | "Playoffs";
+type CompetitionFilter = "Todas" | "Primera" | "Segunda" | "Copa APA" | "Copa Argentina" | "Copa Campeones" | "Playoffs";
 
 type RankingJugadorRow = {
   temporada?: string | null;
@@ -57,7 +57,7 @@ type ClubInfo = {
   logo_url?: string | null;
 };
 
-const CUP_COMPETITION_KEYS: Record<Exclude<CompetitionFilter, "Primera" | "Segunda">, string> = {
+const CUP_COMPETITION_KEYS: Record<Exclude<CompetitionFilter, "Todas" | "Primera" | "Segunda">, string> = {
   "Copa APA": "copa_apa",
   "Copa Argentina": "copa_argentina",
   "Copa Campeones": "copa_campeones",
@@ -90,6 +90,7 @@ function isLeagueFilter(value: CompetitionFilter) {
 }
 
 function competitionDisplayLabel(value: CompetitionFilter) {
+  if (value === "Todas") return "Todas las competencias";
   return isLeagueFilter(value) ? `${value} División` : value;
 }
 
@@ -155,7 +156,7 @@ function MetricIcon({ type }: { type: RankingTab }) {
 
 export default function JugadoresPage() {
   const [temporada, setTemporada] = useState("Temporada 4");
-  const [division, setDivision] = useState<CompetitionFilter>("Primera");
+  const [division, setDivision] = useState<CompetitionFilter>("Todas");
   const [modo, setModo] = useState<RankingMode>("temporada");
   const [clubFilter, setClubFilter] = useState("Todos");
   const [activeTab, setActiveTab] = useState<RankingTab>("general");
@@ -249,13 +250,16 @@ export default function JugadoresPage() {
           list = Array.from(map.values());
         }
       } else {
-        const competitionKey = CUP_COMPETITION_KEYS[division];
-        const matchesResult = await supabase
+        let matchesQuery = supabase
           .from("partidos")
           .select("partido_id")
-          .eq("temporada", temporada)
-          .eq("competicion", competitionKey);
+          .eq("temporada", temporada);
 
+        if (division !== "Todas") {
+          matchesQuery = matchesQuery.eq("competicion", CUP_COMPETITION_KEYS[division]);
+        }
+
+        const matchesResult = await matchesQuery;
         loadError = matchesResult.error;
 
         if (!matchesResult.error) {
@@ -466,6 +470,7 @@ export default function JugadoresPage() {
                   <label className="block">
                     <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-[#567b96]">Competición</span>
                     <select value={division} onChange={(e) => setDivision(e.target.value as CompetitionFilter)} style={selectStyle} className="h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
+                      <option value="Todas" style={selectStyle}>Todas las competencias</option>
                       <option value="Primera" style={selectStyle}>Primera División</option>
                       <option value="Segunda" style={selectStyle}>Segunda División</option>
                       <option value="Copa APA" style={selectStyle}>Copa APA</option>
