@@ -469,3 +469,43 @@
   border-color: #ef7180 !important;
   color: #ffffff !important;
 }
+
+
+/* =========================================================
+   ESTADOS + MARCADOR DEL HISTORIAL — SEMÁNTICOS Y ESTABLES
+   ========================================================= */
+.club-profile-redesign .apa-result-status--win,
+.club-profile-redesign main > section > section:nth-of-type(7) aside a .apa-result-status--win {
+  background: #126a48 !important;
+  border-color: #35c786 !important;
+  color: #ffffff !important;
+}
+
+.club-profile-redesign .apa-result-status--draw,
+.club-profile-redesign main > section > section:nth-of-type(7) aside a .apa-result-status--draw {
+  background: #f4c542 !important;
+  border-color: #ffd86a !important;
+  color: #102f55 !important;
+}
+
+.club-profile-redesign .apa-result-status--loss,
+.club-profile-redesign main > section > section:nth-of-type(7) aside a .apa-result-status--loss {
+  background: #6c2834 !important;
+  border-color: #ef7180 !important;
+  color: #ffffff !important;
+}
+
+.club-profile-redesign .apa-result-status--pending,
+.club-profile-redesign main > section > section:nth-of-type(7) aside a .apa-result-status--pending {
+  background: #e8eef3 !important;
+  border-color: #c7d4de !important;
+  color: #45657f !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(7) aside a [data-history-score="true"] {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #102f55 !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+}
