@@ -28,7 +28,7 @@ function elementSelector(element: Element): string {
   const parts: string[] = [];
   let current: Element | null = element;
   while (current && current !== document.body) {
-    const parent = current.parentElement;
+    const parent: Element | null = current.parentElement;
     if (!parent) break;
     const tag = current.tagName.toLowerCase();
     const siblings = Array.from(parent.children).filter((child) => child.tagName === current!.tagName);
@@ -218,6 +218,7 @@ export default function SiteEditorRuntime() {
   useEffect(() => {
     const pageKey = pageKeyForPathname(pathname);
     if (!pageKey || pageKey === "home" || editorMode) return;
+    const resolvedPageKey: string = pageKey;
 
     let active = true;
     let frame = 0;
@@ -242,17 +243,17 @@ export default function SiteEditorRuntime() {
       const { data, error } = await supabase
         .from("site_public_pages")
         .select("document")
-        .eq("page_key", pageKey)
+        .eq("page_key", resolvedPageKey)
         .maybeSingle();
 
       if (!active) return;
       if (error) {
-        console.error(`[APA editor] No se pudo cargar la versión publicada de ${pageKey}:`, error);
+        console.error(`[APA editor] No se pudo cargar la versión publicada de ${resolvedPageKey}:`, error);
         return;
       }
       if (!data?.document) return;
 
-      const normalized = normalizeUniversalDocument(data.document, pageKey, pathname);
+      const normalized = normalizeUniversalDocument(data.document, resolvedPageKey, pathname);
       currentDocument.current = normalized;
       applyDocument(normalized, getBreakpoint());
 
