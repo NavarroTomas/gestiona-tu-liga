@@ -213,7 +213,8 @@ function applyDocument(documentValue: UniversalEditorDocument, breakpoint: Unive
       const protectedDynamicNode =
         element.closest('[data-editor-component="club-squad-row"]') ||
         element.closest("[data-result-status]") ||
-        element.closest('[data-history-score="true"]');
+        element.closest('[data-history-score="true"]') ||
+        element.closest('[data-history-competition="true"]');
 
       // No aplicar snapshots posicionales viejos a contenido dinámico.
       // Un nth-of-type guardado cuando había N jugadores o determinados
