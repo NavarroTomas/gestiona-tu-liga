@@ -21,9 +21,9 @@ function selectorForElement(element: Element): string {
       parts.unshift(part);
       break;
     }
-    const parent = current.parentElement;
+    const parent: Element | null = current.parentElement;
     if (parent) {
-      const siblings = Array.from(parent.children).filter((child) => child.tagName === current!.tagName);
+      const siblings = Array.from(parent.children).filter((child: Element) => child.tagName === current!.tagName);
       if (siblings.length > 1) part += `:nth-of-type(${siblings.indexOf(current) + 1})`;
     }
     parts.unshift(part);
