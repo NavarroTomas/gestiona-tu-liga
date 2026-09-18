@@ -137,11 +137,6 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     tone: "blue",
     items: [
       {
-        title: "Mercado de pases",
-        description: "Seguí movimientos de jugadores y cambios de club.",
-        href: "/mercado",
-      },
-      {
         title: "Predicciones",
         description: "Pronosticá partidos pendientes y competí en el ranking de usuarios.",
         href: "/entretenimiento/predicciones",
