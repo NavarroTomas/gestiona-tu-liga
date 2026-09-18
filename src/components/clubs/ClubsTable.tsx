@@ -12,7 +12,7 @@ const selectStyle = {
   borderColor: "#c9e3f1",
 } as const;
 
-type SortMode = "position" | "points" | "name" | "goals";
+type SortMode = "position" | "points" | "name" | "goals" | "pj" | "pg" | "pe" | "pp" | "gc" | "dg";
 
 export default function ClubsTable({
   standings,
@@ -30,6 +30,12 @@ export default function ClubsTable({
     if (sortMode === "name") return indexed.sort((a, b) => a.team.nombre.localeCompare(b.team.nombre));
     if (sortMode === "points") return indexed.sort((a, b) => b.team.puntos - a.team.puntos || a.position - b.position);
     if (sortMode === "goals") return indexed.sort((a, b) => b.team.gf - a.team.gf || a.position - b.position);
+    if (sortMode === "pj") return indexed.sort((a, b) => b.team.pj - a.team.pj || a.position - b.position);
+    if (sortMode === "pg") return indexed.sort((a, b) => b.team.pg - a.team.pg || a.position - b.position);
+    if (sortMode === "pe") return indexed.sort((a, b) => b.team.pe - a.team.pe || a.position - b.position);
+    if (sortMode === "pp") return indexed.sort((a, b) => b.team.pp - a.team.pp || a.position - b.position);
+    if (sortMode === "gc") return indexed.sort((a, b) => b.team.gc - a.team.gc || a.position - b.position);
+    if (sortMode === "dg") return indexed.sort((a, b) => b.team.dg - a.team.dg || a.position - b.position);
     return indexed;
   }, [standings, sortMode]);
 
@@ -56,6 +62,12 @@ export default function ClubsTable({
               <option value="position" style={selectStyle}>Posición en la tabla</option>
               <option value="points" style={selectStyle}>Puntos</option>
               <option value="goals" style={selectStyle}>Goles a favor</option>
+              <option value="gc" style={selectStyle}>Goles en contra</option>
+              <option value="dg" style={selectStyle}>Diferencia de gol</option>
+              <option value="pj" style={selectStyle}>Partidos jugados</option>
+              <option value="pg" style={selectStyle}>Ganados</option>
+              <option value="pe" style={selectStyle}>Empatados</option>
+              <option value="pp" style={selectStyle}>Perdidos</option>
               <option value="name" style={selectStyle}>Nombre</option>
             </select>
           </label>
@@ -74,9 +86,28 @@ export default function ClubsTable({
                     <th className="w-14 px-4 py-3 text-center">#</th>
                     <th className="px-4 py-3">Club</th>
                     <th className="px-4 py-3">División</th>
-                    {[
-                      "PJ", "G", "E", "P", "GF", "GC", "DG", "PTS",
-                    ].map((label) => <th key={label} className="px-3 py-3 text-center">{label}</th>)}
+                    {([
+                      ["pj", "PJ"],
+                      ["pg", "G"],
+                      ["pe", "E"],
+                      ["pp", "P"],
+                      ["goals", "GF"],
+                      ["gc", "GC"],
+                      ["dg", "DG"],
+                      ["points", "PTS"],
+                    ] as Array<[SortMode, string]>).map(([key, label]) => (
+                      <th key={key} className="px-2 py-2 text-center">
+                        <button
+                          type="button"
+                          onClick={() => setSortMode(key)}
+                          className={`inline-flex items-center gap-1 rounded px-1.5 py-1 transition hover:bg-white/10 ${sortMode === key ? "bg-white/10 text-[#8ed2f3]" : ""}`}
+                          title={`Ordenar ${label} de mayor a menor`}
+                        >
+                          <span>{label}</span>
+                          <span aria-hidden="true">{sortMode === key ? "↓" : "↕"}</span>
+                        </button>
+                      </th>
+                    ))}
                     <th className="w-16 px-3 py-3" />
                   </tr>
                 </thead>
