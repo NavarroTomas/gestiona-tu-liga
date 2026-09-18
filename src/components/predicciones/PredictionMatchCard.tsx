@@ -37,15 +37,15 @@ export default function PredictionMatchCard({
             {controller.contexto.short} · Fecha {match.fecha || "-"}
           </p>
           <h3 data-editor-part="teams" className="mt-2 text-2xl font-black uppercase tracking-[-.02em] text-[#102f55] md:text-3xl">
-            {match.local} <span className="text-[#2d98d4]">vs</span> {match.visitante}
+            {match.local} <span data-editor-part="versus" className="text-[#2d98d4]">vs</span> {match.visitante}
           </h3>
           <p data-editor-part="start-time" className="mt-2 text-sm text-[#607b90]">{formatPredictionStart(match)}</p>
         </div>
         <div data-editor-part="status" className={`rounded-xl px-4 py-3 ${open ? "bg-[#eaf6fd]" : "bg-[#102f55]"}`}>
-          <p className={`text-[10px] font-black uppercase tracking-[0.18em] ${open ? "text-[#2d98d4]" : "text-[#8ed2f3]"}`}>
+          <p data-editor-part="status-label" className={`text-[10px] font-black uppercase tracking-[0.18em] ${open ? "text-[#2d98d4]" : "text-[#8ed2f3]"}`}>
             {open ? "Votación abierta" : "Votación cerrada"}
           </p>
-          <p className={`mt-1 text-sm font-black ${open ? "text-[#102f55]" : "text-white"}`}>
+          <p data-editor-part="status-detail" className={`mt-1 text-sm font-black ${open ? "text-[#102f55]" : "text-white"}`}>
             {open ? "Hasta el inicio del partido" : "El partido ya comenzó"}
           </p>
         </div>
@@ -91,7 +91,7 @@ export default function PredictionMatchCard({
         {(["local", "empate", "visitante"] as PredictionChoice[]).map((choice) => (
           <button
             key={choice}
-            data-editor-part="choice-button"
+            data-editor-part={`choice-${choice}`}
             type="button"
             disabled={disabled}
             onClick={() => controller.enviarPrediccion(match, choice)}
