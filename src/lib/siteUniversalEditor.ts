@@ -32,6 +32,8 @@ export type UniversalElementRule = {
   selector: string;
   label: string;
   tagName: string;
+  scope?: "individual" | "component";
+  componentName?: string;
   text?: string;
   href?: string;
   src?: string;
