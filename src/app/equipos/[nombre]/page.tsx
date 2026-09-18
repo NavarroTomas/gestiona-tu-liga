@@ -674,19 +674,10 @@ export default function PaginaEquipo() {
   }
 
   function claseResultado(resultado: ResultadoEquipo) {
-    if (resultado === "G") {
-      return "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
-    }
-
-    if (resultado === "E") {
-      return "border-yellow-400/30 bg-yellow-400/10 text-yellow-300";
-    }
-
-    if (resultado === "P") {
-      return "border-red-400/30 bg-red-400/10 text-red-300";
-    }
-
-    return "border-white/10 bg-white/[0.04] text-zinc-400";
+    if (resultado === "G") return "apa-result-status apa-result-status--win";
+    if (resultado === "E") return "apa-result-status apa-result-status--draw";
+    if (resultado === "P") return "apa-result-status apa-result-status--loss";
+    return "apa-result-status apa-result-status--pending";
   }
 
   const estadisticasHistoricasClub =
@@ -1499,7 +1490,10 @@ export default function PaginaEquipo() {
                           {partido.local}
                         </span>
 
-                        <span className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-2 py-1 text-center font-black text-yellow-400">
+                        <span
+                          data-history-score="true"
+                          className="rounded-xl border px-2 py-1 text-center font-black"
+                        >
                           {parsed.golesLocal}-{parsed.golesVisitante}
                         </span>
 
