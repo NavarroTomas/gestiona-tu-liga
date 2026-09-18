@@ -10,16 +10,7 @@ import BienvenidaAPA from "../components/BienvenidaAPA";
 import IntroAPA from "../components/IntroAPA";
 import CookieConsent from "../components/CookieConsent";
 import SiteEditorRuntime from "../components/site-editor/SiteEditorRuntime";
-import {
-  Archivo,
-  Inter,
-  Lora,
-  Manrope,
-  Montserrat,
-  Orbitron,
-  Rajdhani,
-  Space_Grotesk,
-} from "next/font/google";
+import { Inter } from "next/font/google";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,66 +18,7 @@ const inter = Inter({
   display: "swap",
 });
 
-const manrope = Manrope({
-  subsets: ["latin"],
-  variable: "--font-manrope",
-  display: "swap",
-  preload: false,
-});
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-space-grotesk",
-  display: "swap",
-});
-
-const archivo = Archivo({
-  subsets: ["latin"],
-  variable: "--font-archivo",
-  display: "swap",
-  preload: false,
-});
-
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  variable: "--font-montserrat",
-  display: "swap",
-  preload: false,
-});
-
-const rajdhani = Rajdhani({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-rajdhani",
-  display: "swap",
-  preload: false,
-});
-
-const lora = Lora({
-  subsets: ["latin"],
-  variable: "--font-lora",
-  display: "swap",
-  preload: false,
-});
-
-const orbitron = Orbitron({
-  subsets: ["latin"],
-  weight: ["400", "500", "700", "900"],
-  variable: "--font-orbitron",
-  display: "swap",
-  preload: false,
-});
-
-const fontVariables = [
-  inter.variable,
-  manrope.variable,
-  spaceGrotesk.variable,
-  archivo.variable,
-  montserrat.variable,
-  rajdhani.variable,
-  lora.variable,
-  orbitron.variable,
-].join(" ");
+const fontVariables = inter.variable;
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.psoargentina.com"),
