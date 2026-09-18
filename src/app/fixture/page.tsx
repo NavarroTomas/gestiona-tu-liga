@@ -33,14 +33,21 @@ import { getFixtureMatchDate, moveFixtureMonth, type FixtureMatch } from "@/lib/
 function FixtureContent() {
   const searchParams = useSearchParams();
   const requestedSeason = searchParams.get("temporada");
+  const requestedCompetition = searchParams.get("competicion");
   const initialSeason = FIXTURE_CONFIG.seasons.includes(requestedSeason as (typeof FIXTURE_CONFIG.seasons)[number])
     ? String(requestedSeason)
     : FIXTURE_CONFIG.defaultSeason;
+  const initialCompetition = FIXTURE_CONFIG.competitions.some(
+    (competition) => competition.id === requestedCompetition,
+  )
+    ? (requestedCompetition as FixtureCompetitionId)
+    : FIXTURE_CONFIG.defaultCompetition;
+  const initialCompetitionConfig = getFixtureCompetition(initialCompetition);
 
   const [season, setSeason] = useState(initialSeason);
-  const [competitionId, setCompetitionId] = useState<FixtureCompetitionId>(FIXTURE_CONFIG.defaultCompetition);
-  const [division, setDivision] = useState("Primera");
-  const [group, setGroup] = useState("A");
+  const [competitionId, setCompetitionId] = useState<FixtureCompetitionId>(initialCompetition);
+  const [division, setDivision] = useState(initialCompetitionConfig.defaultDivision || initialCompetitionConfig.divisions?.[0] || "Primera");
+  const [group, setGroup] = useState(initialCompetitionConfig.defaultGroup || initialCompetitionConfig.groups?.[0] || "A");
   const [team, setTeam] = useState("all");
   const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [selectedMatch, setSelectedMatch] = useState<FixtureMatch | null>(null);
