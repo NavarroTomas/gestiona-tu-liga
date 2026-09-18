@@ -30,7 +30,7 @@ export default function CopaApaPage() {
   const seasonFormat = getCopaApaSeasonFormat(season);
 
   return (
-    <main className="min-h-screen bg-[#f4f9fd] text-[#102f55]">
+    <main className="apa-tournament-page min-h-screen bg-[#f4f9fd] text-[#102f55]">
       <KnockoutCupHero season={season} hero={COPA_APA_CONFIG.hero} />
       <KnockoutCupTabs
         season={season}
