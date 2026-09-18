@@ -32,7 +32,7 @@ export default function CopaArgentinaPage() {
   const seasonFormat = getCopaArgentinaSeasonFormat(season);
 
   return (
-    <main className="min-h-screen bg-[#f4f9fd] text-[#102f55]">
+    <main className="apa-tournament-page min-h-screen bg-[#f4f9fd] text-[#102f55]">
       <KnockoutCupHero season={season} hero={COPA_ARGENTINA_CONFIG.hero} />
       <KnockoutCupTabs
         season={season}
