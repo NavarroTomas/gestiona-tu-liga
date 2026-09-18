@@ -66,10 +66,14 @@ export default function SiteEditorPage() {
       if (!owner || !active) return setStatus("denied");
       const [draftResult, publishedResult] = await Promise.all([
         supabase.from("site_editor_drafts").select("document,updated_at").eq("page_key", "home").maybeSingle(),
-        supabase.from("site_public_pages").select("document,version_number").eq("page_key", "home").maybeSingle(),
+        supabase.from("site_public_pages").select("document,version_number,published_at").eq("page_key", "home").maybeSingle(),
       ]);
       if (!active) return;
-      const initial = normalizeHomeEditorDocument(draftResult.data?.document ?? publishedResult.data?.document ?? DEFAULT_HOME_EDITOR_DOCUMENT);
+      const draftUpdatedAt = draftResult.data?.updated_at ? new Date(draftResult.data.updated_at).getTime() : 0;
+      const publishedAt = publishedResult.data?.published_at ? new Date(publishedResult.data.published_at).getTime() : 0;
+      const hasNewerDraft = Boolean(draftResult.data?.document) && (!publishedResult.data?.document || draftUpdatedAt > publishedAt);
+      const initialSource = hasNewerDraft ? draftResult.data?.document : publishedResult.data?.document ?? draftResult.data?.document ?? DEFAULT_HOME_EDITOR_DOCUMENT;
+      const initial = normalizeHomeEditorDocument(initialSource);
       setDocument(initial); setUserId(user.id); setPublishedVersion(publishedResult.data?.version_number ?? null); setStatus("ready");
       void loadVersions();
       if (!draftResult.data) await supabase.from("site_editor_drafts").upsert({ page_key: "home", document: initial, updated_by: user.id, updated_at: new Date().toISOString() });
