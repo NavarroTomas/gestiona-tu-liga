@@ -33,7 +33,7 @@ body {
     linear-gradient(180deg, #081018 0%, var(--background) 42%, #05080d 100%);
   color: var(--foreground);
 
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--apa-font-data-first, var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif);
 
   margin: 0;
   padding: 0;
