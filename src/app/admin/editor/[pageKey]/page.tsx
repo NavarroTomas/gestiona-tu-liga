@@ -61,10 +61,14 @@ export default function UniversalSiteEditorPage() {
       if (!owner || !active) return setStatus("denied");
       const [draftResult, publishedResult] = await Promise.all([
         supabase.from("site_editor_drafts").select("document,updated_at").eq("page_key", page.key).maybeSingle(),
-        supabase.from("site_public_pages").select("document,version_number").eq("page_key", page.key).maybeSingle(),
+        supabase.from("site_public_pages").select("document,version_number,published_at").eq("page_key", page.key).maybeSingle(),
       ]);
       if (!active) return;
-      const initial = normalizeUniversalDocument(draftResult.data?.document ?? publishedResult.data?.document, page.key, page.route);
+      const draftUpdatedAt = draftResult.data?.updated_at ? new Date(draftResult.data.updated_at).getTime() : 0;
+      const publishedAt = publishedResult.data?.published_at ? new Date(publishedResult.data.published_at).getTime() : 0;
+      const hasNewerDraft = Boolean(draftResult.data?.document) && (!publishedResult.data?.document || draftUpdatedAt > publishedAt);
+      const initialSource = hasNewerDraft ? draftResult.data?.document : publishedResult.data?.document ?? draftResult.data?.document;
+      const initial = normalizeUniversalDocument(initialSource, page.key, page.route);
       setDocumentValue(initial);
       setUserId(user.id);
       setPublishedVersion(publishedResult.data?.version_number ?? null);
