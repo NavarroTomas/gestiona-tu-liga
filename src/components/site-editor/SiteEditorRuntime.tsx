@@ -57,39 +57,44 @@ function applyCss(element: HTMLElement, css: Record<string, string>) {
 
 function applyDocument(documentValue: UniversalEditorDocument, breakpoint: UniversalBreakpoint) {
   for (const rule of Object.values(documentValue.rules)) {
-    const element = document.querySelector(rule.selector) as HTMLElement | null;
-    if (!element) continue;
+    const elements = Array.from(document.querySelectorAll(rule.selector)).filter(
+      (node): node is HTMLElement => node instanceof HTMLElement,
+    );
+    if (!elements.length) continue;
 
-    if (rule.removed) {
-      element.setAttribute(REMOVED_ATTR, "true");
-      if (element.style.display !== "none") element.style.display = "none";
-      continue;
-    }
+    for (const element of elements) {
+      if (rule.removed) {
+        element.setAttribute(REMOVED_ATTR, "true");
+        if (element.style.display !== "none") element.style.display = "none";
+        continue;
+      }
 
-    if (element.getAttribute(REMOVED_ATTR) === "true") {
-      element.removeAttribute(REMOVED_ATTR);
-      element.style.removeProperty("display");
-    }
+      if (element.getAttribute(REMOVED_ATTR) === "true") {
+        element.removeAttribute(REMOVED_ATTR);
+        element.style.removeProperty("display");
+      }
 
-    const css = styleToCss(styleForBreakpoint(rule, breakpoint));
-    applyCss(element, css);
+      const css = styleToCss(styleForBreakpoint(rule, breakpoint));
+      applyCss(element, css);
 
-    if (
-      rule.text !== undefined &&
-      !["INPUT", "TEXTAREA", "SELECT", "IMG"].includes(element.tagName) &&
-      element.textContent !== rule.text
-    ) {
-      element.textContent = rule.text;
-    }
+      if (
+        rule.text !== undefined &&
+        rule.scope !== "component" &&
+        !["INPUT", "TEXTAREA", "SELECT", "IMG"].includes(element.tagName) &&
+        element.textContent !== rule.text
+      ) {
+        element.textContent = rule.text;
+      }
 
-    if (rule.href !== undefined && element instanceof HTMLAnchorElement) {
-      const currentHref = element.getAttribute("href") || "";
-      if (currentHref !== rule.href) element.setAttribute("href", rule.href);
-    }
+      if (rule.href !== undefined && rule.scope !== "component" && element instanceof HTMLAnchorElement) {
+        const currentHref = element.getAttribute("href") || "";
+        if (currentHref !== rule.href) element.setAttribute("href", rule.href);
+      }
 
-    if (rule.src !== undefined && element instanceof HTMLImageElement) {
-      const currentSrc = element.getAttribute("src") || "";
-      if (currentSrc !== rule.src) element.setAttribute("src", rule.src);
+      if (rule.src !== undefined && rule.scope !== "component" && element instanceof HTMLImageElement) {
+        const currentSrc = element.getAttribute("src") || "";
+        if (currentSrc !== rule.src) element.setAttribute("src", rule.src);
+      }
     }
   }
 
@@ -214,9 +219,23 @@ export default function SiteEditorRuntime() {
       const selector = elementSelector(element);
       const anchor = element instanceof HTMLAnchorElement ? element : element.closest("a");
       const image = element instanceof HTMLImageElement ? element : element.querySelector("img");
+      const component = element.closest("[data-editor-component]");
+      const componentName = component?.getAttribute("data-editor-component") || "";
+      const part = element.closest("[data-editor-part]");
+      const partName = part && component?.contains(part) ? part.getAttribute("data-editor-part") || "" : "";
+      const reusableSelector = componentName
+        ? partName
+          ? `[data-editor-component="${CSS.escape(componentName)}"] [data-editor-part="${CSS.escape(partName)}"]`
+          : element === component
+            ? `[data-editor-component="${CSS.escape(componentName)}"]`
+            : ""
+        : "";
       window.parent.postMessage({
         type: "APA_EDITOR_SELECT",
         selector,
+        reusableSelector,
+        componentName,
+        componentPart: partName,
         tagName: element.tagName.toLowerCase(),
         label: (element.textContent || element.getAttribute("aria-label") || element.tagName).trim().slice(0, 90),
         text: (element.textContent || "").trim().slice(0, 500),
