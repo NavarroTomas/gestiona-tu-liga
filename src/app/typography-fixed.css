@@ -1,28 +1,70 @@
 /*
  * TIPOGRAFÍA GLOBAL APA
  * ---------------------
- * Data First queda fijada como sistema tipográfico oficial del sitio.
- * Se usa Inter para interfaz, títulos, tablas y lectura general.
+ * Inter es la única familia tipográfica oficial del sitio.
+ * Esta hoja tiene prioridad global para evitar que CSS heredado,
+ * módulos, componentes o estilos inline de familia cambien la fuente.
  */
 
 :root {
   --apa-font-data-first: var(--font-inter), Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --apa-font-heading: var(--apa-font-data-first);
+  --apa-font-body: var(--apa-font-data-first);
 }
 
 html,
 body,
+body *,
+body *::before,
+body *::after,
 button,
 input,
 textarea,
 select,
-option {
-  font-family: var(--apa-font-data-first);
+option,
+optgroup,
+table,
+thead,
+tbody,
+tfoot,
+tr,
+th,
+td,
+label,
+a,
+p,
+span,
+div,
+section,
+article,
+aside,
+nav,
+header,
+footer,
+main,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+small,
+strong,
+b,
+em,
+i,
+code,
+pre,
+kbd,
+samp,
+svg,
+svg text {
+  font-family: var(--apa-font-data-first) !important;
 }
 
 h1,
 h2,
 h3 {
-  font-family: var(--apa-font-data-first);
   line-height: 1;
   letter-spacing: -0.035em;
 }
@@ -30,25 +72,11 @@ h3 {
 h4,
 h5,
 h6 {
-  font-family: var(--apa-font-data-first);
   letter-spacing: -0.02em;
 }
 
 p,
 li {
-  font-family: var(--apa-font-data-first);
   line-height: 1.56;
   letter-spacing: 0.002em;
-}
-
-table,
-th,
-td,
-label,
-a,
-button,
-input,
-textarea,
-select {
-  font-family: var(--apa-font-data-first);
 }
