@@ -41,7 +41,7 @@ function PlayoffsContent() {
     .join(" · ");
 
   return (
-    <main className="min-h-screen bg-[#f4f9fd] text-[#102f55]">
+    <main className="apa-tournament-page min-h-screen bg-[#f4f9fd] text-[#102f55]">
       <PlayoffsHero season={season} />
       <PlayoffsTabs season={season} onSeasonChange={setSeason} />
 
@@ -78,7 +78,7 @@ export default function PlayoffsPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen bg-[#f4f9fd] text-[#102f55]">
+        <main className="apa-tournament-page min-h-screen bg-[#f4f9fd] text-[#102f55]">
           <div className="flex min-h-[320px] items-center justify-center text-sm font-bold text-[#7890a7]">
             Cargando Playoffs de Ascenso…
           </div>
