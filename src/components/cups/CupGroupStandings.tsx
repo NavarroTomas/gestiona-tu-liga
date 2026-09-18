@@ -1,7 +1,4 @@
-"use client";
-
 import TeamLink from "@/components/team/TeamLink";
-import { useMemo, useState } from "react";
 import { CUPS_CONFIG, getCupDestination } from "@/config/cups";
 import type { CupStandingRow } from "@/lib/cups/types";
 import { formatCupDate, resultLabel } from "@/lib/cups/utils";
@@ -11,8 +8,6 @@ function formClass(result: "W" | "D" | "L") {
   if (result === "D") return "bg-[#b9c3cc]";
   return "bg-[#f0525d]";
 }
-
-type CupSortKey = "pj" | "pg" | "pe" | "pp" | "dg" | "pts";
 
 export default function CupGroupStandings({
   group,
@@ -25,25 +20,6 @@ export default function CupGroupStandings({
   loading: boolean;
   getLogo: (name?: string | null) => string | null;
 }) {
-  const [sortKey, setSortKey] = useState<CupSortKey | null>(null);
-  const sortedRows = useMemo(
-    () =>
-      sortKey
-        ? [...rows].sort((a, b) => Number(b[sortKey]) - Number(a[sortKey]) || b.pts - a.pts || a.equipo.localeCompare(b.equipo))
-        : rows,
-    [rows, sortKey],
-  );
-  const sortHeader = (key: CupSortKey, label: string) => (
-    <button
-      type="button"
-      onClick={() => setSortKey(key)}
-      className={`inline-flex items-center gap-1 rounded px-1.5 py-1 transition hover:bg-[#dfeef7] ${sortKey === key ? "bg-[#dfeef7] text-[#0e679d]" : ""}`}
-      title={`Ordenar ${label} de mayor a menor`}
-    >
-      <span>{label}</span>
-      <span aria-hidden="true">{sortKey === key ? "↓" : "↕"}</span>
-    </button>
-  );
   return (
     <section className="overflow-hidden rounded-[10px] border border-[#d7e6f0] bg-white text-[#102f55]">
       <header className="flex min-h-[56px] items-center justify-between gap-4 border-b border-[#d7e6f0] bg-[#fbfdff] px-4 py-3 sm:px-5">
@@ -60,12 +36,12 @@ export default function CupGroupStandings({
             <tr className="h-10 border-b border-[#d7e6f0] bg-[#eef6fb] text-[12px] font-black uppercase tracking-[.045em] text-[#244d76]">
               <th className="w-[46px] px-1 text-center">#</th>
               <th className="px-3 text-left">Club</th>
-              <th className="w-[48px] px-1 text-center">{sortHeader("pj", "PJ")}</th>
-              <th className="w-[44px] px-1 text-center">{sortHeader("pg", "G")}</th>
-              <th className="w-[44px] px-1 text-center">{sortHeader("pe", "E")}</th>
-              <th className="w-[44px] px-1 text-center">{sortHeader("pp", "P")}</th>
-              <th className="w-[54px] px-1 text-center">{sortHeader("dg", "DG")}</th>
-              <th className="w-[58px] px-1 text-center">{sortHeader("pts", "PTS")}</th>
+              <th className="w-[48px] px-1 text-center">PJ</th>
+              <th className="w-[44px] px-1 text-center">G</th>
+              <th className="w-[44px] px-1 text-center">E</th>
+              <th className="w-[44px] px-1 text-center">P</th>
+              <th className="w-[54px] px-1 text-center">DG</th>
+              <th className="w-[58px] px-1 text-center">PTS</th>
               <th className="w-[112px] px-2 text-center">Forma</th>
               <th className="w-[178px] px-3 text-left">Próximo rival</th>
             </tr>
@@ -85,7 +61,7 @@ export default function CupGroupStandings({
                 </td>
               </tr>
             ) : (
-              sortedRows.map((row, index) => {
+              rows.map((row, index) => {
                 const position = index + 1;
                 const destination = getCupDestination(position);
                 const logo = getLogo(row.equipo);
