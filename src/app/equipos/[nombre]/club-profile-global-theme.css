@@ -429,8 +429,10 @@
 .club-profile-redesign [data-editor-component="club-squad-row"] [data-editor-part="goals"],
 .club-profile-redesign [data-editor-component="club-squad-row"] [data-editor-part="assists"],
 .club-profile-redesign [data-editor-component="club-squad-row"] [data-editor-part="mvp"],
-.club-profile-redesign [data-editor-component="club-squad-row"] [data-editor-part="profile"] {
-  font-size: 12px !important;
+.club-profile-redesign [data-editor-component="club-squad-row"] [data-editor-part="profile"],
+.club-profile-redesign [data-editor-component="club-squad-row"] [data-editor-part="player"] a,
+.club-profile-redesign [data-editor-component="club-squad-row"] [data-editor-part="profile"] a {
+  font-size: 18px !important;
   line-height: 1.25 !important;
 }
 
