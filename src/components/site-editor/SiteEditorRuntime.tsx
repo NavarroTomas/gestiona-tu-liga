@@ -146,6 +146,60 @@ function applyCss(element: HTMLElement, css: Record<string, string>) {
   }
 }
 
+function enforceClubDynamicStyles() {
+  const statuses = document.querySelectorAll<HTMLElement>("[data-result-status]");
+  statuses.forEach((element) => {
+    const status = element.dataset.resultStatus;
+    const palette =
+      status === "win"
+        ? { background: "#126a48", border: "#35c786", color: "#ffffff" }
+        : status === "draw"
+          ? { background: "#f4c542", border: "#ffd86a", color: "#102f55" }
+          : status === "loss"
+            ? { background: "#8b2635", border: "#ef7180", color: "#ffffff" }
+            : { background: "#e8eef3", border: "#c7d4de", color: "#45657f" };
+
+    element.style.setProperty("background", palette.background, "important");
+    element.style.setProperty("background-color", palette.background, "important");
+    element.style.setProperty("border-color", palette.border, "important");
+    element.style.setProperty("color", palette.color, "important");
+    element.querySelectorAll<HTMLElement>("*").forEach((child) => {
+      child.style.setProperty("color", palette.color, "important");
+    });
+  });
+
+  document.querySelectorAll<HTMLElement>('[data-history-score="true"]').forEach((element) => {
+    element.style.setProperty("background", "#ffffff", "important");
+    element.style.setProperty("background-color", "#ffffff", "important");
+    element.style.setProperty("border-color", "#d1d5db", "important");
+    element.style.setProperty("color", "#102f55", "important");
+    element.style.setProperty("opacity", "1", "important");
+  });
+
+  document.querySelectorAll<HTMLElement>('[data-editor-component="club-squad-row"]').forEach((row) => {
+    const colors: Record<string, string> = {
+      position: "#111827",
+      player: "#111827",
+      goals: "#245f8e",
+      assists: "#111827",
+      mvp: "#111827",
+      profile: "#111827",
+    };
+
+    row.querySelectorAll<HTMLElement>("[data-editor-part]").forEach((part) => {
+      const key = part.dataset.editorPart || "";
+      const color = colors[key];
+      if (!color) return;
+      part.style.setProperty("color", color, "important");
+      part.style.setProperty("opacity", "1", "important");
+      part.querySelectorAll<HTMLElement>("*").forEach((child) => {
+        child.style.setProperty("color", color, "important");
+        child.style.setProperty("opacity", "1", "important");
+      });
+    });
+  });
+}
+
 function applyDocument(documentValue: UniversalEditorDocument, breakpoint: UniversalBreakpoint) {
   annotateAutomaticComponents(documentValue.pageKey);
   for (const rule of Object.values(documentValue.rules)) {
@@ -155,24 +209,17 @@ function applyDocument(documentValue: UniversalEditorDocument, breakpoint: Unive
     if (!elements.length) continue;
 
     for (const element of elements) {
+      const positionalRule = rule.selector.startsWith("body >");
       const protectedDynamicNode =
         element.closest('[data-editor-component="club-squad-row"]') ||
         element.closest("[data-result-status]") ||
         element.closest('[data-history-score="true"]');
 
-      // Filas de plantel, estados y marcadores son datos dinámicos.
-      // No deben heredar ningún override publicado del editor visual:
-      // ni nth-of-type antiguos ni plantillas automáticas generadas sobre
-      // una instantánea concreta del club.
-      if (protectedDynamicNode) {
-        element.style.removeProperty("color");
-        element.style.removeProperty("background");
-        element.style.removeProperty("background-color");
-        element.style.removeProperty("border-color");
-        element.style.removeProperty("font-size");
-        element.style.removeProperty("opacity");
-        continue;
-      }
+      // No aplicar snapshots posicionales viejos a contenido dinámico.
+      // Un nth-of-type guardado cuando había N jugadores o determinados
+      // resultados no debe definir el aspecto de filas nuevas ni de estados
+      // Victoria/Empate/Derrota que cambian según el club.
+      if (positionalRule && protectedDynamicNode) continue;
 
       if (rule.removed) {
         element.setAttribute(REMOVED_ATTR, "true");
@@ -208,6 +255,8 @@ function applyDocument(documentValue: UniversalEditorDocument, breakpoint: Unive
       }
     }
   }
+
+  enforceClubDynamicStyles();
 
   if (documentValue.page.background && document.body.style.background !== documentValue.page.background) {
     document.body.style.background = documentValue.page.background;
