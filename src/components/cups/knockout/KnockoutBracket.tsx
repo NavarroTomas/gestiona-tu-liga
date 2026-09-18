@@ -52,7 +52,7 @@ function PlaceholderTeamRow() {
     <div className="flex h-11 items-center gap-3 border-b border-[#e7eff5] px-4 last:border-b-0">
       <span className="h-9 w-9 rounded-[8px] bg-[#dce8f0]" />
       <span className="h-5 w-[150px] rounded bg-[#dce8f0]" />
-      <span className="ml-auto border-l border-[#dce8f0] pl-5 text-[14px] font-black text-[#9db0bf]">-</span>
+      <span className="ml-auto border-l border-[#dce8f0] pl-5 text-[18px] font-black text-[#9db0bf]">-</span>
     </div>
   );
 }
@@ -86,10 +86,10 @@ function MatchCard({
     return (
       <div className={`flex h-11 items-center gap-3 border-b border-[#e7eff5] px-4 last:border-b-0 ${isWinner ? "bg-[#f0f9fe]" : "bg-white"}`}>
         <TeamLogo name={name} getLogo={getLogo} />
-        <span className={`min-w-0 flex-1 truncate text-[12px] ${isBye ? "font-semibold italic text-[#8ea5b8]" : isWinner ? "font-black text-[#102f55]" : "font-bold text-[#355d83]"}`}>
+        <span className={`min-w-0 flex-1 truncate text-[16px] ${isBye ? "font-semibold italic text-[#8ea5b8]" : isWinner ? "font-black text-[#102f55]" : "font-bold text-[#355d83]"}`}>
           {safeName}
         </span>
-        <strong className={`min-w-[34px] border-l border-[#dce8f0] pl-4 text-center text-[14px] ${isWinner ? "text-[#102f55]" : "text-[#6b8298]"}`}>
+        <strong className={`min-w-[34px] border-l border-[#dce8f0] pl-4 text-center text-[18px] ${isWinner ? "text-[#102f55]" : "text-[#6b8298]"}`}>
           {!name || isBye ? "-" : getKnockoutScore(match, side)}
         </strong>
       </div>
@@ -112,8 +112,8 @@ function MatchCard({
 function StageHeader({ title }: { title: string }) {
   return (
     <header className="flex h-[58px] flex-col items-center justify-center border-b border-[#e2edf4] bg-[linear-gradient(180deg,#edf7fd_0%,#f5fbfe_100%)] text-center">
-      <strong className="text-[14px] font-black uppercase tracking-[-.02em] text-[#102f55]">{title}</strong>
-      <span className="mt-0.5 text-[11px] font-bold text-[#8ea5b8]">-</span>
+      <strong className="text-[18px] font-black uppercase tracking-[-.02em] text-[#102f55]">{title}</strong>
+      <span className="mt-0.5 text-[13px] font-bold text-[#8ea5b8]">-</span>
     </header>
   );
 }
@@ -218,7 +218,7 @@ export default function KnockoutBracket({
                           <TrophyIcon />
                         )}
                         {champion && (
-                          <span className="mt-1 max-w-[230px] truncate text-[12px] font-black uppercase tracking-[.04em] text-[#355d83]">
+                          <span className="mt-1 max-w-[230px] truncate text-[16px] font-black uppercase tracking-[.04em] text-[#355d83]">
                             {champion}
                           </span>
                         )}
@@ -251,7 +251,7 @@ export default function KnockoutBracket({
 
       {showThirdPlace && (
         <div className="mt-4 max-w-[520px] rounded-[12px] border border-[#d7e6f0] bg-white p-4">
-          <p className="mb-3 text-[10px] font-black uppercase tracking-[.14em] text-[#7890a7]">3.º puesto</p>
+          <p className="mb-3 text-[13px] font-black uppercase tracking-[.14em] text-[#7890a7]">3.º puesto</p>
           <MatchCard match={bracket.thirdPlace} getLogo={getLogo} />
         </div>
       )}
