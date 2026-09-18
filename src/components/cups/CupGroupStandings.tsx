@@ -33,7 +33,7 @@ export default function CupGroupStandings({
       <div className="overflow-x-auto">
         <table className="w-full min-w-[760px] table-fixed border-collapse">
           <thead>
-            <tr className="h-10 border-b border-[#d7e6f0] bg-[#eef6fb] text-[10px] font-black uppercase tracking-[.045em] text-[#244d76]">
+            <tr className="h-10 border-b border-[#d7e6f0] bg-[#eef6fb] text-[12px] font-black uppercase tracking-[.045em] text-[#244d76]">
               <th className="w-[46px] px-1 text-center">#</th>
               <th className="px-3 text-left">Club</th>
               <th className="w-[48px] px-1 text-center">PJ</th>
@@ -70,7 +70,7 @@ export default function CupGroupStandings({
                 return (
                   <tr
                     key={row.equipo}
-                    className="group h-[48px] border-b border-[#e4edf3] bg-white text-[11px] font-semibold transition-colors last:border-b-0 hover:bg-[#f5faff] sm:text-[12px]"
+                    className="group h-[48px] border-b border-[#e4edf3] bg-white text-[14px] font-semibold transition-colors last:border-b-0 hover:bg-[#f5faff] sm:text-[15px]"
                   >
                     <td className="relative px-1 text-center font-medium text-[#46698d]">
                       <span
@@ -101,7 +101,7 @@ export default function CupGroupStandings({
                             </span>
                           )}
                         </span>
-                        <span className="truncate font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">
+                        <span className="truncate text-[16px] font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">
                           {row.equipo}
                         </span>
                       </TeamLink>
@@ -112,7 +112,7 @@ export default function CupGroupStandings({
                     <td className="px-1 text-center text-[#45698e]">{row.pe}</td>
                     <td className="px-1 text-center text-[#45698e]">{row.pp}</td>
                     <td className="px-1 text-center text-[#45698e]">{row.dg > 0 ? "+" : ""}{row.dg}</td>
-                    <td className="px-1 text-center text-[12px] font-black text-[#102f55] sm:text-[13px]">{row.pts}</td>
+                    <td className="px-1 text-center text-[16px] font-black text-[#102f55] sm:text-[17px]">{row.pts}</td>
 
                     <td className="px-2">
                       <div className="flex justify-center gap-[5px]">
@@ -147,10 +147,10 @@ export default function CupGroupStandings({
                             )}
                           </span>
                           <span className="min-w-0">
-                            <span className="block truncate text-[10px] font-bold text-[#355d83] transition-colors group-hover/team:text-[#258fcf]">
+                            <span className="block truncate text-[13px] font-bold text-[#355d83] transition-colors group-hover/team:text-[#258fcf]">
                               {row.proximoRival}
                             </span>
-                            <span className="block text-[9px] font-semibold text-[#7d94aa]">{formatCupDate(row.proximoPartido)}</span>
+                            <span className="block text-[11px] font-semibold text-[#7d94aa]">{formatCupDate(row.proximoPartido)}</span>
                           </span>
                         </TeamLink>
                       ) : (
