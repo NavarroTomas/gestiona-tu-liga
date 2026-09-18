@@ -52,7 +52,7 @@ export default function LeagueStandingsTable({
             <th className="hidden w-[62px] px-1 text-center sm:table-cell">DG</th>
             <th className="w-[62px] px-1 text-center sm:w-[70px]">PTS</th>
             <th className="hidden w-[138px] px-3 text-center lg:table-cell">Forma</th>
-            <th className="hidden w-[205px] px-4 text-left xl:table-cell">Próximo rival</th>
+            <th className="hidden w-[72px] px-2 text-center xl:table-cell">Rival</th>
           </tr>
         </thead>
 
@@ -127,21 +127,25 @@ export default function LeagueStandingsTable({
                     </div>
                   </td>
 
-                  <td className="hidden px-4 xl:table-cell">
+                  <td className="hidden px-2 text-center xl:table-cell">
                     {rival ? (
-                      <TeamLink name={rival} className="group/team flex min-w-0 items-center gap-2.5">
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center">
-                          {logos[rival] ? (
-                            <img src={logos[rival]} alt={rival} className="h-7 w-7 object-contain transition-transform group-hover/team:scale-[1.04]" />
-                          ) : (
-                            <span className="flex h-7 w-7 items-center justify-center rounded-[6px] bg-[#edf5fa] text-[8px] font-black text-[#597895]">
-                              {rival.slice(0, 2).toUpperCase()}
-                            </span>
-                          )}
-                        </span>
-                        <span className="truncate text-[11px] font-semibold text-[#355d83] transition-colors group-hover/team:text-[#258fcf] 2xl:text-[12px]">
-                          {rival}
-                        </span>
+                      <TeamLink
+                        name={rival}
+                        ariaLabel={`Ver perfil de ${rival}`}
+                        className="group/team inline-flex h-8 w-8 items-center justify-center"
+                        title={rival}
+                      >
+                        {logos[rival] ? (
+                          <img
+                            src={logos[rival]}
+                            alt={rival}
+                            className="h-7 w-7 object-contain transition-transform group-hover/team:scale-[1.06]"
+                          />
+                        ) : (
+                          <span className="flex h-7 w-7 items-center justify-center rounded-[6px] bg-[#edf5fa] text-[8px] font-black text-[#597895]">
+                            {rival.slice(0, 2).toUpperCase()}
+                          </span>
+                        )}
                       </TeamLink>
                     ) : (
                       <span className="text-[#9aabb9]">—</span>
