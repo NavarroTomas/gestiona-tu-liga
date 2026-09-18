@@ -104,7 +104,7 @@ function RecentResults({
             return (
               <div
                 key={partido.id}
-                className="grid min-h-[54px] grid-cols-[42px_minmax(0,1fr)_44px_minmax(0,1fr)] items-center gap-1.5 border-b border-[#e7eff5] py-2.5 last:border-b-0 transition hover:bg-[#f8fbfd] sm:grid-cols-[46px_minmax(0,1fr)_50px_minmax(0,1fr)] sm:gap-2"
+                className="grid min-h-[54px] grid-cols-[34px_minmax(0,1fr)_38px_minmax(0,1fr)] items-center gap-1 border-b border-[#e7eff5] py-2.5 last:border-b-0 transition hover:bg-[#f8fbfd] sm:grid-cols-[38px_minmax(0,1fr)_42px_minmax(0,1fr)] sm:gap-1.5"
               >
                 <Link
                   href={matchHref}
@@ -114,11 +114,11 @@ function RecentResults({
                   {textoFechaPartido(partido)}
                 </Link>
 
-                <TeamLink name={partido.local} className="group/team flex min-w-0 items-center gap-1.5 sm:gap-2">
-                  <span className="transition-transform group-hover/team:scale-[1.04]">
+                <TeamLink name={partido.local} title={partido.local} className="group/team grid min-w-0 grid-cols-[24px_minmax(0,1fr)] items-center gap-1.5 overflow-hidden sm:grid-cols-[28px_minmax(0,1fr)]">
+                  <span className="flex shrink-0 justify-center transition-transform group-hover/team:scale-[1.04]">
                     <TeamMiniCrest nombre={partido.local} logo={obtenerLogo(partido.local)} />
                   </span>
-                  <span className="truncate text-[10px] font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf] sm:text-[11px]">{partido.local}</span>
+                  <span className="min-w-0 truncate text-[10px] font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf] sm:text-[11px]">{partido.local}</span>
                 </TeamLink>
 
                 <Link
@@ -129,9 +129,9 @@ function RecentResults({
                   {partido.resultado}
                 </Link>
 
-                <TeamLink name={partido.visitante} className="group/team flex min-w-0 items-center justify-end gap-1.5 sm:gap-2">
-                  <span className="truncate text-right text-[10px] font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf] sm:text-[11px]">{partido.visitante}</span>
-                  <span className="transition-transform group-hover/team:scale-[1.04]">
+                <TeamLink name={partido.visitante} title={partido.visitante} className="group/team grid min-w-0 grid-cols-[minmax(0,1fr)_24px] items-center gap-1.5 overflow-hidden sm:grid-cols-[minmax(0,1fr)_28px]">
+                  <span className="min-w-0 truncate text-right text-[10px] font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf] sm:text-[11px]">{partido.visitante}</span>
+                  <span className="flex shrink-0 justify-center transition-transform group-hover/team:scale-[1.04]">
                     <TeamMiniCrest nombre={partido.visitante} logo={obtenerLogo(partido.visitante)} />
                   </span>
                 </TeamLink>
