@@ -91,11 +91,23 @@ export function useSquads() {
       }
 
       const divisionKey = normalizeSquadDivision(division);
-      setPlayers(
-        ((playersRes.data || []) as SquadPlayer[]).filter(
-          (player) => normalizeSquadDivision(player.division) === divisionKey,
-        ),
+      const activePlayers = ((playersRes.data || []) as SquadPlayer[]).filter((player) => {
+        if (normalizeSquadDivision(player.division) !== divisionKey) return false;
+        const status = normalizeName(player.estado);
+        return status !== "baja";
+      });
+
+      const uniquePlayers = Array.from(
+        activePlayers.reduce((map, player) => {
+          const playerKey = String(player.playerid || "").trim();
+          const fallbackKey = `${normalizeName(player.equipo)}::${normalizeName(player.jugador)}`;
+          const key = playerKey || fallbackKey;
+          if (!map.has(key)) map.set(key, player);
+          return map;
+        }, new Map<string, SquadPlayer>()).values(),
       );
+
+      setPlayers(uniquePlayers);
       const clubsForSeason = (clubsRes.data || []) as SquadClub[];
       setSeasonClubs(clubsForSeason);
       setClubs(
