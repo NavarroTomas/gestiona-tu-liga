@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import TeamLink from "@/components/team/TeamLink";
 import { teamHref } from "@/lib/teams/teamRoutes";
 import type { SquadClub, SquadPlayerView } from "@/lib/squads/types";
@@ -48,6 +51,8 @@ function TrophyIcon() {
   );
 }
 
+type SortKey = "pj" | "goles" | "asistencias" | "mvps" | "rating";
+
 export default function SquadRoster({
   club,
   clubName,
@@ -71,21 +76,46 @@ export default function SquadRoster({
         .includes("capitan"),
     )?.jugador || "Por definir";
   const profileHref = teamHref({ name: clubName, slug: club?.slug }) || "/clubes";
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+
+  const sortedPlayers = useMemo(() => {
+    if (!sortKey) return players;
+    return [...players].sort((a, b) => {
+      const diff = Number(b[sortKey] || 0) - Number(a[sortKey] || 0);
+      if (diff !== 0) return diff;
+      return a.jugador.localeCompare(b.jugador, "es");
+    });
+  }, [players, sortKey]);
+
+  const sortLabel = (key: SortKey, label: string) => (
+    <button
+      type="button"
+      onClick={() => setSortKey(key)}
+      className={`inline-flex items-center gap-1 rounded-md px-2 py-1 transition hover:bg-[#dff2fb] hover:text-[#0f5f93] ${sortKey === key ? "bg-[#dff2fb] text-[#0f5f93]" : ""}`}
+      title={`Ordenar ${label} de mayor a menor`}
+    >
+      <span>{label}</span>
+      <span aria-hidden="true">{sortKey === key ? "↓" : "↕"}</span>
+    </button>
+  );
+
 
   return (
     <section className="mx-auto grid max-w-[1680px] gap-4 px-5 py-5 sm:px-8 xl:grid-cols-[minmax(0,1fr)_360px] lg:px-10">
       <div className="min-w-0 space-y-3">
         <div className="overflow-hidden rounded-[10px] border border-[#d6e9f3] bg-white">
           <div className="flex min-w-0 items-center gap-4 px-4 py-4 sm:px-5">
-            <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#eef7fc] sm:h-20 sm:w-20">
-              {club?.logo_url ? (
-                <img src={club.logo_url} alt="" className="h-full w-full object-contain p-2" />
-              ) : (
-                <span className="text-xl font-black text-[#6f8ca0]">
-                  {clubName.slice(0, 2).toUpperCase()}
-                </span>
-              )}
-            </span>
+            <TeamLink name={clubName} slug={club?.slug} className="shrink-0" ariaLabel={`Ver perfil de ${clubName}`}>
+              <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl bg-[#eef7fc] transition hover:bg-[#e0f3fc] sm:h-20 sm:w-20">
+                {club?.logo_url ? (
+                  <img src={club.logo_url} alt="" className="h-full w-full object-contain p-2" />
+                ) : (
+                  <span className="text-xl font-black text-[#6f8ca0]">
+                    {clubName.slice(0, 2).toUpperCase()}
+                  </span>
+                )}
+              </span>
+            </TeamLink>
 
             <div className="min-w-0">
               <TeamLink
@@ -139,14 +169,15 @@ export default function SquadRoster({
                   <th className="px-4 py-3">#</th>
                   <th className="px-4 py-3">Jugador</th>
                   <th className="px-4 py-3 text-center">Posición</th>
-                  <th className="px-4 py-3 text-center">PJ</th>
-                  <th className="px-4 py-3 text-center">Goles</th>
-                  <th className="px-4 py-3 text-center">Asist.</th>
-                  <th className="px-4 py-3 text-center">MVP</th>
+                  <th className="px-2 py-2 text-center">{sortLabel("pj", "PJ")}</th>
+                  <th className="px-2 py-2 text-center">{sortLabel("goles", "Goles")}</th>
+                  <th className="px-2 py-2 text-center">{sortLabel("asistencias", "Asist.")}</th>
+                  <th className="px-2 py-2 text-center">{sortLabel("mvps", "MVP")}</th>
+                  <th className="px-2 py-2 text-center">{sortLabel("rating", "Rating")}</th>
                 </tr>
               </thead>
               <tbody>
-                {players.map((player, index) => (
+                {sortedPlayers.map((player, index) => (
                   <tr
                     key={player.id}
                     className="border-t border-[#e2edf4] text-[12px] font-semibold text-[#173b62] hover:bg-[#f7fcff]"
@@ -172,6 +203,7 @@ export default function SquadRoster({
                     <td className="px-4 py-2.5 text-center">{player.goles}</td>
                     <td className="px-4 py-2.5 text-center">{player.asistencias}</td>
                     <td className="px-4 py-2.5 text-center">{player.mvps}</td>
+                    <td className="px-4 py-2.5 text-center font-black">{player.rating.toFixed(1)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -179,7 +211,7 @@ export default function SquadRoster({
           </div>
 
           <div className="divide-y divide-[#e2edf4] md:hidden">
-            {players.map((player) => (
+            {sortedPlayers.map((player) => (
               <div key={player.id} className="grid grid-cols-[1fr_auto] items-center gap-3 px-4 py-3">
                 <div className="flex min-w-0 items-center gap-3">
                   <PlayerAvatar player={player} />
@@ -203,14 +235,18 @@ export default function SquadRoster({
                 </div>
 
                 <div className="flex gap-3 text-center text-[11px] font-black text-[#315f89]">
-                  <span>
+                  <button type="button" onClick={() => setSortKey("goles")} title="Ordenar por goles">
                     {player.goles}
                     <small className="block text-[8px] uppercase text-[#8aa1b2]">G</small>
-                  </span>
-                  <span>
+                  </button>
+                  <button type="button" onClick={() => setSortKey("asistencias")} title="Ordenar por asistencias">
                     {player.asistencias}
                     <small className="block text-[8px] uppercase text-[#8aa1b2]">A</small>
-                  </span>
+                  </button>
+                  <button type="button" onClick={() => setSortKey("mvps")} title="Ordenar por MVP">
+                    {player.mvps}
+                    <small className="block text-[8px] uppercase text-[#8aa1b2]">MVP</small>
+                  </button>
                 </div>
               </div>
             ))}
@@ -227,18 +263,20 @@ export default function SquadRoster({
       <aside className="space-y-4">
         <div className="overflow-hidden rounded-[10px] border border-[#d6e9f3] bg-white">
           <div className="flex min-h-[210px] flex-col items-center justify-center border-b border-[#dcebf3] bg-[#eef8fd] px-5 py-7 text-center">
-            <span className="flex h-28 w-28 items-center justify-center overflow-hidden sm:h-32 sm:w-32">
-              {club?.logo_url ? (
-                <img src={club.logo_url} alt={`Escudo de ${clubName}`} className="h-full w-full object-contain" />
-              ) : (
-                <span className="flex h-24 w-24 items-center justify-center rounded-full bg-white text-2xl font-black text-[#7390a4]">
-                  {clubName.slice(0, 2).toUpperCase()}
-                </span>
-              )}
-            </span>
-            <strong className="mt-4 block text-[18px] font-black uppercase leading-tight text-[#102f55]">
-              {clubName}
-            </strong>
+            <TeamLink name={clubName} slug={club?.slug} className="flex flex-col items-center" ariaLabel={`Ver perfil de ${clubName}`}>
+              <span className="flex h-28 w-28 items-center justify-center overflow-hidden sm:h-32 sm:w-32">
+                {club?.logo_url ? (
+                  <img src={club.logo_url} alt={`Escudo de ${clubName}`} className="h-full w-full object-contain" />
+                ) : (
+                  <span className="flex h-24 w-24 items-center justify-center rounded-full bg-white text-2xl font-black text-[#7390a4]">
+                    {clubName.slice(0, 2).toUpperCase()}
+                  </span>
+                )}
+              </span>
+              <strong className="mt-4 block text-[18px] font-black uppercase leading-tight text-[#102f55]">
+                {clubName}
+              </strong>
+            </TeamLink>
             <span className="mt-1 text-[12px] font-bold text-[#5f7d93]">{division} División</span>
           </div>
 
