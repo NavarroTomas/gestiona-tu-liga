@@ -33,7 +33,7 @@ export default function CupSidebar({
     <aside className="grid items-start gap-4 sm:grid-cols-2 xl:grid-cols-1 xl:self-start">
       <section className="overflow-hidden rounded-[10px] border border-[#d8e7f0] bg-white">
         <header className="flex h-[48px] items-center justify-between border-b border-[#e1edf4] bg-[#f8fbfd] px-4 sm:px-5">
-          <h2 className="text-[15px] font-black uppercase tracking-[-.02em] text-[#102f55] sm:text-[16px]">Próximo partido</h2>
+          <h2 className="text-[18px] font-black uppercase tracking-[-.02em] text-[#102f55] sm:text-[18px]">Próximo partido</h2>
           <Link href="/fixture" className="text-[10px] font-bold text-[#5d7893] transition hover:text-[#2498d8] sm:text-[11px]">Ver fixture →</Link>
         </header>
 
@@ -47,7 +47,7 @@ export default function CupSidebar({
                 <span className="transition-transform group-hover/team:scale-[1.04]">
                   <TeamLogo name={nextMatch.local} getLogo={getLogo} size="lg" />
                 </span>
-                <strong className="max-w-full truncate text-[12px] font-black text-[#173e68] transition-colors group-hover/team:text-[#258fcf] sm:text-[13px]">
+                <strong className="max-w-full truncate text-[16px] font-black text-[#173e68] transition-colors group-hover/team:text-[#258fcf] sm:text-[16px]">
                   {nextMatch.local}
                 </strong>
               </TeamLink>
@@ -67,7 +67,7 @@ export default function CupSidebar({
                 <span className="transition-transform group-hover/team:scale-[1.04]">
                   <TeamLogo name={nextMatch.visitante} getLogo={getLogo} size="lg" />
                 </span>
-                <strong className="max-w-full truncate text-[12px] font-black text-[#173e68] transition-colors group-hover/team:text-[#258fcf] sm:text-[13px]">
+                <strong className="max-w-full truncate text-[16px] font-black text-[#173e68] transition-colors group-hover/team:text-[#258fcf] sm:text-[16px]">
                   {nextMatch.visitante}
                 </strong>
               </TeamLink>
@@ -115,7 +115,7 @@ export default function CupSidebar({
                   <span className="transition-transform group-hover/team:scale-[1.04]">
                     <TeamLogo name={match.local} getLogo={getLogo} size="sm" />
                   </span>
-                  <span className="truncate text-[10px] font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">{match.local}</span>
+                  <span className="truncate text-[13px] font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">{match.local}</span>
                 </TeamLink>
 
                 <Link
@@ -127,7 +127,7 @@ export default function CupSidebar({
                 </Link>
 
                 <TeamLink name={match.visitante} className="group/team flex min-w-0 items-center justify-end gap-1.5">
-                  <span className="truncate text-right text-[10px] font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">{match.visitante}</span>
+                  <span className="truncate text-right text-[13px] font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">{match.visitante}</span>
                   <span className="transition-transform group-hover/team:scale-[1.04]">
                     <TeamLogo name={match.visitante} getLogo={getLogo} size="sm" />
                   </span>
