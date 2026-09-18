@@ -15,7 +15,7 @@
   display: grid;
   place-items: center;
   padding: 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--apa-font-data-first);
   font-size: 13px;
   font-weight: 900;
   line-height: 1;
@@ -65,7 +65,7 @@
 .previewLabel {
   margin: 0;
   color: #2a8fca;
-  font-family: Arial, Helvetica, sans-serif !important;
+  font-family: var(--apa-font-data-first) !important;
   font-size: 9px !important;
   font-weight: 900 !important;
   line-height: 1.2 !important;
@@ -79,7 +79,7 @@
   background: #eef8fd;
   color: #527690;
   padding: 6px 9px;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--apa-font-data-first);
   font-size: 9px;
   font-weight: 800;
   white-space: nowrap;
@@ -90,7 +90,7 @@
   margin-top: 18px;
   margin-bottom: 7px;
   color: #315f89;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--apa-font-data-first);
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.04em;
@@ -105,7 +105,7 @@
   background: #fff !important;
   color: #102f55 !important;
   padding: 0 12px;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--apa-font-data-first);
   font-size: 12px;
   font-weight: 750;
   outline: none;
@@ -160,7 +160,7 @@
 .metrics dt,
 .metrics dd {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--apa-font-data-first);
 }
 
 .metrics dt {
@@ -186,7 +186,7 @@
   border-radius: 8px;
   background: #fff;
   color: #176fa8;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--apa-font-data-first);
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.04em;
