@@ -218,7 +218,7 @@ export default function KnockoutBracket({
                           <TrophyIcon />
                         )}
                         {champion && (
-                          <span className="mt-1 max-w-[230px] truncate text-[16px] font-black uppercase tracking-[.04em] text-[#355d83]">
+                          <span className="mt-2 max-w-[250px] text-center text-[16px] font-black uppercase leading-[1.15] tracking-[.02em] text-[#355d83] whitespace-normal break-words">
                             {champion}
                           </span>
                         )}
