@@ -62,7 +62,6 @@ export default function PredictionMatchCard({
             value={score.local}
             onChange={(event) => controller.actualizarMarcador(match, "local", event.target.value)}
             data-editor-part="local-score-input"
-            data-editor-part="visitor-score-input"
             className="h-11 rounded-lg border border-[#b9ddeb] bg-white text-center text-xl font-black text-[#102f55] outline-none disabled:opacity-50"
           />
           <span data-editor-part="score-separator" className="text-center font-black text-[#2d98d4]">-</span>
@@ -72,6 +71,7 @@ export default function PredictionMatchCard({
             disabled={disabled}
             value={score.visitante}
             onChange={(event) => controller.actualizarMarcador(match, "visitante", event.target.value)}
+            data-editor-part="visitor-score-input"
             className="h-11 rounded-lg border border-[#b9ddeb] bg-white text-center text-xl font-black text-[#102f55] outline-none disabled:opacity-50"
           />
           <p data-editor-part="visitor-name" className="truncate text-sm font-black uppercase text-[#102f55]">{match.visitante}</p>
