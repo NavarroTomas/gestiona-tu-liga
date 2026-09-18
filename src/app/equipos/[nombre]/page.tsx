@@ -1521,7 +1521,7 @@ export default function PaginaEquipo() {
                   <section key={grupo.competicion} className="space-y-2.5">
                     <div
                       data-history-competition="true"
-                      className="sticky top-0 z-10 rounded-xl border border-[#b9d9ea] bg-[#dff2fb] px-3 py-2 shadow-sm"
+                      className="rounded-xl border border-[#b9d9ea] bg-[#dff2fb] px-3 py-2 shadow-sm"
                     >
                       <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#0f3b62]">
                         {grupo.competicion}
