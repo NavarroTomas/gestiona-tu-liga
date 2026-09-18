@@ -33,7 +33,7 @@ export default function CopaCampeonesPage() {
   const displayBracket = withCopaCampeonesPlaceholders(bracket, season);
 
   return (
-    <main className="min-h-screen bg-[#f4f9fd] text-[#102f55]">
+    <main className="apa-tournament-page min-h-screen bg-[#f4f9fd] text-[#102f55]">
       <KnockoutCupHero season={season} hero={COPA_CAMPEONES_CONFIG.hero} />
       <KnockoutCupTabs
         season={season}
