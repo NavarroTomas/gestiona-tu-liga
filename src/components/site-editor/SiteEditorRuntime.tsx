@@ -230,12 +230,27 @@ export default function SiteEditorRuntime() {
             ? `[data-editor-component="${CSS.escape(componentName)}"]`
             : ""
         : "";
+      const componentCandidates = component && componentName
+        ? Array.from(component.querySelectorAll("[data-editor-part]"))
+            .filter((node) => node.closest("[data-editor-component]") === component)
+            .map((node) => {
+              const candidatePart = node.getAttribute("data-editor-part") || "";
+              return {
+                selector: elementSelector(node),
+                reusableSelector: `[data-editor-component="${CSS.escape(componentName)}"] [data-editor-part="${CSS.escape(candidatePart)}"]`,
+                componentPart: candidatePart,
+                tagName: node.tagName.toLowerCase(),
+                label: (node.textContent || node.getAttribute("aria-label") || node.tagName).trim().slice(0, 90),
+              };
+            })
+        : [];
       window.parent.postMessage({
         type: "APA_EDITOR_SELECT",
         selector,
         reusableSelector,
         componentName,
         componentPart: partName,
+        componentCandidates,
         tagName: element.tagName.toLowerCase(),
         label: (element.textContent || element.getAttribute("aria-label") || element.tagName).trim().slice(0, 90),
         text: (element.textContent || "").trim().slice(0, 500),
