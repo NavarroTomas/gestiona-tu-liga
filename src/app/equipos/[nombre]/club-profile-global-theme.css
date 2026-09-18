@@ -389,9 +389,10 @@
 }
 
 .club-profile-redesign [data-result-status="draw"] {
-  background: #dff3ff !important;
-  border-color: #79c8f2 !important;
+  background: #f4c542 !important;
+  border-color: #ffd86a !important;
   color: #102f55 !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.18) !important;
 }
 
 .club-profile-redesign [data-result-status="loss"] {
