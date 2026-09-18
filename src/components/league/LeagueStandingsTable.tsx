@@ -1,4 +1,7 @@
+"use client";
+
 import TeamLink from "@/components/team/TeamLink";
+import { useMemo, useState } from "react";
 import type { FormResult, LeagueStanding } from "@/lib/league/types";
 import { normalizarDivision } from "@/lib/league/utils";
 
@@ -27,6 +30,8 @@ function zonaEquipo(index: number, total: number, division: string) {
   return { barra: "bg-transparent", etiqueta: "" };
 }
 
+type LeagueSortKey = "pj" | "pg" | "pe" | "pp" | "dg" | "puntos";
+
 export default function LeagueStandingsTable({
   tabla,
   logos,
@@ -38,6 +43,27 @@ export default function LeagueStandingsTable({
   proximosRivales: Record<string, string>;
   division: string;
 }) {
+  const [sortKey, setSortKey] = useState<LeagueSortKey | null>(null);
+
+  const rows = useMemo(
+    () =>
+      sortKey
+        ? [...tabla].sort((a, b) => Number(b[sortKey]) - Number(a[sortKey]) || b.puntos - a.puntos || a.nombre.localeCompare(b.nombre))
+        : tabla,
+    [tabla, sortKey],
+  );
+
+  const sortHeader = (key: LeagueSortKey, label: string) => (
+    <button
+      type="button"
+      onClick={() => setSortKey(key)}
+      className={`inline-flex items-center gap-1 rounded px-1.5 py-1 transition hover:bg-[#dfeef7] ${sortKey === key ? "bg-[#dfeef7] text-[#0e679d]" : ""}`}
+      title={`Ordenar ${label} de mayor a menor`}
+    >
+      <span>{label}</span>
+      <span aria-hidden="true">{sortKey === key ? "↓" : "↕"}</span>
+    </button>
+  );
   return (
     <section className="overflow-hidden rounded-[12px] border border-[#d7e6f0] bg-white text-[#102f55]">
       <table className="w-full table-fixed border-collapse">
@@ -45,12 +71,12 @@ export default function LeagueStandingsTable({
           <tr className="h-12 border-b border-[#d7e6f0] bg-[#eef6fb] text-[11px] font-black uppercase tracking-[.045em] text-[#244d76] sm:text-[12px]">
             <th className="w-[48px] px-1 text-center sm:w-[58px]">#</th>
             <th className="px-3 text-left sm:px-4">Club</th>
-            <th className="w-[52px] px-1 text-center sm:w-[60px]">PJ</th>
-            <th className="hidden w-[52px] px-1 text-center md:table-cell">G</th>
-            <th className="hidden w-[52px] px-1 text-center md:table-cell">E</th>
-            <th className="hidden w-[52px] px-1 text-center md:table-cell">P</th>
-            <th className="hidden w-[62px] px-1 text-center sm:table-cell">DG</th>
-            <th className="w-[62px] px-1 text-center sm:w-[70px]">PTS</th>
+            <th className="w-[52px] px-1 text-center sm:w-[60px]">{sortHeader("pj", "PJ")}</th>
+            <th className="hidden w-[52px] px-1 text-center md:table-cell">{sortHeader("pg", "G")}</th>
+            <th className="hidden w-[52px] px-1 text-center md:table-cell">{sortHeader("pe", "E")}</th>
+            <th className="hidden w-[52px] px-1 text-center md:table-cell">{sortHeader("pp", "P")}</th>
+            <th className="hidden w-[62px] px-1 text-center sm:table-cell">{sortHeader("dg", "DG")}</th>
+            <th className="w-[62px] px-1 text-center sm:w-[70px]">{sortHeader("puntos", "PTS")}</th>
             <th className="hidden w-[138px] px-3 text-center lg:table-cell">Forma</th>
             <th className="hidden w-[72px] px-2 text-center xl:table-cell">Rival</th>
           </tr>
@@ -64,8 +90,9 @@ export default function LeagueStandingsTable({
               </td>
             </tr>
           ) : (
-            tabla.map((equipo, index) => {
-              const zona = zonaEquipo(index, tabla.length, division);
+            rows.map((equipo, index) => {
+              const originalIndex = tabla.findIndex((item) => item.nombre === equipo.nombre);
+              const zona = zonaEquipo(originalIndex, tabla.length, division);
               const rival = proximosRivales[equipo.nombre];
 
               return (
