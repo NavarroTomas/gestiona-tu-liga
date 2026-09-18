@@ -770,3 +770,22 @@ table {
   }
 }
 
+
+
+/* =========================================================
+   TIPOGRAFÍA UNIFICADA DE COMPETICIONES
+   Todas las páginas de torneos usan exactamente Inter.
+   ========================================================= */
+.apa-tournament-page,
+.apa-tournament-page *,
+.apa-tournament-page *::before,
+.apa-tournament-page *::after,
+.apa-tournament-page select,
+.apa-tournament-page option,
+.apa-tournament-page optgroup,
+.apa-tournament-page input,
+.apa-tournament-page button,
+.apa-tournament-page textarea,
+.apa-tournament-page svg text {
+  font-family: var(--apa-font-data-first, var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif) !important;
+}
