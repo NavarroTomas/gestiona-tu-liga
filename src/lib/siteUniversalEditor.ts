@@ -62,6 +62,7 @@ export const SITE_EDITOR_PAGES: SiteEditorPageDefinition[] = [
   { key: "home", label: "Inicio", route: "/", group: "General", specialized: true },
   { key: "clubes", label: "Clubes", route: "/clubes", group: "General" },
   { key: "equipos", label: "Equipos", route: "/equipos", group: "General" },
+  { key: "plantillas", label: "Plantillas", route: "/plantillas", group: "Plantillas" },
   { key: "equipo-template", label: "Interior de club", route: "/equipos/Club%20Atl%C3%A9tico%20River%20Plate", group: "Plantillas" },
   { key: "competicion", label: "Competición", route: "/competicion", group: "Competición" },
   { key: "historia", label: "Historia", route: "/historia", group: "Contenido" },
