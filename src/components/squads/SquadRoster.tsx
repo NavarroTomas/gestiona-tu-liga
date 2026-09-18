@@ -122,12 +122,6 @@ export default function SquadRoster({
             >
               Historial
             </Link>
-            <Link
-              href={`/noticias?equipo=${encodeURIComponent(clubName)}`}
-              className="shrink-0 border-b-[3px] border-transparent px-3 py-3 text-[12px] font-black text-[#315f89] transition hover:text-[#168fd4] sm:text-[13px]"
-            >
-              Noticias
-            </Link>
           </nav>
         </div>
 
