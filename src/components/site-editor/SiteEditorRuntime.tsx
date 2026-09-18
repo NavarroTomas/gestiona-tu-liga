@@ -155,6 +155,17 @@ function applyDocument(documentValue: UniversalEditorDocument, breakpoint: Unive
     if (!elements.length) continue;
 
     for (const element of elements) {
+      const positionalRule = rule.selector.startsWith("body >");
+      const protectedDynamicNode =
+        element.closest('[data-editor-component="club-squad-row"]') ||
+        element.closest("[data-result-status]");
+
+      // No aplicar snapshots posicionales viejos a contenido dinámico.
+      // Un nth-of-type guardado cuando había N jugadores o determinados
+      // resultados no debe definir el aspecto de filas nuevas ni de estados
+      // Victoria/Empate/Derrota que cambian según el club.
+      if (positionalRule && protectedDynamicNode) continue;
+
       if (rule.removed) {
         element.setAttribute(REMOVED_ATTR, "true");
         if (element.style.display !== "none") element.style.display = "none";
