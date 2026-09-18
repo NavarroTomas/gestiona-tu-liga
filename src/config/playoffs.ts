@@ -74,7 +74,7 @@ export const PLAYOFFS_CONFIG = {
   // La navegación pública solo muestra secciones que existen realmente.
   tabs: [
     { id: "camino", label: "Camino al ascenso", href: "/competicion/playoffs" },
-    { id: "resultados", label: "Resultados", href: "/fixture/playoffs" },
+    { id: "resultados", label: "Resultados", href: "/fixture?competicion=playoffs" },
     { id: "equipos", label: "Equipos", href: "/clubes" },
   ],
 } as const;
