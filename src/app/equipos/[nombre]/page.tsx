@@ -1519,8 +1519,8 @@ export default function PaginaEquipo() {
               ) : (
                 historialAgrupado.map((grupo) => (
                   <section key={grupo.competicion} className="space-y-2.5">
-                    <div className="sticky top-0 z-10 rounded-xl border border-[#cfe2ee] bg-[#eef8fd] px-3 py-2">
-                      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#245f8e]">
+                    <div className="sticky top-0 z-10 rounded-xl border border-[#b9d9ea] bg-[#dff2fb] px-3 py-2 shadow-sm">
+                      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#0f3b62]">
                         {grupo.competicion}
                       </p>
                     </div>
