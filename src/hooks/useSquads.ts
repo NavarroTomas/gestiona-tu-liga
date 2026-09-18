@@ -30,6 +30,7 @@ export function useSquads() {
   const [rankings, setRankings] = useState<SquadRankingRow[]>([]);
   const [profiles, setProfiles] = useState<SquadPublicProfile[]>([]);
   const [clubs, setClubs] = useState<SquadClub[]>([]);
+  const [seasonClubs, setSeasonClubs] = useState<SquadClub[]>([]);
   const [allSeasons, setAllSeasons] = useState<string[]>([]);
 
   useEffect(() => {
@@ -95,8 +96,10 @@ export function useSquads() {
           (player) => normalizeSquadDivision(player.division) === divisionKey,
         ),
       );
+      const clubsForSeason = (clubsRes.data || []) as SquadClub[];
+      setSeasonClubs(clubsForSeason);
       setClubs(
-        ((clubsRes.data || []) as SquadClub[]).filter(
+        clubsForSeason.filter(
           (club) => normalizeSquadDivision(club.division) === divisionKey,
         ),
       );
@@ -122,11 +125,37 @@ export function useSquads() {
   }, [clubs, clubName]);
 
   const divisions = useMemo(() => {
-    const values = Array.from(
-      new Set(clubs.map((club) => String(club.division || "")).filter(Boolean)),
-    );
+    const normalized = new Map<string, string>();
+
+    seasonClubs.forEach((club) => {
+      const raw = String(club.division || "").trim();
+      const key = normalizeSquadDivision(raw);
+      if (!raw || !key) return;
+
+      const label =
+        key === "primera" ? "Primera" :
+        key === "segunda" ? "Segunda" :
+        raw;
+
+      if (!normalized.has(key)) normalized.set(key, label);
+    });
+
+    const values = Array.from(normalized.entries())
+      .sort(([a], [b]) => {
+        const order = ["primera", "segunda"];
+        const ai = order.indexOf(a);
+        const bi = order.indexOf(b);
+        if (ai !== -1 || bi !== -1) {
+          if (ai === -1) return 1;
+          if (bi === -1) return -1;
+          return ai - bi;
+        }
+        return a.localeCompare(b);
+      })
+      .map(([, label]) => label);
+
     return values.length ? values : ["Primera", "Segunda"];
-  }, [clubs]);
+  }, [seasonClubs]);
 
   const rankingByPlayer = useMemo(() => {
     const map = new Map<string, SquadRankingRow>();
