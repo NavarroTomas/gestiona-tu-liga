@@ -914,6 +914,7 @@ export default function PaginaEquipo() {
                       stats.racha.map((r, index) => (
                         <span
                           key={`${r}-${index}`}
+                          data-result-status={r === "G" ? "win" : r === "E" ? "draw" : r === "P" ? "loss" : "pending"}
                           className={`flex h-9 w-9 items-center justify-center rounded-xl border text-sm font-black ${claseResultado(r)}`}
                         >
                           {r}
@@ -1187,6 +1188,7 @@ export default function PaginaEquipo() {
                 stats.racha.map((r, index) => (
                   <span
                     key={`${r}-forma-${index}`}
+                    data-result-status={r === "G" ? "win" : r === "E" ? "draw" : r === "P" ? "loss" : "pending"}
                     className={`flex h-10 w-10 items-center justify-center rounded-xl border text-sm font-black ${claseResultado(r)}`}
                   >
                     {r}
@@ -1213,6 +1215,7 @@ export default function PaginaEquipo() {
                   >
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <span
+                        data-result-status={parsed.estado === "G" ? "win" : parsed.estado === "E" ? "draw" : parsed.estado === "P" ? "loss" : "pending"}
                         className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase ${claseResultado(parsed.estado)}`}
                       >
                         {parsed.texto}
@@ -1396,17 +1399,18 @@ export default function PaginaEquipo() {
                     plantel.map((jugador, index) => (
                       <tr
                         key={jugador.playerId || jugador.jugador}
+                        data-editor-component="club-squad-row"
                         className={`transition hover:brightness-125 ${
                           index < 3
                             ? "bg-gradient-to-r from-sky-500/14 via-[#071a33] to-[#030b18]"
                             : "bg-gradient-to-r from-[#06152c] via-[#071a33] to-[#030b18]"
                         }`}
                       >
-                        <td className="rounded-l-xl px-4 py-4 font-black text-sky-300">
+                        <td data-editor-part="position" className="rounded-l-xl px-4 py-4 font-black text-sky-300">
                           #{index + 1}
                         </td>
 
-                        <td className="px-4 py-4 font-black uppercase">
+                        <td data-editor-part="player" className="px-4 py-4 font-black uppercase">
                           <Link
                             href={`/jugadores/${jugador.playerId}`}
                             className="block transition hover:text-sky-300"
@@ -1415,19 +1419,19 @@ export default function PaginaEquipo() {
                           </Link>
                         </td>
 
-                        <td className="py-4 text-center font-black text-yellow-400">
+                        <td data-editor-part="goals" className="py-4 text-center font-black text-yellow-400">
                           {jugador.goles}
                         </td>
 
-                        <td className="py-4 text-center font-black text-zinc-300">
+                        <td data-editor-part="assists" className="py-4 text-center font-black text-zinc-300">
                           {jugador.asistencias}
                         </td>
 
-                        <td className="py-4 text-center font-black text-sky-300">
+                        <td data-editor-part="mvp" className="py-4 text-center font-black text-sky-300">
                           {jugador.mvps}
                         </td>
 
-                        <td className="rounded-r-xl px-4 py-4 text-right">
+                        <td data-editor-part="profile" className="rounded-r-xl px-4 py-4 text-right">
                           <Link
                             href={`/jugadores/${jugador.playerId}`}
                             className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-300 transition hover:text-white"
@@ -1479,7 +1483,8 @@ export default function PaginaEquipo() {
                         </p>
 
                         <span
-                          className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase ${claseResultado(parsed.estado)}`}
+                          data-result-status={parsed.estado === "G" ? "win" : parsed.estado === "E" ? "draw" : parsed.estado === "P" ? "loss" : "pending"}
+                        className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase ${claseResultado(parsed.estado)}`}
                         >
                           {parsed.texto}
                         </span>
