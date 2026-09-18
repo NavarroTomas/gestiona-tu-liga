@@ -1,5 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import type { PredictionRankingItem } from "@/hooks/usePredictionRanking";
+
+type PredictionSortKey = "puntos" | "exactos" | "ganadores" | "fallos" | "jugadas";
 
 /** Lista pública del ranking. */
 export default function PredictionRankingList({
@@ -9,6 +14,19 @@ export default function PredictionRankingList({
   ranking: PredictionRankingItem[];
   loading: boolean;
 }) {
+  const [sortKey, setSortKey] = useState<PredictionSortKey>("puntos");
+  const sortedRanking = useMemo(
+    () =>
+      [...ranking].sort((a, b) => {
+        const primary =
+          sortKey === "fallos"
+            ? Number(a[sortKey]) - Number(b[sortKey])
+            : Number(b[sortKey]) - Number(a[sortKey]);
+        return primary || b.puntos - a.puntos || b.exactos - a.exactos || a.nombre.localeCompare(b.nombre);
+      }),
+    [ranking, sortKey],
+  );
+
   if (loading) {
     return (
       <section className="rounded-2xl border border-[#c9e3f1] bg-white p-10 text-center text-sm font-black uppercase tracking-[0.16em] text-[#2d98d4]">
@@ -28,7 +46,26 @@ export default function PredictionRankingList({
 
   return (
     <section className="space-y-3">
-      {ranking.map((item, index) => (
+      <div className="flex flex-wrap gap-2 rounded-2xl border border-[#c9e3f1] bg-white p-3">
+        {([
+          ["puntos", "PTS"],
+          ["exactos", "Exactos"],
+          ["ganadores", "Ganadores"],
+          ["jugadas", "PJ"],
+          ["fallos", "Menos fallos"],
+        ] as Array<[PredictionSortKey, string]>).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setSortKey(key)}
+            className={`rounded-lg border px-3 py-2 text-[10px] font-black uppercase tracking-[0.08em] transition ${sortKey === key ? "border-[#2d98d4] bg-[#eaf7fd] text-[#146f9f]" : "border-[#d8e8f0] bg-white text-[#607b90] hover:bg-[#f7fbfe]"}`}
+          >
+            {label} {sortKey === key ? "↓" : ""}
+          </button>
+        ))}
+      </div>
+
+      {sortedRanking.map((item, index) => (
         <article
           key={item.usuario}
           className={`rounded-2xl border p-4 md:p-5 ${
