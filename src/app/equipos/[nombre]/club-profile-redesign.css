@@ -179,15 +179,15 @@
 }
 
 /* Se elimina todo el lenguaje dorado/amarillo */
-.club-profile-redesign main [class*="border-yellow"] {
+.club-profile-redesign main [class*="border-yellow"]:not([data-result-status]) {
   border-color: #b9ddeb !important;
 }
 
-.club-profile-redesign main [class*="bg-yellow"] {
+.club-profile-redesign main [class*="bg-yellow"]:not([data-result-status]) {
   background: var(--club-pale) !important;
 }
 
-.club-profile-redesign main [class*="text-yellow"] {
+.club-profile-redesign main [class*="text-yellow"]:not([data-result-status]) {
   color: var(--club-blue) !important;
 }
 
