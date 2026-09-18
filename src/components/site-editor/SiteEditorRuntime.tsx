@@ -155,17 +155,24 @@ function applyDocument(documentValue: UniversalEditorDocument, breakpoint: Unive
     if (!elements.length) continue;
 
     for (const element of elements) {
-      const positionalRule = rule.selector.startsWith("body >");
       const protectedDynamicNode =
         element.closest('[data-editor-component="club-squad-row"]') ||
         element.closest("[data-result-status]") ||
         element.closest('[data-history-score="true"]');
 
-      // No aplicar snapshots posicionales viejos a contenido dinámico.
-      // Un nth-of-type guardado cuando había N jugadores o determinados
-      // resultados no debe definir el aspecto de filas nuevas ni de estados
-      // Victoria/Empate/Derrota que cambian según el club.
-      if (positionalRule && protectedDynamicNode) continue;
+      // Filas de plantel, estados y marcadores son datos dinámicos.
+      // No deben heredar ningún override publicado del editor visual:
+      // ni nth-of-type antiguos ni plantillas automáticas generadas sobre
+      // una instantánea concreta del club.
+      if (protectedDynamicNode) {
+        element.style.removeProperty("color");
+        element.style.removeProperty("background");
+        element.style.removeProperty("background-color");
+        element.style.removeProperty("border-color");
+        element.style.removeProperty("font-size");
+        element.style.removeProperty("opacity");
+        continue;
+      }
 
       if (rule.removed) {
         element.setAttribute(REMOVED_ATTR, "true");
