@@ -714,6 +714,68 @@ export default function PaginaEquipo() {
     .slice(-5)
     .reverse();
 
+
+  const historialAgrupado = Array.from(
+    partidos.reduce((acc, partido) => {
+      const competicion = nombreCompeticion(partido);
+      const actuales = acc.get(competicion) || [];
+      actuales.push(partido);
+      acc.set(competicion, actuales);
+      return acc;
+    }, new Map<string, Partido[]>()),
+  )
+    .map(([competicion, lista]) => ({
+      competicion,
+      partidos: [...lista].sort((a, b) => {
+        const fechaA = String(a.dia || "").trim();
+        const fechaB = String(b.dia || "").trim();
+
+        const parseFecha = (value: string) => {
+          const match = value.match(/^(\d{1,2})[\/-](\d{1,2})(?:[\/-](\d{2,4}))?$/);
+          if (!match) return 0;
+          const year = match[3] ? Number(match[3].length === 2 ? `20${match[3]}` : match[3]) : 2000;
+          return new Date(year, Number(match[2]) - 1, Number(match[1])).getTime();
+        };
+
+        const diaA = parseFecha(fechaA);
+        const diaB = parseFecha(fechaB);
+        if (diaA !== diaB) return diaB - diaA;
+
+        const faseOrden: Record<string, number> = {
+          promocion: 70,
+          final_ascenso: 65,
+          final: 60,
+          semifinal: 50,
+          cuartos: 40,
+          octavos: 30,
+        };
+        const faseA = faseOrden[normalizePhase(a.fase)] || 0;
+        const faseB = faseOrden[normalizePhase(b.fase)] || 0;
+        if (faseA !== faseB) return faseB - faseA;
+
+        const numA = Number(String(a.fecha || "").match(/\d+/)?.[0] || 0);
+        const numB = Number(String(b.fecha || "").match(/\d+/)?.[0] || 0);
+        return numB - numA;
+      }),
+    }))
+    .sort((a, b) => {
+      const orden = [
+        "Liga Primera",
+        "Liga Segunda",
+        "Clasificación a Copas",
+        "Copa Argentina",
+        "Copa APA",
+        "Copa de Campeones",
+        "Playoffs de Ascenso",
+      ];
+      const ai = orden.indexOf(a.competicion);
+      const bi = orden.indexOf(b.competicion);
+      if (ai === -1 && bi === -1) return a.competicion.localeCompare(b.competicion);
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    });
+
   function textoPosicion(posicion: number | null) {
     if (!posicion) return "Sin posición";
     if (posicion === 1) return "👑 Líder";
@@ -1449,70 +1511,85 @@ export default function PaginaEquipo() {
               </h2>
             </div>
 
-            <div className="max-h-[680px] space-y-3 overflow-y-auto pr-1">
+            <div className="max-h-[680px] space-y-5 overflow-y-auto pr-1">
               {partidos.length === 0 ? (
                 <p className="text-sm text-zinc-500">
                   Este club aún no disputó partidos oficiales.
                 </p>
               ) : (
-                partidos.map((partido) => {
-                  const parsed = parsePartido(partido);
+                historialAgrupado.map((grupo) => (
+                  <section key={grupo.competicion} className="space-y-2.5">
+                    <div className="sticky top-0 z-10 rounded-xl border border-[#cfe2ee] bg-[#eef8fd] px-3 py-2">
+                      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#245f8e]">
+                        {grupo.competicion}
+                      </p>
+                    </div>
 
-                  return (
-                    <Link
-                      key={partido.id}
-                      href={
-                        partido.partido_id
-                          ? `/estadisticas/${partido.partido_id}`
-                          : "#"
-                      }
-                      className="block rounded-2xl border border-sky-500/20 bg-black/35 p-4 transition hover:border-sky-400/45 hover:bg-sky-500/10"
-                    >
-                      <div className="mb-3 flex items-center justify-between gap-3">
-                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-400">
-                          📅 Fecha {partido.fecha || "-"}
-                        </p>
+                    {grupo.partidos.map((partido) => {
+                      const parsed = parsePartido(partido);
 
-                        <span
-                          data-result-status={parsed.estado === "G" ? "win" : parsed.estado === "E" ? "draw" : parsed.estado === "P" ? "loss" : "pending"}
-                        className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase ${claseResultado(parsed.estado)}`}
+                      return (
+                        <Link
+                          key={partido.id}
+                          href={
+                            partido.partido_id
+                              ? `/estadisticas/${partido.partido_id}`
+                              : "#"
+                          }
+                          className="block rounded-2xl border border-sky-500/20 bg-black/35 p-4 transition hover:border-sky-400/45 hover:bg-sky-500/10"
                         >
-                          {parsed.texto}
-                        </span>
-                      </div>
+                          <div className="mb-3 flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-400">
+                                Fecha {partido.fecha || "-"}
+                              </p>
+                              <p className="mt-1 truncate text-[10px] font-bold text-[#68859a]">
+                                {contextoCompeticion(partido)}
+                              </p>
+                            </div>
 
-                      <div className="grid grid-cols-[1fr_70px_1fr] items-center gap-2">
-                        <span
-                          className={`truncate text-right text-xs font-black ${
-                            parsed.esLocal ? "text-white" : "text-zinc-400"
-                          }`}
-                        >
-                          {partido.local}
-                        </span>
+                            <span
+                              data-result-status={parsed.estado === "G" ? "win" : parsed.estado === "E" ? "draw" : parsed.estado === "P" ? "loss" : "pending"}
+                              className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase ${claseResultado(parsed.estado)}`}
+                            >
+                              {parsed.texto}
+                            </span>
+                          </div>
 
-                        <span
-                          data-history-score="true"
-                          className="rounded-xl border px-2 py-1 text-center font-black"
-                        >
-                          {parsed.golesLocal}-{parsed.golesVisitante}
-                        </span>
+                          <div className="grid grid-cols-[1fr_70px_1fr] items-center gap-2">
+                            <span
+                              className={`truncate text-right text-xs font-black ${
+                                parsed.esLocal ? "text-white" : "text-zinc-400"
+                              }`}
+                            >
+                              {partido.local}
+                            </span>
 
-                        <span
-                          className={`truncate text-left text-xs font-black ${
-                            !parsed.esLocal ? "text-white" : "text-zinc-400"
-                          }`}
-                        >
-                          {partido.visitante}
-                        </span>
-                      </div>
+                            <span
+                              data-history-score="true"
+                              className="rounded-xl border px-2 py-1 text-center font-black"
+                            >
+                              {parsed.golesLocal}-{parsed.golesVisitante}
+                            </span>
 
-                      <div className="mt-3 flex justify-between text-[11px] text-zinc-600">
-                        <span>{partido.temporada || equipoTemporada?.temporada}</span>
-                        <span>{divisionBonita(partido.division || equipoTemporada?.division)}</span>
-                      </div>
-                    </Link>
-                  );
-                })
+                            <span
+                              className={`truncate text-left text-xs font-black ${
+                                !parsed.esLocal ? "text-white" : "text-zinc-400"
+                              }`}
+                            >
+                              {partido.visitante}
+                            </span>
+                          </div>
+
+                          <div className="mt-3 flex justify-between gap-3 text-[11px] text-zinc-600">
+                            <span>{partido.temporada || equipoTemporada?.temporada}</span>
+                            <span className="truncate text-right">{nombreCompeticion(partido)}</span>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </section>
+                ))
               )}
             </div>
           </aside>
