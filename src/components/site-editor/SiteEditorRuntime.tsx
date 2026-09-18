@@ -15,6 +15,8 @@ import {
 const EDITOR_ATTR = "data-apa-editor-selected";
 const HOVER_ATTR = "data-apa-editor-hover";
 const REMOVED_ATTR = "data-apa-editor-removed";
+const AUTO_COMPONENT_ATTR = "data-apa-auto-component";
+const AUTO_PART_ATTR = "data-apa-auto-part";
 
 function getBreakpoint(): UniversalBreakpoint {
   if (window.innerWidth <= 640) return "mobile";
@@ -37,6 +39,95 @@ function elementSelector(element: Element): string {
   return `body > ${parts.join(" > ")}`;
 }
 
+function stableClassName(element: Element) {
+  return Array.from(element.classList)
+    .filter((name) => !name.startsWith("data-") && !name.includes("apa-editor"))
+    .sort()
+    .join(".");
+}
+
+function structuralSignature(element: Element) {
+  const childShape = Array.from(element.children)
+    .slice(0, 8)
+    .map((child) => `${child.tagName.toLowerCase()}.${stableClassName(child)}`)
+    .join("|");
+  return `${element.tagName.toLowerCase()}::${stableClassName(element)}::${childShape}`;
+}
+
+function shortHash(value: string) {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+function relativePartKey(element: Element, root: Element) {
+  const parts: string[] = [];
+  let current: Element | null = element;
+
+  while (current && current !== root) {
+    const parent: Element | null = current.parentElement;
+    if (!parent) break;
+    const signature = `${current.tagName.toLowerCase()}.${stableClassName(current)}`;
+    const siblings = Array.from(parent.children).filter(
+      (child) => `${child.tagName.toLowerCase()}.${stableClassName(child)}` === signature,
+    );
+    parts.unshift(`${current.tagName.toLowerCase()}-${siblings.indexOf(current) + 1}`);
+    current = parent;
+  }
+
+  return parts.join("__");
+}
+
+function annotateAutomaticComponents(pageKey: string) {
+  document.querySelectorAll(`[${AUTO_COMPONENT_ATTR}], [${AUTO_PART_ATTR}]`).forEach((node) => {
+    node.removeAttribute(AUTO_COMPONENT_ATTR);
+    node.removeAttribute(AUTO_PART_ATTR);
+  });
+
+  const rootTags = new Set(["ARTICLE", "LI", "TR", "SECTION", "DIV", "A"]);
+  const parents = Array.from(document.body.querySelectorAll("*")).filter(
+    (node) => node instanceof HTMLElement && node.children.length >= 2,
+  );
+
+  for (const parent of parents) {
+    const groups = new Map<string, Element[]>();
+
+    for (const child of Array.from(parent.children)) {
+      if (!rootTags.has(child.tagName)) continue;
+      if (child.hasAttribute("data-editor-component")) continue;
+      if (child.closest("[data-editor-component]")) continue;
+      if (child.children.length === 0 && child.textContent?.trim().length === 0) continue;
+
+      const signature = structuralSignature(child);
+      const items = groups.get(signature) || [];
+      items.push(child);
+      groups.set(signature, items);
+    }
+
+    for (const [signature, items] of groups) {
+      if (items.length < 2) continue;
+
+      const parentContext = `${parent.tagName.toLowerCase()}::${stableClassName(parent)}`;
+      const componentName = `auto-${shortHash(`${pageKey}::${parentContext}::${signature}`)}`;
+
+      for (const item of items) {
+        item.setAttribute(AUTO_COMPONENT_ATTR, componentName);
+        const descendants = Array.from(item.querySelectorAll("*")).filter(
+          (node) => !node.closest("[data-editor-component]") && !node.hasAttribute(AUTO_COMPONENT_ATTR),
+        );
+
+        for (const descendant of descendants) {
+          const partKey = relativePartKey(descendant, item);
+          if (partKey) descendant.setAttribute(AUTO_PART_ATTR, partKey);
+        }
+      }
+    }
+  }
+}
+
 function applyCss(element: HTMLElement, css: Record<string, string>) {
   for (const [property, value] of Object.entries(css)) {
     if (property === "color") {
@@ -56,6 +147,7 @@ function applyCss(element: HTMLElement, css: Record<string, string>) {
 }
 
 function applyDocument(documentValue: UniversalEditorDocument, breakpoint: UniversalBreakpoint) {
+  annotateAutomaticComponents(documentValue.pageKey);
   for (const rule of Object.values(documentValue.rules)) {
     const elements = Array.from(document.querySelectorAll(rule.selector)).filter(
       (node): node is HTMLElement => node instanceof HTMLElement,
@@ -219,25 +311,48 @@ export default function SiteEditorRuntime() {
       const selector = elementSelector(element);
       const anchor = element instanceof HTMLAnchorElement ? element : element.closest("a");
       const image = element instanceof HTMLImageElement ? element : element.querySelector("img");
-      const component = element.closest("[data-editor-component]");
-      const componentName = component?.getAttribute("data-editor-component") || "";
-      const part = element.closest("[data-editor-part]");
-      const partName = part && component?.contains(part) ? part.getAttribute("data-editor-part") || "" : "";
+      annotateAutomaticComponents(pageKeyForPathname(pathname) || "unknown");
+      const explicitComponent = element.closest("[data-editor-component]");
+      const autoComponent = element.closest(`[${AUTO_COMPONENT_ATTR}]`);
+      const component = explicitComponent || autoComponent;
+      const explicitComponentName = explicitComponent?.getAttribute("data-editor-component") || "";
+      const autoComponentName = autoComponent?.getAttribute(AUTO_COMPONENT_ATTR) || "";
+      const componentName = explicitComponentName || autoComponentName;
+
+      const explicitPart = element.closest("[data-editor-part]");
+      const autoPart = element.closest(`[${AUTO_PART_ATTR}]`);
+      const part = explicitComponent ? explicitPart : autoPart;
+      const partName = part && component?.contains(part)
+        ? explicitComponent
+          ? part.getAttribute("data-editor-part") || ""
+          : part.getAttribute(AUTO_PART_ATTR) || ""
+        : "";
+
+      const componentAttribute = explicitComponent ? "data-editor-component" : AUTO_COMPONENT_ATTR;
+      const partAttribute = explicitComponent ? "data-editor-part" : AUTO_PART_ATTR;
       const reusableSelector = componentName
         ? partName
-          ? `[data-editor-component="${CSS.escape(componentName)}"] [data-editor-part="${CSS.escape(partName)}"]`
+          ? `[${componentAttribute}="${CSS.escape(componentName)}"] [${partAttribute}="${CSS.escape(partName)}"]`
           : element === component
-            ? `[data-editor-component="${CSS.escape(componentName)}"]`
+            ? `[${componentAttribute}="${CSS.escape(componentName)}"]`
             : ""
         : "";
+
       const componentCandidates = component && componentName
-        ? Array.from(component.querySelectorAll("[data-editor-part]"))
-            .filter((node) => node.closest("[data-editor-component]") === component)
+        ? Array.from(component.querySelectorAll(explicitComponent ? "[data-editor-part]" : `[${AUTO_PART_ATTR}]`))
+            .filter((node) => {
+              const owner = explicitComponent
+                ? node.closest("[data-editor-component]")
+                : node.closest(`[${AUTO_COMPONENT_ATTR}]`);
+              return owner === component;
+            })
             .map((node) => {
-              const candidatePart = node.getAttribute("data-editor-part") || "";
+              const candidatePart = explicitComponent
+                ? node.getAttribute("data-editor-part") || ""
+                : node.getAttribute(AUTO_PART_ATTR) || "";
               return {
                 selector: elementSelector(node),
-                reusableSelector: `[data-editor-component="${CSS.escape(componentName)}"] [data-editor-part="${CSS.escape(candidatePart)}"]`,
+                reusableSelector: `[${componentAttribute}="${CSS.escape(componentName)}"] [${partAttribute}="${CSS.escape(candidatePart)}"]`,
                 componentPart: candidatePart,
                 tagName: node.tagName.toLowerCase(),
                 label: (node.textContent || node.getAttribute("aria-label") || node.tagName).trim().slice(0, 90),
