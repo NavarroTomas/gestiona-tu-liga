@@ -1397,11 +1397,11 @@ export default function PaginaEquipo() {
                             : "bg-gradient-to-r from-[#06152c] via-[#071a33] to-[#030b18]"
                         }`}
                       >
-                        <td data-editor-part="position" className="rounded-l-xl px-4 py-4 font-black text-sky-300">
+                        <td data-editor-part="position" className="rounded-l-xl px-4 py-4 font-black text-[#102f55]">
                           #{index + 1}
                         </td>
 
-                        <td data-editor-part="player" className="px-4 py-4 font-black uppercase">
+                        <td data-editor-part="player" className="px-4 py-4 font-black uppercase text-[#102f55]">
                           <Link
                             href={`/jugadores/${jugador.playerId}`}
                             className="block transition hover:text-sky-300"
@@ -1410,22 +1410,22 @@ export default function PaginaEquipo() {
                           </Link>
                         </td>
 
-                        <td data-editor-part="goals" className="py-4 text-center font-black text-yellow-400">
+                        <td data-editor-part="goals" className="py-4 text-center font-black text-[#245f8e]">
                           {jugador.goles}
                         </td>
 
-                        <td data-editor-part="assists" className="py-4 text-center font-black text-zinc-300">
+                        <td data-editor-part="assists" className="py-4 text-center font-black text-[#102f55]">
                           {jugador.asistencias}
                         </td>
 
-                        <td data-editor-part="mvp" className="py-4 text-center font-black text-sky-300">
+                        <td data-editor-part="mvp" className="py-4 text-center font-black text-[#102f55]">
                           {jugador.mvps}
                         </td>
 
                         <td data-editor-part="profile" className="rounded-r-xl px-4 py-4 text-right">
                           <Link
                             href={`/jugadores/${jugador.playerId}`}
-                            className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-300 transition hover:text-white"
+                            className="text-[10px] font-black uppercase tracking-[0.18em] text-[#245f8e] transition hover:text-[#168fd4]"
                           >
                             Ver →
                           </Link>
@@ -1494,7 +1494,7 @@ export default function PaginaEquipo() {
                           data-history-score="true"
                           className="rounded-xl border px-2 py-1 text-center font-black"
                         >
-                          {parsed.golesLocal}-{parsed.golesVisitante}
+                          {parsed.estado === "-" ? "—" : `${parsed.golesLocal}-${parsed.golesVisitante}`}
                         </span>
 
                         <span
