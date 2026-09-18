@@ -295,21 +295,25 @@ export default function UniversalSiteEditorPage() {
       return;
     }
 
-    let converted = 0;
+    const usedTemplates = new Set<string>();
+    const candidatesToConvert = selected.componentCandidates.filter((candidate) => {
+      if (usedTemplates.has(candidate.reusableSelector)) return false;
+      usedTemplates.add(candidate.reusableSelector);
+
+      const source = documentValue.rules[candidate.selector];
+      const existingTemplate = documentValue.rules[candidate.reusableSelector];
+      return Boolean(source && !source.removed && hasMeaningfulStyles(source) && existingTemplate?.scope !== "component");
+    });
+
+    if (!candidatesToConvert.length) {
+      setMessage("No encontré overrides internos modificados para convertir en esta tarjeta.");
+      return;
+    }
+
     commit((draft) => {
-      const usedTemplates = new Set<string>();
-
-      for (const candidate of selected.componentCandidates || []) {
-        if (usedTemplates.has(candidate.reusableSelector)) continue;
-
+      for (const candidate of candidatesToConvert) {
         const source = draft.rules[candidate.selector];
-        if (!source || source.removed || !hasMeaningfulStyles(source)) continue;
-
-        const existingTemplate = draft.rules[candidate.reusableSelector];
-        if (existingTemplate?.scope === "component") {
-          usedTemplates.add(candidate.reusableSelector);
-          continue;
-        }
+        if (!source) continue;
 
         draft.rules[candidate.reusableSelector] = {
           selector: candidate.reusableSelector,
@@ -321,16 +325,10 @@ export default function UniversalSiteEditorPage() {
         };
 
         if (candidate.selector !== candidate.reusableSelector) delete draft.rules[candidate.selector];
-        usedTemplates.add(candidate.reusableSelector);
-        converted += 1;
       }
     });
 
-    if (converted > 0) {
-      setMessage(`${converted} estilos internos modificados se convirtieron en plantillas reutilizables.`);
-    } else {
-      setMessage("No encontré overrides internos modificados para convertir en esta tarjeta.");
-    }
+    setMessage(`${candidatesToConvert.length} estilos internos modificados se convirtieron en plantillas reutilizables.`);
   }
 
   function restoreVersion(version: VersionRow) {
