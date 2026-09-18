@@ -445,3 +445,27 @@
   color: #245f8e !important;
   font-weight: 900 !important;
 }
+
+
+/* Resultado de partido: prioridad máxima sobre estilos heredados del perfil. */
+.club-profile-redesign main > section > section:nth-of-type(5) [data-result-status="win"],
+.club-profile-redesign main > section > section:nth-of-type(7) [data-result-status="win"] {
+  background: #126a48 !important;
+  border-color: #35c786 !important;
+  color: #ffffff !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(5) [data-result-status="draw"],
+.club-profile-redesign main > section > section:nth-of-type(7) [data-result-status="draw"] {
+  background: #f4c542 !important;
+  border-color: #ffd86a !important;
+  color: #102f55 !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.18) !important;
+}
+
+.club-profile-redesign main > section > section:nth-of-type(5) [data-result-status="loss"],
+.club-profile-redesign main > section > section:nth-of-type(7) [data-result-status="loss"] {
+  background: #6c2834 !important;
+  border-color: #ef7180 !important;
+  color: #ffffff !important;
+}
