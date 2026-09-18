@@ -1,7 +1,14 @@
+"use client";
+
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import type { PremiosController } from "@/hooks/usePremios";
 
+type PremiosSortKey = "overallRating" | "score" | "goals" | "assists" | "mvp";
+
 export default function PremiosTop({ controller }: { controller: PremiosController }) {
+  const [sortKey, setSortKey] = useState<PremiosSortKey>("overallRating");
+  const rows = useMemo(() => [...controller.jugadores].sort((a, b) => Number(b[sortKey]) - Number(a[sortKey]) || b.overallRating - a.overallRating || b.score - a.score).slice(0, 10), [controller.jugadores, sortKey]);
   return (
     <section className="rounded-2xl border border-[#c9e3f1] bg-white p-5 md:p-6">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
@@ -9,11 +16,28 @@ export default function PremiosTop({ controller }: { controller: PremiosControll
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#2d98d4]">Top rendimiento</p>
           <h2 className="mt-1 text-2xl font-black uppercase text-[#102f55]">Ranking de la fecha</h2>
         </div>
-        <p className="text-xs text-[#607b90]">Ordenado por rating APA y score.</p>
+        <div className="flex flex-wrap gap-2">
+          {([
+            ["overallRating", "Rating"],
+            ["score", "Score"],
+            ["goals", "Goles"],
+            ["assists", "Asist."],
+            ["mvp", "MVP"],
+          ] as Array<[PremiosSortKey, string]>).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setSortKey(key)}
+              className={`rounded-lg border px-2.5 py-1.5 text-[9px] font-black uppercase transition ${sortKey === key ? "border-[#2d98d4] bg-[#eaf7fd] text-[#146f9f]" : "border-[#d8e8f0] text-[#607b90] hover:bg-[#f7fbfe]"}`}
+            >
+              {label} {sortKey === key ? "↓" : ""}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="mt-5 overflow-hidden rounded-xl border border-[#d8e8f0]">
-        {controller.topGeneral.map((player, index) => {
+        {rows.map((player, index) => {
           const logo = controller.logoEquipo(player.equipo);
           const content = (
             <div className="grid grid-cols-[42px_minmax(0,1fr)_90px] items-center gap-3 border-b border-[#e6f1f6] bg-white px-4 py-3 last:border-b-0 hover:bg-[#f7fbfe] sm:grid-cols-[48px_minmax(0,1fr)_120px_100px]">
