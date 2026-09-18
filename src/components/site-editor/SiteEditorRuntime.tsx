@@ -360,6 +360,14 @@ export default function SiteEditorRuntime() {
               };
             })
         : [];
+      const componentRootSelector = component ? elementSelector(component) : "";
+      const componentRootReusableSelector = componentName
+        ? `[${componentAttribute}="${CSS.escape(componentName)}"]`
+        : "";
+      const componentRootLabel = component
+        ? (component.textContent || component.getAttribute("aria-label") || component.tagName).trim().slice(0, 90)
+        : "";
+
       window.parent.postMessage({
         type: "APA_EDITOR_SELECT",
         selector,
@@ -367,6 +375,10 @@ export default function SiteEditorRuntime() {
         componentName,
         componentPart: partName,
         componentCandidates,
+        componentRootSelector,
+        componentRootReusableSelector,
+        componentRootLabel,
+        componentRootTagName: component?.tagName.toLowerCase() || "",
         tagName: element.tagName.toLowerCase(),
         label: (element.textContent || element.getAttribute("aria-label") || element.tagName).trim().slice(0, 90),
         text: (element.textContent || "").trim().slice(0, 500),
