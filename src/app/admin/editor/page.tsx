@@ -128,9 +128,39 @@ export default function SiteEditorPage() {
 
   async function publish() {
     const saved = await saveDraft(false); if (!saved) return;
-    setSaving(true); const { data, error } = await supabase.rpc("publish_site_page", { p_page_key: "home" }); setSaving(false);
-    if (error) return setMessage(`No se pudo publicar: ${error.message}`);
-    setPublishedVersion(Number(data)); setMessage(`Publicado correctamente · versión ${Number(data)}`); await loadVersions();
+    setSaving(true);
+    const { data, error } = await supabase.rpc("publish_site_page", { p_page_key: "home" });
+    if (error) { setSaving(false); return setMessage(`No se pudo publicar: ${error.message}`); }
+
+    const expectedVersion = Number(data);
+    const [{ data: publishedCheck, error: publishedCheckError }, { data: versionCheck, error: versionCheckError }] = await Promise.all([
+      supabase.from("site_public_pages").select("version_number,published_at").eq("page_key", "home").maybeSingle(),
+      supabase.from("site_editor_versions").select("version_number").eq("page_key", "home").eq("version_number", expectedVersion).maybeSingle(),
+    ]);
+    setSaving(false);
+
+    if (
+      !Number.isFinite(expectedVersion) ||
+      expectedVersion <= 0 ||
+      publishedCheckError ||
+      versionCheckError ||
+      !publishedCheck ||
+      Number(publishedCheck.version_number) !== expectedVersion ||
+      !versionCheck
+    ) {
+      console.error("[APA editor] La publicación de inicio no pudo verificarse", {
+        expectedVersion,
+        publishedCheck,
+        publishedCheckError,
+        versionCheck,
+        versionCheckError,
+      });
+      return setMessage("La publicación no pudo verificarse en la base. No se marcó como publicada.");
+    }
+
+    setPublishedVersion(expectedVersion);
+    setMessage(`Publicado y verificado · versión ${expectedVersion}`);
+    await loadVersions();
   }
 
   function selectSection(id: HomeSectionId) { setEditingGlobal(false); setSelectedSection(id); setSelectedElement(null); setTab("layout"); }
