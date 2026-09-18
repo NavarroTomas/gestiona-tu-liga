@@ -509,3 +509,16 @@
   opacity: 1 !important;
   box-shadow: none !important;
 }
+
+
+/* Encabezados de competición del historial: siempre legibles. */
+.club-profile-redesign [data-history-competition="true"] {
+  background: #dff2fb !important;
+  border-color: #b9d9ea !important;
+}
+
+.club-profile-redesign [data-history-competition="true"],
+.club-profile-redesign [data-history-competition="true"] * {
+  color: #0f3b62 !important;
+  opacity: 1 !important;
+}
