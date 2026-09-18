@@ -376,3 +376,69 @@
     padding: 14px !important;
   }
 }
+
+
+/* =========================================================
+   ESTADOS DE RESULTADO — CONTRASTE ESTABLE
+   No dependen de utilidades yellow/red/emerald que otras hojas puedan pisar.
+   ========================================================= */
+.club-profile-redesign [data-result-status="win"] {
+  background: #126a48 !important;
+  border-color: #35c786 !important;
+  color: #ffffff !important;
+}
+
+.club-profile-redesign [data-result-status="draw"] {
+  background: #dff3ff !important;
+  border-color: #79c8f2 !important;
+  color: #102f55 !important;
+}
+
+.club-profile-redesign [data-result-status="loss"] {
+  background: #6c2834 !important;
+  border-color: #ef7180 !important;
+  color: #ffffff !important;
+}
+
+.club-profile-redesign [data-result-status="pending"] {
+  background: #e8eef3 !important;
+  border-color: #c7d4de !important;
+  color: #45657f !important;
+}
+
+/* =========================================================
+   PLANTEL — TODAS LAS FILAS ACTUALES Y FUTURAS
+   Evita que una nueva última fila quede fuera de overrides posicionales.
+   ========================================================= */
+.club-profile-redesign [data-editor-component="club-squad-row"],
+.club-profile-redesign [data-editor-component="club-squad-row"]:nth-child(even),
+.club-profile-redesign [data-editor-component="club-squad-row"]:hover {
+  background: #ffffff !important;
+  color: #102f55 !important;
+}
+
+.club-profile-redesign [data-editor-component="club-squad-row"] td,
+.club-profile-redesign [data-editor-component="club-squad-row"] td *,
+.club-profile-redesign [data-editor-component="club-squad-row"] a {
+  color: #102f55 !important;
+  opacity: 1 !important;
+}
+
+.club-profile-redesign [data-editor-component="club-squad-row"] [data-editor-part="position"],
+.club-profile-redesign [data-editor-component="club-squad-row"] [data-editor-part="player"],
+.club-profile-redesign [data-editor-component="club-squad-row"] [data-editor-part="goals"],
+.club-profile-redesign [data-editor-component="club-squad-row"] [data-editor-part="assists"],
+.club-profile-redesign [data-editor-component="club-squad-row"] [data-editor-part="mvp"],
+.club-profile-redesign [data-editor-component="club-squad-row"] [data-editor-part="profile"] {
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+}
+
+.club-profile-redesign [data-editor-component="club-squad-row"] [data-editor-part="player"] a {
+  font-weight: 900 !important;
+}
+
+.club-profile-redesign [data-editor-component="club-squad-row"] [data-editor-part="profile"] a {
+  color: #245f8e !important;
+  font-weight: 900 !important;
+}
