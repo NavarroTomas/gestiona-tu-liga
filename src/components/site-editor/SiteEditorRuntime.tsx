@@ -176,6 +176,20 @@ function enforceClubDynamicStyles() {
     element.style.setProperty("opacity", "1", "important");
   });
 
+
+  document.querySelectorAll<HTMLElement>('[data-history-competition="true"]').forEach((element) => {
+    element.style.setProperty("background", "#dff2fb", "important");
+    element.style.setProperty("background-color", "#dff2fb", "important");
+    element.style.setProperty("border-color", "#b9d9ea", "important");
+    element.style.setProperty("color", "#0f3b62", "important");
+    element.style.setProperty("opacity", "1", "important");
+
+    element.querySelectorAll<HTMLElement>("*").forEach((child) => {
+      child.style.setProperty("color", "#0f3b62", "important");
+      child.style.setProperty("opacity", "1", "important");
+    });
+  });
+
   document.querySelectorAll<HTMLElement>('[data-editor-component="club-squad-row"]').forEach((row) => {
     const colors: Record<string, string> = {
       position: "#111827",
