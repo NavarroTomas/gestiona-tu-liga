@@ -31,7 +31,7 @@ export default function CopasPublicPage() {
   } = useCupGroups(season, group);
 
   return (
-    <main className="min-h-screen bg-[#f4f9fd] text-[#102f55]">
+    <main className="apa-tournament-page min-h-screen bg-[#f4f9fd] text-[#102f55]">
       <CupsHero season={season} />
       <CupsTabs activeId="grupos" />
 
