@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { SQUADS_CONFIG, normalizeSquadDivision, sortSquadSeasons } from "@/config/squads";
 import { supabase } from "@/lib/supabase";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 import type {
   SquadClub,
   SquadPlayer,
@@ -20,6 +21,7 @@ function normalizeName(value?: string | null) {
 }
 
 export function useSquads() {
+  const { seasons, activeSeason, loading: seasonsLoading } = usePublicSeasons(SQUADS_CONFIG.defaultSeason);
   const [season, setSeason] = useState<string>(SQUADS_CONFIG.defaultSeason);
   const [division, setDivision] = useState<string>(SQUADS_CONFIG.defaultDivision);
   const [clubName, setClubName] = useState<string>("Todos");
@@ -31,26 +33,10 @@ export function useSquads() {
   const [profiles, setProfiles] = useState<SquadPublicProfile[]>([]);
   const [clubs, setClubs] = useState<SquadClub[]>([]);
   const [seasonClubs, setSeasonClubs] = useState<SquadClub[]>([]);
-  const [allSeasons, setAllSeasons] = useState<string[]>([]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function loadSeasons() {
-      const { data } = await supabase.from("plantillas").select("temporada");
-      if (cancelled) return;
-
-      const values = Array.from(
-        new Set((data || []).map((row: any) => String(row.temporada || "")).filter(Boolean)),
-      );
-      setAllSeasons(sortSquadSeasons(values));
-    }
-
-    loadSeasons();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (!seasonsLoading) setSeason(activeSeason);
+  }, [activeSeason, seasonsLoading]);
 
   useEffect(() => {
     let cancelled = false;
@@ -255,7 +241,7 @@ export function useSquads() {
     setClubName,
     search,
     setSearch,
-    seasons: allSeasons.length ? allSeasons : [season],
+    seasons: sortSquadSeasons(seasons),
     divisions,
     clubs,
     selectedClub,
