@@ -4,7 +4,6 @@ import PredictionDropdown from "@/components/predicciones/PredictionDropdown";
 import {
   PREMIOS_COMPETICIONES,
   PREMIOS_CONTEXTOS,
-  PREMIOS_TEMPORADAS,
   type PremiosController,
   type PremioCompeticion,
 } from "@/hooks/usePremios";
@@ -26,7 +25,7 @@ export default function PremiosFilters({ controller }: { controller: PremiosCont
         <PredictionDropdown
           label="Temporada"
           value={controller.temporada}
-          options={PREMIOS_TEMPORADAS.map((value) => ({ value, label: value }))}
+          options={controller.temporadas.map((value) => ({ value, label: value }))}
           onChange={controller.setTemporada}
         />
         <PredictionDropdown
