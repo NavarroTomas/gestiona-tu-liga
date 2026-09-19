@@ -8,7 +8,6 @@ import {
   RANKING_GROUPS,
   RANKING_PHASES,
   RANKING_PLAYOFF_PHASES,
-  RANKING_SEASONS,
   type PredictionRankingController,
   type RankingCompetition,
 } from "@/hooks/usePredictionRanking";
@@ -35,7 +34,7 @@ export default function PredictionRankingFilters({ controller }: { controller: P
         <PredictionDropdown
           label="Temporada"
           value={controller.temporada}
-          options={RANKING_SEASONS}
+          options={controller.temporadas.map((value) => ({ value, label: value }))}
           onChange={controller.setTemporada}
         />
         <PredictionDropdown
