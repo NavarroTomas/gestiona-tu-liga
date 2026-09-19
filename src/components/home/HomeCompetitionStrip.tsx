@@ -10,6 +10,7 @@ import {
 
 const groups = [
   {
+    key: "league",
     label: "Liga",
     headline: "Primera División",
     description: "La máxima categoría de APA.",
@@ -19,6 +20,7 @@ const groups = [
     ],
   },
   {
+    key: "cups",
     label: "Copas",
     headline: "Copa Argentina",
     description: "Cruces directos y partidos decisivos.",
@@ -29,6 +31,7 @@ const groups = [
     ],
   },
   {
+    key: "playoffs",
     label: "Definiciones",
     headline: "Playoffs",
     description: "Los cruces que definen la temporada.",
@@ -77,7 +80,7 @@ export default function HomeCompetitionStrip({
     <section className="relative overflow-hidden border-y-[2px] border-[#9fcbe3] bg-[#eef8fd] px-5 py-7 sm:px-7 sm:py-8 md:px-9">
       <div
         {...headingSelection}
-        className={`${headingSelection.className ?? ""} grid gap-5 border-b border-[#bcd9e8] pb-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-end`}
+        className={`${headingSelection.className ?? ""} grid gap-4 border-b border-[#bcd9e8] pb-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-end`}
       >
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#168fd4]">
@@ -101,54 +104,67 @@ export default function HomeCompetitionStrip({
 
       <div
         {...cardsSelection}
-        className={`${cardsSelection.className ?? ""} grid divide-y divide-[#cfe1eb] md:grid-cols-[0.95fr_1.35fr_0.9fr] md:divide-x md:divide-y-0`}
+        className={`${cardsSelection.className ?? ""} grid gap-0 md:grid-cols-[0.78fr_1.42fr_0.72fr]`}
         style={{ ...cardsSelection.style, width: "auto", maxWidth: "none" }}
       >
-        {groups.map((group) => (
-          <article key={group.label} className="px-0 py-6 first:pt-6 md:px-7 md:first:pl-0 md:last:pr-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#4f7f9f]">
-              {group.label}
-            </p>
+        {groups.map((group, index) => {
+          const isCups = group.key === "cups";
 
-            <Link href={group.href} className="group mt-3 block">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-[28px] font-black leading-[1.0] tracking-[-0.04em] text-[#102f55] transition group-hover:text-[#168fd4] sm:text-[31px]">
-                    {group.headline}
-                  </h3>
-                  <p className="mt-2 max-w-[34ch] text-[12px] font-medium leading-5 text-[#648297]">
-                    {group.description}
-                  </p>
+          return (
+            <article
+              key={group.key}
+              className={`relative py-5 md:px-7 ${index === 0 ? "md:pl-0" : ""} ${index === groups.length - 1 ? "md:pr-0" : ""}`}
+            >
+              {index > 0 ? (
+                <span className="pointer-events-none absolute left-0 top-5 hidden h-[74%] w-px bg-[#c7dde8] md:block" />
+              ) : null}
+
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#4f7f9f]">
+                {group.label}
+              </p>
+
+              <Link href={group.href} className="group mt-3 block">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3
+                      className={`${isCups ? "text-[31px] sm:text-[35px]" : "text-[26px] sm:text-[29px]"} font-black leading-[0.98] tracking-[-0.04em] text-[#102f55] transition group-hover:text-[#168fd4]`}
+                    >
+                      {group.headline}
+                    </h3>
+                    <p className={`${isCups ? "max-w-[38ch]" : "max-w-[30ch]"} mt-2 text-[12px] font-medium leading-5 text-[#648297]`}>
+                      {group.description}
+                    </p>
+                  </div>
+                  <span className="mt-1 text-[15px] font-black text-[#9fb7c5] transition group-hover:translate-x-1 group-hover:text-[#168fd4]">
+                    →
+                  </span>
                 </div>
-                <span className="mt-1 text-[16px] font-black text-[#a4bbc9] transition group-hover:translate-x-1 group-hover:text-[#168fd4]">
-                  →
-                </span>
-              </div>
-            </Link>
+              </Link>
 
-            {group.secondary.length ? (
-              <div className="mt-6 space-y-4 border-t border-[#bfd8e6] pt-5">
-                {group.secondary.map((item) => (
-                  <Link key={item.href} href={item.href} className="group block">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-[15px] font-black text-[#173e68] transition group-hover:text-[#168fd4]">
-                          {item.label}
-                        </p>
-                        <p className="mt-1 text-[11px] leading-4 text-[#6f8ea1]">
-                          {item.description}
-                        </p>
+              {group.secondary.length ? (
+                <div className={`${isCups ? "mt-5 grid gap-x-7 gap-y-4 sm:grid-cols-2" : "mt-5 space-y-4"} border-t border-[#bfd8e6] pt-4`}>
+                  {group.secondary.map((item) => (
+                    <Link key={item.href} href={item.href} className="group block">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[14px] font-black text-[#173e68] transition group-hover:text-[#168fd4]">
+                            {item.label}
+                          </p>
+                          <p className="mt-1 text-[10px] leading-4 text-[#6f8ea1]">
+                            {item.description}
+                          </p>
+                        </div>
+                        <span className="text-[11px] font-black text-[#b3c5d0] transition group-hover:translate-x-1 group-hover:text-[#168fd4]">
+                          →
+                        </span>
                       </div>
-                      <span className="text-[12px] font-black text-[#b3c5d0] transition group-hover:translate-x-1 group-hover:text-[#168fd4]">
-                        →
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : null}
-          </article>
-        ))}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+            </article>
+          );
+        })}
       </div>
     </section>
   );
