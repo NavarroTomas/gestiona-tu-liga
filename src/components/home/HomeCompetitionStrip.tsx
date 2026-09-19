@@ -11,6 +11,7 @@ import {
 const groups = [
   {
     key: "league",
+    elementId: "competitions.league" as const,
     label: "Liga",
     headline: "Primera División",
     description: "La máxima categoría de APA.",
@@ -21,6 +22,7 @@ const groups = [
   },
   {
     key: "cups",
+    elementId: "competitions.cups" as const,
     label: "Copas",
     headline: "Copa Argentina",
     description: "Cruces directos y partidos decisivos.",
@@ -32,6 +34,7 @@ const groups = [
   },
   {
     key: "playoffs",
+    elementId: "competitions.playoffs" as const,
     label: "Definiciones",
     headline: "Playoffs",
     description: "Los cruces que definen la temporada.",
@@ -58,6 +61,8 @@ export default function HomeCompetitionStrip({
   onSelectElement,
 }: Props) {
   function selectable(id: HomeEditorElementId) {
+    const inlineStyle = elementInlineStyle(elements[id], breakpoint);
+
     return {
       "data-editor-element": id,
       onClick: (event: MouseEvent<HTMLElement>) => {
@@ -69,61 +74,68 @@ export default function HomeCompetitionStrip({
       className: editorMode
         ? `relative cursor-pointer ${selectedElement === id ? "outline outline-2 outline-offset-2 outline-[#ffcc4d]" : "hover:outline hover:outline-1 hover:outline-offset-2 hover:outline-[#ffcc4d]/70"}`
         : undefined,
-      style: elementInlineStyle(elements[id], breakpoint),
+      style: inlineStyle,
     };
   }
 
-  const headingSelection = selectable("competitions.heading");
-  const cardsSelection = selectable("competitions.cards");
+  const eyebrowSelection = selectable("competitions.eyebrow");
+  const titleSelection = selectable("competitions.title");
+  const subtitleSelection = selectable("competitions.subtitle");
+  const calendarSelection = selectable("competitions.calendarLink");
 
   return (
     <section className="relative overflow-hidden border-y-[2px] border-[#9fcbe3] bg-[#eef8fd] px-5 py-7 sm:px-7 sm:py-8 md:px-9">
-      <div
-        {...headingSelection}
-        className={`${headingSelection.className ?? ""} grid gap-4 border-b border-[#bcd9e8] pb-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-end`}
-      >
+      <div className="grid gap-4 border-b border-[#bcd9e8] pb-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
         <div>
-          <p className="text-[12px] font-black uppercase tracking-[0.22em] text-[#168fd4]">
+          <p
+            {...eyebrowSelection}
+            className={`${eyebrowSelection.className ?? ""} text-[12px] font-black uppercase tracking-[0.22em] text-[#168fd4]`}
+          >
             {editor.eyebrow}
           </p>
+
           <h2
-            className="mt-1 text-[42px] font-black uppercase tracking-[-0.05em] text-[#0d3158] sm:text-[52px]"
+            {...titleSelection}
+            className={`${titleSelection.className ?? ""} mt-1 text-[42px] font-black uppercase tracking-[-0.05em] text-[#0d3158] sm:text-[52px]`}
             style={{
-              fontSize: headingSelection.style.fontSize,
-              fontWeight: headingSelection.style.fontWeight,
-              lineHeight: headingSelection.style.lineHeight,
-              letterSpacing: headingSelection.style.letterSpacing,
-              color: headingSelection.style.color,
-              textAlign: headingSelection.style.textAlign,
+              ...titleSelection.style,
+              fontSize: titleSelection.style.fontSize || undefined,
+              fontWeight: titleSelection.style.fontWeight || undefined,
+              lineHeight: titleSelection.style.lineHeight || undefined,
+              letterSpacing: titleSelection.style.letterSpacing || undefined,
+              color: titleSelection.style.color || undefined,
             }}
           >
             {editor.title}
           </h2>
-          <p className="mt-2 max-w-xl text-[15px] font-semibold leading-6 text-[#58788f]">
+
+          <p
+            {...subtitleSelection}
+            className={`${subtitleSelection.className ?? ""} mt-2 max-w-xl text-[15px] font-semibold leading-6 text-[#58788f]`}
+          >
             Toda la temporada, en un vistazo.
           </p>
         </div>
 
         <Link
+          {...calendarSelection}
           href="/competicion"
-          className="w-fit text-[12px] font-black uppercase tracking-[0.08em] text-[#168fd4] transition hover:text-[#0f6f9e]"
+          className={`${calendarSelection.className ?? ""} w-fit text-[12px] font-black uppercase tracking-[0.08em] text-[#168fd4] transition hover:text-[#0f6f9e]`}
         >
           Ver calendario completo →
         </Link>
       </div>
 
-      <div
-        {...cardsSelection}
-        className={`${cardsSelection.className ?? ""} grid gap-0 md:grid-cols-[0.78fr_1.42fr_0.72fr]`}
-        style={{ ...cardsSelection.style, width: "auto", maxWidth: "none" }}
-      >
+      <div className="grid gap-0 md:grid-cols-[0.78fr_1.42fr_0.72fr]">
         {groups.map((group, index) => {
           const isCups = group.key === "cups";
+          const groupSelection = selectable(group.elementId);
 
           return (
             <article
+              {...groupSelection}
               key={group.key}
-              className={`relative py-5 md:px-7 ${index === 0 ? "md:pl-0" : ""} ${index === groups.length - 1 ? "md:pr-0" : ""}`}
+              className={`${groupSelection.className ?? ""} relative py-5 md:px-7 ${index === 0 ? "md:pl-0" : ""} ${index === groups.length - 1 ? "md:pr-0" : ""}`}
             >
               {index > 0 ? (
                 <span className="pointer-events-none absolute left-0 top-5 hidden h-[74%] w-px bg-[#c7dde8] md:block" />
@@ -139,12 +151,12 @@ export default function HomeCompetitionStrip({
                     <h3
                       className={`${isCups ? "text-[39px] sm:text-[44px]" : "text-[34px] sm:text-[38px]"} font-black leading-[0.98] tracking-[-0.04em] text-[#102f55] transition group-hover:text-[#168fd4]`}
                       style={{
-                        fontSize: cardsSelection.style.fontSize,
-                        fontWeight: cardsSelection.style.fontWeight,
-                        lineHeight: cardsSelection.style.lineHeight,
-                        letterSpacing: cardsSelection.style.letterSpacing,
-                        color: cardsSelection.style.color,
-                        textAlign: cardsSelection.style.textAlign,
+                        fontSize: groupSelection.style.fontSize || undefined,
+                        fontWeight: groupSelection.style.fontWeight || undefined,
+                        lineHeight: groupSelection.style.lineHeight || undefined,
+                        letterSpacing: groupSelection.style.letterSpacing || undefined,
+                        color: groupSelection.style.color || undefined,
+                        textAlign: groupSelection.style.textAlign,
                       }}
                     >
                       {group.headline}
