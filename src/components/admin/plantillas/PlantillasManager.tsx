@@ -8,7 +8,7 @@ import PlantillaPlayerList, { type PlantillaRow } from "./PlantillaPlayerList";
 import TransferPanel from "./TransferPanel";
 import TransferTextImporter, { type ImportedTransferDraft } from "./TransferTextImporter";
 import { supabase } from "@/lib/supabase";
-import { fetchTournamentSeasons } from "@/lib/adminTournaments";
+import { fetchSeasonRecords } from "@/lib/adminTournaments";
 import {
   Field,
   Select,
@@ -60,11 +60,13 @@ export default function PlantillasManager() {
   const [transferDate, setTransferDate] = useState("");
 
   useEffect(() => {
-    fetchTournamentSeasons()
-      .then((rows) => {
-        if (!rows.length) return;
+    fetchSeasonRecords()
+      .then((records) => {
+        if (!records.length) return;
+        const rows = records.map((row) => row.nombre);
+        const active = records.find((row) => row.activa)?.nombre || rows[0];
         setSeasons(rows);
-        setSeason((current) => rows.includes(current) ? current : rows[0]);
+        setSeason(active);
       })
       .catch(() => undefined);
   }, []);
