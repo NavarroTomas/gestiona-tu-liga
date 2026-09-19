@@ -5,6 +5,8 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { usePublicSeasons } from "@/hooks/usePublicSeasons";
+import { getMyAdminPermissions, hasPermission } from "@/lib/adminPermissions";
+import { supabase } from "@/lib/supabase";
 import {
   matchIds,
   normalizeCompetition,
@@ -91,7 +93,10 @@ export default function PaginaEquipo() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedSeason = searchParams.get("temporada");
+  const previewDraft = searchParams.get("preview") === "1";
   const { seasons, activeSeason, loading: seasonsLoading } = usePublicSeasons("Temporada 4");
+  const [canPreviewDraft, setCanPreviewDraft] = useState(false);
+  const [previewChecked, setPreviewChecked] = useState(!previewDraft);
   const [temporadaSeleccionada, setTemporadaSeleccionada] = useState(requestedSeason || "Temporada 4");
 
   const nombreEquipoUrl = params?.nombre
@@ -122,17 +127,61 @@ export default function PaginaEquipo() {
   });
 
   useEffect(() => {
-    if (seasonsLoading) return;
-    setTemporadaSeleccionada(
-      requestedSeason && seasons.includes(requestedSeason) ? requestedSeason : activeSeason,
-    );
-  }, [activeSeason, requestedSeason, seasons, seasonsLoading]);
+    let cancelled = false;
+
+    async function checkPreviewPermission() {
+      if (!previewDraft) {
+        setCanPreviewDraft(false);
+        setPreviewChecked(true);
+        return;
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (cancelled) return;
+
+      if (!user) {
+        setCanPreviewDraft(false);
+        setPreviewChecked(true);
+        return;
+      }
+
+      try {
+        const permissions = await getMyAdminPermissions(user.id);
+        if (cancelled) return;
+        setCanPreviewDraft(hasPermission(permissions, "clubs.manage"));
+      } catch {
+        if (!cancelled) setCanPreviewDraft(false);
+      } finally {
+        if (!cancelled) setPreviewChecked(true);
+      }
+    }
+
+    void checkPreviewPermission();
+    return () => {
+      cancelled = true;
+    };
+  }, [previewDraft]);
 
   useEffect(() => {
-    if (!nombreEquipoUrl || seasonsLoading) return;
+    if (seasonsLoading || !previewChecked) return;
+
+    const requestedAllowed =
+      Boolean(requestedSeason) &&
+      (seasons.includes(requestedSeason as string) || (previewDraft && canPreviewDraft));
+
+    setTemporadaSeleccionada(
+      requestedAllowed && requestedSeason ? requestedSeason : activeSeason,
+    );
+  }, [activeSeason, requestedSeason, seasons, seasonsLoading, previewDraft, canPreviewDraft, previewChecked]);
+
+  useEffect(() => {
+    if (!nombreEquipoUrl || seasonsLoading || !previewChecked) return;
     fetchDatosEquipo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nombreEquipoUrl, temporadaSeleccionada, seasonsLoading]);
+  }, [nombreEquipoUrl, temporadaSeleccionada, seasonsLoading, previewChecked]);
 
   function normalizar(texto?: string | null) {
     return String(texto || "")
@@ -549,6 +598,7 @@ export default function PaginaEquipo() {
         .from("titulos")
         .select("id, equipo, competicion, temporada, division, descripcion, created_at")
         .ilike("equipo", nombreExacto)
+        .eq("temporada", temporadaActual)
         .limit(100);
 
       setTitulos(titulosData || []);
@@ -566,6 +616,7 @@ export default function PaginaEquipo() {
           "id, jugador, playerid, steam_id, profile_id, equipo, posicion, temporada, division, estado",
         )
         .eq("equipo", nombreExacto)
+        .eq("temporada", temporadaActual)
         .neq("estado", "baja")
         .limit(200);
 
@@ -911,12 +962,15 @@ export default function PaginaEquipo() {
                             const next = event.target.value;
                             setTemporadaSeleccionada(next);
                             router.replace(
-                              `/equipos/${encodeURIComponent(nombreEquipoUrl)}?temporada=${encodeURIComponent(next)}`,
+                              `/equipos/${encodeURIComponent(nombreEquipoUrl)}?temporada=${encodeURIComponent(next)}${previewDraft && canPreviewDraft ? "&preview=1" : ""}`,
                             );
                           }}
                           className="h-10 cursor-pointer appearance-none rounded-2xl border border-sky-400/30 bg-sky-400/10 px-4 pr-9 text-sm font-black uppercase text-sky-300 outline-none transition hover:border-sky-300"
                         >
-                          {seasons.map((season) => (
+                          {(previewDraft && canPreviewDraft && requestedSeason && !seasons.includes(requestedSeason)
+                            ? [requestedSeason, ...seasons]
+                            : seasons
+                          ).map((season) => (
                             <option key={season} value={season} className="bg-[#06152c] text-white">
                               {season}
                             </option>
