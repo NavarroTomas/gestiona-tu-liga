@@ -1,9 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import TeamLink from "@/components/team/TeamLink";
 import type { HomeNews, StandingRow } from "@/lib/homePortal";
+import {
+  DEFAULT_HOME_EDITOR_DOCUMENT,
+  elementInlineStyle,
+  type EditorBreakpoint,
+  type HomeEditorDocument,
+  type HomeEditorElementId,
+} from "@/lib/siteEditor";
 
 function NewsCard({ item, featured = false }: { item: HomeNews; featured?: boolean }) {
   const href = item.href || "/";
@@ -127,14 +134,45 @@ export default function HomeNewsStandings({
   standingsPrimera,
   standingsSegunda,
   logoEquipo,
+  elements = DEFAULT_HOME_EDITOR_DOCUMENT.elements,
+  breakpoint = "desktop",
+  editorMode = false,
+  selectedElement = null,
+  onSelectElement,
 }: {
   news: HomeNews[];
   standingsPrimera: StandingRow[];
   standingsSegunda: StandingRow[];
   logoEquipo: (club: string) => string | null;
+  elements?: HomeEditorDocument["elements"];
+  breakpoint?: EditorBreakpoint;
+  editorMode?: boolean;
+  selectedElement?: HomeEditorElementId | null;
+  onSelectElement?: (element: HomeEditorElementId) => void;
 }) {
   const [division, setDivision] = useState<"Primera" | "Segunda">("Primera");
   const standings = division === "Primera" ? standingsPrimera : standingsSegunda;
+
+  function selectable(id: HomeEditorElementId) {
+    return {
+      "data-editor-element": id,
+      onClick: (event: MouseEvent<HTMLElement>) => {
+        if (!editorMode) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onSelectElement?.(id);
+      },
+      className: editorMode
+        ? `relative cursor-pointer ${selectedElement === id ? "outline outline-2 outline-offset-2 outline-[#ffcc4d]" : "hover:outline hover:outline-1 hover:outline-offset-2 hover:outline-[#ffcc4d]/70"}`
+        : undefined,
+      style: elementInlineStyle(elements[id], breakpoint),
+    };
+  }
+
+  const newsHeadingSelection = selectable("news.heading");
+  const newsFeedSelection = selectable("news.feed");
+  const standingsHeadingSelection = selectable("news.standingsHeading");
+  const standingsTableSelection = selectable("news.standingsTable");
 
   const featuredNews = news[0];
   const secondaryNews = news.slice(1, 5);
@@ -143,7 +181,10 @@ export default function HomeNewsStandings({
     <section className="overflow-hidden rounded-[18px] border border-[#cfe4f0] bg-white shadow-[0_14px_40px_rgba(16,47,85,.07)]">
       <div className="grid lg:grid-cols-[minmax(0,1.3fr)_minmax(390px,.7fr)]">
         <article className="border-b border-[#d8e8f0] p-5 sm:p-6 lg:border-b-0 lg:border-r">
-          <div className="mb-5 flex items-center justify-between gap-4">
+          <div
+            {...newsHeadingSelection}
+            className={`${newsHeadingSelection.className ?? ""} mb-5 flex items-center justify-between gap-4`}
+          >
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#168fd4]">
                 Actualidad APA
@@ -156,7 +197,10 @@ export default function HomeNewsStandings({
           </div>
 
           {news.length ? (
-            <div className="space-y-4">
+            <div
+              {...newsFeedSelection}
+              className={`${newsFeedSelection.className ?? ""} space-y-4`}
+            >
               {featuredNews ? <NewsCard item={featuredNews} featured /> : null}
 
               {secondaryNews.length ? (
@@ -175,7 +219,10 @@ export default function HomeNewsStandings({
         </article>
 
         <article className="p-5 sm:p-6">
-          <div className="flex items-start justify-between gap-4">
+          <div
+            {...standingsHeadingSelection}
+            className={`${standingsHeadingSelection.className ?? ""} flex items-start justify-between gap-4`}
+          >
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#168fd4]">
                 Liga
@@ -210,7 +257,10 @@ export default function HomeNewsStandings({
             ))}
           </div>
 
-          <div className="mt-4">
+          <div
+            {...standingsTableSelection}
+            className={`${standingsTableSelection.className ?? ""} mt-4`}
+          >
             <StandingsTable rows={standings} logoEquipo={logoEquipo} />
           </div>
         </article>
