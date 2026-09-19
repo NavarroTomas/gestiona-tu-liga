@@ -272,6 +272,11 @@ export default function HomeLeaguePortal({
               standingsPrimera={standingsPrimera}
               standingsSegunda={standingsSegunda}
               logoEquipo={logoEquipo}
+              elements={pageDocument.elements}
+              breakpoint={activeBreakpoint}
+              editorMode={editorMode}
+              selectedElement={selectedElement}
+              onSelectElement={onSelectElement}
             />
           </div>,
         );
@@ -282,7 +287,21 @@ export default function HomeLeaguePortal({
         return shell(id, <HomeCompetitionStrip editor={pageDocument.competitions} elements={pageDocument.elements} breakpoint={activeBreakpoint} editorMode={editorMode} selectedElement={selectedElement} onSelectElement={onSelectElement} />);
       case "match": {
         const props = elementProps("match.content");
-        return shell(id, <div {...props}><HomeMatchStrip featured={featured} upcoming={upcoming} clubs={clubs} /></div>);
+        return shell(
+          id,
+          <div {...props}>
+            <HomeMatchStrip
+              featured={featured}
+              upcoming={upcoming}
+              clubs={clubs}
+              elements={pageDocument.elements}
+              breakpoint={activeBreakpoint}
+              editorMode={editorMode}
+              selectedElement={selectedElement}
+              onSelectElement={onSelectElement}
+            />
+          </div>,
+        );
       }
       case "stats":
       case "community":
