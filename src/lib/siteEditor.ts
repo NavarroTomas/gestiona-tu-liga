@@ -251,7 +251,7 @@ const typography = (
 });
 
 const elementDefaults = Object.fromEntries(
-  (Object.values(HOME_SECTION_ELEMENTS).flat() as HomeEditorElementId[]).map((id) => [id, defaultElement()]),
+  (Object.keys(HOME_ELEMENT_LABELS) as HomeEditorElementId[]).map((id) => [id, defaultElement()]),
 ) as Record<HomeEditorElementId, ElementStyle>;
 
 elementDefaults["hero.title"].fontSize = responsive(72, 58, 42);
