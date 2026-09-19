@@ -284,15 +284,9 @@ export default function HomeLeaguePortal({
         const props = elementProps("match.content");
         return shell(id, <div {...props}><HomeMatchStrip featured={featured} upcoming={upcoming} clubs={clubs} /></div>);
       }
-      case "stats": {
-        const props = elementProps("stats.cards");
-        return shell(id, <section {...props} className={`${props.className ?? ""} grid sm:grid-cols-2 lg:grid-cols-4`} style={{ ...props.style, gap: pageDocument.stats.cardGap }}>{[["Clubes", clubsCount], ["Partidos", matches.length], ["Jugadores", playersCount], ["Goles", goalsCount]].map(([label, value]) => <div key={String(label)} style={{ background: pageDocument.stats.background, color: pageDocument.stats.textColor, borderRadius: pageDocument.stats.radius, padding: pageDocument.stats.cardPadding }}><p className="text-[10px] font-black uppercase tracking-[0.18em] opacity-60">{label}</p><p className="mt-2 text-3xl font-black">{value}</p></div>)}</section>);
-      }
-      case "community": {
-        const headingProps = elementProps("community.heading");
-        const buttonProps = elementProps("community.button");
-        return shell(id, <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between" style={{ background: pageDocument.community.background, color: pageDocument.community.textColor, borderRadius: pageDocument.community.radius, padding: pageDocument.community.padding }}><div {...headingProps}><p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">{pageDocument.community.eyebrow}</p><h2 className="mt-1 text-2xl font-black uppercase">{pageDocument.community.title}</h2></div><a {...buttonProps} href={pageDocument.community.buttonHref} target="_blank" rel="noreferrer" className={`${buttonProps.className ?? ""} rounded-xl bg-white px-5 py-3 text-xs font-black uppercase text-[#0b2747]`}>{pageDocument.community.buttonLabel}</a></section>);
-      }
+      case "stats":
+      case "community":
+        return null;
     }
   }
 
