@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 
 type PerfilMercado = {
   id: string;
@@ -12,7 +13,7 @@ type PerfilMercado = {
 };
 
 export default function MercadoPage() {
-  const temporadas = ["Temporada 4"];
+  const { seasons: temporadas, activeSeason, loading: seasonsLoading } = usePublicSeasons("Temporada 4");
 
   const divisiones = [
     { nombre: "Primera", icon: "🏆" },
@@ -21,6 +22,10 @@ export default function MercadoPage() {
   const tipos = ["Todos", "Fichaje", "Salida", "Préstamo", "Libre"];
 
   const [temporada, setTemporada] = useState("Temporada 4");
+
+  useEffect(() => {
+    if (!seasonsLoading) setTemporada(activeSeason);
+  }, [activeSeason, seasonsLoading]);
   const [division, setDivision] = useState("Primera");
   const [tipoActivo, setTipoActivo] = useState("Todos");
   const [movimientos, setMovimientos] = useState<any[]>([]);
@@ -210,7 +215,7 @@ export default function MercadoPage() {
 
     return (
       <Link
-        href={`/equipos/${encodeURIComponent(String(nombre))}`}
+        href={`/equipos/${encodeURIComponent(String(nombre))}?temporada=${encodeURIComponent(temporada)}`}
         className={`inline-flex min-w-0 items-center gap-2 transition hover:text-sky-300 ${
           variant === "highlight" ? "font-black text-white" : ""
         }`}
