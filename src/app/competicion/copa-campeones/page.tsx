@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import KnockoutBracket from "@/components/cups/knockout/KnockoutBracket";
 import KnockoutCupHero from "@/components/cups/knockout/KnockoutCupHero";
 import KnockoutCupTabs from "@/components/cups/knockout/KnockoutCupTabs";
@@ -10,6 +10,7 @@ import {
   getCopaCampeonesSeasonFormat,
 } from "@/config/copaCampeones";
 import { useCopaCampeones } from "@/hooks/useCopaCampeones";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 import { withCopaCampeonesPlaceholders } from "@/lib/cups/champions";
 
 /**
@@ -27,7 +28,12 @@ import { withCopaCampeonesPlaceholders } from "@/lib/cups/champions";
  * Temporada 4: SEMIFINALES -> FINAL.
  */
 export default function CopaCampeonesPage() {
+  const { seasons, activeSeason, loading: seasonsLoading } = usePublicSeasons(COPA_CAMPEONES_CONFIG.defaultSeason);
   const [season, setSeason] = useState<string>(COPA_CAMPEONES_CONFIG.defaultSeason);
+
+  useEffect(() => {
+    if (!seasonsLoading) setSeason(activeSeason);
+  }, [activeSeason, seasonsLoading]);
   const { loading, bracket, getLogo } = useCopaCampeones(season);
   const seasonFormat = getCopaCampeonesSeasonFormat(season);
   const displayBracket = withCopaCampeonesPlaceholders(bracket, season);
@@ -38,7 +44,7 @@ export default function CopaCampeonesPage() {
       <KnockoutCupTabs
         season={season}
         onSeasonChange={setSeason}
-        seasons={COPA_CAMPEONES_CONFIG.seasons}
+        seasons={seasons}
         tabs={COPA_CAMPEONES_CONFIG.tabs}
         ariaLabel="Secciones de Copa de Campeones"
       />
