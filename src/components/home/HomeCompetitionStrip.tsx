@@ -86,7 +86,17 @@ export default function HomeCompetitionStrip({
           <p className="text-[12px] font-black uppercase tracking-[0.22em] text-[#168fd4]">
             {editor.eyebrow}
           </p>
-          <h2 className="mt-1 text-[42px] font-black uppercase tracking-[-0.05em] text-[#0d3158] sm:text-[52px]">
+          <h2
+            className="mt-1 text-[42px] font-black uppercase tracking-[-0.05em] text-[#0d3158] sm:text-[52px]"
+            style={{
+              fontSize: headingSelection.style.fontSize,
+              fontWeight: headingSelection.style.fontWeight,
+              lineHeight: headingSelection.style.lineHeight,
+              letterSpacing: headingSelection.style.letterSpacing,
+              color: headingSelection.style.color,
+              textAlign: headingSelection.style.textAlign,
+            }}
+          >
             {editor.title}
           </h2>
           <p className="mt-2 max-w-xl text-[15px] font-semibold leading-6 text-[#58788f]">
@@ -128,6 +138,14 @@ export default function HomeCompetitionStrip({
                   <div>
                     <h3
                       className={`${isCups ? "text-[39px] sm:text-[44px]" : "text-[34px] sm:text-[38px]"} font-black leading-[0.98] tracking-[-0.04em] text-[#102f55] transition group-hover:text-[#168fd4]`}
+                      style={{
+                        fontSize: cardsSelection.style.fontSize,
+                        fontWeight: cardsSelection.style.fontWeight,
+                        lineHeight: cardsSelection.style.lineHeight,
+                        letterSpacing: cardsSelection.style.letterSpacing,
+                        color: cardsSelection.style.color,
+                        textAlign: cardsSelection.style.textAlign,
+                      }}
                     >
                       {group.headline}
                     </h3>
