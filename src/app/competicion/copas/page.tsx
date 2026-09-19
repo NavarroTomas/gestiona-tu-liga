@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CupControls from "@/components/cups/CupControls";
 import CupGroupStandings from "@/components/cups/CupGroupStandings";
 import CupsHero from "@/components/cups/CupsHero";
@@ -9,6 +9,7 @@ import CupsTabs from "@/components/cups/CupsTabs";
 import LeagueFooter from "@/components/league/LeagueFooter";
 import { CUPS_CONFIG } from "@/config/cups";
 import { useCupGroups } from "@/hooks/useCupGroups";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 
 /**
  * Esta página queda intencionalmente "tonta": solo compone piezas.
@@ -19,7 +20,12 @@ import { useCupGroups } from "@/hooks/useCupGroups";
  * Para cambiar el cálculo de la tabla: `src/lib/cups/calculateGroupStandings.ts`.
  */
 export default function CopasPublicPage() {
+  const { seasons, activeSeason, loading: seasonsLoading } = usePublicSeasons(CUPS_CONFIG.defaultSeason);
   const [season, setSeason] = useState<string>(CUPS_CONFIG.defaultSeason);
+
+  useEffect(() => {
+    if (!seasonsLoading) setSeason(activeSeason);
+  }, [activeSeason, seasonsLoading]);
   const [group, setGroup] = useState<string>(CUPS_CONFIG.defaultGroup);
 
   const {
@@ -38,6 +44,7 @@ export default function CopasPublicPage() {
       <section className="mx-auto w-full max-w-[1480px] px-5 py-4 sm:px-8 sm:py-5 lg:px-12">
         <CupControls
           season={season}
+          seasons={seasons}
           group={group}
           onSeasonChange={setSeason}
           onGroupChange={setGroup}
