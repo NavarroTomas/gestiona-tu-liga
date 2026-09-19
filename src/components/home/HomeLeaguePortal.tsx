@@ -226,18 +226,18 @@ export default function HomeLeaguePortal({
         }}
         className={`${selectionClass} ${forceColorClass}`.trim() || undefined}
         style={{
-          background: section.background,
-          color: section.textColor,
-          ...(forceTextColor ? { "--apa-editor-text-color": section.textColor } : {}),
-          borderRadius: valueForBreakpoint(section.radius, activeBreakpoint),
-          paddingTop: valueForBreakpoint(section.paddingY, activeBreakpoint),
-          paddingBottom: valueForBreakpoint(section.paddingY, activeBreakpoint),
-          paddingLeft: valueForBreakpoint(section.paddingX, activeBreakpoint),
-          paddingRight: valueForBreakpoint(section.paddingX, activeBreakpoint),
+          background: id === "hero" ? "transparent" : section.background,
+          color: id === "hero" ? "#102f55" : section.textColor,
+          ...(forceTextColor && id !== "hero" ? { "--apa-editor-text-color": section.textColor } : {}),
+          borderRadius: id === "hero" ? 0 : valueForBreakpoint(section.radius, activeBreakpoint),
+          paddingTop: id === "hero" ? 0 : valueForBreakpoint(section.paddingY, activeBreakpoint),
+          paddingBottom: id === "hero" ? 0 : valueForBreakpoint(section.paddingY, activeBreakpoint),
+          paddingLeft: id === "hero" ? 0 : valueForBreakpoint(section.paddingX, activeBreakpoint),
+          paddingRight: id === "hero" ? 0 : valueForBreakpoint(section.paddingX, activeBreakpoint),
           marginTop: valueForBreakpoint(section.marginTop, activeBreakpoint),
           marginBottom: valueForBreakpoint(section.marginBottom, activeBreakpoint),
-          border: section.borderWidth ? `${section.borderWidth}px solid ${section.borderColor}` : undefined,
-          boxShadow: section.shadow === "none" ? undefined : section.shadow,
+          border: id === "hero" ? "none" : section.borderWidth ? `${section.borderWidth}px solid ${section.borderColor}` : undefined,
+          boxShadow: id === "hero" || section.shadow === "none" ? undefined : section.shadow,
         } as CSSProperties}
       >
         {editorMode ? <span className="pointer-events-none absolute left-2 top-2 z-[70] rounded-md bg-[#102f55] px-2 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-white shadow-lg">{id}</span> : null}
