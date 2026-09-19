@@ -27,7 +27,9 @@ export default function ClubsHonours({
   const rows = clubs
     .map((club) => {
       const clubTitles = titles.filter(
-        (title) => title.equipo.trim().toLowerCase() === club.nombre.trim().toLowerCase(),
+        (title) =>
+          title.equipo.trim().toLowerCase() === club.nombre.trim().toLowerCase() &&
+          title.temporada === club.temporada,
       );
       const counts = clubTitles.reduce<Record<string, number>>((acc, title) => {
         acc[title.competicion] = (acc[title.competicion] || 0) + 1;
@@ -48,12 +50,12 @@ export default function ClubsHonours({
             <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#245f8e]">Reconocimiento oficial</p>
             <h2 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#0b2747] sm:text-3xl">Palmarés de clubes</h2>
           </div>
-          <p className="max-w-xl text-sm leading-6 text-[#65788b]">Los títulos cargados por el staff quedan asociados al club y se acumulan entre temporadas.</p>
+          <p className="max-w-xl text-sm leading-6 text-[#65788b]">Los títulos se muestran únicamente dentro de la temporada de esta identidad competitiva.</p>
         </div>
 
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {rows.map(({ club, clubTitles, counts }) => (
-            <article key={club.nombre} className="rounded-xl border border-[#d8e2ec] bg-white p-5">
+            <article key={`${club.club_id || club.slug || club.nombre}-${club.temporada || ""}` className="rounded-xl border border-[#d8e2ec] bg-white p-5">
               <div className="flex items-center gap-4">
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-[#d8e2ec] bg-[#f5f6f8]">
                   {club.logo_url ? <img src={club.logo_url} alt="" className="h-11 w-11 object-contain" /> : <span className="text-lg font-black text-[#173f73]">{club.nombre.slice(0, 2).toUpperCase()}</span>}
