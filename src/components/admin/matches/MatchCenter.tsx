@@ -16,6 +16,7 @@ import {
   validateMatchStats,
 } from "@/lib/adminMatches";
 import { restoreMatchRevision } from "@/lib/matchRevisions";
+import { fetchSeasonRecords } from "@/lib/adminTournaments";
 import {
   Field,
   Input,
@@ -39,7 +40,8 @@ function sourceLabel(source?: string | null) {
 }
 
 export default function MatchCenter() {
-  const [temporada, setTemporada] = useState("Temporada 4");
+  const [temporadas, setTemporadas] = useState<string[]>([]);
+  const [temporada, setTemporada] = useState("");
   const [competicion, setCompeticion] = useState("todas");
   const [search, setSearch] = useState("");
   const [matches, setMatches] = useState<AdminMatch[]>([]);
@@ -54,9 +56,24 @@ export default function MatchCenter() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  useEffect(() => {
+    fetchSeasonRecords()
+      .then((rows) => {
+        const names = rows.map((row) => row.nombre);
+        const active = rows.find((row) => row.activa)?.nombre || names[0] || "";
+        setTemporadas(names);
+        setTemporada((current) => current && names.includes(current) ? current : active);
+      })
+      .catch(() => setMessage("No se pudieron cargar las temporadas."));
+  }, []);
+
   async function loadMatches() {
     try {
       setLoading(true);
+      if (!temporada) {
+        setMatches([]);
+        return;
+      }
       const rows = await fetchAdminMatches({ temporada, competicion });
       setMatches(rows);
     } catch (error: any) {
@@ -124,7 +141,7 @@ export default function MatchCenter() {
     const nextPlayers = players.map((row) => ({
       ...row,
       partido_id: partidoId,
-      temporada: textValue(match.temporada) || "Temporada 4",
+      temporada: textValue(match.temporada),
       division: textValue(match.division) || textValue(match.fase) || "General",
       fecha: textValue(match.fecha) || "1",
     }));
@@ -136,7 +153,7 @@ export default function MatchCenter() {
           ...(previous || {}),
           partido_id: partidoId,
           equipo: team as string,
-          temporada: textValue(match.temporada) || "Temporada 4",
+          temporada: textValue(match.temporada),
           division: textValue(match.division) || textValue(match.fase) || "General",
           fecha: textValue(match.fecha) || "1",
           goals: index === 0 ? localGoals : visitorGoals,
@@ -240,7 +257,7 @@ export default function MatchCenter() {
 
         <MatchCard title="Buscar partidos" description="Los filtros se aplican en base de datos; la búsqueda de texto se aplica sobre el conjunto filtrado.">
           <div className={styles.grid3}>
-            <Field label="Temporada"><Select value={temporada} onChange={(e) => setTemporada(e.target.value)}><option>Temporada 4</option></Select></Field>
+            <Field label="Temporada"><Select value={temporada} onChange={(e) => setTemporada(e.target.value)}>{temporadas.map((item) => <option key={item}>{item}</option>)}</Select></Field>
             <Field label="Competición"><Select value={competicion} onChange={(e) => setCompeticion(e.target.value)}><option value="todas">Todas</option>{ADMIN_MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</Select></Field>
             <Field label="Buscar"><Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Club, resultado, fase..." /></Field>
           </div>
