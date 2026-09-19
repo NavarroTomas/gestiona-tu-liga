@@ -16,12 +16,13 @@ import {
   fetchClubAssignment,
   saveClub,
   saveClubAssignment,
+  seasonClubSlug,
   slugifyClub,
   uploadClubImage,
   type AdminClub,
   type ClubSeasonAssignment,
 } from "@/lib/adminClubs";
-import { fetchTournamentSeasons } from "@/lib/adminTournaments";
+import { fetchSeasonRecords } from "@/lib/adminTournaments";
 import {
   Tabs,
   TournamentHero,
@@ -34,6 +35,7 @@ type View = "datos" | "competencia" | "visual";
 export default function ClubsManager() {
   const [clubs, setClubs] = useState<AdminClub[]>([]);
   const [seasons, setSeasons] = useState<string[]>([DEFAULT_ASSIGNMENT.temporada]);
+  const [seasonFilter, setSeasonFilter] = useState(DEFAULT_ASSIGNMENT.temporada);
   const [search, setSearch] = useState("");
   const [club, setClub] = useState<AdminClub>({ ...DEFAULT_CLUB });
   const [assignment, setAssignment] = useState<ClubSeasonAssignment>({ ...DEFAULT_ASSIGNMENT });
@@ -49,10 +51,11 @@ export default function ClubsManager() {
     return clubs.filter((item) => `${item.nombre} ${item.slug}`.toLowerCase().includes(query));
   }, [clubs, search]);
 
-  async function loadClubs() {
+  async function loadClubs(season = seasonFilter) {
+    if (!season) return;
     setLoading(true);
     try {
-      const rows = await fetchAdminClubs();
+      const rows = await fetchAdminClubs(season);
       setClubs(rows);
     } catch (error: any) {
       setMessage(error?.message || "No pude cargar los clubes.");
@@ -62,10 +65,27 @@ export default function ClubsManager() {
   }
 
   useEffect(() => {
-    Promise.all([loadClubs(), fetchTournamentSeasons()])
-      .then(([, seasonRows]) => setSeasons(seasonRows.length ? seasonRows : [DEFAULT_ASSIGNMENT.temporada]))
-      .catch(() => setSeasons([DEFAULT_ASSIGNMENT.temporada]));
+    fetchSeasonRecords()
+      .then((records) => {
+        const names = records.map((row) => row.nombre);
+        const active = records.find((row) => row.activa)?.nombre || names[0] || DEFAULT_ASSIGNMENT.temporada;
+        setSeasons(names.length ? names : [DEFAULT_ASSIGNMENT.temporada]);
+        setSeasonFilter(active);
+        setAssignment((current) => ({ ...current, temporada: active }));
+      })
+      .catch(() => {
+        setSeasons([DEFAULT_ASSIGNMENT.temporada]);
+        setSeasonFilter(DEFAULT_ASSIGNMENT.temporada);
+      });
   }, []);
+
+  useEffect(() => {
+    if (!seasonFilter) return;
+    setClub({ ...DEFAULT_CLUB });
+    setAssignment({ ...DEFAULT_ASSIGNMENT, temporada: seasonFilter });
+    setSearch("");
+    void loadClubs(seasonFilter);
+  }, [seasonFilter]);
 
   function patchClub(patch: Partial<AdminClub>) {
     setClub((current) => ({ ...current, ...patch }));
@@ -77,14 +97,14 @@ export default function ClubsManager() {
 
   function startNewClub() {
     setClub({ ...DEFAULT_CLUB });
-    setAssignment({ ...DEFAULT_ASSIGNMENT, temporada: seasons[0] || DEFAULT_ASSIGNMENT.temporada });
+    setAssignment({ ...DEFAULT_ASSIGNMENT, temporada: seasonFilter || DEFAULT_ASSIGNMENT.temporada });
     setMessage("");
     setView("datos");
   }
 
   function importClubData(patch: Partial<AdminClub>) {
     setClub({ ...DEFAULT_CLUB, ...patch });
-    setAssignment({ ...DEFAULT_ASSIGNMENT, temporada: seasons[0] || DEFAULT_ASSIGNMENT.temporada });
+    setAssignment({ ...DEFAULT_ASSIGNMENT, temporada: seasonFilter || DEFAULT_ASSIGNMENT.temporada });
     setMessage("Datos detectados. Revisalos y guardá el club cuando esté listo.");
     setView("datos");
   }
@@ -93,7 +113,7 @@ export default function ClubsManager() {
     setClub({ ...selected });
     setView("datos");
     setMessage("");
-    const season = seasons[0] || DEFAULT_ASSIGNMENT.temporada;
+    const season = seasonFilter || DEFAULT_ASSIGNMENT.temporada;
     try {
       const currentAssignment = await fetchClubAssignment(String(selected.id), season);
       setAssignment(currentAssignment || { ...DEFAULT_ASSIGNMENT, temporada: season });
@@ -104,7 +124,9 @@ export default function ClubsManager() {
   }
 
   async function handleUpload(file: File, kind: "logo" | "banner") {
-    const slug = club.slug || slugifyClub(club.nombre);
+    const slug = club.id
+      ? (club.slug || slugifyClub(club.nombre))
+      : seasonClubSlug(club.nombre, assignment.temporada || seasonFilter);
     if (!slug) {
       setMessage("Primero escribí el nombre del club.");
       return;
@@ -138,11 +160,11 @@ export default function ClubsManager() {
     setSaving(true);
     setMessage("");
     try {
-      const saved = await saveClub(club);
+      const saved = await saveClub(club, assignment.temporada);
       if (!saved.id) throw new Error("No se pudo obtener el ID del club guardado.");
       await saveClubAssignment(saved.id, assignment);
       setMessage(club.id ? "Club actualizado." : "Club creado.");
-      await loadClubs();
+      await loadClubs(seasonFilter);
       setClub(saved);
     } catch (error: any) {
       setMessage(error?.message || "No pude guardar el club.");
@@ -160,7 +182,7 @@ export default function ClubsManager() {
       await deleteClub(club.id);
       setMessage("Club eliminado.");
       startNewClub();
-      await loadClubs();
+      await loadClubs(seasonFilter);
     } catch (error: any) {
       setMessage(error?.message || "No pude eliminar el club.");
     } finally {
@@ -173,10 +195,23 @@ export default function ClubsManager() {
       <TournamentPage>
         <Link href="/admin" className={styles.backLink}>← Volver al panel</Link>
         <TournamentHero
-          eyebrow="Clubes"
+          eyebrow="Clubes por temporada"
           title="Administrar clubes"
-          description="Pegá el mensaje de Discord para crear un club rápido o buscá uno existente para editarlo."
-        />
+          description="Cada temporada tiene sus propias identidades competitivas. Un mismo nombre puede existir en varias temporadas sin compartir historia."
+        >
+          <div className={styles.toolbar}>
+            <label className={styles.field}>
+              <span className={styles.label}>Temporada de trabajo</span>
+              <select
+                className={styles.select}
+                value={seasonFilter}
+                onChange={(event) => setSeasonFilter(event.target.value)}
+              >
+                {seasons.map((season) => <option key={season} value={season}>{season}</option>)}
+              </select>
+            </label>
+          </div>
+        </TournamentHero>
 
         {message && <div className={styles.notice}>{message}</div>}
 
@@ -206,7 +241,7 @@ export default function ClubsManager() {
           />
 
           {view === "datos" && <ClubGeneralSection club={club} onChange={patchClub} />}
-          {view === "competencia" && <ClubSeasonSection assignment={assignment} seasons={seasons} onChange={patchAssignment} />}
+          {view === "competencia" && <ClubSeasonSection assignment={assignment} seasons={[seasonFilter]} onChange={patchAssignment} />}
           {view === "visual" && (
             <ClubVisualSection
               club={club}
