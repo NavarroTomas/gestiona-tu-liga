@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import PermissionGuard from "@/components/PermissionGuard";
 import GestorSteamRapido from "@/components/GestorSteamRapido";
 import { supabase } from "@/lib/supabase";
+import { fetchSeasonRecords } from "@/lib/adminTournaments";
 
 type PremioKey = "balon_oro" | "the_best" | "raiko_trophy" | "bota_oro" | "golden_boy";
 type MatchRow = {
@@ -177,10 +178,14 @@ export default function AwardsManager() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    supabase.from("temporadas").select("nombre").order("created_at", { ascending: true }).then(({ data }) => {
-      const values = (data || []).map((r: any) => String(r.nombre || "")).filter(Boolean);
-      if (values.length) { setTemporadas(values); setTemporada(values[values.length - 1]); }
-    });
+    fetchSeasonRecords()
+      .then((rows) => {
+        const values = rows.map((row) => row.nombre);
+        if (!values.length) return;
+        setTemporadas(values);
+        setTemporada(rows.find((row) => row.activa)?.nombre || values[0]);
+      })
+      .catch(() => undefined);
   }, []);
 
   const loadData = useCallback(async () => {
