@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../../lib/supabase";
 import { matchFitsContext, normalizeDivision, normalizeRound, parseScore, stableMatchId } from "../../../lib/competitionData";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 
 function Escudo({
   nombre,
@@ -100,13 +101,20 @@ export default function FixtureDivisionPage() {
   const divisionDb = division === "primera" ? "primera" : "segunda";
 
   const searchParams = useSearchParams();
-  const temporada = searchParams.get("temporada") || "Temporada 4";
+  const requestedSeason = searchParams.get("temporada");
+  const { seasons, activeSeason, loading: seasonsLoading } = usePublicSeasons("Temporada 4");
+  const [temporada, setTemporada] = useState(requestedSeason || "Temporada 4");
   const faseCopaCampeones = searchParams.get("fase") || "";
   const fasePlayoffs = searchParams.get("fase") || "";
 
   const [partidos, setPartidos] = useState<any[]>([]);
   const [clubesInfo, setClubesInfo] = useState<any[]>([]);
   const [fechaActiva, setFechaActiva] = useState("1");
+
+  useEffect(() => {
+    if (seasonsLoading) return;
+    setTemporada(requestedSeason && seasons.includes(requestedSeason) ? requestedSeason : activeSeason);
+  }, [activeSeason, requestedSeason, seasons, seasonsLoading]);
 
   useEffect(() => {
     cargarPartidos();
