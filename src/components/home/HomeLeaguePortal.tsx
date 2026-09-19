@@ -28,7 +28,15 @@ import {
   type HomeNews,
 } from "@/lib/homePortal";
 
-type PlayerStat = { playerId?: string | null; nombre?: string | null; goals?: number | null };
+type PlayerStat = {
+  partido_id?: string | null;
+  playerId?: string | null;
+  nombre?: string | null;
+  equipo?: string | null;
+  goals?: number | null;
+  assists?: number | null;
+  mvp?: number | null;
+};
 
 type Props = {
   editorDocument?: HomeEditorDocument;
@@ -99,7 +107,11 @@ export default function HomeLeaguePortal({
       }
       const matchIds = seasonMatches.map((match) => String(match.partido_id || match.id));
       if (matchIds.length) {
-        const statsRes = await supabase.from("estadisticas_jugadores").select("playerId,nombre,goals").eq("temporada", currentSeason).in("partido_id", matchIds);
+        const statsRes = await supabase
+          .from("estadisticas_jugadores")
+          .select("partido_id,playerId,nombre,equipo,goals,assists,mvp")
+          .eq("temporada", currentSeason)
+          .in("partido_id", matchIds);
         if (active) setStats((statsRes.data || []) as PlayerStat[]);
       }
     }
@@ -107,11 +119,20 @@ export default function HomeLeaguePortal({
     return () => { active = false; };
   }, []);
 
-  const standings = useMemo(() => buildStandings(matches, "Primera"), [matches]);
-  const automaticNews = useMemo(() => buildAutomaticNews(matches), [matches]);
+  const standingsPrimera = useMemo(() => buildStandings(matches, "Primera"), [matches]);
+  const standingsSegunda = useMemo(() => buildStandings(matches, "Segunda"), [matches]);
+  const automaticNews = useMemo(() => buildAutomaticNews(matches, stats), [matches, stats]);
   const mergedNews = useMemo(() => {
-    const manual = news.slice(0, 4);
-    return manual.length >= 4 ? manual : [...manual, ...automaticNews.slice(0, 4 - manual.length)];
+    const featuredManual = news.filter((item) => item.destacada).slice(0, 1);
+    const remainingManual = news.filter((item) => !item.destacada);
+    const combined = [...featuredManual, ...automaticNews, ...remainingManual];
+    const seen = new Set<string>();
+    return combined.filter((item) => {
+      const key = String(item.id || item.titulo);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, 5);
   }, [news, automaticNews]);
   const upcoming = useMemo(() => matches.filter((match) => !match.resultado).sort(sortMatches), [matches]);
   const featured = upcoming[0];
@@ -196,7 +217,17 @@ export default function HomeLeaguePortal({
         return shell(id, <LeagueHero temporada={temporada} editor={pageDocument.hero} elements={pageDocument.elements} breakpoint={activeBreakpoint} editorMode={editorMode} selectedElement={selectedElement} onSelectElement={onSelectElement} />);
       case "news": {
         const props = elementProps("news.content");
-        return shell(id, <div {...props}><HomeNewsStandings news={mergedNews} standings={standings} logoEquipo={logoEquipo} /></div>);
+        return shell(
+          id,
+          <div {...props}>
+            <HomeNewsStandings
+              news={mergedNews}
+              standingsPrimera={standingsPrimera}
+              standingsSegunda={standingsSegunda}
+              logoEquipo={logoEquipo}
+            />
+          </div>,
+        );
       }
       case "awards":
         return shell(id, <HomeAwards awards={awards} logoEquipo={logoEquipo} editor={pageDocument.awards} elements={pageDocument.elements} breakpoint={activeBreakpoint} editorMode={editorMode} selectedElement={selectedElement} onSelectElement={onSelectElement} />);
