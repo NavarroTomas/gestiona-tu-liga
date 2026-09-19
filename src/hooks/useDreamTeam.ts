@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 import {
   DREAM_TEAM_CONFIG,
   DREAM_TEAM_POSITIONS,
