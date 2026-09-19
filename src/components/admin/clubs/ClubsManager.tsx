@@ -267,7 +267,7 @@ export default function ClubsManager() {
           </div>
           <div className={styles.actions}>
             {club.slug && (
-              <Link href={`/clubes/${club.slug}`} className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+              <Link href={`/equipos/${encodeURIComponent(club.slug)}?temporada=${encodeURIComponent(assignment.temporada)}`} className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
                 Ver ficha pública
               </Link>
             )}
