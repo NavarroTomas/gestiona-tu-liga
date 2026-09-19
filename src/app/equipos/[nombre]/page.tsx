@@ -947,10 +947,19 @@ export default function PaginaEquipo() {
                       </span>
                     </h1>
 
-                    <p className="mt-4 max-w-2xl whitespace-pre-line text-base leading-7 text-zinc-300 md:text-lg md:leading-8">
-                      {clubVisual?.descripcion ||
-                        "Institución oficial registrada en APA PSO Argentina UE5. Perfil competitivo con plantel, estadísticas, racha e historial del club."}
-                    </p>
+                    <div className="mt-4 max-w-2xl text-base leading-7 text-zinc-300 md:text-lg md:leading-8">
+                      {(clubVisual?.descripcion ||
+                        "Institución oficial registrada en APA PSO Argentina UE5. Perfil competitivo con plantel, estadísticas, racha e historial del club.")
+                        .split(/\r?\n/)
+                        .map((line, index) => (
+                          <p
+                            key={`club-description-${index}`}
+                            className={line.trim() ? "block" : "block min-h-[1.75rem]"}
+                          >
+                            {line || "\u00A0"}
+                          </p>
+                        ))}
+                    </div>
 
                     <div className="mt-5 flex flex-wrap gap-3">
                       <label className="relative">
