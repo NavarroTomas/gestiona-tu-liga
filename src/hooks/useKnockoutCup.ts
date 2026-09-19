@@ -44,17 +44,30 @@ export function useKnockoutCup(season: string, config: KnockoutDataConfig) {
       setLoading(true);
       let isActive = true;
 
-      if (config.configTable && config.activationField) {
-        const configRes = await supabase
+      // Fuente principal: la configuración moderna por temporada.
+      const competitionConfigRes = await supabase
+        .from("competicion_config")
+        .select("activa,reglas")
+        .eq("temporada", season)
+        .eq("slug", config.competitionKey)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      if (!competitionConfigRes.error && competitionConfigRes.data) {
+        isActive = competitionConfigRes.data.activa !== false;
+      } else if (config.configTable && config.activationField) {
+        // Compatibilidad histórica para temporadas creadas antes del nuevo sistema.
+        const legacyConfigRes = await supabase
           .from(config.configTable)
           .select(config.activationField)
           .eq("temporada", season)
           .maybeSingle();
 
         if (cancelled) return;
-        if (configRes.error) console.log(configRes.error);
+        if (legacyConfigRes.error) console.log(legacyConfigRes.error);
 
-        const configData = configRes.data as Record<string, unknown> | null;
+        const configData = legacyConfigRes.data as Record<string, unknown> | null;
         isActive = Boolean(configData?.[config.activationField]);
       }
 
