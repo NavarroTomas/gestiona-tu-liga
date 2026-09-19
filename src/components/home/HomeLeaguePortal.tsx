@@ -121,6 +121,56 @@ export default function HomeLeaguePortal({
   const mergedNews = useMemo(() => automaticNews.slice(0, 5), [automaticNews]);
   const upcoming = useMemo(() => matches.filter((match) => !match.resultado).sort(sortMatches), [matches]);
   const featured = upcoming[0];
+  const heroStories = useMemo(() => {
+    const stories = automaticNews.slice(0, 2).map((item) => ({
+      id: item.id,
+      kicker: item.categoria || "Actualidad APA",
+      title: item.titulo,
+      description: item.descripcion || "Última novedad de la competición.",
+      href: item.href || "/divisiones",
+      meta: item.meta || temporada,
+      cta: "Ver detalle",
+    }));
+
+    if (featured?.local && featured?.visitante) {
+      const competition = String(featured.competicion || "Liga")
+        .replaceAll("_", " ")
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+      stories.push({
+        id: "hero-upcoming-" + String(featured.partido_id || featured.id),
+        kicker: competition,
+        title: featured.local + " vs " + featured.visitante,
+        description:
+          (featured.fecha ? "Fecha " + featured.fecha + " · " : "") +
+          (featured.dia ? featured.dia + " · " : "") +
+          (featured.hora || "Próximo partido"),
+        href: "/fixture",
+        meta: "Próximo partido",
+        cta: "Ver fixture",
+      });
+    }
+
+    if (stories.length < 3 && standingsPrimera[0]) {
+      const leader = standingsPrimera[0];
+      stories.push({
+        id: "hero-leader-" + leader.club,
+        kicker: "Primera División",
+        title: leader.club + " lidera la tabla",
+        description:
+          leader.pts +
+          " puntos · " +
+          leader.pj +
+          " PJ · DG " +
+          (leader.dg > 0 ? "+" : "") +
+          leader.dg,
+        href: "/divisiones",
+        meta: temporada,
+        cta: "Ver tabla",
+      });
+    }
+
+    return stories.slice(0, 3);
+  }, [automaticNews, featured, standingsPrimera, temporada]);
   const logoEquipo = (team: string) => clubs.find((club) => normalizeText(club.nombre) === normalizeText(team))?.logo_url || null;
   const clubsCount = new Set(matches.flatMap((m) => [m.local, m.visitante]).filter(Boolean)).size;
   const playersCount = new Set(stats.map((row) => String(row.playerId || row.nombre || "")).filter(Boolean)).size;
@@ -199,7 +249,19 @@ export default function HomeLeaguePortal({
   function renderSection(id: HomeSectionId) {
     switch (id) {
       case "hero":
-        return shell(id, <LeagueHero temporada={temporada} editor={pageDocument.hero} elements={pageDocument.elements} breakpoint={activeBreakpoint} editorMode={editorMode} selectedElement={selectedElement} onSelectElement={onSelectElement} />);
+        return shell(
+          id,
+          <LeagueHero
+            temporada={temporada}
+            stories={heroStories}
+            editor={pageDocument.hero}
+            elements={pageDocument.elements}
+            breakpoint={activeBreakpoint}
+            editorMode={editorMode}
+            selectedElement={selectedElement}
+            onSelectElement={onSelectElement}
+          />,
+        );
       case "news": {
         const props = elementProps("news.content");
         return shell(
