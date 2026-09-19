@@ -6,7 +6,6 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 import { getMyAdminPermissions, hasPermission } from "@/lib/adminPermissions";
-import { supabase } from "@/lib/supabase";
 import {
   matchIds,
   normalizeCompetition,
