@@ -947,7 +947,7 @@ export default function PaginaEquipo() {
                       </span>
                     </h1>
 
-                    <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-300 md:text-lg md:leading-8">
+                    <p className="mt-4 max-w-2xl whitespace-pre-line text-base leading-7 text-zinc-300 md:text-lg md:leading-8">
                       {clubVisual?.descripcion ||
                         "Institución oficial registrada en APA PSO Argentina UE5. Perfil competitivo con plantel, estadísticas, racha e historial del club."}
                     </p>
