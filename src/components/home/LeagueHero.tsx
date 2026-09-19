@@ -75,7 +75,7 @@ export default function LeagueHero({
             textWrap: "balance",
           }}
         >
-          APA PSO ARGENTINA
+          {editor.title || "APA PSO ARGENTINA"}
         </h1>
 
         <div className="mt-5 h-[3px] w-20 rounded-full bg-[#45afe0] sm:w-28" />
