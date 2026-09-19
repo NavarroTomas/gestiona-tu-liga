@@ -5,6 +5,7 @@ import { teamHref } from "@/lib/teams/teamRoutes";
 type TeamLinkProps = {
   name: string;
   slug?: string | null;
+  temporada?: string | null;
   children?: ReactNode;
   className?: string;
   title?: string;
@@ -27,6 +28,7 @@ type TeamLinkProps = {
 export default function TeamLink({
   name,
   slug,
+  temporada,
   children,
   className = "",
   title,
@@ -34,7 +36,7 @@ export default function TeamLink({
   onClick,
   prefetch = false,
 }: TeamLinkProps) {
-  const href = teamHref({ name, slug });
+  const href = teamHref({ name, slug, temporada });
 
   if (!href) {
     return <span className={className}>{children ?? name}</span>;
