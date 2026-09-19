@@ -146,13 +146,7 @@ export default function HomeCompetitionStrip({
                   </Link>
                 ))}
               </div>
-            ) : (
-              <div className="mt-6 border-t border-[#bfd8e6] pt-5">
-                <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#7190a3]">
-                  Fase decisiva de la competencia
-                </p>
-              </div>
-            )}
+            ) : null}
           </article>
         ))}
       </div>
