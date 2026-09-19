@@ -8,6 +8,7 @@ import PlayoffsTabs from "@/components/playoffs/PlayoffsTabs";
 import LeagueFooter from "@/components/league/LeagueFooter";
 import { PLAYOFFS_CONFIG, getPlayoffsSeasonFormat } from "@/config/playoffs";
 import { usePlayoffs } from "@/hooks/usePlayoffs";
+import { getPlayoffStage } from "@/lib/playoffs";
 import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 
 /**
@@ -34,10 +35,14 @@ function PlayoffsContent() {
     if (seasonsLoading) return;
     setSeason(seasonFromUrl && seasons.includes(seasonFromUrl) ? seasonFromUrl : activeSeason);
   }, [activeSeason, seasonFromUrl, seasons, seasonsLoading]);
-  const { loading, road, getLogo } = usePlayoffs(season);
+  const { loading, matches, road, getLogo } = usePlayoffs(season);
   const seasonFormat = getPlayoffsSeasonFormat(season);
+  const detectedStages = (["semifinals", "promotionFinal", "promotion"] as const).filter((stage) =>
+    matches.some((match) => getPlayoffStage(match) === stage),
+  );
+  const visibleStages = detectedStages.length ? detectedStages : seasonFormat.stages;
 
-  const formatLabel = seasonFormat.stages
+  const formatLabel = visibleStages
     .map((stageId) => PLAYOFFS_CONFIG.stageDefinitions[stageId].label)
     .join(" · ");
 
@@ -62,7 +67,7 @@ function PlayoffsContent() {
             Cargando Playoffs de Ascenso…
           </section>
         ) : (
-          <PlayoffsRoad road={road} getLogo={getLogo} stages={seasonFormat.stages} />
+          <PlayoffsRoad road={road} getLogo={getLogo} stages={visibleStages} />
         )}
 
         <div className="mt-4 border-t border-[#d7e6f0] pt-4 text-[11px] font-semibold leading-5 text-[#6f879d]">
