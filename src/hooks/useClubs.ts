@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CLUBS_CONFIG, clubDivisionLabel, sortClubDivisions, sortClubSeasons } from "@/config/clubs";
 import { buildClubsViewModel } from "@/lib/clubs";
 import type { ClubPlayerRow, ClubRecord } from "@/lib/clubs/types";
@@ -8,8 +8,10 @@ import type { ClubTitleRow } from "@/components/clubs/ClubsHonours";
 import type { FixtureMatch } from "@/lib/fixture";
 import type { LeagueSanction } from "@/lib/league/types";
 import { supabase } from "@/lib/supabase";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 
 export function useClubs() {
+  const { seasons: publicSeasons, activeSeason, loading: seasonsLoading } = usePublicSeasons(CLUBS_CONFIG.defaultSeason);
   const [season, setSeason] = useState<string>(CLUBS_CONFIG.defaultSeason);
   const [division, setDivision] = useState<string>(CLUBS_CONFIG.defaultDivision);
   const [catalog, setCatalog] = useState<ClubRecord[]>([]);
@@ -20,7 +22,6 @@ export function useClubs() {
   const [titles, setTitles] = useState<ClubTitleRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const initializedSeason = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,18 +60,14 @@ export function useClubs() {
     };
   }, []);
 
-  const seasons = useMemo(() => {
-    const values = Array.from(
-      new Set(catalog.map((club) => String(club.temporada || "")).filter(Boolean)),
-    );
-    return sortClubSeasons(values);
-  }, [catalog]);
+  const seasons = useMemo(
+    () => sortClubSeasons(publicSeasons),
+    [publicSeasons],
+  );
 
   useEffect(() => {
-    if (initializedSeason.current || seasons.length === 0) return;
-    initializedSeason.current = true;
-    setSeason(seasons[seasons.length - 1]);
-  }, [seasons]);
+    if (!seasonsLoading) setSeason(activeSeason);
+  }, [activeSeason, seasonsLoading]);
 
   const divisions = useMemo(() => {
     const values = Array.from(
