@@ -8,6 +8,9 @@ export type AdminClub = {
   banner_url: string | null;
   descripcion: string | null;
   color_principal: string | null;
+  temporada?: string | null;
+  division?: string | null;
+  activo?: boolean | null;
 };
 
 export type ClubSeasonAssignment = {
@@ -44,6 +47,12 @@ export function slugifyClub(value: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+export function seasonClubSlug(value: string, season: string) {
+  const base = slugifyClub(value);
+  const seasonNumber = String(season || "").match(/(\d+)/)?.[1];
+  return seasonNumber ? `${base}-t${seasonNumber}` : `${base}-${slugifyClub(season)}`;
+}
+
 export function sanitizeClubText(value: string, max = 120) {
   return value.replace(/[<>]/g, "").trim().slice(0, max);
 }
@@ -56,13 +65,28 @@ export function validateClubImage(file: File) {
   return null;
 }
 
-export async function fetchAdminClubs() {
+export async function fetchAdminClubs(season: string) {
+  if (!season) return [] as AdminClub[];
+
   const { data, error } = await supabase
-    .from("clubes_info")
-    .select("id,nombre,slug,logo_url,banner_url,descripcion,color_principal")
+    .from("v_clubes_temporada_public")
+    .select("club_id,nombre,slug,logo_url,banner_url,descripcion,color_principal,temporada,division,activo")
+    .eq("temporada", season)
     .order("nombre", { ascending: true });
   if (error) throw error;
-  return (data || []) as AdminClub[];
+
+  return (data || []).map((row: any) => ({
+    id: String(row.club_id),
+    nombre: row.nombre,
+    slug: row.slug,
+    logo_url: row.logo_url,
+    banner_url: row.banner_url,
+    descripcion: row.descripcion,
+    color_principal: row.color_principal,
+    temporada: row.temporada,
+    division: row.division,
+    activo: row.activo,
+  })) as AdminClub[];
 }
 
 export async function fetchClubAssignment(clubId: string, season: string) {
@@ -76,8 +100,10 @@ export async function fetchClubAssignment(clubId: string, season: string) {
   return data as ClubSeasonAssignment | null;
 }
 
-export async function saveClub(club: AdminClub) {
-  const slug = club.slug.trim() || slugifyClub(club.nombre);
+export async function saveClub(club: AdminClub, season: string) {
+  const slug = club.id
+    ? (club.slug.trim() || seasonClubSlug(club.nombre, season))
+    : seasonClubSlug(club.nombre, season);
   const payload = {
     nombre: sanitizeClubText(club.nombre, 80),
     slug,
