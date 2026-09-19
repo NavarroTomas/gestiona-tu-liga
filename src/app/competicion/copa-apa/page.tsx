@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import KnockoutBracket from "@/components/cups/knockout/KnockoutBracket";
 import KnockoutCupHero from "@/components/cups/knockout/KnockoutCupHero";
 import KnockoutCupTabs from "@/components/cups/knockout/KnockoutCupTabs";
 import LeagueFooter from "@/components/league/LeagueFooter";
 import { COPA_APA_CONFIG, getCopaApaSeasonFormat } from "@/config/copaApa";
 import { useCopaApa } from "@/hooks/useCopaApa";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 
 /**
  * PÁGINA COPA APA
@@ -25,7 +26,12 @@ import { useCopaApa } from "@/hooks/useCopaApa";
  * CUARTOS -> SEMIFINALES -> FINAL.
  */
 export default function CopaApaPage() {
+  const { seasons, activeSeason, loading: seasonsLoading } = usePublicSeasons(COPA_APA_CONFIG.defaultSeason);
   const [season, setSeason] = useState<string>(COPA_APA_CONFIG.defaultSeason);
+
+  useEffect(() => {
+    if (!seasonsLoading) setSeason(activeSeason);
+  }, [activeSeason, seasonsLoading]);
   const { active, loading, bracket, getLogo } = useCopaApa(season);
   const seasonFormat = getCopaApaSeasonFormat(season);
 
@@ -35,7 +41,7 @@ export default function CopaApaPage() {
       <KnockoutCupTabs
         season={season}
         onSeasonChange={setSeason}
-        seasons={COPA_APA_CONFIG.seasons}
+        seasons={seasons}
         tabs={COPA_APA_CONFIG.tabs}
         ariaLabel="Secciones de Copa APA"
       />
