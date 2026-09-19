@@ -2,6 +2,7 @@ export type TeamRouteInput = {
   name?: string | null;
   nombre?: string | null;
   slug?: string | null;
+  temporada?: string | null;
 };
 
 /**
@@ -20,5 +21,6 @@ export function teamHref(team: TeamRouteInput): string | null {
 
   if (!target) return null;
 
-  return `/equipos/${encodeURIComponent(target)}`;
+  const base = `/equipos/${encodeURIComponent(target)}`;
+  return team.temporada ? `${base}?temporada=${encodeURIComponent(team.temporada)}` : base;
 }
