@@ -36,6 +36,14 @@ export default function CopaCampeonesPage() {
   }, [activeSeason, seasonsLoading]);
   const { loading, bracket, getLogo } = useCopaCampeones(season);
   const seasonFormat = getCopaCampeonesSeasonFormat(season);
+  const detectedRounds = [
+    bracket.roundOf16.some(Boolean) ? "roundOf16" : null,
+    bracket.quarterfinals.some(Boolean) ? "quarterfinals" : null,
+    bracket.semifinals.some(Boolean) ? "semifinals" : null,
+    bracket.final ? "final" : null,
+  ].filter(Boolean) as typeof seasonFormat.rounds;
+  const visibleRounds = detectedRounds.length ? detectedRounds : seasonFormat.rounds;
+  const showThirdPlace = Boolean(bracket.thirdPlace) || seasonFormat.showThirdPlace;
   const displayBracket = withCopaCampeonesPlaceholders(bracket, season);
 
   return (
@@ -71,8 +79,8 @@ export default function CopaCampeonesPage() {
             <KnockoutBracket
               bracket={displayBracket}
               getLogo={getLogo}
-              rounds={seasonFormat.rounds}
-              showThirdPlace={seasonFormat.showThirdPlace}
+              rounds={visibleRounds}
+              showThirdPlace={showThirdPlace}
             />
           </div>
         )}
