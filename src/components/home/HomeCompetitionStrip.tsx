@@ -133,8 +133,8 @@ export default function HomeCompetitionStrip({
 
           return (
             <article
-              {...groupSelection}
               key={group.key}
+              {...groupSelection}
               className={`${groupSelection.className ?? ""} relative py-5 md:px-7 ${index === 0 ? "md:pl-0" : ""} ${index === groups.length - 1 ? "md:pr-0" : ""}`}
             >
               {index > 0 ? (
