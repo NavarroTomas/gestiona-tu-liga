@@ -116,7 +116,7 @@ export default function ClubsTable({
                     <tr key={team.nombre} className={`${index % 2 === 0 ? "bg-white" : "bg-[#f2f9fd]"} border-b border-[#dbeaf2] last:border-0 transition hover:bg-[#eaf6fc]`}>
                       <td className="px-4 py-2.5 text-center text-[13px] font-black text-[#173d65]">{position}</td>
                       <td className="px-4 py-2.5">
-                        <ClubIdentity name={team.nombre} slug={team.slug} logo={team.logo_url} compact />
+                        <ClubIdentity name={team.nombre} slug={team.slug} logo={team.logo_url} temporada={season} compact />
                       </td>
                       <td className="px-4 py-2.5 text-[12px] font-semibold text-[#466d89]">{division} División</td>
                       {[team.pj, team.pg, team.pe, team.pp, team.gf, team.gc].map((value, cell) => (
@@ -125,7 +125,7 @@ export default function ClubsTable({
                       <td className="px-3 py-2.5 text-center text-[12px] font-bold text-[#173d65]">{team.dg > 0 ? `+${team.dg}` : team.dg}</td>
                       <td className="px-3 py-2.5 text-center text-[13px] font-black text-[#102f55]">{team.puntos}</td>
                       <td className="px-3 py-2.5 text-center">
-                        <TeamLink name={team.nombre} slug={team.slug} ariaLabel={`Ver perfil de ${team.nombre}`} className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#b8ddf0] text-[#1a94d1] hover:bg-[#e7f6fd]">
+                        <TeamLink name={team.nombre} slug={team.slug} temporada={season} ariaLabel={`Ver perfil de ${team.nombre}`} className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#b8ddf0] text-[#1a94d1] hover:bg-[#e7f6fd]">
                           <ArrowIcon className="h-4 w-4" />
                         </TeamLink>
                       </td>
