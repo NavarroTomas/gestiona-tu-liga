@@ -25,7 +25,6 @@ import {
   type ClubInfo,
   type HomeAward,
   type HomeMatch,
-  type HomeNews,
 } from "@/lib/homePortal";
 
 type PlayerStat = {
@@ -66,7 +65,6 @@ export default function HomeLeaguePortal({
   const [temporada, setTemporada] = useState("Temporada 4");
   const [matches, setMatches] = useState<HomeMatch[]>([]);
   const [clubs, setClubs] = useState<ClubInfo[]>([]);
-  const [news, setNews] = useState<HomeNews[]>([]);
   const [awards, setAwards] = useState<HomeAward[]>([]);
   const [stats, setStats] = useState<PlayerStat[]>([]);
   const [runtimeBreakpoint, setRuntimeBreakpoint] = useState<EditorBreakpoint>("desktop");
@@ -90,15 +88,13 @@ export default function HomeLeaguePortal({
       const currentSeason = seasonNames[seasonNames.length - 1] || "Temporada 4";
       if (!active) return;
       setTemporada(currentSeason);
-      const [matchesRes, newsRes, awardsRes] = await Promise.all([
+      const [matchesRes, awardsRes] = await Promise.all([
         supabase.from("partidos").select("id,partido_id,local,visitante,resultado,fecha,temporada,division,competicion,fase,grupo,dia,hora").eq("temporada", currentSeason),
-        supabase.from("noticias").select("id,titulo,descripcion,categoria,imagen_url,destacada,created_at").eq("publicada", true).order("destacada", { ascending: false }).order("created_at", { ascending: false }).limit(6),
         supabase.from("premios_apa").select("id,premio,nombre,equipo,puntos,posicion").eq("temporada", currentSeason).order("id", { ascending: false }).limit(8),
       ]);
       if (!active) return;
       const seasonMatches = ((matchesRes.data || []) as HomeMatch[]).sort(sortMatches);
       setMatches(seasonMatches);
-      setNews((newsRes.data || []) as HomeNews[]);
       setAwards((awardsRes.data || []) as HomeAward[]);
       const teamNames = [...new Set(seasonMatches.flatMap((match) => [match.local, match.visitante]).filter(Boolean))] as string[];
       if (teamNames.length) {
@@ -122,18 +118,7 @@ export default function HomeLeaguePortal({
   const standingsPrimera = useMemo(() => buildStandings(matches, "Primera"), [matches]);
   const standingsSegunda = useMemo(() => buildStandings(matches, "Segunda"), [matches]);
   const automaticNews = useMemo(() => buildAutomaticNews(matches, stats), [matches, stats]);
-  const mergedNews = useMemo(() => {
-    const featuredManual = news.filter((item) => item.destacada).slice(0, 1);
-    const remainingManual = news.filter((item) => !item.destacada);
-    const combined = [...featuredManual, ...automaticNews, ...remainingManual];
-    const seen = new Set<string>();
-    return combined.filter((item) => {
-      const key = String(item.id || item.titulo);
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }).slice(0, 5);
-  }, [news, automaticNews]);
+  const mergedNews = useMemo(() => automaticNews.slice(0, 5), [automaticNews]);
   const upcoming = useMemo(() => matches.filter((match) => !match.resultado).sort(sortMatches), [matches]);
   const featured = upcoming[0];
   const logoEquipo = (team: string) => clubs.find((club) => normalizeText(club.nombre) === normalizeText(team))?.logo_url || null;
