@@ -145,6 +145,18 @@ export function buildAutomaticNews(matches: HomeMatch[], playerStats: HomePlayer
   };
 
   const matchKey = (match: HomeMatch) => String(match.partido_id || match.id);
+  const destinationForMatch = (match: HomeMatch) => {
+    if (match.partido_id) return "/estadisticas/" + encodeURIComponent(String(match.partido_id));
+
+    const key = normalizeText(match.competicion || "liga");
+    if (key === "copa_argentina") return "/competicion/copa-argentina";
+    if (key === "copa_apa") return "/competicion/copa-apa";
+    if (key === "copa_campeones") return "/competicion/copa-campeones";
+    if (key === "copa_clasificatoria") return "/competicion/copas";
+    if (key === "playoffs") return "/competicion/playoffs";
+    return "/divisiones";
+  };
+
 
   completed.forEach((match, index) => {
     const score = parseScore(match.resultado)!;
@@ -177,7 +189,7 @@ export function buildAutomaticNews(matches: HomeMatch[], playerStats: HomePlayer
     generated.push({
       id: "auto-match-" + matchKey(match),
       titulo, descripcion, categoria: competitionLabel(match), destacada: false,
-      href: match.partido_id ? "/estadisticas/" + encodeURIComponent(String(match.partido_id)) : null,
+      href: destinationForMatch(match),
       meta: phaseLabel(match), sortOrder: index * 10 + 5,
     });
   });
