@@ -14,6 +14,7 @@ type FixtureSidebarProps = {
   competitionId: FixtureCompetitionId;
   onCompetitionChange: (id: FixtureCompetitionId) => void;
   season: string;
+  seasons: string[];
   onSeasonChange: (season: string) => void;
   division: string;
   onDivisionChange: (division: string) => void;
@@ -35,6 +36,7 @@ export default function FixtureSidebar({
   competitionId,
   onCompetitionChange,
   season,
+  seasons,
   onSeasonChange,
   division,
   onDivisionChange,
@@ -112,7 +114,7 @@ export default function FixtureSidebar({
               style={selectStyle}
               className="h-12 w-full rounded-[9px] border px-3 text-[12px] font-black outline-none focus:border-[#56afe2]"
             >
-              {FIXTURE_CONFIG.seasons.map((item) => (
+              {seasons.map((item) => (
                 <option key={item} value={item} style={selectStyle}>{item}</option>
               ))}
             </select>
@@ -173,7 +175,7 @@ export default function FixtureSidebar({
           <label className="block">
             <span className="mb-2 block text-[10px] font-black uppercase tracking-[.15em] text-[#4e7ba4]">Temporada</span>
             <select value={season} onChange={(event) => onSeasonChange(event.target.value)} style={selectStyle} className="h-11 w-full rounded-[8px] border px-3 text-[12px] font-bold outline-none focus:border-[#56afe2]">
-              {FIXTURE_CONFIG.seasons.map((item) => <option key={item} value={item} style={selectStyle}>{item}</option>)}
+              {seasons.map((item) => <option key={item} value={item} style={selectStyle}>{item}</option>)}
             </select>
           </label>
         </div>
