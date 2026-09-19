@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import KnockoutBracket from "@/components/cups/knockout/KnockoutBracket";
 import KnockoutCupHero from "@/components/cups/knockout/KnockoutCupHero";
 import KnockoutCupTabs from "@/components/cups/knockout/KnockoutCupTabs";
@@ -10,6 +10,7 @@ import {
   getCopaArgentinaSeasonFormat,
 } from "@/config/copaArgentina";
 import { useCopaArgentina } from "@/hooks/useCopaArgentina";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 
 /**
  * PÁGINA COPA ARGENTINA
@@ -27,7 +28,12 @@ import { useCopaArgentina } from "@/hooks/useCopaArgentina";
  * cambiá solamente `formatsBySeason` dentro de la configuración.
  */
 export default function CopaArgentinaPage() {
+  const { seasons, activeSeason, loading: seasonsLoading } = usePublicSeasons(COPA_ARGENTINA_CONFIG.defaultSeason);
   const [season, setSeason] = useState<string>(COPA_ARGENTINA_CONFIG.defaultSeason);
+
+  useEffect(() => {
+    if (!seasonsLoading) setSeason(activeSeason);
+  }, [activeSeason, seasonsLoading]);
   const { active, loading, bracket, getLogo } = useCopaArgentina(season);
   const seasonFormat = getCopaArgentinaSeasonFormat(season);
 
@@ -37,7 +43,7 @@ export default function CopaArgentinaPage() {
       <KnockoutCupTabs
         season={season}
         onSeasonChange={setSeason}
-        seasons={COPA_ARGENTINA_CONFIG.seasons}
+        seasons={seasons}
         tabs={COPA_ARGENTINA_CONFIG.tabs}
         ariaLabel="Secciones de Copa Argentina"
       />
