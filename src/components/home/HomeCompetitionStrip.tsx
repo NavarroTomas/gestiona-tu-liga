@@ -74,19 +74,19 @@ export default function HomeCompetitionStrip({
   const cardsSelection = selectable("competitions.cards");
 
   return (
-    <section className="border-y border-[#d7e3ea] py-6 sm:py-7">
+    <section className="relative overflow-hidden border-y-[2px] border-[#9fcbe3] bg-[#eef8fd] px-5 py-7 sm:px-7 sm:py-8 md:px-9">
       <div
         {...headingSelection}
-        className={`${headingSelection.className ?? ""} grid gap-5 border-b border-[#d7e3ea] pb-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-end`}
+        className={`${headingSelection.className ?? ""} grid gap-5 border-b border-[#bcd9e8] pb-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-end`}
       >
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#168fd4]">
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#168fd4]">
             {editor.eyebrow}
           </p>
-          <h2 className="mt-1 text-[28px] font-black uppercase tracking-[-0.035em] text-[#102f55] sm:text-[32px]">
+          <h2 className="mt-1 text-[34px] font-black uppercase tracking-[-0.045em] text-[#0d3158] sm:text-[40px]">
             {editor.title}
           </h2>
-          <p className="mt-2 max-w-xl text-[12px] leading-5 text-[#6d889a]">
+          <p className="mt-2 max-w-xl text-[13px] font-semibold leading-5 text-[#58788f]">
             Toda la temporada, en un vistazo.
           </p>
         </div>
@@ -101,22 +101,22 @@ export default function HomeCompetitionStrip({
 
       <div
         {...cardsSelection}
-        className={`${cardsSelection.className ?? ""} grid divide-y divide-[#dfe9ef] md:grid-cols-[0.9fr_1.35fr_0.85fr] md:divide-x md:divide-y-0`}
+        className={`${cardsSelection.className ?? ""} grid divide-y divide-[#cfe1eb] md:grid-cols-[0.95fr_1.35fr_0.9fr] md:divide-x md:divide-y-0`}
         style={{ ...cardsSelection.style, width: "auto", maxWidth: "none" }}
       >
         {groups.map((group) => (
-          <article key={group.label} className="px-0 py-5 first:pt-5 md:px-6 md:first:pl-0 md:last:pr-0">
-            <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#7895a8]">
+          <article key={group.label} className="px-0 py-6 first:pt-6 md:px-7 md:first:pl-0 md:last:pr-0">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#4f7f9f]">
               {group.label}
             </p>
 
             <Link href={group.href} className="group mt-3 block">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h3 className="text-[22px] font-black leading-[1.02] tracking-[-0.03em] text-[#102f55] transition group-hover:text-[#168fd4] sm:text-[25px]">
+                  <h3 className="text-[28px] font-black leading-[1.0] tracking-[-0.04em] text-[#102f55] transition group-hover:text-[#168fd4] sm:text-[31px]">
                     {group.headline}
                   </h3>
-                  <p className="mt-2 max-w-[32ch] text-[11px] leading-5 text-[#6d889a]">
+                  <p className="mt-2 max-w-[34ch] text-[12px] font-medium leading-5 text-[#648297]">
                     {group.description}
                   </p>
                 </div>
@@ -127,15 +127,15 @@ export default function HomeCompetitionStrip({
             </Link>
 
             {group.secondary.length ? (
-              <div className="mt-5 space-y-4 border-t border-[#e2ebf0] pt-4">
+              <div className="mt-6 space-y-4 border-t border-[#bfd8e6] pt-5">
                 {group.secondary.map((item) => (
                   <Link key={item.href} href={item.href} className="group block">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-[13px] font-black text-[#173e68] transition group-hover:text-[#168fd4]">
+                        <p className="text-[15px] font-black text-[#173e68] transition group-hover:text-[#168fd4]">
                           {item.label}
                         </p>
-                        <p className="mt-1 text-[10px] leading-4 text-[#829aaa]">
+                        <p className="mt-1 text-[11px] leading-4 text-[#6f8ea1]">
                           {item.description}
                         </p>
                       </div>
@@ -147,8 +147,8 @@ export default function HomeCompetitionStrip({
                 ))}
               </div>
             ) : (
-              <div className="mt-5 border-t border-[#e2ebf0] pt-4">
-                <p className="text-[10px] uppercase tracking-[0.12em] text-[#91a6b4]">
+              <div className="mt-6 border-t border-[#bfd8e6] pt-5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#7190a3]">
                   Fase decisiva de la competencia
                 </p>
               </div>
