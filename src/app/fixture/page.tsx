@@ -13,6 +13,7 @@ import {
   type FixtureCompetitionId,
 } from "@/config/fixture";
 import { useFixture } from "@/hooks/useFixture";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 import { getFixtureMatchDate, moveFixtureMonth, type FixtureMatch } from "@/lib/fixture";
 
 /**
@@ -34,9 +35,8 @@ function FixtureContent() {
   const searchParams = useSearchParams();
   const requestedSeason = searchParams.get("temporada");
   const requestedCompetition = searchParams.get("competicion");
-  const initialSeason = FIXTURE_CONFIG.seasons.includes(requestedSeason as (typeof FIXTURE_CONFIG.seasons)[number])
-    ? String(requestedSeason)
-    : FIXTURE_CONFIG.defaultSeason;
+  const { seasons, activeSeason, loading: seasonsLoading, getSeasonYear } = usePublicSeasons(FIXTURE_CONFIG.defaultSeason);
+  const initialSeason = requestedSeason || FIXTURE_CONFIG.defaultSeason;
   const initialCompetition = FIXTURE_CONFIG.competitions.some(
     (competition) => competition.id === requestedCompetition,
   )
@@ -45,6 +45,11 @@ function FixtureContent() {
   const initialCompetitionConfig = getFixtureCompetition(initialCompetition);
 
   const [season, setSeason] = useState(initialSeason);
+
+  useEffect(() => {
+    if (seasonsLoading) return;
+    setSeason(requestedSeason && seasons.includes(requestedSeason) ? requestedSeason : activeSeason);
+  }, [activeSeason, requestedSeason, seasons, seasonsLoading]);
   const [competitionId, setCompetitionId] = useState<FixtureCompetitionId>(initialCompetition);
   const [division, setDivision] = useState(initialCompetitionConfig.defaultDivision || initialCompetitionConfig.divisions?.[0] || "Primera");
   const [group, setGroup] = useState(initialCompetitionConfig.defaultGroup || initialCompetitionConfig.groups?.[0] || "A");
@@ -74,7 +79,7 @@ function FixtureContent() {
       return;
     }
 
-    const seasonYear = getFixtureSeasonYear(season);
+    const seasonYear = getSeasonYear(season) || getFixtureSeasonYear(season);
     const now = new Date();
     const fallbackMonthIndex = now.getFullYear() === seasonYear ? now.getMonth() : 0;
     const fallbackTime = new Date(seasonYear, fallbackMonthIndex, 1).getTime();
@@ -132,6 +137,7 @@ function FixtureContent() {
     competitionId,
     onCompetitionChange: changeCompetition,
     season,
+    seasons,
     onSeasonChange: changeSeason,
     division,
     onDivisionChange: changeDivision,
