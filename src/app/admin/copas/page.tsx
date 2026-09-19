@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PermissionGuard from "@/components/PermissionGuard";
+import { fetchSeasonRecords } from "@/lib/adminTournaments";
 
 type Equipo = {
   id?: string | number;
@@ -37,14 +38,6 @@ type Sancion = {
   motivo?: string | null;
 };
 
-const TEMPORADAS = [
-  "Temporada 1",
-  "Temporada 2",
-  "Temporada 3",
-  "Temporada 4",
-  "Temporada 5",
-  "Temporada 6",
-];
 const GRUPOS = ["A", "B", "C", "D"];
 
 const FASES_MANUALES = [
@@ -183,7 +176,8 @@ function calcularTablaGrupo(
 }
 
 export default function AdminCopasPage() {
-  const [temporada, setTemporada] = useState("Temporada 4");
+  const [temporadas, setTemporadas] = useState<string[]>([]);
+  const [temporada, setTemporada] = useState("");
   const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [partidos, setPartidos] = useState<PartidoCopa[]>([]);
   const [sanciones, setSanciones] = useState<Sancion[]>([]);
@@ -219,7 +213,18 @@ export default function AdminCopasPage() {
   const [horaManual, setHoraManual] = useState("");
 
   useEffect(() => {
-    cargarTodo();
+    fetchSeasonRecords()
+      .then((rows) => {
+        const names = rows.map((row) => row.nombre);
+        const active = rows.find((row) => row.activa)?.nombre || names[0] || "";
+        setTemporadas(names);
+        setTemporada((current) => current && names.includes(current) ? current : active);
+      })
+      .catch(() => setMensaje("No pude cargar las temporadas."));
+  }, []);
+
+  useEffect(() => {
+    if (temporada) cargarTodo();
   }, [temporada]);
 
   async function cargarTodo() {
