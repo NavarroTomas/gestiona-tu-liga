@@ -9,13 +9,13 @@ import {
 } from "@/lib/siteEditor";
 
 const items = [
-  ["Primera", "Liga oficial", "/competicion?division=primera", "I"],
-  ["Segunda", "Ascenso", "/competicion?division=segunda", "II"],
-  ["Copa Argentina", "Eliminación", "/competicion", "CA"],
-  ["Copa APA", "Copa oficial", "/competicion", "APA"],
-  ["Copa Campeones", "Los mejores", "/competicion", "CC"],
-  ["Playoffs", "Definiciones", "/competicion", "PO"],
-];
+  ["Primera", "/divisiones?division=primera"],
+  ["Segunda", "/divisiones?division=segunda"],
+  ["Copa Argentina", "/competicion/copa-argentina"],
+  ["Copa APA", "/competicion/copa-apa"],
+  ["Copa de Campeones", "/competicion/copa-campeones"],
+  ["Playoffs", "/competicion/playoffs"],
+] as const;
 
 type Props = {
   editor?: HomeEditorDocument["competitions"];
@@ -54,34 +54,38 @@ export default function HomeCompetitionStrip({
   const cardsSelection = selectable("competitions.cards");
 
   return (
-    <section>
-      <div {...headingSelection} className={`${headingSelection.className ?? ""} mb-4 flex items-end justify-between gap-4`}>
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.22em]" style={{ ...headingSelection.style, color: headingSelection.style.color ?? editor.accentColor }}>{editor.eyebrow}</p>
-          <h2 className="mt-1 text-3xl font-black uppercase" style={{ color: editor.titleColor }}>{editor.title}</h2>
+    <section className="border-y border-[#dbe7ee] py-5">
+      <div
+        {...headingSelection}
+        className={`${headingSelection.className ?? ""} flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between`}
+      >
+        <div className="shrink-0">
+          <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#168fd4]">
+            {editor.eyebrow}
+          </p>
+          <h2 className="mt-1 text-[20px] font-black uppercase tracking-[-0.025em] text-[#102f55]">
+            {editor.title}
+          </h2>
         </div>
-        <Link href="/competicion" className="text-xs font-black" style={{ color: editor.accentColor }}>{editor.linkLabel}</Link>
-      </div>
 
-      <div {...cardsSelection} className={`${cardsSelection.className ?? ""} grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6`}>
-        {items.map(([title, desc, href, code]) => (
-          <Link
-            key={title}
-            href={href}
-            className="group border border-[#0b2747]/10 shadow-[0_10px_30px_rgba(11,39,71,.05)] transition hover:-translate-y-0.5 hover:border-[#245f8e]/30"
-            style={{
-              background: editor.cardBackground,
-              borderRadius: editor.cardRadius,
-              padding: editor.cardPadding,
-              minHeight: editor.cardMinHeight || undefined,
-            }}
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl text-xs font-black text-white" style={{ background: editor.titleColor }}>{code}</div>
-            <h3 className="mt-4 text-sm font-black uppercase" style={{ color: editor.titleColor }}>{title}</h3>
-            <p className="mt-1 text-xs font-medium" style={{ color: editor.accentColor }}>{desc}</p>
-            <span className="mt-4 block text-sm font-black transition group-hover:translate-x-1" style={{ color: editor.accentColor }}>→</span>
-          </Link>
-        ))}
+        <div
+          {...cardsSelection}
+          className={`${cardsSelection.className ?? ""} flex flex-wrap items-center gap-x-1 gap-y-2`}
+          style={{ ...cardsSelection.style, width: "auto", maxWidth: "none" }}
+        >
+          {items.map(([label, href], index) => (
+            <div key={href} className="flex items-center">
+              <Link
+                href={href}
+                className="group inline-flex items-center gap-2 px-3 py-2 text-[11px] font-black uppercase tracking-[0.02em] text-[#173e68] transition hover:text-[#168fd4]"
+              >
+                <span>{label}</span>
+                <span className="text-[#9ab2c2] transition group-hover:translate-x-0.5 group-hover:text-[#168fd4]">→</span>
+              </Link>
+              {index < items.length - 1 ? <span className="hidden h-4 w-px bg-[#dbe7ee] sm:block" /> : null}
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
