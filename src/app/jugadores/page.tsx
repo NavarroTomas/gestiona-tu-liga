@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import TeamLink from "@/components/team/TeamLink";
 import { supabase } from "@/lib/supabase";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 
 type RankingTab = "general" | "goles" | "asistencias" | "mvps" | "rating";
 type RankingMode = "temporada" | "historico";
@@ -155,6 +156,7 @@ function MetricIcon({ type }: { type: RankingTab }) {
 }
 
 export default function JugadoresPage() {
+  const { seasons: temporadas, activeSeason, loading: seasonsLoading } = usePublicSeasons("Temporada 4");
   const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState<CompetitionFilter>("Todas");
   const [modo, setModo] = useState<RankingMode>("temporada");
@@ -162,25 +164,12 @@ export default function JugadoresPage() {
   const [activeTab, setActiveTab] = useState<RankingTab>("general");
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
   const [clubesInfo, setClubesInfo] = useState<ClubInfo[]>([]);
-  const [temporadas, setTemporadas] = useState<string[]>(["Temporada 4"]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-    async function loadSeasons() {
-      const { data } = await supabase.from("v_ranking_jugadores").select("temporada");
-      if (cancelled) return;
-      const values = Array.from(new Set((data || []).map((row: any) => String(row.temporada || "")).filter(Boolean)))
-        .sort((a, b) => seasonNumber(a) - seasonNumber(b));
-      if (values.length) {
-        setTemporadas(values);
-        if (!values.includes(temporada)) setTemporada(values[values.length - 1]);
-      }
-    }
-    loadSeasons();
-    return () => { cancelled = true; };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!seasonsLoading) setTemporada(activeSeason);
+  }, [activeSeason, seasonsLoading]);
 
   useEffect(() => {
     let cancelled = false;
