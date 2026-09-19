@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { HISTORY_CONFIG, sortSeasons } from "@/config/history";
 import { supabase } from "@/lib/supabase";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 import type { HistoryTitleRow } from "@/components/history/HistoryHonours";
 import {
   aggregatePlayers,
@@ -24,8 +25,8 @@ import {
  * Fuente única de datos de /historia.
  */
 export function useHistory(initialSeason: string = HISTORY_CONFIG.defaultSeason) {
+  const { seasons: publicSeasons, activeSeason, loading: seasonsLoading } = usePublicSeasons(initialSeason);
   const [season, setSeason] = useState<string>(initialSeason);
-  const initializedSeason = useRef(false);
 
   const [loading, setLoading] = useState(true);
   const [globalLoading, setGlobalLoading] = useState(true);
@@ -159,18 +160,14 @@ export function useHistory(initialSeason: string = HISTORY_CONFIG.defaultSeason)
     };
   }, [season]);
 
-  const seasons = useMemo(() => {
-    const values = Array.from(
-      new Set(allMatches.map((match) => String(match.temporada || "")).filter(Boolean)),
-    );
-    return sortSeasons(values);
-  }, [allMatches]);
+  const seasons = useMemo(
+    () => sortSeasons(publicSeasons),
+    [publicSeasons],
+  );
 
   useEffect(() => {
-    if (initializedSeason.current || seasons.length === 0) return;
-    initializedSeason.current = true;
-    setSeason(seasons[seasons.length - 1]);
-  }, [seasons]);
+    if (!seasonsLoading) setSeason(activeSeason);
+  }, [activeSeason, seasonsLoading]);
 
   const players = useMemo(() => aggregatePlayers(seasonPlayers), [seasonPlayers]);
   const historicalPlayers = useMemo(() => aggregatePlayers(allPlayers), [allPlayers]);
