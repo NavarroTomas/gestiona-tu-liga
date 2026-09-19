@@ -162,13 +162,13 @@ export type HomeEditorDocument = {
 };
 
 export const HOME_SECTION_ELEMENTS: Record<HomeSectionId, HomeEditorElementId[]> = {
-  hero: ["hero.eyebrow", "hero.title", "hero.subtitle", "hero.primaryButton", "hero.secondaryButton", "hero.cards"],
+  hero: ["hero.title"],
   news: ["news.content"],
   awards: ["awards.heading", "awards.cards"],
   competitions: ["competitions.heading", "competitions.cards"],
   match: ["match.content"],
-  stats: ["stats.cards"],
-  community: ["community.heading", "community.button"],
+  stats: [],
+  community: [],
 };
 
 export const HOME_ELEMENT_LABELS: Record<HomeEditorElementId, string> = {
@@ -291,7 +291,7 @@ export const DEFAULT_HOME_EDITOR_DOCUMENT: HomeEditorDocument = {
   elements: elementDefaults,
   hero: {
     eyebrow: "Liga APA PSO",
-    title: "El fútbol de APA, en un solo lugar",
+    title: "APA PSO ARGENTINA",
     subtitle: "Competencias, resultados, clubes, premios y actualidad oficial.",
     primaryLabel: "Ver competición",
     secondaryLabel: "Ver fixture",
@@ -425,6 +425,10 @@ export function normalizeHomeEditorDocument(value: unknown): HomeEditorDocument 
   const elements = { ...base.elements };
   for (const id of Object.keys(base.elements) as HomeEditorElementId[]) {
     elements[id] = normalizeElement(input.elements?.[id], base.elements[id]);
+  }
+
+  if (input.hero?.title === "El fútbol de APA, en un solo lugar") {
+    input.hero = { ...input.hero, title: "APA PSO ARGENTINA" };
   }
 
   return {
