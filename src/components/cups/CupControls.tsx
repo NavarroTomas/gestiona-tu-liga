@@ -2,11 +2,13 @@ import { CUPS_CONFIG } from "@/config/cups";
 
 export default function CupControls({
   season,
+  seasons,
   group,
   onSeasonChange,
   onGroupChange,
 }: {
   season: string;
+  seasons: readonly string[];
   group: string;
   onSeasonChange: (season: string) => void;
   onGroupChange: (group: string) => void;
@@ -30,7 +32,7 @@ export default function CupControls({
               style={{ backgroundColor: "#dff1fc", color: "#102f55", borderColor: "#b9dced" }}
               className="h-10 min-w-[150px] cursor-pointer appearance-none rounded-[8px] border px-3.5 pr-9 text-[18px] font-bold outline-none transition hover:border-[#56afe2] focus:border-[#56afe2] focus:ring-2 focus:ring-[#56afe2]/20 sm:h-11 sm:min-w-[165px] sm:text-[18px]"
             >
-              {CUPS_CONFIG.seasons.map((item) => (
+              {seasons.map((item) => (
                 <option
                   key={item}
                   value={item}
