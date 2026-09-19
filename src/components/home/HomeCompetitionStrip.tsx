@@ -83,20 +83,20 @@ export default function HomeCompetitionStrip({
         className={`${headingSelection.className ?? ""} grid gap-4 border-b border-[#bcd9e8] pb-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-end`}
       >
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#168fd4]">
+          <p className="text-[12px] font-black uppercase tracking-[0.22em] text-[#168fd4]">
             {editor.eyebrow}
           </p>
-          <h2 className="mt-1 text-[34px] font-black uppercase tracking-[-0.045em] text-[#0d3158] sm:text-[40px]">
+          <h2 className="mt-1 text-[42px] font-black uppercase tracking-[-0.05em] text-[#0d3158] sm:text-[52px]">
             {editor.title}
           </h2>
-          <p className="mt-2 max-w-xl text-[13px] font-semibold leading-5 text-[#58788f]">
+          <p className="mt-2 max-w-xl text-[15px] font-semibold leading-6 text-[#58788f]">
             Toda la temporada, en un vistazo.
           </p>
         </div>
 
         <Link
           href="/competicion"
-          className="w-fit text-[10px] font-black uppercase tracking-[0.08em] text-[#168fd4] transition hover:text-[#0f6f9e]"
+          className="w-fit text-[12px] font-black uppercase tracking-[0.08em] text-[#168fd4] transition hover:text-[#0f6f9e]"
         >
           Ver calendario completo →
         </Link>
@@ -119,7 +119,7 @@ export default function HomeCompetitionStrip({
                 <span className="pointer-events-none absolute left-0 top-5 hidden h-[74%] w-px bg-[#c7dde8] md:block" />
               ) : null}
 
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#4f7f9f]">
+              <p className="text-[12px] font-black uppercase tracking-[0.2em] text-[#4f7f9f]">
                 {group.label}
               </p>
 
@@ -127,15 +127,15 @@ export default function HomeCompetitionStrip({
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h3
-                      className={`${isCups ? "text-[31px] sm:text-[35px]" : "text-[26px] sm:text-[29px]"} font-black leading-[0.98] tracking-[-0.04em] text-[#102f55] transition group-hover:text-[#168fd4]`}
+                      className={`${isCups ? "text-[39px] sm:text-[44px]" : "text-[34px] sm:text-[38px]"} font-black leading-[0.98] tracking-[-0.04em] text-[#102f55] transition group-hover:text-[#168fd4]`}
                     >
                       {group.headline}
                     </h3>
-                    <p className={`${isCups ? "max-w-[38ch]" : "max-w-[30ch]"} mt-2 text-[12px] font-medium leading-5 text-[#648297]`}>
+                    <p className={`${isCups ? "max-w-[38ch]" : "max-w-[30ch]"} mt-2 text-[14px] font-medium leading-6 text-[#648297]`}>
                       {group.description}
                     </p>
                   </div>
-                  <span className="mt-1 text-[15px] font-black text-[#9fb7c5] transition group-hover:translate-x-1 group-hover:text-[#168fd4]">
+                  <span className="mt-1 text-[18px] font-black text-[#9fb7c5] transition group-hover:translate-x-1 group-hover:text-[#168fd4]">
                     →
                   </span>
                 </div>
@@ -147,14 +147,14 @@ export default function HomeCompetitionStrip({
                     <Link key={item.href} href={item.href} className="group block">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-[14px] font-black text-[#173e68] transition group-hover:text-[#168fd4]">
+                          <p className="text-[17px] font-black text-[#173e68] transition group-hover:text-[#168fd4]">
                             {item.label}
                           </p>
-                          <p className="mt-1 text-[10px] leading-4 text-[#6f8ea1]">
+                          <p className="mt-1 text-[12px] leading-5 text-[#6f8ea1]">
                             {item.description}
                           </p>
                         </div>
-                        <span className="text-[11px] font-black text-[#b3c5d0] transition group-hover:translate-x-1 group-hover:text-[#168fd4]">
+                        <span className="text-[14px] font-black text-[#b3c5d0] transition group-hover:translate-x-1 group-hover:text-[#168fd4]">
                           →
                         </span>
                       </div>
