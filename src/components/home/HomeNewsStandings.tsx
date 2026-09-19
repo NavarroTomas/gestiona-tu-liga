@@ -6,7 +6,7 @@ import TeamLink from "@/components/team/TeamLink";
 import type { HomeNews, StandingRow } from "@/lib/homePortal";
 
 function NewsCard({ item, featured = false }: { item: HomeNews; featured?: boolean }) {
-  const href = item.href || "/noticias";
+  const href = item.href || "/";
 
   return (
     <Link
@@ -153,12 +153,6 @@ export default function HomeNewsStandings({
               </h2>
             </div>
 
-            <Link
-              href="/noticias"
-              className="text-[11px] font-black text-[#168fd4] transition hover:text-[#0f6f9e]"
-            >
-              Ver todas →
-            </Link>
           </div>
 
           {news.length ? (
