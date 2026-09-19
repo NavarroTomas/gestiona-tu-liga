@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 import {
   PREDICTIONS_CONFIG,
   PREDICTION_SUBCATEGORIES,
@@ -47,7 +48,12 @@ import {
  * La página y los componentes solo consumen este controlador.
  */
 export function usePredicciones() {
+  const { seasons, activeSeason, loading: seasonsLoading } = usePublicSeasons(PREDICTIONS_CONFIG.defaultSeason);
   const [temporada, setTemporada] = useState(PREDICTIONS_CONFIG.defaultSeason);
+
+  useEffect(() => {
+    if (!seasonsLoading) setTemporada(activeSeason);
+  }, [activeSeason, seasonsLoading]);
   const [competicion, setCompeticion] = useState<PredictionCompetition>(
     PREDICTIONS_CONFIG.defaultCompetition,
   );
@@ -332,6 +338,7 @@ export function usePredicciones() {
 
   return {
     temporada,
+    temporadas: seasons,
     setTemporada,
     competicion,
     cambiarCompeticion,
