@@ -9,6 +9,7 @@ import type { DreamTeamController } from "@/hooks/useDreamTeam";
 
 export default function DreamTeamFilters({
   temporada,
+  temporadas,
   setTemporada,
   competicion,
   setCompetition,
@@ -25,6 +26,7 @@ export default function DreamTeamFilters({
 }: Pick<
   DreamTeamController,
   | "temporada"
+  | "temporadas"
   | "setTemporada"
   | "competicion"
   | "setCompetition"
@@ -99,7 +101,7 @@ export default function DreamTeamFilters({
             label="Temporada"
             value={temporada}
             onChange={setTemporada}
-            options={DREAM_TEAM_CONFIG.seasons.map((season) => ({
+            options={temporadas.map((season) => ({
               value: season,
               label: season,
             }))}
