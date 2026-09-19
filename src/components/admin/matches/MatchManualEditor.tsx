@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import PermissionGuard from "@/components/PermissionGuard";
+import { fetchSeasonRecords } from "@/lib/adminTournaments";
 import {
   AdminMatch,
   ADMIN_MATCH_COMPETITIONS,
@@ -79,6 +80,7 @@ function emptyPlayer(team = ""): PlayerDraft {
 }
 
 export default function MatchManualEditor() {
+  const [temporadas, setTemporadas] = useState<string[]>([]);
   const [temporada, setTemporada] = useState("Temporada 4");
   const [competicion, setCompeticion] = useState("liga");
   const [matches, setMatches] = useState<AdminMatch[]>([]);
@@ -94,6 +96,16 @@ export default function MatchManualEditor() {
     () => matches.find((item) => String(item.id) === matchId) || null,
     [matches, matchId],
   );
+
+  useEffect(() => {
+    fetchSeasonRecords()
+      .then((rows) => {
+        const names = rows.map((row) => row.nombre);
+        setTemporadas(names);
+        setTemporada(rows.find((row) => row.activa)?.nombre || names[0] || "Temporada 4");
+      })
+      .catch(() => setTemporadas(["Temporada 4"]));
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -273,7 +285,7 @@ export default function MatchManualEditor() {
 
         <MatchCard title="1. Elegí el partido" description="Ya no se escriben clubes ni IDs a mano: se reutiliza el fixture oficial.">
           <div className={styles.grid3}>
-            <Field label="Temporada"><Select value={temporada} onChange={(e) => setTemporada(e.target.value)}><option>Temporada 4</option></Select></Field>
+            <Field label="Temporada"><Select value={temporada} onChange={(e) => setTemporada(e.target.value)}>{(temporadas.length ? temporadas : [temporada]).map((item) => <option key={item}>{item}</option>)}</Select></Field>
             <Field label="Competición"><Select value={competicion} onChange={(e) => setCompeticion(e.target.value)}>{ADMIN_MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</Select></Field>
             <Field label="Partido"><Select value={matchId} onChange={(e) => setMatchId(e.target.value)} disabled={loading}>{matches.length === 0 && <option value="">Sin partidos</option>}{matches.map((item) => <option key={item.id} value={String(item.id)}>F{item.fecha || "-"} · {item.local} vs {item.visitante}</option>)}</Select></Field>
           </div>
