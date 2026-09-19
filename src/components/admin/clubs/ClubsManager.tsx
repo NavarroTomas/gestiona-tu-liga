@@ -68,10 +68,10 @@ export default function ClubsManager() {
     fetchSeasonRecords()
       .then((records) => {
         const names = records.map((row) => row.nombre);
-        const active = records.find((row) => row.activa)?.nombre || names[0] || DEFAULT_ASSIGNMENT.temporada;
+        const newest = records[0]?.nombre || records.find((row) => row.activa)?.nombre || DEFAULT_ASSIGNMENT.temporada;
         setSeasons(names.length ? names : [DEFAULT_ASSIGNMENT.temporada]);
-        setSeasonFilter(active);
-        setAssignment((current) => ({ ...current, temporada: active }));
+        setSeasonFilter(newest);
+        setAssignment((current) => ({ ...current, temporada: newest }));
       })
       .catch(() => {
         setSeasons([DEFAULT_ASSIGNMENT.temporada]);
