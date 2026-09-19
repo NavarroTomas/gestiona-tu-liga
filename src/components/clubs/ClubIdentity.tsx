@@ -4,6 +4,7 @@ export default function ClubIdentity({
   name,
   slug,
   logo,
+  temporada,
   className = "",
   compact = false,
   inverse = false,
@@ -11,6 +12,7 @@ export default function ClubIdentity({
   name: string;
   slug?: string | null;
   logo?: string | null;
+  temporada?: string | null;
   className?: string;
   compact?: boolean;
   inverse?: boolean;
@@ -29,6 +31,7 @@ export default function ClubIdentity({
     <TeamLink
       name={name}
       slug={slug}
+      temporada={temporada}
       className={`group inline-flex min-w-0 items-center gap-3 ${inverse ? "text-white" : "text-[#102f55]"} ${className}`}
     >
       <span className={`flex shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#e9f4fa] ${crestSize}`}>
