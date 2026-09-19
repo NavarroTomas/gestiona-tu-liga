@@ -31,8 +31,7 @@ import type {
   MatchCompetition,
   PlayerMatchStats,
 } from "@/lib/adminMatches/types";
-
-const TEMPORADAS = ["Temporada 4"];
+import { fetchSeasonRecords } from "@/lib/adminTournaments";
 
 type RosterRow = {
   id: number;
@@ -72,7 +71,8 @@ function emptyPlayer(equipo = ""): PlayerMatchStats {
 }
 
 export default function CargarPartidoManualPage() {
-  const [temporada, setTemporada] = useState("Temporada 4");
+  const [temporadas, setTemporadas] = useState<string[]>([]);
+  const [temporada, setTemporada] = useState("");
   const [competicion, setCompeticion] = useState<MatchCompetition>("liga");
   const [division, setDivision] = useState("Primera");
   const [grupo, setGrupo] = useState("A");
@@ -90,6 +90,20 @@ export default function CargarPartidoManualPage() {
   const [mensaje, setMensaje] = useState("");
 
   const partido = partidos.find((item) => String(item.id) === partidoId) || null;
+
+  useEffect(() => {
+    fetchSeasonRecords()
+      .then((rows) => {
+        const names = rows.map((row) => row.nombre);
+        const active = rows.find((row) => row.activa)?.nombre || names[0] || "";
+        setTemporadas(names);
+        setTemporada((current) => current && names.includes(current) ? current : active);
+      })
+      .catch(() => {
+        setTemporadas([]);
+        setMensaje("No pude cargar las temporadas.");
+      });
+  }, []);
 
   const phaseOptions = useMemo(() => {
     if (competicion === "copa_campeones") return CHAMPIONS_PHASES;
@@ -299,7 +313,7 @@ export default function CargarPartidoManualPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-6">
-              <select className="input" value={temporada} onChange={(e) => setTemporada(e.target.value)}>{TEMPORADAS.map((item) => <option key={item}>{item}</option>)}</select>
+              <select className="input" value={temporada} onChange={(e) => setTemporada(e.target.value)}>{temporadas.map((item) => <option key={item}>{item}</option>)}</select>
               <select className="input" value={competicion} onChange={(e) => setCompeticion(e.target.value as MatchCompetition)}>{MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
               {competicion === "liga" && <select className="input" value={division} onChange={(e) => setDivision(e.target.value)}>{MATCH_DIVISIONS.map((item) => <option key={item}>{item}</option>)}</select>}
               {competicion === "copa_clasificatoria" && <select className="input" value={grupo} onChange={(e) => setGrupo(e.target.value)}>{MATCH_GROUPS.map((item) => <option key={item}>{item}</option>)}</select>}
