@@ -159,10 +159,21 @@ export default function ClubsManager() {
 
     setSaving(true);
     setMessage("");
+    let createdClubId: string | null = null;
     try {
       const saved = await saveClub(club, assignment.temporada);
       if (!saved.id) throw new Error("No se pudo obtener el ID del club guardado.");
-      await saveClubAssignment(saved.id, assignment);
+      if (!club.id) createdClubId = saved.id;
+
+      try {
+        await saveClubAssignment(saved.id, assignment);
+      } catch (assignmentError) {
+        if (createdClubId) {
+          await deleteClub(createdClubId).catch(() => undefined);
+        }
+        throw assignmentError;
+      }
+
       setMessage(club.id ? "Club actualizado." : "Club creado.");
       await loadClubs(seasonFilter);
       setClub(saved);
