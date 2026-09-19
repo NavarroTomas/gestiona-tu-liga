@@ -10,9 +10,9 @@ function clubLogo(clubs: ClubInfo[], name?: string | null) {
 function Crest({ clubs, team }: { clubs: ClubInfo[]; team?: string | null }) {
   const logo = clubLogo(clubs, team);
   return logo ? (
-    <img src={logo} alt="" className="h-8 w-8 shrink-0 object-contain" />
+    <img src={logo} alt="" className="h-10 w-10 shrink-0 object-contain" />
   ) : (
-    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#edf5f9] text-[8px] font-black text-[#7691a2]">
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#edf5f9] text-[9px] font-black text-[#7691a2]">
       {String(team || "?").slice(0, 2).toUpperCase()}
     </div>
   );
@@ -40,17 +40,17 @@ export default function HomeMatchStrip({
     <section>
       <div className="mb-4 flex items-end justify-between gap-4">
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#168fd4]">
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#168fd4]">
             Agenda
           </p>
-          <h2 className="mt-1 text-[24px] font-black uppercase tracking-[-0.03em] text-[#102f55]">
+          <h2 className="mt-1 text-[32px] font-black uppercase tracking-[-0.04em] text-[#102f55]">
             Próximos partidos
           </h2>
         </div>
 
         <Link
           href="/fixture"
-          className="text-[11px] font-black text-[#168fd4] transition hover:text-[#0f6f9e]"
+          className="text-[13px] font-black text-[#168fd4] transition hover:text-[#0f6f9e]"
         >
           Ver fixture →
         </Link>
@@ -62,26 +62,26 @@ export default function HomeMatchStrip({
             <Link
               key={String(match.partido_id || match.id)}
               href="/fixture"
-              className={`group grid gap-3 px-4 py-4 transition hover:bg-[#f8fbfd] md:grid-cols-[150px_minmax(0,1fr)_70px_minmax(0,1fr)_100px] md:items-center ${
+              className={`group grid gap-3 px-5 py-5 transition hover:bg-[#f8fbfd] md:grid-cols-[170px_minmax(0,1fr)_80px_minmax(0,1fr)_120px] md:items-center ${
                 index < Math.min(upcoming.length, 4) - 1 ? "border-b border-[#e4edf2]" : ""
               }`}
             >
               <div className="flex items-center justify-between gap-3 md:block">
-                <p className="text-[9px] font-black uppercase tracking-[0.12em] text-[#168fd4]">
+                <p className="text-[11px] font-black uppercase tracking-[0.12em] text-[#168fd4]">
                   {competitionLabel(match)}
                 </p>
-                <p className="mt-1 text-[10px] font-bold text-[#7d96a6]">
+                <p className="mt-1 text-[12px] font-bold text-[#7d96a6]">
                   {match.fecha ? `Fecha ${match.fecha}` : match.fase || ""}
                 </p>
               </div>
 
               <div className="flex min-w-0 items-center gap-2.5 md:justify-end">
-                <span className="truncate text-[12px] font-black text-[#173e68]">{match.local}</span>
+                <span className="truncate text-[15px] font-black text-[#173e68]">{match.local}</span>
                 <Crest clubs={clubs} team={match.local} />
               </div>
 
               <div className="text-center">
-                <span className="text-[9px] font-black uppercase text-[#9ab0bf]">vs</span>
+                <span className="text-[11px] font-black uppercase text-[#9ab0bf]">vs</span>
               </div>
 
               <div className="flex min-w-0 items-center gap-2.5">
@@ -90,8 +90,8 @@ export default function HomeMatchStrip({
               </div>
 
               <div className="text-left md:text-right">
-                <p className="text-[12px] font-black text-[#102f55]">{match.hora || "A confirmar"}</p>
-                {match.dia ? <p className="mt-0.5 text-[9px] font-bold text-[#7d96a6]">{match.dia}</p> : null}
+                <p className="text-[15px] font-black text-[#102f55]">{match.hora || "A confirmar"}</p>
+                {match.dia ? <p className="mt-0.5 text-[11px] font-bold text-[#7d96a6]">{match.dia}</p> : null}
               </div>
             </Link>
           ))}
