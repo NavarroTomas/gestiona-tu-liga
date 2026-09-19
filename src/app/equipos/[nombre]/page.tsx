@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 import {
   matchIds,
   normalizeCompetition,
@@ -77,7 +78,6 @@ interface EquipoTemporada {
 
 type ResultadoEquipo = "G" | "E" | "P" | "-";
 
-const TEMPORADA_ACTUAL = "Temporada 4";
 
 const DIVISION_LABELS: Record<string, string> = {
   primera: "Primera",
@@ -88,6 +88,11 @@ const DIVISION_LABELS: Record<string, string> = {
 
 export default function PaginaEquipo() {
   const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedSeason = searchParams.get("temporada");
+  const { seasons, activeSeason, loading: seasonsLoading } = usePublicSeasons("Temporada 4");
+  const [temporadaSeleccionada, setTemporadaSeleccionada] = useState(requestedSeason || "Temporada 4");
 
   const nombreEquipoUrl = params?.nombre
     ? decodeURIComponent(params.nombre as string)
@@ -117,10 +122,17 @@ export default function PaginaEquipo() {
   });
 
   useEffect(() => {
-    if (!nombreEquipoUrl) return;
+    if (seasonsLoading) return;
+    setTemporadaSeleccionada(
+      requestedSeason && seasons.includes(requestedSeason) ? requestedSeason : activeSeason,
+    );
+  }, [activeSeason, requestedSeason, seasons, seasonsLoading]);
+
+  useEffect(() => {
+    if (!nombreEquipoUrl || seasonsLoading) return;
     fetchDatosEquipo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nombreEquipoUrl]);
+  }, [nombreEquipoUrl, temporadaSeleccionada, seasonsLoading]);
 
   function normalizar(texto?: string | null) {
     return String(texto || "")
@@ -211,7 +223,7 @@ export default function PaginaEquipo() {
     const { data, error } = await supabase
       .from("v_clubes_temporada_public")
       .select("*")
-      .eq("temporada", TEMPORADA_ACTUAL)
+      .eq("temporada", temporadaSeleccionada)
       .eq("activo", true)
       .limit(500);
 
@@ -263,7 +275,7 @@ export default function PaginaEquipo() {
       banner_url: club.banner_url,
       descripcion: club.descripcion,
       color_principal: club.color_principal,
-      temporada: TEMPORADA_ACTUAL,
+      temporada: temporadaSeleccionada,
       division: "segunda",
       activo: true,
     };
@@ -440,7 +452,7 @@ export default function PaginaEquipo() {
       }
 
       const nombreExacto = clubTemporada.nombre || nombreEquipoUrl;
-      const temporadaActual = clubTemporada.temporada || TEMPORADA_ACTUAL;
+      const temporadaActual = clubTemporada.temporada || temporadaSeleccionada;
       const divisionActual = clubTemporada.division || "segunda";
       const slugClub = clubTemporada.slug || clubTemporada.club_slug || slugify(nombreExacto);
 
@@ -891,9 +903,27 @@ export default function PaginaEquipo() {
                     </p>
 
                     <div className="mt-5 flex flex-wrap gap-3">
-                      <span className="rounded-2xl border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-sm font-black uppercase text-sky-300">
-                        {equipoTemporada?.temporada || "Temporada"}
-                      </span>
+                      <label className="relative">
+                        <span className="sr-only">Temporada</span>
+                        <select
+                          value={temporadaSeleccionada}
+                          onChange={(event) => {
+                            const next = event.target.value;
+                            setTemporadaSeleccionada(next);
+                            router.replace(
+                              `/equipos/${encodeURIComponent(nombreEquipoUrl)}?temporada=${encodeURIComponent(next)}`,
+                            );
+                          }}
+                          className="h-10 cursor-pointer appearance-none rounded-2xl border border-sky-400/30 bg-sky-400/10 px-4 pr-9 text-sm font-black uppercase text-sky-300 outline-none transition hover:border-sky-300"
+                        >
+                          {seasons.map((season) => (
+                            <option key={season} value={season} className="bg-[#06152c] text-white">
+                              {season}
+                            </option>
+                          ))}
+                        </select>
+                        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sky-300">⌄</span>
+                      </label>
 
                       <span className="rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-sm font-black uppercase text-yellow-300">
                         {divisionBonita(equipoTemporada?.division)}
