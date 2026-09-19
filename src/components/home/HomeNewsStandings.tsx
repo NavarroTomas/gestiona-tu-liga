@@ -1,63 +1,203 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+import TeamLink from "@/components/team/TeamLink";
 import type { HomeNews, StandingRow } from "@/lib/homePortal";
 
-function NewsImage({ src, title }: { src?: string | null; title: string }) {
-  if (!src) {
-    return <div className="flex h-full min-h-52 items-center justify-center rounded-2xl bg-[#102f55] text-6xl font-black text-white/10">APA</div>;
-  }
-  return <img src={src} alt={title} className="h-full min-h-52 w-full rounded-2xl object-cover" />;
+function NewsRow({ item, featured = false }: { item: HomeNews; featured?: boolean }) {
+  const content = (
+    <div
+      className={`group border-b border-[#dce9f1] last:border-b-0 transition ${featured ? "py-5" : "py-4"}`}
+    >
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className="text-[9px] font-black uppercase tracking-[0.14em] text-[#168fd4]">
+          {item.categoria || "Actualidad APA"}
+        </span>
+        {item.meta ? (
+          <>
+            <span className="text-[9px] font-black text-[#adc2cf]">•</span>
+            <span className="text-[9px] font-bold uppercase tracking-[0.08em] text-[#7891a3]">
+              {item.meta}
+            </span>
+          </>
+        ) : null}
+      </div>
+
+      <h3
+        className={`mt-1.5 font-black leading-[1.15] tracking-[-0.02em] text-[#102f55] transition group-hover:text-[#168fd4] ${
+          featured ? "text-[24px] sm:text-[28px]" : "text-[15px] sm:text-[16px]"
+        }`}
+      >
+        {item.titulo}
+      </h3>
+
+      {item.descripcion ? (
+        <p
+          className={`mt-2 text-[#58788f] ${
+            featured ? "line-clamp-2 text-[13px] leading-5" : "line-clamp-1 text-[11px]"
+          }`}
+        >
+          {item.descripcion}
+        </p>
+      ) : null}
+
+      <div className="mt-2 text-[10px] font-black uppercase tracking-[0.08em] text-[#168fd4]">
+        Ver detalle →
+      </div>
+    </div>
+  );
+
+  return item.href ? (
+    <Link href={item.href} className="block">
+      {content}
+    </Link>
+  ) : (
+    <Link href="/noticias" className="block">
+      {content}
+    </Link>
+  );
 }
 
-export default function HomeNewsStandings({ news, standings, logoEquipo }: { news: HomeNews[]; standings: StandingRow[]; logoEquipo: (club: string) => string | null }) {
-  const featured = news[0];
-  const secondary = news.slice(1, 4);
+function StandingsTable({
+  rows,
+  logoEquipo,
+}: {
+  rows: StandingRow[];
+  logoEquipo: (club: string) => string | null;
+}) {
+  return (
+    <div>
+      <div className="grid grid-cols-[28px_minmax(0,1fr)_42px_46px_46px] gap-2 border-b border-[#dce9f1] px-2 pb-2 text-[9px] font-black uppercase tracking-[0.08em] text-[#7891a3]">
+        <span>#</span>
+        <span>Club</span>
+        <span className="text-center">PJ</span>
+        <span className="text-center">DG</span>
+        <span className="text-right">PTS</span>
+      </div>
+
+      <div>
+        {rows.slice(0, 6).map((row, index) => (
+          <div
+            key={row.club}
+            className="grid grid-cols-[28px_minmax(0,1fr)_42px_46px_46px] items-center gap-2 border-b border-[#e4eef4] px-2 py-3 text-[11px] last:border-b-0"
+          >
+            <span className="font-black text-[#315f89]">{index + 1}</span>
+
+            <TeamLink name={row.club} className="flex min-w-0 items-center gap-2">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center">
+                {logoEquipo(row.club) ? (
+                  <img src={logoEquipo(row.club)!} alt="" className="h-full w-full object-contain" />
+                ) : (
+                  <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#eef7fc] text-[8px] font-black text-[#6f8ca0]">
+                    {row.club.slice(0, 2).toUpperCase()}
+                  </span>
+                )}
+              </span>
+              <span className="truncate font-black text-[#173e68]">{row.club}</span>
+            </TeamLink>
+
+            <span className="text-center font-bold text-[#58788f]">{row.pj}</span>
+            <span className="text-center font-bold text-[#58788f]">
+              {row.dg > 0 ? "+" : ""}
+              {row.dg}
+            </span>
+            <span className="text-right text-[13px] font-black text-[#102f55]">{row.pts}</span>
+          </div>
+        ))}
+
+        {rows.length === 0 ? (
+          <p className="px-2 py-8 text-center text-[12px] font-bold text-[#7891a3]">
+            Todavía no hay resultados suficientes.
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+export default function HomeNewsStandings({
+  news,
+  standingsPrimera,
+  standingsSegunda,
+  logoEquipo,
+}: {
+  news: HomeNews[];
+  standingsPrimera: StandingRow[];
+  standingsSegunda: StandingRow[];
+  logoEquipo: (club: string) => string | null;
+}) {
+  const [division, setDivision] = useState<"Primera" | "Segunda">("Primera");
+  const standings = division === "Primera" ? standingsPrimera : standingsSegunda;
 
   return (
-    <section className="grid gap-5 lg:grid-cols-[minmax(0,1.55fr)_minmax(360px,.8fr)]">
-      <article className="rounded-[26px] border border-[#0b2747]/10 bg-white p-4 shadow-[0_16px_45px_rgba(11,39,71,.08)]">
-        <div className="mb-4 flex items-center justify-between gap-4">
-          <div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#245f8e]">Actualidad APA</p><h2 className="mt-1 text-2xl font-black uppercase text-[#0b2747]">Noticias</h2></div>
-          <Link href="/noticias" className="text-xs font-black text-[#245f8e]">Ver todas →</Link>
-        </div>
-
-        {featured ? (
-          <div className="grid gap-4 md:grid-cols-[1.2fr_1fr]">
-            <div className="relative min-h-64 overflow-hidden rounded-2xl">
-              <NewsImage src={featured.imagen_url} title={featured.titulo} />
-              <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-t from-[#0b2747]/75 via-transparent to-transparent" />
-              <span className="absolute bottom-4 left-4 rounded-full bg-white px-3 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-[#0b2747]">{featured.categoria || "Actualidad"}</span>
+    <section className="overflow-hidden rounded-[18px] border border-[#cfe4f0] bg-white shadow-[0_14px_40px_rgba(16,47,85,.07)]">
+      <div className="grid lg:grid-cols-[minmax(0,1.25fr)_minmax(390px,.75fr)]">
+        <article className="border-b border-[#d8e8f0] p-5 sm:p-6 lg:border-b-0 lg:border-r">
+          <div className="mb-2 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#168fd4]">
+                Actualidad APA
+              </p>
+              <h2 className="mt-1 text-[24px] font-black uppercase tracking-[-0.03em] text-[#102f55]">
+                Últimas noticias
+              </h2>
             </div>
-            <div className="flex flex-col justify-center rounded-2xl bg-[#f5f6f8] p-5">
-              <h3 className="text-3xl font-black leading-tight text-[#0b2747]">{featured.titulo}</h3>
-              <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#245f8e]">{featured.descripcion}</p>
+
+            <Link href="/noticias" className="text-[11px] font-black text-[#168fd4] transition hover:text-[#0f6f9e]">
+              Ver todas →
+            </Link>
+          </div>
+
+          <div>
+            {news.length ? (
+              news.map((item, index) => <NewsRow key={item.id} item={item} featured={index === 0} />)
+            ) : (
+              <p className="py-10 text-sm font-bold text-[#7891a3]">
+                Las novedades aparecerán automáticamente cuando haya actividad.
+              </p>
+            )}
+          </div>
+        </article>
+
+        <article className="p-5 sm:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#168fd4]">
+                Liga
+              </p>
+              <h2 className="mt-1 text-[24px] font-black uppercase tracking-[-0.03em] text-[#102f55]">
+                Tabla de posiciones
+              </h2>
             </div>
-          </div>
-        ) : null}
 
-        {secondary.length > 0 ? <div className="mt-4 grid gap-3 md:grid-cols-3">{secondary.map((item, index) => (
-          <div key={item.id} className="group rounded-2xl border border-[#0b2747]/8 bg-[#f5f6f8] p-4 transition hover:border-[#245f8e]/25 hover:bg-white">
-            <div className="flex items-center justify-between"><span className="text-[9px] font-black uppercase tracking-[0.16em] text-[#245f8e]">{item.categoria || "Actualidad"}</span><span className="text-[10px] font-black text-[#0b2747]/25">0{index + 2}</span></div>
-            <p className="mt-3 text-sm font-black leading-5 text-[#0b2747]">{item.titulo}</p>
+            <Link href="/divisiones" className="shrink-0 text-[11px] font-black text-[#168fd4] transition hover:text-[#0f6f9e]">
+              Completa →
+            </Link>
           </div>
-        ))}</div> : null}
-      </article>
 
-      <article className="relative overflow-hidden rounded-[26px] bg-[#102f55] p-5 text-white shadow-[0_16px_45px_rgba(11,39,71,.14)]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,rgba(36,95,142,.7),transparent_34%)]" />
-        <div className="relative z-10">
-          <div className="mb-5 flex items-center justify-between gap-4"><div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/50">Primera División</p><h2 className="mt-1 text-2xl font-black uppercase">Tabla</h2></div><Link href="/competicion" className="text-xs font-black text-white/70">Completa →</Link></div>
-          <div className="space-y-2">
-            {standings.slice(0, 6).map((row, index) => (
-              <div key={row.club} className="grid grid-cols-[28px_1fr_42px_42px] items-center gap-2 rounded-xl border border-white/8 bg-white/[0.07] px-3 py-3 text-sm">
-                <span className="font-black">{index + 1}</span>
-                <div className="flex min-w-0 items-center gap-2">{logoEquipo(row.club) ? <img src={logoEquipo(row.club)!} alt="" className="h-6 w-6 object-contain" /> : <div className="h-6 w-6 rounded-full bg-white/10" />}<span className="truncate font-bold">{row.club}</span></div>
-                <span className="text-center text-xs font-bold text-white/55">{row.pj} PJ</span><span className="text-right font-black">{row.pts}</span>
-              </div>
+          <div className="mt-4 grid grid-cols-2 overflow-hidden rounded-[8px] border border-[#d5e7f0] bg-[#eef6fb]">
+            {(["Primera", "Segunda"] as const).map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => setDivision(item)}
+                className={`h-10 text-[10px] font-black uppercase transition ${
+                  division === item
+                    ? "bg-[#bfe8fb] text-[#0d5d8c]"
+                    : "text-[#66859b] hover:bg-[#e3f2f9]"
+                }`}
+              >
+                {item}
+              </button>
             ))}
-            {standings.length === 0 ? <p className="rounded-xl bg-white/[0.07] p-4 text-sm text-white/60">Todavía no hay resultados suficientes.</p> : null}
           </div>
-        </div>
-      </article>
+
+          <div className="mt-4">
+            <StandingsTable rows={standings} logoEquipo={logoEquipo} />
+          </div>
+        </article>
+      </div>
     </section>
   );
 }
