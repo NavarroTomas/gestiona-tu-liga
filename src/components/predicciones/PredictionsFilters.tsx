@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  PREDICTIONS_CONFIG,
   PREDICTION_COMPETITIONS,
   PREDICTION_SUBCATEGORIES,
 } from "@/config/predicciones";
@@ -16,6 +15,7 @@ import PredictionDropdown from "./PredictionDropdown";
 export default function PredictionsFilters(controller: Pick<
   PrediccionesController,
   | "temporada"
+  | "temporadas"
   | "setTemporada"
   | "competicion"
   | "cambiarCompeticion"
@@ -50,7 +50,7 @@ export default function PredictionsFilters(controller: Pick<
           label="Temporada"
           value={controller.temporada}
           onChange={controller.setTemporada}
-          options={PREDICTIONS_CONFIG.seasons.map((season) => ({ value: season, label: season }))}
+          options={controller.temporadas.map((season) => ({ value: season, label: season }))}
         />
         <PredictionDropdown
           label="Competición"
