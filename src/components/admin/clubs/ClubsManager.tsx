@@ -251,7 +251,7 @@ export default function ClubsManager() {
             ]}
           />
 
-          {view === "datos" && <ClubGeneralSection club={club} onChange={patchClub} />}
+          {view === "datos" && <ClubGeneralSection club={club} season={assignment.temporada || seasonFilter} onChange={patchClub} />}
           {view === "competencia" && <ClubSeasonSection assignment={assignment} seasons={[seasonFilter]} onChange={patchAssignment} />}
           {view === "visual" && (
             <ClubVisualSection
