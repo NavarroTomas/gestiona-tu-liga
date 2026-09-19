@@ -48,7 +48,12 @@ const EMPTY_WINDOW: DreamTeamVotingWindow = {
 };
 
 export function useDreamTeam() {
+  const { seasons, activeSeason, loading: seasonsLoading } = usePublicSeasons(DREAM_TEAM_CONFIG.defaultSeason);
   const [temporada, setTemporada] = useState<string>(DREAM_TEAM_CONFIG.defaultSeason);
+
+  useEffect(() => {
+    if (!seasonsLoading) setTemporada(activeSeason);
+  }, [activeSeason, seasonsLoading]);
   const [competicion, setCompeticion] = useState<DreamTeamCompetition>(DREAM_TEAM_CONFIG.defaultCompetition);
   const [division, setDivision] = useState<string>(DREAM_TEAM_CONFIG.defaultDivision);
   const [grupo, setGrupo] = useState<string>(DREAM_TEAM_CONFIG.defaultGroup);
@@ -435,6 +440,7 @@ export function useDreamTeam() {
 
   return {
     temporada,
+    temporadas: seasons,
     setTemporada,
     competicion,
     setCompetition,
