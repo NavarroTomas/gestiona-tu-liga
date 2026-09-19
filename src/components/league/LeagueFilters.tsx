@@ -2,11 +2,13 @@ import { LEAGUE_CONFIG } from "@/config/league";
 
 export default function LeagueFilters({
   temporada,
+  seasons,
   division,
   onTemporadaChange,
   onDivisionChange,
 }: {
   temporada: string;
+  seasons: string[];
   division: string;
   onTemporadaChange: (value: string) => void;
   onDivisionChange: (value: string) => void;
@@ -22,7 +24,7 @@ export default function LeagueFilters({
             style={{ backgroundColor: "#dff1fc", color: "#102f55", borderColor: "#b9dced" }}
             className="h-10 min-w-[160px] cursor-pointer appearance-none rounded-[8px] border px-3.5 pr-9 text-[12px] font-bold outline-none transition hover:border-[#56afe2] focus:border-[#56afe2] focus:ring-2 focus:ring-[#56afe2]/20 sm:h-11 sm:min-w-[170px] sm:text-sm"
           >
-            {LEAGUE_CONFIG.seasons.map((season) => (
+            {seasons.map((season) => (
               <option
                 key={season}
                 value={season}
