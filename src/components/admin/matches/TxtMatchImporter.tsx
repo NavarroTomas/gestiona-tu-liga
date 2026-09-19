@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import PermissionGuard from "@/components/PermissionGuard";
+import { fetchSeasonRecords } from "@/lib/adminTournaments";
 import {
   AdminMatchBackLink,
   MatchValidationPanel,
@@ -48,7 +49,6 @@ import {
 } from "@/lib/matchStatsUpload";
 import type { AdminMatch, MatchCompetition } from "@/lib/adminMatches/types";
 
-const TEMPORADAS = ["Temporada 4"];
 
 const APA_FIELD_CLASS =
   "min-h-[48px] w-full rounded-xl border border-[#35699a] bg-[#123f69] px-4 text-sm font-semibold text-white outline-none transition hover:bg-[#173f73] focus:border-[#69b6ff] focus:ring-2 focus:ring-[#69b6ff]/20 disabled:cursor-not-allowed disabled:opacity-50";
@@ -70,6 +70,7 @@ function dedupeRoster(rows: TxtRosterRow[]) {
 }
 
 export default function TxtMatchImporter() {
+  const [temporadas, setTemporadas] = useState<string[]>([]);
   const [temporada, setTemporada] = useState("Temporada 4");
   const [competicion, setCompeticion] = useState<MatchCompetition>("liga");
   const [division, setDivision] = useState("Primera");
@@ -93,6 +94,16 @@ export default function TxtMatchImporter() {
   const [analyzed, setAnalyzed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
+
+  useEffect(() => {
+    fetchSeasonRecords()
+      .then((rows) => {
+        const names = rows.map((row) => row.nombre);
+        setTemporadas(names);
+        setTemporada(rows.find((row) => row.activa)?.nombre || names[0] || "Temporada 4");
+      })
+      .catch(() => setTemporadas(["Temporada 4"]));
+  }, []);
 
   const partido = partidos.find((item) => String(item.id) === partidoRowId) || null;
 
@@ -505,7 +516,7 @@ export default function TxtMatchImporter() {
           <section className="rounded-[26px] border border-[#d8e2ec] bg-white p-5 shadow-sm md:p-6">
             <p className="text-xs font-black uppercase tracking-[0.15em] text-[#245f8e]">1. Partido</p>
             <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <label className="text-xs font-black uppercase tracking-[0.08em] text-[#173f73]">Temporada<select className={`${APA_FIELD_CLASS} mt-2`} value={temporada} onChange={(e) => setTemporada(e.target.value)}>{TEMPORADAS.map((item) => <option key={item}>{item}</option>)}</select></label>
+              <label className="text-xs font-black uppercase tracking-[0.08em] text-[#173f73]">Temporada<select className={`${APA_FIELD_CLASS} mt-2`} value={temporada} onChange={(e) => setTemporada(e.target.value)}>{(temporadas.length ? temporadas : [temporada]).map((item) => <option key={item}>{item}</option>)}</select></label>
               <label className="text-xs font-black uppercase tracking-[0.08em] text-[#173f73]">Competición<select className={`${APA_FIELD_CLASS} mt-2`} value={competicion} onChange={(e) => { setCompeticion(e.target.value as MatchCompetition); setFecha(""); }}>{MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
               {competicion === "liga" && <label className="text-xs font-black uppercase tracking-[0.08em] text-[#173f73]">División<select className={`${APA_FIELD_CLASS} mt-2`} value={division} onChange={(e) => setDivision(e.target.value)}>{MATCH_DIVISIONS.map((item) => <option key={item}>{item}</option>)}</select></label>}
               {competicion === "copa_clasificatoria" && <label className="text-xs font-black uppercase tracking-[0.08em] text-[#173f73]">Grupo<select className={`${APA_FIELD_CLASS} mt-2`} value={grupo} onChange={(e) => setGrupo(e.target.value)}>{MATCH_GROUPS.map((item) => <option key={item}>{item}</option>)}</select></label>}
