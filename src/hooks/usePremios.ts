@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 
 export type PremioCompeticion = "liga" | "copa_clasificatoria" | "copa_argentina" | "copa_apa" | "copa_campeones" | "playoffs";
 
@@ -38,8 +39,6 @@ type PartidoPremio = {
   partido_id?: string | null;
   fecha?: string | number | null;
 };
-
-export const PREMIOS_TEMPORADAS = ["Temporada 4"];
 
 export const PREMIOS_COMPETICIONES: Array<{ value: PremioCompeticion; label: string }> = [
   { value: "liga", label: "Liga" },
@@ -99,7 +98,12 @@ function partidoKey(partido: PartidoPremio) {
 }
 
 export function usePremios() {
+  const { seasons: temporadas, activeSeason, loading: seasonsLoading } = usePublicSeasons("Temporada 4");
   const [temporada, setTemporada] = useState("Temporada 4");
+
+  useEffect(() => {
+    if (!seasonsLoading) setTemporada(activeSeason);
+  }, [activeSeason, seasonsLoading]);
   const [contextoId, setContextoId] = useState("liga-primera");
   const [fecha, setFecha] = useState("1");
   const [fechas, setFechas] = useState<string[]>([]);
@@ -185,7 +189,7 @@ export function usePremios() {
 
   const logoEquipo = (equipo?: string) => logos[String(equipo || "").toLowerCase().trim()] || "";
 
-  return { temporada, setTemporada, contextoId, setContextoId, contexto, fecha, setFecha, fechas, jugadores, premios, topGeneral, cargando, cambiarCompeticion, logoEquipo };
+  return { temporada, temporadas, setTemporada, contextoId, setContextoId, contexto, fecha, setFecha, fechas, jugadores, premios, topGeneral, cargando, cambiarCompeticion, logoEquipo };
 }
 
 export type PremiosController = ReturnType<typeof usePremios>;
