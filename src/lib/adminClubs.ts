@@ -101,11 +101,26 @@ export async function fetchClubAssignment(clubId: string, season: string) {
 }
 
 export async function saveClub(club: AdminClub, season: string) {
+  const cleanName = sanitizeClubText(club.nombre, 80);
   const slug = club.id
-    ? (club.slug.trim() || seasonClubSlug(club.nombre, season))
-    : seasonClubSlug(club.nombre, season);
+    ? (club.slug.trim() || seasonClubSlug(cleanName, season))
+    : seasonClubSlug(cleanName, season);
+
+  if (!club.id) {
+    const { data: existing, error: existingError } = await supabase
+      .from("v_clubes_temporada_public")
+      .select("club_id,nombre")
+      .eq("temporada", season)
+      .ilike("nombre", cleanName)
+      .limit(1);
+    if (existingError) throw existingError;
+    if (existing?.length) {
+      throw new Error(`Ya existe un club llamado ${cleanName} en ${season}.`);
+    }
+  }
+
   const payload = {
-    nombre: sanitizeClubText(club.nombre, 80),
+    nombre: cleanName,
     slug,
     logo_url: club.logo_url || null,
     banner_url: club.banner_url || null,
