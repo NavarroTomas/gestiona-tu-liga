@@ -83,9 +83,20 @@ export default function HomeLeaguePortal({
   useEffect(() => {
     let active = true;
     async function load() {
-      const seasonsRes = await supabase.from("temporadas").select("nombre").order("created_at", { ascending: true });
-      const seasonNames = (seasonsRes.data || []).map((row: { nombre?: string | null }) => String(row.nombre || "")).filter(Boolean);
-      const currentSeason = seasonNames[seasonNames.length - 1] || "Temporada 4";
+      const seasonsRes = await supabase
+        .from("temporadas")
+        .select("nombre,numero,activa,estado")
+        .order("numero", { ascending: false, nullsFirst: false });
+      const seasonRows = (seasonsRes.data || []) as Array<{
+        nombre?: string | null;
+        activa?: boolean | null;
+        estado?: string | null;
+      }>;
+      const currentSeason =
+        seasonRows.find((row) => row.activa)?.nombre ||
+        seasonRows.find((row) => !["borrador", "archivada"].includes(String(row.estado || "").toLowerCase()))?.nombre ||
+        seasonRows[0]?.nombre ||
+        "Temporada 4";
       if (!active) return;
       setTemporada(currentSeason);
       const [matchesRes, awardsRes] = await Promise.all([
