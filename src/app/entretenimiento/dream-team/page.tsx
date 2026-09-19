@@ -34,6 +34,7 @@ export default function DreamTeamPage() {
 
         <DreamTeamFilters
           temporada={dreamTeam.temporada}
+          temporadas={dreamTeam.temporadas}
           setTemporada={dreamTeam.setTemporada}
           competicion={dreamTeam.competicion}
           setCompetition={dreamTeam.setCompetition}
