@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import PlayoffsHero from "@/components/playoffs/PlayoffsHero";
 import PlayoffsRoad from "@/components/playoffs/PlayoffsRoad";
@@ -8,6 +8,7 @@ import PlayoffsTabs from "@/components/playoffs/PlayoffsTabs";
 import LeagueFooter from "@/components/league/LeagueFooter";
 import { PLAYOFFS_CONFIG, getPlayoffsSeasonFormat } from "@/config/playoffs";
 import { usePlayoffs } from "@/hooks/usePlayoffs";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 
 /**
  * PÁGINA PLAYOFFS DE ASCENSO
@@ -26,13 +27,13 @@ import { usePlayoffs } from "@/hooks/usePlayoffs";
 function PlayoffsContent() {
   const searchParams = useSearchParams();
   const seasonFromUrl = searchParams.get("temporada");
-  const initialSeason = PLAYOFFS_CONFIG.seasons.includes(
-    seasonFromUrl as (typeof PLAYOFFS_CONFIG.seasons)[number],
-  )
-    ? String(seasonFromUrl)
-    : PLAYOFFS_CONFIG.defaultSeason;
+  const { seasons, activeSeason, loading: seasonsLoading } = usePublicSeasons(PLAYOFFS_CONFIG.defaultSeason);
+  const [season, setSeason] = useState<string>(seasonFromUrl || PLAYOFFS_CONFIG.defaultSeason);
 
-  const [season, setSeason] = useState<string>(initialSeason);
+  useEffect(() => {
+    if (seasonsLoading) return;
+    setSeason(seasonFromUrl && seasons.includes(seasonFromUrl) ? seasonFromUrl : activeSeason);
+  }, [activeSeason, seasonFromUrl, seasons, seasonsLoading]);
   const { loading, road, getLogo } = usePlayoffs(season);
   const seasonFormat = getPlayoffsSeasonFormat(season);
 
@@ -43,7 +44,7 @@ function PlayoffsContent() {
   return (
     <main className="apa-tournament-page min-h-screen bg-[#f4f9fd] text-[#102f55]">
       <PlayoffsHero season={season} />
-      <PlayoffsTabs season={season} onSeasonChange={setSeason} />
+      <PlayoffsTabs season={season} seasons={seasons} onSeasonChange={setSeason} />
 
       <section className="mx-auto w-full max-w-[1480px] px-5 py-4 sm:px-8 sm:py-5 lg:px-12">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
