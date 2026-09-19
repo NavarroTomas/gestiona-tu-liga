@@ -76,7 +76,6 @@ export const SITE_EDITOR_PAGES: SiteEditorPageDefinition[] = [
   { key: "divisiones", label: "Divisiones", route: "/divisiones", group: "Competición" },
   { key: "jugadores", label: "Jugadores", route: "/jugadores", group: "General" },
   { key: "mercado", label: "Mercado", route: "/mercado", group: "General" },
-  { key: "noticias", label: "Noticias", route: "/noticias", group: "Contenido" },
   { key: "entretenimiento", label: "Entretenimiento", route: "/entretenimiento", group: "Entretenimiento" },
   { key: "dream-team", label: "Dream Team", route: "/entretenimiento/dream-team", group: "Entretenimiento" },
   { key: "predicciones", label: "Predicciones", route: "/entretenimiento/predicciones", group: "Entretenimiento" },
