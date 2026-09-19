@@ -137,9 +137,21 @@ export async function createTournamentSeason(input: {
 }
 
 export async function updateTournamentSeason(id: string | number, patch: Partial<TournamentSeason>) {
+  if (patch.activa === true) {
+    const { error: deactivateError } = await supabase
+      .from("temporadas")
+      .update({ activa: false, updated_at: new Date().toISOString() })
+      .neq("id", id);
+    if (deactivateError) throw deactivateError;
+  }
+
+  const nextPatch = patch.activa === true && (!patch.estado || patch.estado === "borrador")
+    ? { ...patch, estado: "activa" }
+    : patch;
+
   const { data, error } = await supabase
     .from("temporadas")
-    .update({ ...patch, updated_at: new Date().toISOString() })
+    .update({ ...nextPatch, updated_at: new Date().toISOString() })
     .eq("id", id)
     .select("id,nombre,numero,activa,estado,fecha_inicio,fecha_fin,campeon,configuracion")
     .single();
