@@ -29,6 +29,7 @@ export default function PrediccionesPage() {
 
         <PredictionsFilters
           temporada={predictions.temporada}
+          temporadas={predictions.temporadas}
           setTemporada={predictions.setTemporada}
           competicion={predictions.competicion}
           cambiarCompeticion={predictions.cambiarCompeticion}
