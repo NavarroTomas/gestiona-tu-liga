@@ -1,14 +1,16 @@
 "use client";
 
 import type { AdminClub } from "@/lib/adminClubs";
-import { slugifyClub } from "@/lib/adminClubs";
+import { seasonClubSlug, slugifyClub } from "@/lib/adminClubs";
 import { Field, Input, TournamentPanel, tournamentStyles as styles } from "@/components/admin/tournaments/TournamentUi";
 
 export default function ClubGeneralSection({
   club,
+  season,
   onChange,
 }: {
   club: AdminClub;
+  season: string;
   onChange: (patch: Partial<AdminClub>) => void;
 }) {
   return (
@@ -24,7 +26,7 @@ export default function ClubGeneralSection({
               value={club.nombre}
               onChange={(event) => {
                 const nombre = event.target.value;
-                onChange({ nombre, slug: club.id ? club.slug : slugifyClub(nombre) });
+                onChange({ nombre, slug: club.id ? club.slug : seasonClubSlug(nombre, season) });
               }}
               placeholder="Club Atlético..."
             />
@@ -32,8 +34,11 @@ export default function ClubGeneralSection({
           <Field label="Slug">
             <Input
               value={club.slug}
-              onChange={(event) => onChange({ slug: slugifyClub(event.target.value) })}
-              placeholder="club-atletico"
+              onChange={(event) => {
+                const base = slugifyClub(event.target.value.replace(/-t\d+$/i, ""));
+                onChange({ slug: club.id ? base : seasonClubSlug(base, season) });
+              }}
+              placeholder="club-atletico-t5"
             />
           </Field>
         </div>
