@@ -147,7 +147,7 @@ export function matchContextLabel(match: AdminMatch) {
 }
 
 export function stableAdminMatchId(match: AdminMatch) {
-  return stableMatchId(match.temporada || "Temporada 4", match.id);
+  return stableMatchId(match.temporada || "sin-temporada", match.id);
 }
 
 export function calculateApaRating(player: Partial<MatchPlayerStat>) {
@@ -284,12 +284,13 @@ export function validateMatchStats({
 }
 
 export async function fetchAdminMatches({
-  temporada = "Temporada 4",
+  temporada,
   competicion,
 }: {
-  temporada?: string;
+  temporada: string;
   competicion?: string;
 }) {
+  if (!temporada) throw new Error("Seleccioná una temporada antes de cargar partidos.");
   let query = supabase
     .from("partidos")
     .select(
@@ -311,7 +312,11 @@ export async function fetchMatchRoster(match: AdminMatch) {
   const { data, error } = await supabase
     .from("plantillas")
     .select("jugador,playerid,equipo,posicion,estado")
-    .eq("temporada", match.temporada || "Temporada 4")
+    .eq("temporada", (() => {
+      const season = textValue(match.temporada);
+      if (!season) throw new Error("El partido no tiene temporada asociada.");
+      return season;
+    })())
     .in("equipo", teams)
     .order("equipo")
     .order("jugador");
