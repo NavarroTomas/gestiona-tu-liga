@@ -43,11 +43,26 @@ export type HomeEditorElementId =
   | "hero.secondaryButton"
   | "hero.cards"
   | "news.content"
+  | "news.heading"
+  | "news.feed"
+  | "news.standingsHeading"
+  | "news.standingsTable"
   | "awards.heading"
   | "awards.cards"
   | "competitions.heading"
   | "competitions.cards"
+  | "competitions.eyebrow"
+  | "competitions.title"
+  | "competitions.subtitle"
+  | "competitions.calendarLink"
+  | "competitions.league"
+  | "competitions.cups"
+  | "competitions.playoffs"
   | "match.content"
+  | "match.eyebrow"
+  | "match.title"
+  | "match.fixtureLink"
+  | "match.list"
   | "stats.cards"
   | "community.heading"
   | "community.button";
@@ -163,10 +178,18 @@ export type HomeEditorDocument = {
 
 export const HOME_SECTION_ELEMENTS: Record<HomeSectionId, HomeEditorElementId[]> = {
   hero: ["hero.title"],
-  news: ["news.content"],
+  news: ["news.heading", "news.feed", "news.standingsHeading", "news.standingsTable"],
   awards: ["awards.heading", "awards.cards"],
-  competitions: ["competitions.heading", "competitions.cards"],
-  match: ["match.content"],
+  competitions: [
+    "competitions.eyebrow",
+    "competitions.title",
+    "competitions.subtitle",
+    "competitions.calendarLink",
+    "competitions.league",
+    "competitions.cups",
+    "competitions.playoffs",
+  ],
+  match: ["match.eyebrow", "match.title", "match.fixtureLink", "match.list"],
   stats: [],
   community: [],
 };
@@ -179,11 +202,26 @@ export const HOME_ELEMENT_LABELS: Record<HomeEditorElementId, string> = {
   "hero.secondaryButton": "Botón secundario",
   "hero.cards": "Tarjetas del Hero",
   "news.content": "Noticias y tabla",
+  "news.heading": "Título de noticias",
+  "news.feed": "Noticias automáticas",
+  "news.standingsHeading": "Título de tabla",
+  "news.standingsTable": "Tabla de posiciones",
   "awards.heading": "Encabezado de premios",
   "awards.cards": "Tarjetas de premios",
   "competitions.heading": "Encabezado de competiciones",
   "competitions.cards": "Contenido de competiciones",
+  "competitions.eyebrow": "Etiqueta Temporada",
+  "competitions.title": "Título Competiciones",
+  "competitions.subtitle": "Bajada de Competiciones",
+  "competitions.calendarLink": "Enlace calendario",
+  "competitions.league": "Bloque Liga",
+  "competitions.cups": "Bloque Copas",
+  "competitions.playoffs": "Bloque Playoffs",
   "match.content": "Lista de próximos partidos",
+  "match.eyebrow": "Etiqueta Agenda",
+  "match.title": "Título Próximos partidos",
+  "match.fixtureLink": "Enlace Ver fixture",
+  "match.list": "Lista de partidos",
   "stats.cards": "Tarjetas de estadísticas",
   "community.heading": "Texto de comunidad",
   "community.button": "Botón de comunidad",
