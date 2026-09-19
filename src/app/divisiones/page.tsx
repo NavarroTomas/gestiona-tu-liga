@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TablaDivision from "@/components/TablaDivision";
 import LeagueFilters from "@/components/league/LeagueFilters";
 import LeagueFooter from "@/components/league/LeagueFooter";
@@ -9,10 +9,16 @@ import LeagueSidebar from "@/components/league/LeagueSidebar";
 import LeagueTabs from "@/components/league/LeagueTabs";
 import { LEAGUE_CONFIG } from "@/config/league";
 import { useLeagueMatches } from "@/hooks/useLeagueMatches";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 
 export default function DivisionesPage() {
+  const { seasons, activeSeason, loading: seasonsLoading } = usePublicSeasons(LEAGUE_CONFIG.defaultSeason);
   const [temporada, setTemporada] = useState<string>(LEAGUE_CONFIG.defaultSeason);
   const [division, setDivision] = useState<string>(LEAGUE_CONFIG.defaultDivision);
+
+  useEffect(() => {
+    if (!seasonsLoading) setTemporada(activeSeason);
+  }, [activeSeason, seasonsLoading]);
 
   const { ultimosResultados, proximosPartidos, obtenerLogo } = useLeagueMatches(
     temporada,
@@ -27,6 +33,7 @@ export default function DivisionesPage() {
       <section className="mx-auto w-full max-w-[1480px] px-5 py-5 sm:px-8 sm:py-6 lg:px-12">
         <LeagueFilters
           temporada={temporada}
+          seasons={seasons}
           division={division}
           onTemporadaChange={setTemporada}
           onDivisionChange={setDivision}
