@@ -7,9 +7,11 @@ import { PLAYOFFS_CONFIG } from "@/config/playoffs";
  */
 export default function PlayoffsTabs({
   season,
+  seasons,
   onSeasonChange,
 }: {
   season: string;
+  seasons: readonly string[];
   onSeasonChange: (season: string) => void;
 }) {
   return (
@@ -41,7 +43,7 @@ export default function PlayoffsTabs({
             style={{ backgroundColor: "#eaf6fd", color: "#102f55", borderColor: "#d3e7f2" }}
             className="h-10 min-w-[145px] cursor-pointer appearance-none rounded-[8px] border px-3.5 pr-9 text-[12px] font-bold outline-none transition hover:border-[#56afe2] focus:border-[#56afe2]"
           >
-            {PLAYOFFS_CONFIG.seasons.map((item) => (
+            {seasons.map((item) => (
               <option key={item} value={item} style={{ backgroundColor: "#f3fafe", color: "#102f55" }}>
                 {item}
               </option>
