@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 import type { PredictionChoice } from "@/lib/predicciones/types";
 
 export type RankingCompetition =
@@ -55,11 +56,6 @@ export type PredictionRankingItem = {
   pendientes: number;
 };
 
-export const RANKING_SEASONS = [
-  { value: "Todas", label: "Todas" },
-  { value: "Temporada 4", label: "Temporada 4" },
-];
-
 export const RANKING_COMPETITIONS: Array<{ value: RankingCompetition; label: string }> = [
   { value: "todas", label: "Todas" },
   { value: "liga", label: "Liga" },
@@ -106,6 +102,7 @@ function realWinner(match?: RankingMatch | null): PredictionChoice | null {
  * La UI no consulta Supabase ni calcula puntajes por su cuenta.
  */
 export function usePredictionRanking() {
+  const { seasons } = usePublicSeasons("Temporada 4");
   const [temporada, setTemporada] = useState("Todas");
   const [competicion, setCompeticion] = useState<RankingCompetition>("todas");
   const [division, setDivision] = useState("Todas");
@@ -297,6 +294,7 @@ export function usePredictionRanking() {
 
   return {
     temporada,
+    temporadas: ["Todas", ...seasons],
     setTemporada,
     competicion,
     setCompeticion,
