@@ -36,6 +36,14 @@ export default function CopaArgentinaPage() {
   }, [activeSeason, seasonsLoading]);
   const { active, loading, bracket, getLogo } = useCopaArgentina(season);
   const seasonFormat = getCopaArgentinaSeasonFormat(season);
+  const detectedRounds = [
+    bracket.roundOf16.some(Boolean) ? "roundOf16" : null,
+    bracket.quarterfinals.some(Boolean) ? "quarterfinals" : null,
+    bracket.semifinals.some(Boolean) ? "semifinals" : null,
+    bracket.final ? "final" : null,
+  ].filter(Boolean) as typeof seasonFormat.rounds;
+  const visibleRounds = detectedRounds.length ? detectedRounds : seasonFormat.rounds;
+  const showThirdPlace = Boolean(bracket.thirdPlace) || seasonFormat.showThirdPlace;
 
   return (
     <main className="apa-tournament-page min-h-screen bg-[#f4f9fd] text-[#102f55]">
@@ -65,8 +73,8 @@ export default function CopaArgentinaPage() {
           <KnockoutBracket
             bracket={bracket}
             getLogo={getLogo}
-            rounds={seasonFormat.rounds}
-            showThirdPlace={seasonFormat.showThirdPlace}
+            rounds={visibleRounds}
+            showThirdPlace={showThirdPlace}
           />
         )}
       </section>
