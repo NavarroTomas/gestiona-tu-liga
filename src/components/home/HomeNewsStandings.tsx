@@ -5,19 +5,27 @@ import { useState } from "react";
 import TeamLink from "@/components/team/TeamLink";
 import type { HomeNews, StandingRow } from "@/lib/homePortal";
 
-function NewsRow({ item, featured = false }: { item: HomeNews; featured?: boolean }) {
-  const content = (
-    <div
-      className={`group border-b border-[#dce9f1] last:border-b-0 transition ${featured ? "py-5" : "py-4"}`}
+function NewsCard({ item, featured = false }: { item: HomeNews; featured?: boolean }) {
+  const href = item.href || "/noticias";
+
+  return (
+    <Link
+      href={href}
+      className={
+        featured
+          ? "group block rounded-[18px] border border-[#d8e8f0] bg-[#f8fbfd] p-5 transition hover:border-[#b8d8ea] hover:bg-white"
+          : "group block rounded-[16px] border border-[#dce9f1] bg-white p-4 transition hover:border-[#b8d8ea] hover:bg-[#fbfdff]"
+      }
     >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span className="text-[9px] font-black uppercase tracking-[0.14em] text-[#168fd4]">
+        <span className="text-[9px] font-black uppercase tracking-[0.16em] text-[#168fd4]">
           {item.categoria || "Actualidad APA"}
         </span>
+
         {item.meta ? (
           <>
-            <span className="text-[9px] font-black text-[#adc2cf]">•</span>
-            <span className="text-[9px] font-bold uppercase tracking-[0.08em] text-[#7891a3]">
+            <span className="text-[9px] font-black text-[#afc2cf]">•</span>
+            <span className="text-[9px] font-bold uppercase tracking-[0.1em] text-[#7891a3]">
               {item.meta}
             </span>
           </>
@@ -25,36 +33,31 @@ function NewsRow({ item, featured = false }: { item: HomeNews; featured?: boolea
       </div>
 
       <h3
-        className={`mt-1.5 font-black leading-[1.15] tracking-[-0.02em] text-[#102f55] transition group-hover:text-[#168fd4] ${
-          featured ? "text-[24px] sm:text-[28px]" : "text-[15px] sm:text-[16px]"
-        }`}
+        className={
+          featured
+            ? "mt-3 text-[30px] font-black leading-[1.02] tracking-[-0.04em] text-[#102f55] transition group-hover:text-[#168fd4]"
+            : "mt-2 text-[16px] font-black leading-[1.12] tracking-[-0.02em] text-[#102f55] transition group-hover:text-[#168fd4]"
+        }
       >
         {item.titulo}
       </h3>
 
       {item.descripcion ? (
         <p
-          className={`mt-2 text-[#58788f] ${
-            featured ? "line-clamp-2 text-[13px] leading-5" : "line-clamp-1 text-[11px]"
-          }`}
+          className={
+            featured
+              ? "mt-3 max-w-[62ch] text-[14px] leading-6 text-[#58788f]"
+              : "mt-2 text-[12px] leading-5 text-[#6a8799]"
+          }
         >
           {item.descripcion}
         </p>
       ) : null}
 
-      <div className="mt-2 text-[10px] font-black uppercase tracking-[0.08em] text-[#168fd4]">
-        Ver detalle →
+      <div className="mt-4 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.08em] text-[#168fd4]">
+        <span>Ver detalle</span>
+        <span aria-hidden="true">→</span>
       </div>
-    </div>
-  );
-
-  return item.href ? (
-    <Link href={item.href} className="block">
-      {content}
-    </Link>
-  ) : (
-    <Link href="/noticias" className="block">
-      {content}
     </Link>
   );
 }
@@ -67,8 +70,8 @@ function StandingsTable({
   logoEquipo: (club: string) => string | null;
 }) {
   return (
-    <div>
-      <div className="grid grid-cols-[28px_minmax(0,1fr)_42px_46px_46px] gap-2 border-b border-[#dce9f1] px-2 pb-2 text-[9px] font-black uppercase tracking-[0.08em] text-[#7891a3]">
+    <div className="overflow-hidden rounded-[16px] border border-[#dce9f1] bg-white">
+      <div className="grid grid-cols-[28px_minmax(0,1fr)_44px_50px_50px] gap-2 border-b border-[#dce9f1] bg-[#f6fafc] px-3 py-3 text-[9px] font-black uppercase tracking-[0.08em] text-[#7891a3]">
         <span>#</span>
         <span>Club</span>
         <span className="text-center">PJ</span>
@@ -77,14 +80,14 @@ function StandingsTable({
       </div>
 
       <div>
-        {rows.slice(0, 6).map((row, index) => (
+        {rows.map((row, index) => (
           <div
             key={row.club}
-            className="grid grid-cols-[28px_minmax(0,1fr)_42px_46px_46px] items-center gap-2 border-b border-[#e4eef4] px-2 py-3 text-[11px] last:border-b-0"
+            className="grid grid-cols-[28px_minmax(0,1fr)_44px_50px_50px] items-center gap-2 border-b border-[#e4eef4] px-3 py-3 text-[12px] last:border-b-0"
           >
             <span className="font-black text-[#315f89]">{index + 1}</span>
 
-            <TeamLink name={row.club} className="flex min-w-0 items-center gap-2">
+            <TeamLink name={row.club} className="flex min-w-0 items-center gap-2.5">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center">
                 {logoEquipo(row.club) ? (
                   <img src={logoEquipo(row.club)!} alt="" className="h-full w-full object-contain" />
@@ -94,14 +97,17 @@ function StandingsTable({
                   </span>
                 )}
               </span>
+
               <span className="truncate font-black text-[#173e68]">{row.club}</span>
             </TeamLink>
 
             <span className="text-center font-bold text-[#58788f]">{row.pj}</span>
+
             <span className="text-center font-bold text-[#58788f]">
               {row.dg > 0 ? "+" : ""}
               {row.dg}
             </span>
+
             <span className="text-right text-[13px] font-black text-[#102f55]">{row.pts}</span>
           </div>
         ))}
@@ -130,11 +136,14 @@ export default function HomeNewsStandings({
   const [division, setDivision] = useState<"Primera" | "Segunda">("Primera");
   const standings = division === "Primera" ? standingsPrimera : standingsSegunda;
 
+  const featuredNews = news[0];
+  const secondaryNews = news.slice(1, 5);
+
   return (
     <section className="overflow-hidden rounded-[18px] border border-[#cfe4f0] bg-white shadow-[0_14px_40px_rgba(16,47,85,.07)]">
-      <div className="grid lg:grid-cols-[minmax(0,1.25fr)_minmax(390px,.75fr)]">
+      <div className="grid lg:grid-cols-[minmax(0,1.3fr)_minmax(390px,.7fr)]">
         <article className="border-b border-[#d8e8f0] p-5 sm:p-6 lg:border-b-0 lg:border-r">
-          <div className="mb-2 flex items-center justify-between gap-4">
+          <div className="mb-5 flex items-center justify-between gap-4">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#168fd4]">
                 Actualidad APA
@@ -144,20 +153,31 @@ export default function HomeNewsStandings({
               </h2>
             </div>
 
-            <Link href="/noticias" className="text-[11px] font-black text-[#168fd4] transition hover:text-[#0f6f9e]">
+            <Link
+              href="/noticias"
+              className="text-[11px] font-black text-[#168fd4] transition hover:text-[#0f6f9e]"
+            >
               Ver todas →
             </Link>
           </div>
 
-          <div>
-            {news.length ? (
-              news.map((item, index) => <NewsRow key={item.id} item={item} featured={index === 0} />)
-            ) : (
-              <p className="py-10 text-sm font-bold text-[#7891a3]">
-                Las novedades aparecerán automáticamente cuando haya actividad.
-              </p>
-            )}
-          </div>
+          {news.length ? (
+            <div className="space-y-4">
+              {featuredNews ? <NewsCard item={featuredNews} featured /> : null}
+
+              {secondaryNews.length ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {secondaryNews.map((item) => (
+                    <NewsCard key={item.id} item={item} />
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <p className="py-10 text-sm font-bold text-[#7891a3]">
+              Las novedades aparecerán automáticamente cuando haya actividad.
+            </p>
+          )}
         </article>
 
         <article className="p-5 sm:p-6">
@@ -171,7 +191,10 @@ export default function HomeNewsStandings({
               </h2>
             </div>
 
-            <Link href="/divisiones" className="shrink-0 text-[11px] font-black text-[#168fd4] transition hover:text-[#0f6f9e]">
+            <Link
+              href="/divisiones"
+              className="shrink-0 text-[11px] font-black text-[#168fd4] transition hover:text-[#0f6f9e]"
+            >
               Completa →
             </Link>
           </div>
