@@ -63,15 +63,17 @@ export default function LeagueHero({
           {...titleSelection}
           className={`${titleSelection.className ?? ""} max-w-none uppercase`}
           style={{
-            ...titleSelection.style,
             width: "auto",
             maxWidth: "none",
             margin: 0,
-            fontSize: "clamp(48px, 8vw, 112px)",
-            fontWeight: 900,
-            lineHeight: 0.86,
-            letterSpacing: "-0.065em",
-            color: "#102f55",
+            fontSize: titleSelection.style.fontSize || "clamp(48px, 8vw, 112px)",
+            fontWeight: titleSelection.style.fontWeight || 900,
+            lineHeight: titleSelection.style.lineHeight || 0.86,
+            letterSpacing: titleSelection.style.letterSpacing || "-0.065em",
+            color: titleSelection.style.color || "#102f55",
+            textAlign: titleSelection.style.textAlign || "left",
+            opacity: titleSelection.style.opacity ?? 1,
+            transform: titleSelection.style.transform,
             textWrap: "balance",
           }}
         >
