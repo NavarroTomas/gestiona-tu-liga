@@ -32,6 +32,8 @@ type Props = {
   onSelectElement?: (element: HomeEditorElementId) => void;
 };
 
+const FALLBACK_HERO = "/themes/worldcup/backgrounds/hero-argentina-brasil-copa-01.png";
+
 export default function LeagueHero({
   temporada,
   stories = [],
@@ -48,12 +50,12 @@ export default function LeagueHero({
     if (editorMode || stories.length <= 1) return;
     const timer = window.setInterval(() => {
       setActiveIndex((current) => (current + 1) % stories.length);
-    }, 7500);
+    }, 8000);
     return () => window.clearInterval(timer);
   }, [editorMode, stories.length]);
 
   useEffect(() => {
-    if (activeIndex >= stories.length && stories.length > 0) setActiveIndex(0);
+    if (stories.length > 0 && activeIndex >= stories.length) setActiveIndex(0);
   }, [activeIndex, stories.length]);
 
   function selectable(id: HomeEditorElementId) {
@@ -85,58 +87,57 @@ export default function LeagueHero({
   const primaryHref = activeStory?.href || editor.primaryHref || "/competicion";
   const primaryLabel = activeStory?.cta || editor.primaryLabel || "Ver detalle";
   const meta = activeStory?.meta || temporada;
+  const heroImage = editor.backgroundImage || FALLBACK_HERO;
 
   return (
     <section
-      className="relative min-h-[560px] overflow-hidden px-6 text-white md:min-h-[620px] md:px-10 lg:px-14"
+      className="relative overflow-hidden text-white"
       style={{
-        backgroundColor: editor.background,
-        backgroundImage: editor.backgroundImage ? `url(${editor.backgroundImage})` : undefined,
-        backgroundSize: editor.backgroundSize,
-        backgroundPosition: editor.backgroundPosition,
-        color: editor.textColor,
+        minHeight: breakpoint === "mobile" ? 500 : 540,
         borderRadius: valueForBreakpoint(editor.radius, breakpoint),
-        paddingTop: Math.max(44, valueForBreakpoint(editor.paddingY, breakpoint)),
-        paddingBottom: Math.max(34, valueForBreakpoint(editor.paddingY, breakpoint)),
+        backgroundColor: editor.background,
+        backgroundImage: `url(${heroImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: editor.backgroundImage ? editor.backgroundPosition : "center 42%",
       }}
     >
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(90deg, rgba(3,17,31,.96) 0%, rgba(3,17,31,.88) 34%, rgba(3,17,31,.58) 58%, rgba(3,17,31,.18) 82%, rgba(3,17,31,.08) 100%)",
-        }}
-      />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(3,17,31,.04)_35%,rgba(3,17,31,.76)_100%)]" />
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-[58%] bg-[radial-gradient(circle_at_20%_25%,rgba(40,151,230,.18),transparent_46%)]" />
-      <div className="pointer-events-none absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-[#38a8df]/80 via-white/20 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(3,17,31,.94)_0%,rgba(3,17,31,.88)_34%,rgba(3,17,31,.58)_58%,rgba(3,17,31,.16)_84%,rgba(3,17,31,.08)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(3,17,31,.06)_30%,rgba(3,17,31,.16)_58%,rgba(3,17,31,.90)_100%)]" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-[62%] bg-[radial-gradient(circle_at_16%_28%,rgba(54,177,238,.16),transparent_48%)]" />
 
-      <div className="relative z-10 flex min-h-[480px] flex-col justify-between md:min-h-[530px]">
-        <div className="max-w-[860px] pt-2 md:pt-8">
-          <div className="flex flex-wrap items-center gap-3">
+      <div className="relative z-10 flex min-h-[500px] flex-col justify-end px-6 pb-5 pt-10 md:min-h-[540px] md:px-10 md:pb-6 lg:px-12">
+        <div className="max-w-[720px]">
+          <div className="flex flex-wrap items-center gap-2.5">
             <span
               {...eyebrowSelection}
-              className={`${eyebrowSelection.className ?? ""} rounded-full border border-white/16 bg-black/20 px-3 py-1.5 backdrop-blur-sm`}
+              className={`${eyebrowSelection.className ?? ""} rounded-full border border-white/20 bg-black/25 px-3 py-1.5 backdrop-blur-sm`}
+              style={{
+                ...eyebrowSelection.style,
+                width: "auto",
+                maxWidth: "fit-content",
+                fontSize: 10,
+                fontWeight: 900,
+                letterSpacing: "0.12em",
+                color: "#ffffff",
+              }}
             >
               {kicker}
             </span>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/58">
-              {meta}
-            </span>
+            <span className="text-[10px] font-black uppercase tracking-[0.16em] text-white/60">{meta}</span>
           </div>
 
           <h1
             {...titleSelection}
-            className={`${titleSelection.className ?? ""} mt-6 max-w-[850px] uppercase`}
+            className={`${titleSelection.className ?? ""} mt-4 max-w-[700px] uppercase`}
             style={{
               ...titleSelection.style,
-              fontSize:
-                titleSelection.style.fontSize ??
-                `${Math.max(46, valueForBreakpoint(editor.titleStyle.fontSize, breakpoint))}px`,
-              fontWeight: titleSelection.style.fontWeight ?? 900,
-              lineHeight: titleSelection.style.lineHeight ?? 0.92,
-              letterSpacing: titleSelection.style.letterSpacing ?? "-0.045em",
-              color: titleSelection.style.color ?? "#ffffff",
+              width: "auto",
+              maxWidth: 700,
+              fontSize: "clamp(38px, 4.8vw, 66px)",
+              fontWeight: 900,
+              lineHeight: 0.95,
+              letterSpacing: "-0.045em",
+              color: "#ffffff",
               textWrap: "balance",
             }}
           >
@@ -145,28 +146,33 @@ export default function LeagueHero({
 
           <p
             {...subtitleSelection}
-            className={`${subtitleSelection.className ?? ""} mt-5 max-w-[680px]`}
+            className={`${subtitleSelection.className ?? ""} mt-4 max-w-[610px]`}
             style={{
               ...subtitleSelection.style,
-              fontSize:
-                subtitleSelection.style.fontSize ??
-                `${Math.max(15, valueForBreakpoint(editor.subtitleStyle.fontSize, breakpoint))}px`,
-              fontWeight: subtitleSelection.style.fontWeight ?? 600,
-              lineHeight: subtitleSelection.style.lineHeight ?? 1.6,
-              color: subtitleSelection.style.color ?? "rgba(255,255,255,.78)",
+              width: "auto",
+              maxWidth: 610,
+              fontSize: "clamp(13px, 1.1vw, 16px)",
+              fontWeight: 600,
+              lineHeight: 1.55,
+              color: "rgba(255,255,255,.76)",
             }}
           >
             {description}
           </p>
 
-          <div className="mt-7 flex flex-wrap gap-3">
+          <div className="mt-5 flex flex-wrap gap-2.5">
             <Link
               {...primarySelection}
               href={primaryHref}
-              className={`${primarySelection.className ?? ""} inline-flex min-h-12 items-center justify-center bg-white px-5 py-3 text-xs font-black uppercase tracking-[0.08em] text-[#0b2747] transition hover:bg-[#dff4ff]`}
+              className={`${primarySelection.className ?? ""} inline-flex items-center justify-center bg-white px-4 py-3 text-[11px] font-black uppercase tracking-[0.08em] text-[#0b2747] transition hover:bg-[#dff4ff]`}
               style={{
                 ...primarySelection.style,
-                borderRadius: primarySelection.style.borderRadius || editor.buttonRadius,
+                width: "auto",
+                minWidth: 0,
+                maxWidth: "fit-content",
+                height: "auto",
+                borderRadius: 10,
+                color: "#0b2747",
               }}
             >
               {primaryLabel} →
@@ -175,10 +181,15 @@ export default function LeagueHero({
             <Link
               {...secondarySelection}
               href={editorMode ? editor.secondaryHref || "/fixture" : "/fixture"}
-              className={`${secondarySelection.className ?? ""} inline-flex min-h-12 items-center justify-center border border-white/24 bg-black/15 px-5 py-3 text-xs font-black uppercase tracking-[0.08em] text-white transition hover:bg-white/10`}
+              className={`${secondarySelection.className ?? ""} inline-flex items-center justify-center border border-white/25 bg-black/20 px-4 py-3 text-[11px] font-black uppercase tracking-[0.08em] text-white backdrop-blur-sm transition hover:bg-white/10`}
               style={{
                 ...secondarySelection.style,
-                borderRadius: secondarySelection.style.borderRadius || editor.buttonRadius,
+                width: "auto",
+                minWidth: 0,
+                maxWidth: "fit-content",
+                height: "auto",
+                borderRadius: 10,
+                color: "#ffffff",
               }}
             >
               {editorMode ? editor.secondaryLabel : "Ver fixture"}
@@ -187,7 +198,7 @@ export default function LeagueHero({
         </div>
 
         {!editorMode && stories.length > 1 ? (
-          <div className="mt-10 grid gap-2 border-t border-white/12 pt-4 md:grid-cols-3">
+          <div className="mt-7 grid gap-2 border-t border-white/15 pt-3 md:grid-cols-3">
             {stories.slice(0, 3).map((story, index) => {
               const active = index === activeIndex;
               return (
@@ -195,31 +206,31 @@ export default function LeagueHero({
                   key={story.id}
                   type="button"
                   onClick={() => setActiveIndex(index)}
-                  className={`group min-w-0 rounded-[12px] px-3 py-3 text-left transition ${
-                    active ? "bg-white/[0.10]" : "bg-transparent hover:bg-white/[0.06]"
+                  className={`group min-w-0 rounded-[10px] border px-3 py-2.5 text-left backdrop-blur-sm transition ${
+                    active
+                      ? "border-white/24 bg-white/[0.11]"
+                      : "border-transparent bg-black/10 hover:border-white/15 hover:bg-white/[0.06]"
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[9px] font-black tracking-[0.15em] ${active ? "text-[#74cef4]" : "text-white/38"}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className={`text-[8px] font-black tracking-[0.14em] ${active ? "text-[#75d2ff]" : "text-white/38"}`}>
                       0{index + 1}
                     </span>
-                    <span className={`h-px flex-1 ${active ? "bg-[#74cef4]/65" : "bg-white/12"}`} />
+                    <span className={`h-[2px] w-8 rounded-full ${active ? "bg-[#75d2ff]" : "bg-white/15"}`} />
                   </div>
-                  <p className={`mt-2 truncate text-[9px] font-black uppercase tracking-[0.12em] ${active ? "text-[#74cef4]" : "text-white/45"}`}>
+
+                  <p className={`mt-1.5 truncate text-[8px] font-black uppercase tracking-[0.12em] ${active ? "text-[#75d2ff]" : "text-white/42"}`}>
                     {story.kicker}
                   </p>
-                  <p className={`mt-1 line-clamp-2 text-[12px] font-black leading-4 ${active ? "text-white" : "text-white/60"}`}>
+
+                  <p className={`mt-1 line-clamp-2 text-[11px] font-black leading-4 ${active ? "text-white" : "text-white/62"}`}>
                     {story.title}
                   </p>
                 </button>
               );
             })}
           </div>
-        ) : (
-          <div className="mt-10 border-t border-white/12 pt-4 text-[9px] font-black uppercase tracking-[0.18em] text-white/38">
-            APA PSO Argentina · Competición oficial
-          </div>
-        )}
+        ) : null}
       </div>
     </section>
   );
