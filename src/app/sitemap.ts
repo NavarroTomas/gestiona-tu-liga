@@ -13,6 +13,8 @@ const publicRoutes = [
   "/historia",
   "/entretenimiento/predicciones",
   "/entretenimiento/predicciones/ranking",
+  "/entretenimiento/premios",
+  "/entretenimiento/dream-team",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
