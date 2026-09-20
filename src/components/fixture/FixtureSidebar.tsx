@@ -1,14 +1,9 @@
+import APASelect from "@/components/ui/APASelect";
 import {
   FIXTURE_CONFIG,
   getFixtureCompetition,
   type FixtureCompetitionId,
 } from "@/config/fixture";
-
-const selectStyle = {
-  backgroundColor: "#f3fafe",
-  color: "#102f55",
-  borderColor: "#c9e3f1",
-} as const;
 
 type FixtureSidebarProps = {
   competitionId: FixtureCompetitionId;
@@ -54,18 +49,12 @@ export default function FixtureSidebar({
             <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[.14em] text-[#4e7ba4]">
               Competencia
             </span>
-            <select
+            <APASelect
               value={competitionId}
-              onChange={(event) => onCompetitionChange(event.target.value as FixtureCompetitionId)}
-              style={selectStyle}
-              className="h-12 w-full rounded-[9px] border px-3 text-[12px] font-black outline-none focus:border-[#56afe2]"
-            >
-              {FIXTURE_CONFIG.competitions.map((item) => (
-                <option key={item.id} value={item.id} style={selectStyle}>
-                  {item.label} · {item.description}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => onCompetitionChange(value as FixtureCompetitionId)}
+              options={FIXTURE_CONFIG.competitions.map((item) => ({ value: item.id, label: `${item.label} · ${item.description}` }))}
+              ariaLabel="Competencia"
+            />
           </label>
 
           {competition.divisions ? (
@@ -73,16 +62,7 @@ export default function FixtureSidebar({
               <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[.14em] text-[#4e7ba4]">
                 División
               </span>
-              <select
-                value={division}
-                onChange={(event) => onDivisionChange(event.target.value)}
-                style={selectStyle}
-                className="h-12 w-full rounded-[9px] border px-3 text-[12px] font-black outline-none focus:border-[#56afe2]"
-              >
-                {competition.divisions.map((item) => (
-                  <option key={item} value={item} style={selectStyle}>{item}</option>
-                ))}
-              </select>
+              <APASelect value={division} onChange={onDivisionChange} options={competition.divisions.map((item) => ({ value: item, label: item }))} ariaLabel="División" />
             </label>
           ) : null}
 
@@ -91,16 +71,7 @@ export default function FixtureSidebar({
               <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[.14em] text-[#4e7ba4]">
                 Grupo
               </span>
-              <select
-                value={group}
-                onChange={(event) => onGroupChange(event.target.value)}
-                style={selectStyle}
-                className="h-12 w-full rounded-[9px] border px-3 text-[12px] font-black outline-none focus:border-[#56afe2]"
-              >
-                {competition.groups.map((item) => (
-                  <option key={item} value={item} style={selectStyle}>Grupo {item}</option>
-                ))}
-              </select>
+              <APASelect value={group} onChange={onGroupChange} options={competition.groups.map((item) => ({ value: item, label: `Grupo ${item}` }))} ariaLabel="Grupo" />
             </label>
           ) : null}
 
@@ -108,16 +79,7 @@ export default function FixtureSidebar({
             <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[.14em] text-[#4e7ba4]">
               Temporada
             </span>
-            <select
-              value={season}
-              onChange={(event) => onSeasonChange(event.target.value)}
-              style={selectStyle}
-              className="h-12 w-full rounded-[9px] border px-3 text-[12px] font-black outline-none focus:border-[#56afe2]"
-            >
-              {seasons.map((item) => (
-                <option key={item} value={item} style={selectStyle}>{item}</option>
-              ))}
-            </select>
+            <APASelect value={season} onChange={onSeasonChange} options={seasons.map((item) => ({ value: item, label: item }))} ariaLabel="Temporada" />
           </label>
         </div>
       </section>
@@ -157,26 +119,20 @@ export default function FixtureSidebar({
           {competition.divisions ? (
             <label className="block">
               <span className="mb-2 block text-[10px] font-black uppercase tracking-[.15em] text-[#4e7ba4]">División</span>
-              <select value={division} onChange={(event) => onDivisionChange(event.target.value)} style={selectStyle} className="h-11 w-full rounded-[8px] border px-3 text-[12px] font-bold outline-none focus:border-[#56afe2]">
-                {competition.divisions.map((item) => <option key={item} value={item} style={selectStyle}>{item}</option>)}
-              </select>
+              <APASelect value={division} onChange={onDivisionChange} options={competition.divisions.map((item) => ({ value: item, label: item }))} ariaLabel="División" compact />
             </label>
           ) : null}
 
           {competition.groups ? (
             <label className="block">
               <span className="mb-2 block text-[10px] font-black uppercase tracking-[.15em] text-[#4e7ba4]">Grupo</span>
-              <select value={group} onChange={(event) => onGroupChange(event.target.value)} style={selectStyle} className="h-11 w-full rounded-[8px] border px-3 text-[12px] font-bold outline-none focus:border-[#56afe2]">
-                {competition.groups.map((item) => <option key={item} value={item} style={selectStyle}>Grupo {item}</option>)}
-              </select>
+              <APASelect value={group} onChange={onGroupChange} options={competition.groups.map((item) => ({ value: item, label: `Grupo ${item}` }))} ariaLabel="Grupo" compact />
             </label>
           ) : null}
 
           <label className="block">
             <span className="mb-2 block text-[10px] font-black uppercase tracking-[.15em] text-[#4e7ba4]">Temporada</span>
-            <select value={season} onChange={(event) => onSeasonChange(event.target.value)} style={selectStyle} className="h-11 w-full rounded-[8px] border px-3 text-[12px] font-bold outline-none focus:border-[#56afe2]">
-              {seasons.map((item) => <option key={item} value={item} style={selectStyle}>{item}</option>)}
-            </select>
+            <APASelect value={season} onChange={onSeasonChange} options={seasons.map((item) => ({ value: item, label: item }))} ariaLabel="Temporada" compact />
           </label>
         </div>
 
