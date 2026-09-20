@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import TeamLink from "@/components/team/TeamLink";
+import APASelect from "@/components/ui/APASelect";
 import { supabase } from "@/lib/supabase";
 import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 
@@ -436,37 +437,55 @@ export default function JugadoresPage() {
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-2">
               <label className="block">
                 <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-[#567b96]">Vista</span>
-                <select value={modo} onChange={(e) => setModo(e.target.value as RankingMode)} style={selectStyle} className="players-mobile-select h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
-                  <option value="temporada" style={selectStyle}>Temporada</option>
-                  <option value="historico" style={selectStyle}>Histórico</option>
-                </select>
+                <APASelect
+                  value={modo}
+                  onChange={(value) => setModo(value as RankingMode)}
+                  options={[
+                    { value: "temporada", label: "Temporada" },
+                    { value: "historico", label: "Histórico" },
+                  ]}
+                  ariaLabel="Vista"
+                />
               </label>
               <label className="block">
                 <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-[#567b96]">Club</span>
-                <select value={clubFilter} onChange={(e) => setClubFilter(e.target.value)} style={selectStyle} className="players-mobile-select h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
-                  <option value="Todos" style={selectStyle}>Todos los clubes</option>
-                  {clubs.map((club) => <option key={club} value={club} style={selectStyle}>{club}</option>)}
-                </select>
+                <APASelect
+                  value={clubFilter}
+                  onChange={setClubFilter}
+                  options={[
+                    { value: "Todos", label: "Todos los clubes" },
+                    ...clubs.map((club) => ({ value: club, label: club })),
+                  ]}
+                  ariaLabel="Club"
+                />
               </label>
               {modo === "temporada" ? (
                 <>
                   <label className="block">
                     <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-[#567b96]">Temporada</span>
-                    <select value={temporada} onChange={(e) => setTemporada(e.target.value)} style={selectStyle} className="players-mobile-select h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
-                      {temporadas.map((season) => <option key={season} value={season} style={selectStyle}>{season}</option>)}
-                    </select>
+                    <APASelect
+                      value={temporada}
+                      onChange={setTemporada}
+                      options={temporadas.map((season) => ({ value: season, label: season }))}
+                      ariaLabel="Temporada"
+                    />
                   </label>
                   <label className="block">
                     <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-[#567b96]">Competición</span>
-                    <select value={division} onChange={(e) => setDivision(e.target.value as CompetitionFilter)} style={selectStyle} className="players-mobile-select h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
-                      <option value="Todas" style={selectStyle}>Todas las competencias</option>
-                      <option value="Primera" style={selectStyle}>Primera División</option>
-                      <option value="Segunda" style={selectStyle}>Segunda División</option>
-                      <option value="Copa APA" style={selectStyle}>Copa APA</option>
-                      <option value="Copa Argentina" style={selectStyle}>Copa Argentina</option>
-                      <option value="Copa Campeones" style={selectStyle}>Copa de Campeones</option>
-                      <option value="Playoffs" style={selectStyle}>Playoffs</option>
-                    </select>
+                    <APASelect
+                      value={division}
+                      onChange={(value) => setDivision(value as CompetitionFilter)}
+                      options={[
+                        { value: "Todas", label: "Todas las competencias" },
+                        { value: "Primera", label: "Primera División" },
+                        { value: "Segunda", label: "Segunda División" },
+                        { value: "Copa APA", label: "Copa APA" },
+                        { value: "Copa Argentina", label: "Copa Argentina" },
+                        { value: "Copa Campeones", label: "Copa de Campeones" },
+                        { value: "Playoffs", label: "Playoffs" },
+                      ]}
+                      ariaLabel="Competición"
+                    />
                   </label>
                 </>
               ) : null}
