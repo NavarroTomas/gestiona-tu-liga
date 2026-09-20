@@ -220,11 +220,11 @@ export default function AwardsManager() {
     const map = new Map<string, any>();
     stats.forEach((row) => {
       const match = matchById.get(String(row.partido_id || "")); if (!match) return;
-      const officialDivision = String(match.division || row.division || ""); if (division !== "Todas" && norm(officialDivision) !== norm(division)) return;
+      const officialDivision = String(match.division || row.division || "");
       const id = playerId(row); if (!id) return;
       const weight = competitionWeight(match.competicion, officialDivision, match.fase);
       if (!map.has(id)) map.set(id, {
-        playerid: id, nombre: row.nombre || "Jugador APA", equipo: row.equipo || "Sin club", divisiones: {}, posiciones: {}, partidos: 0,
+        playerid: id, nombre: row.nombre || "Jugador APA", equipo: row.equipo || "Sin club", divisiones: {}, divisionesLiga: {}, posiciones: {}, partidos: 0,
         goles: 0, asistencias: 0, mvps: 0, ratingTotal: 0, ratings: 0, atajadas: 0, atrapadas: 0, individualRaw: 0,
         competenciaRaw: 0, golesPonderados: 0, golesRecibidos: 0, tirosRecibidos: 0, vallasInvictas: 0, gkPartidos: 0,
         gkPesoCompetitivoTotal: 0,
@@ -246,11 +246,17 @@ export default function AwardsManager() {
       }
       if (Number(row.rating_apa || 0) > 0) { c.ratingTotal += Number(row.rating_apa); c.ratings += 1; }
       c.divisiones[officialDivision] = (c.divisiones[officialDivision] || 0) + 1;
+      if (norm(match.competicion || "liga") === "liga") {
+        c.divisionesLiga[officialDivision] = (c.divisionesLiga[officialDivision] || 0) + 1;
+      }
       const pos = String(row.posicion || "OUT").toUpperCase(); c.posiciones[pos] = (c.posiciones[pos] || 0) + 1;
       c.nombre = row.nombre || c.nombre; c.equipo = row.equipo || c.equipo;
     });
     return [...map.values()].map((c) => {
-      const divisionPrincipal = Object.entries(c.divisiones).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || "Sin división";
+      const divisionPrincipal =
+        Object.entries(c.divisionesLiga).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] ||
+        Object.entries(c.divisiones).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] ||
+        "Sin división";
       const posicionPrincipal = Object.entries(c.posiciones).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || "OUT";
       const ratingPromedio = c.ratings ? c.ratingTotal / c.ratings : 0;
       const titlesForTeam = titles.filter((t) => norm(t.equipo) === norm(c.equipo));
@@ -269,7 +275,11 @@ export default function AwardsManager() {
         savePct: c.tirosRecibidos > 0 ? c.atajadas / c.tirosRecibidos : 0,
         golesEvitados: 0,
       };
-    });
+    }).filter(
+      (c) =>
+        division === "Todas" ||
+        norm(c.divisionPrincipal) === norm(division),
+    );
   }, [stats, matches, division, titles, savedAwards, temporada]);
 
   const candidates = useMemo(() => {
