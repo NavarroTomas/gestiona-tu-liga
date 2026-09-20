@@ -811,17 +811,33 @@ table {
   font-family: var(--apa-font-data-first, var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif) !important;
 }
 
-/* Mobile form controls: evita zoom involuntario en iOS y mantiene targets táctiles cómodos. */
+/* Controles móviles globales */
 @media (max-width: 760px) {
   input,
-  textarea,
-  select {
+  textarea {
     font-size: 16px !important;
+  }
+
+  select {
+    min-height: 36px !important;
+    height: 36px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    padding-left: 10px !important;
+    padding-right: 28px !important;
+    font-size: 12px !important;
+    line-height: 1.1 !important;
+    border-radius: 8px !important;
+  }
+
+  select option,
+  select optgroup {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
   }
 
   button,
   [role="button"],
-  select,
   input[type="button"],
   input[type="submit"] {
     min-height: 44px;
@@ -839,21 +855,8 @@ table {
 
 
 
-/* /jugadores: filtros y tabs más compactos en teléfono */
+/* /jugadores: tabs compactos en teléfono */
 @media (max-width: 640px) {
-  .players-mobile-select {
-    min-height: 36px !important;
-    height: 36px !important;
-    padding-left: 10px !important;
-    padding-right: 28px !important;
-    font-size: 12px !important;
-    line-height: 1.1 !important;
-  }
-
-  .players-mobile-select option {
-    font-size: 12px !important;
-  }
-
   .players-ranking-tabs {
     scrollbar-width: none;
     -ms-overflow-style: none;
