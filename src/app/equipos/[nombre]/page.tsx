@@ -605,7 +605,7 @@ export default function PaginaEquipo() {
       const { data: estadisticasJugadoresData } = await supabase
         .from("estadisticas_jugadores")
         .select(
-          "id, nombre, playerId, posicion, equipo, goals, assists, mvp, temporada, division",
+          "id, partido_id, nombre, playerId, posicion, equipo, goals, assists, mvp, temporada, division",
         )
         .limit(5000);
 
@@ -623,10 +623,26 @@ export default function PaginaEquipo() {
         (plantillasData || []).map((p: any) => String(p.playerid || "").trim()),
       );
 
+      // Fuente de verdad para estadísticas de la temporada:
+      // los partidos oficiales cargados en `partidos`. Esto evita perder goles de
+      // copas/playoffs cuando una fila de estadisticas_jugadores tiene una división
+      // o temporada escrita de forma distinta, pero está vinculada al partido correcto.
+      const idsPartidosTemporada = new Set(
+        partidosTemporada.flatMap((partido) => matchIds(partido)),
+      );
+
       const estadisticasDelClub = (estadisticasJugadoresData || []).filter(
-        (j: any) =>
-          normalizar(j.equipo) === normalizar(nombreExacto) &&
-          normalizeSeason(j.temporada) === normalizeSeason(temporadaActual),
+        (j: any) => {
+          if (normalizar(j.equipo) !== normalizar(nombreExacto)) return false;
+
+          const partidoId = String(j.partido_id || "").trim();
+
+          // Si la estadística está ligada a un partido oficial, manda el partido.
+          if (partidoId) return idsPartidosTemporada.has(partidoId);
+
+          // Compatibilidad con registros antiguos sin partido_id.
+          return normalizeSeason(j.temporada) === normalizeSeason(temporadaActual);
+        },
       );
 
       // Historial del club: no depende de la plantilla actual.
