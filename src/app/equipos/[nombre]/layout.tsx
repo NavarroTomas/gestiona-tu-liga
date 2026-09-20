@@ -1,57 +1,26 @@
-"use client";
+import type { Metadata } from "next";
+import { createPageMetadata } from "@/lib/seo";
+import ClubProfileLayoutClient from "./ClubProfileLayoutClient";
 
-import { useEffect, useRef } from "react";
-import ClubTextColorEditor from "@/components/club-profile/ClubTextColorEditor";
-import "./club-profile-redesign.css";
-import "./club-profile-contrast.css";
-import "./club-profile-final-fixes.css";
-import "./club-profile-global-theme.css";
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ nombre: string }>;
+}): Promise<Metadata> {
+  const { nombre } = await params;
+  const club = decodeURIComponent(nombre);
 
-/**
- * Layout visual para todas las fichas públicas de club.
- *
- * La hoja global-theme se carga al final para fijar la paleta aprobada como
- * estándar de todos los clubes. El editor visual puede seguir aplicando
- * overrides puntuales guardados por administradores.
- */
+  return createPageMetadata({
+    title: club,
+    description: `Plantel, estadísticas, resultados e historial de ${club} en APA PSO Argentina.`,
+    path: `/equipos/${encodeURIComponent(club)}`,
+  });
+}
+
 export default function ClubProfileLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!(root instanceof HTMLDivElement)) return;
-    const rootNode: HTMLDivElement = root;
-
-    const emojiPattern = /[\p{Extended_Pictographic}\uFE0F]/gu;
-
-    function cleanTextNodes() {
-      const walker = document.createTreeWalker(rootNode, NodeFilter.SHOW_TEXT);
-      let node: Node | null = walker.nextNode();
-
-      while (node) {
-        const value = node.nodeValue || "";
-        const cleaned = value.replace(emojiPattern, "").replace(/\s{2,}/g, " ");
-        if (cleaned !== value) node.nodeValue = cleaned;
-        node = walker.nextNode();
-      }
-    }
-
-    cleanTextNodes();
-
-    const observer = new MutationObserver(() => cleanTextNodes());
-    observer.observe(rootNode, { childList: true, subtree: true, characterData: true });
-
-    return () => observer.disconnect();
-  }, [children]);
-
-  return (
-    <div ref={rootRef} className="club-profile-redesign">
-      {children}
-      <ClubTextColorEditor />
-    </div>
-  );
+  return <ClubProfileLayoutClient>{children}</ClubProfileLayoutClient>;
 }

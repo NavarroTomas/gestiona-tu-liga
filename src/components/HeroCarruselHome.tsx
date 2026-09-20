@@ -34,6 +34,7 @@ export default function HeroCarruselHome() {
             <a
               href="https://discord.gg/WCyqeJMmCU"
               target="_blank"
+              rel="noopener noreferrer"
               className="bg-[#5865F2] text-white px-4 sm:px-6 py-3 sm:py-4 rounded-2xl text-xs sm:text-sm font-black uppercase text-center shadow-[0_0_30px_rgba(88,101,242,.7)] hover:scale-105 transition-all"
             >
               🎮 Discord
@@ -42,17 +43,19 @@ export default function HeroCarruselHome() {
             <a
               href="https://www.tiktok.com/@psoargentina_2026"
               target="_blank"
+              rel="noopener noreferrer"
               className="bg-white/10 border border-white/15 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl text-xs sm:text-sm font-black uppercase text-center hover:border-sky-400/60 transition-all"
             >
               🎵 TikTok
             </a>
 
             <a
-              href="https://youtu.be/iiM-PKmB3cA?t=12"
+              href="https://www.youtube.com/@psoargcommunity"
               target="_blank"
-              className="bg-white/10 border border-white/15 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl text-xs sm:text-sm font-black uppercase text-center hover:border-pink-400/60 transition-all"
+              rel="noopener noreferrer"
+              className="bg-white/10 border border-white/15 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl text-xs sm:text-sm font-black uppercase text-center hover:border-red-400/60 transition-all"
             >
-              📸 Instagram
+              ▶️ YouTube
             </a>
           </div>
         </div>
@@ -70,15 +73,15 @@ export default function HeroCarruselHome() {
             </p>
           </div>
 
-          <div className="bg-[#0b1220] border border-pink-500/30 rounded-3xl p-4 sm:p-6 shadow-[0_0_25px_rgba(255,0,140,.12)]">
-            <p className="mb-3 text-3xl sm:text-4xl">📸</p>
+          <div className="bg-[#0b1220] border border-red-500/30 rounded-3xl p-4 sm:p-6 shadow-[0_0_25px_rgba(239,68,68,.12)]">
+            <p className="mb-3 text-3xl sm:text-4xl">▶️</p>
 
             <h3 className="text-lg sm:text-xl font-black uppercase">
-              Instagram
+              YouTube
             </h3>
 
             <p className="text-zinc-400 text-sm mt-2">
-              Noticias, gráficos y anuncios oficiales.
+              Videos, highlights y contenido oficial de la liga.
             </p>
           </div>
 

@@ -1,19 +1,17 @@
-"use client";
+import { createPageMetadata } from "@/lib/seo";
+import PrediccionesLayoutClient from "./PrediccionesLayoutClient";
 
-import { usePathname } from "next/navigation";
-import "./predicciones-redesign.css";
+export const metadata = createPageMetadata({
+  title: "Predicciones",
+  description:
+    "Predicciones de partidos de APA PSO Argentina y participación de la comunidad.",
+  path: "/entretenimiento/predicciones",
+});
 
 export default function PrediccionesLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const pathname = usePathname();
-  const isPrediccionesHome = pathname === "/entretenimiento/predicciones";
-
-  return isPrediccionesHome ? (
-    <div className="predicciones-redesign">{children}</div>
-  ) : (
-    children
-  );
+  return <PrediccionesLayoutClient>{children}</PrediccionesLayoutClient>;
 }
