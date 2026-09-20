@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { CLUBS_HEADER_MENU, COMPETITION_HEADER_MENU } from "@/config/navigation";
 import { SOCIAL_LINKS } from "@/config/social";
@@ -100,6 +101,11 @@ const redes = [
 
 export default function APAHeader() {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   return (
     <header className={estilos.header}>
@@ -121,6 +127,18 @@ export default function APAHeader() {
             <small>Argentina</small>
           </span>
         </Link>
+
+        <button
+          type="button"
+          className={estilos.mobileToggle}
+          aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+          aria-expanded={mobileOpen}
+          onClick={() => setMobileOpen((open) => !open)}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
 
         <nav className={estilos.navegacion} aria-label="Navegación principal">
           <Link
@@ -209,6 +227,38 @@ export default function APAHeader() {
             Entretenimiento
           </Link>
         </nav>
+
+        {mobileOpen ? (
+          <div className={estilos.mobileMenu} role="dialog" aria-label="Menú principal">
+            <Link href="/guia" className={estilos.mobilePrimary}>Guía</Link>
+
+            <div className={estilos.mobileSection}>
+              <span className={estilos.mobileSectionTitle}>Competición</span>
+              <div className={estilos.mobileGrid}>
+                {COMPETITION_HEADER_MENU.map((item) => (
+                  <Link key={item.href} href={item.href} className={estilos.mobileItem}>
+                    <strong>{item.label}</strong>
+                    <span>{item.description}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className={estilos.mobileSection}>
+              <span className={estilos.mobileSectionTitle}>Clubes</span>
+              <div className={estilos.mobileGrid}>
+                {CLUBS_HEADER_MENU.map((item) => (
+                  <Link key={item.href} href={item.href} className={estilos.mobileItem}>
+                    <strong>{item.label}</strong>
+                    <span>{item.description}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <Link href="/entretenimiento" className={estilos.mobilePrimary}>Entretenimiento</Link>
+          </div>
+        ) : null}
 
         <div className={estilos.acciones}>
           <Link className={estilos.icono} href="/buscar" aria-label="Buscar en APA">
