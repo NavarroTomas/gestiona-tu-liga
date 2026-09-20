@@ -28,13 +28,9 @@ export const metadata: Metadata = {
   },
   description:
     "Sitio oficial de APA PSO Argentina: fixture, resultados, estadísticas, clubes, jugadores, competiciones y comunidad de Pro Soccer Online.",
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     type: "website",
     locale: "es_AR",
-    url: "/",
     siteName: "APA PSO Argentina",
     title: "APA PSO Argentina",
     description:
