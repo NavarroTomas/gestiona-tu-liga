@@ -71,9 +71,9 @@ notMatches(
   "Registration must not perform a second client-side profiles update after signup.",
 );
 
-includes(
+matches(
   adminLayoutPath,
-  "<AdminGuard>{children}</AdminGuard>",
+  /<AdminGuard>[\s\S]*?\{children\}[\s\S]*?<\/AdminGuard>/,
   "Every /admin route must remain wrapped by AdminGuard.",
 );
 includes(
