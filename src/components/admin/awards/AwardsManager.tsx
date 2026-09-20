@@ -73,6 +73,8 @@ type Candidate = {
   golesRecibidos: number;
   tirosRecibidos: number;
   vallasInvictas: number;
+  gkPartidos: number;
+  gkPesoCompetitivoTotal: number;
   savePct: number;
   golesEvitados: number;
   desglose: { individual: number; merito: number; competencia: number; regularidad: number };
