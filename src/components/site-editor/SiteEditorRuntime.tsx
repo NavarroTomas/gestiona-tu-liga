@@ -338,18 +338,26 @@ export default function SiteEditorRuntime() {
 
       const normalized = normalizeUniversalDocument(data.document, resolvedPageKey, pathname);
       currentDocument.current = normalized;
-      applyDocument(normalized, getBreakpoint());
 
-      observer.observe(document.body, {
-        subtree: true,
-        childList: true,
-        characterData: true,
+      // No mutar el DOM mientras React/Next todavía puede estar hidratando
+      // componentes client bajo Suspense. Esperamos al menos dos frames.
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          if (!active || !currentDocument.current) return;
+
+          applyDocument(currentDocument.current, getBreakpoint());
+
+          observer.observe(document.body, {
+            subtree: true,
+            childList: true,
+            characterData: true,
+          });
+
+          window.setTimeout(reapply, 100);
+          window.setTimeout(reapply, 350);
+          window.setTimeout(reapply, 900);
+        });
       });
-
-      window.setTimeout(reapply, 0);
-      window.setTimeout(reapply, 100);
-      window.setTimeout(reapply, 350);
-      window.setTimeout(reapply, 900);
     }
 
     void loadPublished();
