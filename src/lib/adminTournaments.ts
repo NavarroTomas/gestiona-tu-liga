@@ -349,7 +349,8 @@ export function calculateStandings(
         if (cmp !== 0) return cmp;
         continue;
       }
-      const diff = Number(b[key]) - Number(a[key]);
+      const numericKey = key as Exclude<NonNullable<StandingRules["tieBreakers"]>[number], "equipo">;
+      const diff = Number(b[numericKey]) - Number(a[numericKey]);
       if (diff !== 0) return diff;
     }
     return a.equipo.localeCompare(b.equipo, "es");
