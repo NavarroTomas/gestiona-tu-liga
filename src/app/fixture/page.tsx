@@ -48,7 +48,12 @@ function FixtureContent() {
 
   useEffect(() => {
     if (seasonsLoading) return;
-    setSeason(requestedSeason && seasons.includes(requestedSeason) ? requestedSeason : activeSeason);
+    const nextSeason =
+      requestedSeason && seasons.includes(requestedSeason)
+        ? requestedSeason
+        : activeSeason;
+
+    setSeason((current) => current === nextSeason ? current : nextSeason);
   }, [activeSeason, requestedSeason, seasons, seasonsLoading]);
   const [competitionId, setCompetitionId] = useState<FixtureCompetitionId>(initialCompetition);
   const [division, setDivision] = useState(initialCompetitionConfig.defaultDivision || initialCompetitionConfig.divisions?.[0] || "Primera");
