@@ -411,12 +411,12 @@ export default function JugadoresPage() {
   const topAssists = useMemo(() => ranking("asistencias", 5), [filteredPlayers]); // eslint-disable-line react-hooks/exhaustive-deps
   const featured = generalRanking[0] || null;
 
-  const tabLabels: Array<{ key: RankingTab; label: string }> = [
-    { key: "general", label: "General" },
-    { key: "goles", label: "Goleadores" },
-    { key: "asistencias", label: "Asistencias" },
-    { key: "mvps", label: "MVP" },
-    { key: "rating", label: "Promedio" },
+  const tabLabels: Array<{ key: RankingTab; label: string; mobileLabel: string }> = [
+    { key: "general", label: "General", mobileLabel: "General" },
+    { key: "goles", label: "Goleadores", mobileLabel: "Goles" },
+    { key: "asistencias", label: "Asistencias", mobileLabel: "Asist." },
+    { key: "mvps", label: "MVP", mobileLabel: "MVP" },
+    { key: "rating", label: "Promedio", mobileLabel: "Prom." },
   ];
 
   return (
@@ -563,16 +563,17 @@ export default function JugadoresPage() {
 
             <div className="min-w-0 space-y-4">
               <section className="overflow-hidden rounded-[10px] border border-[#cfe4f0] bg-white">
-                <div className="players-ranking-tabs flex overflow-x-auto border-b border-[#d8e9f2] sm:grid sm:grid-cols-5 sm:overflow-visible">
+                <div className="grid grid-cols-5 border-b border-[#d8e9f2]">
                   {tabLabels.map((tab) => (
                     <button
                       key={tab.key}
                       type="button"
                       onClick={() => setActiveTab(tab.key)}
-                      className={`flex min-h-10 min-w-[72px] shrink-0 items-center justify-center gap-1 border-r border-[#e2edf3] px-1.5 text-[9px] font-black uppercase transition last:border-r-0 [&_svg]:h-3.5 [&_svg]:w-3.5 sm:min-h-14 sm:min-w-0 sm:gap-2 sm:px-2 sm:text-[11px] sm:[&_svg]:h-5 sm:[&_svg]:w-5 ${activeTab === tab.key ? "bg-[#e9f7fd] text-[#136fa6]" : "bg-white text-[#355d7b] hover:bg-[#f6fbfe]"}`}
+                      className={`flex min-h-9 min-w-0 items-center justify-center gap-0.5 overflow-hidden border-r border-[#e2edf3] px-0.5 text-[7px] font-black uppercase tracking-[-0.02em] transition last:border-r-0 [&_svg]:h-2.5 [&_svg]:w-2.5 sm:min-h-14 sm:gap-2 sm:px-2 sm:text-[11px] sm:tracking-normal sm:[&_svg]:h-5 sm:[&_svg]:w-5 ${activeTab === tab.key ? "bg-[#e9f7fd] text-[#136fa6]" : "bg-white text-[#355d7b] hover:bg-[#f6fbfe]"}`}
                     >
                       <MetricIcon type={tab.key} />
-                      <span>{tab.label}</span>
+                      <span className="min-w-0 truncate sm:hidden">{tab.mobileLabel}</span>
+                      <span className="hidden sm:inline">{tab.label}</span>
                     </button>
                   ))}
                 </div>
