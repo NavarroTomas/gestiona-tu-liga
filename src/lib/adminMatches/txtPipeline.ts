@@ -355,8 +355,8 @@ export function buildTxtCommitData({
     archivo_hash: segment.fileHash,
     orden_txt: segment.order,
     duracion_minutos: segment.minutes,
-    goles_local: numberValue(segment.localTeam?.goals),
-    goles_visitante: numberValue(segment.visitorTeam?.goals),
+    goles_local: numberValue(segment.localStats?.goals),
+    goles_visitante: numberValue(segment.visitorStats?.goals),
     payload: segment.payload,
   }));
 
