@@ -65,6 +65,8 @@ export default function UniversalSiteEditorPage() {
     const currentPage = page;
     if (!currentPage) return;
     if (currentPage.specialized) { router.replace("/admin/editor"); return; }
+    const currentPageKey = currentPage.key;
+    const currentPageRoute = currentPage.route;
     let active = true;
     async function init() {
       const { data: auth } = await supabase.auth.getUser();
@@ -73,21 +75,21 @@ export default function UniversalSiteEditorPage() {
       const { data: owner } = await supabase.from("site_editor_owners").select("user_id").eq("user_id", user.id).maybeSingle();
       if (!owner || !active) return setStatus("denied");
       const [draftResult, publishedResult] = await Promise.all([
-        supabase.from("site_editor_drafts").select("document,updated_at").eq("page_key", currentPage.key).maybeSingle(),
-        supabase.from("site_public_pages").select("document,version_number,published_at").eq("page_key", currentPage.key).maybeSingle(),
+        supabase.from("site_editor_drafts").select("document,updated_at").eq("page_key", currentPageKey).maybeSingle(),
+        supabase.from("site_public_pages").select("document,version_number,published_at").eq("page_key", currentPageKey).maybeSingle(),
       ]);
       if (!active) return;
       const draftUpdatedAt = draftResult.data?.updated_at ? new Date(draftResult.data.updated_at).getTime() : 0;
       const publishedAt = publishedResult.data?.published_at ? new Date(publishedResult.data.published_at).getTime() : 0;
       const hasNewerDraft = Boolean(draftResult.data?.document) && (!publishedResult.data?.document || draftUpdatedAt > publishedAt);
       const initialSource = hasNewerDraft ? draftResult.data?.document : publishedResult.data?.document ?? draftResult.data?.document;
-      const initial = normalizeUniversalDocument(initialSource, currentPage.key, currentPage.route);
+      const initial = normalizeUniversalDocument(initialSource, currentPageKey, currentPageRoute);
       setDocumentValue(initial);
       setUserId(user.id);
       setPublishedVersion(publishedResult.data?.version_number ?? null);
       setStatus("ready");
       void loadVersions();
-      if (!draftResult.data) await supabase.from("site_editor_drafts").upsert({ page_key: currentPage.key, document: initial, updated_by: user.id, updated_at: new Date().toISOString() });
+      if (!draftResult.data) await supabase.from("site_editor_drafts").upsert({ page_key: currentPageKey, document: initial, updated_by: user.id, updated_at: new Date().toISOString() });
     }
     void init();
     return () => { active = false; };
