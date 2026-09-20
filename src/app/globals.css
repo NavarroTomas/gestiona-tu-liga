@@ -542,9 +542,6 @@ select option {
   background-color: #020714;
 }
 
-select:focus {
-  outline: none;
-}
 
 /* RESPETO A USUARIOS CON MENOS ANIMACION */
 
