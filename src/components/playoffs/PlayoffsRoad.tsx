@@ -29,6 +29,37 @@ function TeamLogo({
   );
 }
 
+function PlayoffTeamRow({
+  match,
+  name,
+  side,
+  winner,
+  hasResult,
+  getLogo,
+}: {
+  match: CupMatch;
+  name?: string | null;
+  side: "home" | "away";
+  winner?: string | null;
+  hasResult: boolean;
+  getLogo: (name?: string | null) => string | null;
+}) {
+  const safeName = name?.trim() || "Por definir";
+  const isWinner = Boolean(name) && winner === name;
+
+  return (
+    <div className={`flex min-h-[58px] items-center gap-3 border-b border-[#e7eff5] px-4 last:border-b-0 ${isWinner ? "bg-[#eef8fe]" : "bg-white"}`}>
+      <TeamLogo name={name} getLogo={getLogo} />
+      <span className={`min-w-0 flex-1 truncate text-[13px] ${isWinner ? "font-black text-[#102f55]" : "font-bold text-[#355d83]"}`}>
+        {safeName}
+      </span>
+      <strong className={`min-w-[38px] border-l border-[#dce8f0] pl-4 text-center text-[16px] ${isWinner ? "text-[#102f55]" : "text-[#6b8298]"}`}>
+        {name && hasResult ? getPlayoffScore(match, side) : "—"}
+      </strong>
+    </div>
+  );
+}
+
 function PlaceholderMatch({ label }: { label: string }) {
   return (
     <div className="overflow-hidden rounded-[12px] border border-[#d7e6f0] bg-white">
@@ -59,23 +90,6 @@ function MatchCard({
   const hasResult = Boolean(match.resultado);
   const meta = [match.dia, match.hora].filter(Boolean).join(" · ");
 
-  const TeamRow = ({ name, side }: { name?: string | null; side: "home" | "away" }) => {
-    const safeName = name?.trim() || "Por definir";
-    const isWinner = Boolean(name) && winner === name;
-
-    return (
-      <div className={`flex min-h-[58px] items-center gap-3 border-b border-[#e7eff5] px-4 last:border-b-0 ${isWinner ? "bg-[#eef8fe]" : "bg-white"}`}>
-        <TeamLogo name={name} getLogo={getLogo} />
-        <span className={`min-w-0 flex-1 truncate text-[13px] ${isWinner ? "font-black text-[#102f55]" : "font-bold text-[#355d83]"}`}>
-          {safeName}
-        </span>
-        <strong className={`min-w-[38px] border-l border-[#dce8f0] pl-4 text-center text-[16px] ${isWinner ? "text-[#102f55]" : "text-[#6b8298]"}`}>
-          {name && hasResult ? getPlayoffScore(match, side) : "—"}
-        </strong>
-      </div>
-    );
-  };
-
   const content = (
     <div className={`overflow-hidden rounded-[12px] border bg-white transition ${accent ? "border-[#9fd2ed]" : "border-[#d7e6f0]"} hover:border-[#86c8eb]`}>
       <div className="flex min-h-[34px] items-center justify-between gap-3 border-b border-[#e7eff5] bg-[#f8fbfd] px-4 py-2">
@@ -84,8 +98,8 @@ function MatchCard({
         </span>
         <span className="truncate text-[9px] font-bold uppercase tracking-[.08em] text-[#8aa0b3]">{meta || "Sin fecha"}</span>
       </div>
-      <TeamRow name={match.local} side="home" />
-      <TeamRow name={match.visitante} side="away" />
+      <PlayoffTeamRow match={match} name={match.local} side="home" winner={winner} hasResult={hasResult} getLogo={getLogo} />
+      <PlayoffTeamRow match={match} name={match.visitante} side="away" winner={winner} hasResult={hasResult} getLogo={getLogo} />
     </div>
   );
 
