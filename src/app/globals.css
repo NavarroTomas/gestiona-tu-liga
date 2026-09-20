@@ -1,5 +1,40 @@
 @import "tailwindcss";
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  width: 100%;
+  max-width: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  width: 100%;
+  max-width: 100%;
+}
+
+iframe,
+embed,
+object {
+  max-width: 100%;
+}
+
+pre,
+code {
+  max-width: 100%;
+}
+
+pre {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+
 :root {
   --background: #0a0f14;
   --foreground: #ededed;
@@ -788,4 +823,38 @@ table {
 .apa-tournament-page textarea,
 .apa-tournament-page svg text {
   font-family: var(--apa-font-data-first, var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif) !important;
+}
+
+/* Mobile form controls: evita zoom involuntario en iOS y mantiene targets táctiles cómodos. */
+@media (max-width: 760px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  button,
+  [role="button"],
+  select,
+  input[type="button"],
+  input[type="submit"] {
+    min-height: 44px;
+  }
+
+  main,
+  section,
+  article,
+  aside,
+  header,
+  footer {
+    max-width: 100%;
+  }
+}
+
+/* Respeta notch / safe areas en dispositivos edge-to-edge. */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
 }
