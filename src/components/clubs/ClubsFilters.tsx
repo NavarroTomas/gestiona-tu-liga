@@ -1,10 +1,5 @@
+import APASelect from "@/components/ui/APASelect";
 import { CLUBS_CONFIG } from "@/config/clubs";
-
-const selectStyle = {
-  backgroundColor: "#ffffff",
-  color: "#102f55",
-  borderColor: "#c9e3f1",
-} as const;
 
 export default function ClubsFilters({
   season,
@@ -33,30 +28,22 @@ export default function ClubsFilters({
 
           <label className="grid gap-1.5">
             <span className="text-[11px] font-black text-[#173d65]">Temporada</span>
-            <select
+            <APASelect
               value={season}
-              onChange={(event) => onSeasonChange(event.target.value)}
-              style={selectStyle}
-              className="h-12 w-full rounded-[9px] border px-3 text-[13px] font-black outline-none transition focus:border-[#56afe2] focus:ring-2 focus:ring-[#56afe2]/20"
-            >
-              {(seasons.length ? seasons : [season]).map((item) => (
-                <option key={item} value={item} style={selectStyle}>{item}</option>
-              ))}
-            </select>
+              onChange={onSeasonChange}
+              options={(seasons.length ? seasons : [season]).map((item) => ({ value: item, label: item }))}
+              ariaLabel="Temporada"
+            />
           </label>
 
           <label className="grid gap-1.5">
             <span className="text-[11px] font-black text-[#173d65]">Categoría</span>
-            <select
+            <APASelect
               value={division}
-              onChange={(event) => onDivisionChange(event.target.value)}
-              style={selectStyle}
-              className="h-12 w-full rounded-[9px] border px-3 text-[13px] font-black outline-none transition focus:border-[#56afe2] focus:ring-2 focus:ring-[#56afe2]/20"
-            >
-              {(divisions.length ? divisions : [division]).map((item) => (
-                <option key={item} value={item} style={selectStyle}>{item} División</option>
-              ))}
-            </select>
+              onChange={onDivisionChange}
+              options={(divisions.length ? divisions : [division]).map((item) => ({ value: item, label: `${item} División` }))}
+              ariaLabel="Categoría"
+            />
           </label>
         </div>
       </div>
