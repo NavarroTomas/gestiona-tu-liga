@@ -57,7 +57,7 @@ export default function UniversalSiteEditorPage() {
 
   const loadVersions = useCallback(async () => {
     if (!page) return;
-    const { data } = await supabase.from("site_editor_versions").select("id,version_number,document,created_at").eq("page_key", currentPage.key).order("version_number", { ascending: false }).limit(30);
+    const { data } = await supabase.from("site_editor_versions").select("id,version_number,document,created_at").eq("page_key", page.key).order("version_number", { ascending: false }).limit(30);
     setVersions((data || []) as VersionRow[]);
   }, [page]);
 
@@ -222,8 +222,8 @@ export default function UniversalSiteEditorPage() {
 
     const expectedVersion = Number(data);
     const [{ data: publishedCheck, error: publishedCheckError }, { data: versionCheck, error: versionCheckError }] = await Promise.all([
-      supabase.from("site_public_pages").select("version_number,published_at").eq("page_key", currentPage.key).maybeSingle(),
-      supabase.from("site_editor_versions").select("version_number").eq("page_key", currentPage.key).eq("version_number", expectedVersion).maybeSingle(),
+      supabase.from("site_public_pages").select("version_number,published_at").eq("page_key", page.key).maybeSingle(),
+      supabase.from("site_editor_versions").select("version_number").eq("page_key", page.key).eq("version_number", expectedVersion).maybeSingle(),
     ]);
 
     setSaving(false);
