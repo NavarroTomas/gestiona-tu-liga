@@ -436,14 +436,14 @@ export default function JugadoresPage() {
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-2">
               <label className="block">
                 <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-[#567b96]">Vista</span>
-                <select value={modo} onChange={(e) => setModo(e.target.value as RankingMode)} style={selectStyle} className="h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
+                <select value={modo} onChange={(e) => setModo(e.target.value as RankingMode)} style={selectStyle} className="players-mobile-select h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
                   <option value="temporada" style={selectStyle}>Temporada</option>
                   <option value="historico" style={selectStyle}>Histórico</option>
                 </select>
               </label>
               <label className="block">
                 <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-[#567b96]">Club</span>
-                <select value={clubFilter} onChange={(e) => setClubFilter(e.target.value)} style={selectStyle} className="h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
+                <select value={clubFilter} onChange={(e) => setClubFilter(e.target.value)} style={selectStyle} className="players-mobile-select h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
                   <option value="Todos" style={selectStyle}>Todos los clubes</option>
                   {clubs.map((club) => <option key={club} value={club} style={selectStyle}>{club}</option>)}
                 </select>
@@ -452,13 +452,13 @@ export default function JugadoresPage() {
                 <>
                   <label className="block">
                     <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-[#567b96]">Temporada</span>
-                    <select value={temporada} onChange={(e) => setTemporada(e.target.value)} style={selectStyle} className="h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
+                    <select value={temporada} onChange={(e) => setTemporada(e.target.value)} style={selectStyle} className="players-mobile-select h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
                       {temporadas.map((season) => <option key={season} value={season} style={selectStyle}>{season}</option>)}
                     </select>
                   </label>
                   <label className="block">
                     <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-[#567b96]">Competición</span>
-                    <select value={division} onChange={(e) => setDivision(e.target.value as CompetitionFilter)} style={selectStyle} className="h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
+                    <select value={division} onChange={(e) => setDivision(e.target.value as CompetitionFilter)} style={selectStyle} className="players-mobile-select h-11 w-full rounded-[7px] border px-3 text-[12px] font-black outline-none">
                       <option value="Todas" style={selectStyle}>Todas las competencias</option>
                       <option value="Primera" style={selectStyle}>Primera División</option>
                       <option value="Segunda" style={selectStyle}>Segunda División</option>
@@ -544,13 +544,13 @@ export default function JugadoresPage() {
 
             <div className="min-w-0 space-y-4">
               <section className="overflow-hidden rounded-[10px] border border-[#cfe4f0] bg-white">
-                <div className="grid grid-cols-3 border-b border-[#d8e9f2] sm:grid-cols-5">
+                <div className="players-ranking-tabs flex overflow-x-auto border-b border-[#d8e9f2] sm:grid sm:grid-cols-5 sm:overflow-visible">
                   {tabLabels.map((tab) => (
                     <button
                       key={tab.key}
                       type="button"
                       onClick={() => setActiveTab(tab.key)}
-                      className={`flex min-h-14 items-center justify-center gap-2 border-r border-[#e2edf3] px-2 text-[10px] font-black uppercase transition last:border-r-0 sm:text-[11px] ${activeTab === tab.key ? "bg-[#e9f7fd] text-[#136fa6]" : "bg-white text-[#355d7b] hover:bg-[#f6fbfe]"}`}
+                      className={`flex min-h-10 min-w-[72px] shrink-0 items-center justify-center gap-1 border-r border-[#e2edf3] px-1.5 text-[9px] font-black uppercase transition last:border-r-0 [&_svg]:h-3.5 [&_svg]:w-3.5 sm:min-h-14 sm:min-w-0 sm:gap-2 sm:px-2 sm:text-[11px] sm:[&_svg]:h-5 sm:[&_svg]:w-5 ${activeTab === tab.key ? "bg-[#e9f7fd] text-[#136fa6]" : "bg-white text-[#355d7b] hover:bg-[#f6fbfe]"}`}
                     >
                       <MetricIcon type={tab.key} />
                       <span>{tab.label}</span>
