@@ -602,20 +602,14 @@ export default function PaginaEquipo() {
 
       setTitulos(titulosData || []);
 
-      const idsOficialesClub = Array.from(
-        new Set(partidosDelEquipo.flatMap((partido) => matchIds(partido))),
-      );
-
       const { data: estadisticasJugadoresData, error: estadisticasJugadoresError } =
-        idsOficialesClub.length > 0
-          ? await supabase
-              .from("estadisticas_jugadores")
-              .select(
-                "id, partido_id, nombre, playerId, posicion, equipo, goals, assists, mvp, temporada, division",
-              )
-              .eq("equipo", nombreExacto)
-              .in("partido_id", idsOficialesClub)
-          : { data: [], error: null };
+        await supabase
+          .from("estadisticas_jugadores")
+          .select(
+            "id, partido_id, nombre, playerId, posicion, equipo, goals, assists, mvp, temporada, division",
+          )
+          .eq("equipo", nombreExacto)
+          .eq("temporada", temporadaActual);
 
       if (estadisticasJugadoresError) {
         console.error(
@@ -638,8 +632,8 @@ export default function PaginaEquipo() {
         (plantillasData || []).map((p: any) => String(p.playerid || "").trim()),
       );
 
-      // La consulta ya viene limitada a los partidos oficiales del club
-      // en la temporada seleccionada, incluyendo liga, copas y playoffs.
+      // Total de temporada del club: incluye cualquier competencia
+      // porque estadisticas_jugadores se filtra solo por club + temporada.
       const estadisticasDelClub = estadisticasJugadoresData || [];
 
       // Historial del club: no depende de la plantilla actual.
