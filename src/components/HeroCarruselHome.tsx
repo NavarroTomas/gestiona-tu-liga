@@ -50,7 +50,7 @@ export default function HeroCarruselHome() {
             </a>
 
             <a
-              href="https://youtu.be/iiM-PKmB3cA?t=12"
+              href="https://www.youtube.com/@psoargcommunity"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-white/10 border border-white/15 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl text-xs sm:text-sm font-black uppercase text-center hover:border-red-400/60 transition-all"
