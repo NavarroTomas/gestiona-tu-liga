@@ -47,6 +47,36 @@ function TeamLogo({
   );
 }
 
+function MatchTeamRow({
+  match,
+  name,
+  side,
+  winner,
+  getLogo,
+}: {
+  match: CupMatch;
+  name?: string | null;
+  side: "home" | "away";
+  winner?: string | null;
+  getLogo: (name?: string | null) => string | null;
+}) {
+  const safeName = name?.trim() || "Por definir";
+  const isBye = isByeLabel(name);
+  const isWinner = Boolean(name) && !isBye && winner === name;
+
+  return (
+    <div className={`flex h-11 items-center gap-3 border-b border-[#e7eff5] px-4 last:border-b-0 ${isWinner ? "bg-[#f0f9fe]" : "bg-white"}`}>
+      <TeamLogo name={name} getLogo={getLogo} />
+      <span className={`min-w-0 flex-1 truncate text-[16px] ${isBye ? "font-semibold italic text-[#8ea5b8]" : isWinner ? "font-black text-[#102f55]" : "font-bold text-[#355d83]"}`}>
+        {safeName}
+      </span>
+      <strong className={`min-w-[34px] border-l border-[#dce8f0] pl-4 text-center text-[18px] ${isWinner ? "text-[#102f55]" : "text-[#6b8298]"}`}>
+        {!name || isBye ? "-" : getKnockoutScore(match, side)}
+      </strong>
+    </div>
+  );
+}
+
 function PlaceholderTeamRow() {
   return (
     <div className="flex h-11 items-center gap-3 border-b border-[#e7eff5] px-4 last:border-b-0">
@@ -78,24 +108,6 @@ function MatchCard({
   const winner = getKnockoutWinner(match);
   const title = [match.dia, match.hora].filter(Boolean).join(" · ") || undefined;
 
-  const TeamRow = ({ name, side }: { name?: string | null; side: "home" | "away" }) => {
-    const safeName = name?.trim() || "Por definir";
-    const isBye = isByeLabel(name);
-    const isWinner = Boolean(name) && !isBye && winner === name;
-
-    return (
-      <div className={`flex h-11 items-center gap-3 border-b border-[#e7eff5] px-4 last:border-b-0 ${isWinner ? "bg-[#f0f9fe]" : "bg-white"}`}>
-        <TeamLogo name={name} getLogo={getLogo} />
-        <span className={`min-w-0 flex-1 truncate text-[16px] ${isBye ? "font-semibold italic text-[#8ea5b8]" : isWinner ? "font-black text-[#102f55]" : "font-bold text-[#355d83]"}`}>
-          {safeName}
-        </span>
-        <strong className={`min-w-[34px] border-l border-[#dce8f0] pl-4 text-center text-[18px] ${isWinner ? "text-[#102f55]" : "text-[#6b8298]"}`}>
-          {!name || isBye ? "-" : getKnockoutScore(match, side)}
-        </strong>
-      </div>
-    );
-  };
-
   return (
     <div
       title={title}
@@ -103,8 +115,8 @@ function MatchCard({
         final ? "border-[#9fd2ed]" : "border-[#d5e6f0]"
       }`}
     >
-      <TeamRow name={match.local} side="home" />
-      <TeamRow name={match.visitante} side="away" />
+      <MatchTeamRow match={match} name={match.local} side="home" winner={winner} getLogo={getLogo} />
+      <MatchTeamRow match={match} name={match.visitante} side="away" winner={winner} getLogo={getLogo} />
     </div>
   );
 }
