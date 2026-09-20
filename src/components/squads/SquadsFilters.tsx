@@ -1,6 +1,5 @@
 import type { SquadClub } from "@/lib/squads/types";
-
-const selectStyle = { backgroundColor: "#fff", color: "#102f55", borderColor: "#c9e3f1" } as const;
+import APASelect from "@/components/ui/APASelect";
 
 export default function SquadsFilters({
   season, seasons, onSeasonChange,
@@ -25,22 +24,20 @@ export default function SquadsFilters({
       <div className="mx-auto grid max-w-[1680px] gap-3 px-5 py-4 sm:px-8 md:grid-cols-2 xl:grid-cols-[220px_220px_260px_1fr] lg:px-10">
         <label>
           <span className="mb-1.5 block text-[11px] font-black text-[#173c64]">Temporada</span>
-          <select value={season} onChange={(e) => onSeasonChange(e.target.value)} style={selectStyle} className="h-12 w-full rounded-[8px] border px-3 text-[13px] font-black outline-none">
-            {seasons.map((item) => <option key={item} value={item} style={selectStyle}>{item}</option>)}
-          </select>
+          <APASelect value={season} onChange={onSeasonChange} options={seasons.map((item) => ({ value: item, label: item }))} ariaLabel="Temporada" />
         </label>
         <label>
           <span className="mb-1.5 block text-[11px] font-black text-[#173c64]">Categoría</span>
-          <select value={division} onChange={(e) => onDivisionChange(e.target.value)} style={selectStyle} className="h-12 w-full rounded-[8px] border px-3 text-[13px] font-black outline-none">
-            {divisions.map((item) => <option key={item} value={item} style={selectStyle}>{item}</option>)}
-          </select>
+          <APASelect value={division} onChange={onDivisionChange} options={divisions.map((item) => ({ value: item, label: item }))} ariaLabel="Categoría" />
         </label>
         <label>
           <span className="mb-1.5 block text-[11px] font-black text-[#173c64]">Club</span>
-          <select value={clubName} onChange={(e) => onClubChange(e.target.value)} style={selectStyle} className="h-12 w-full rounded-[8px] border px-3 text-[13px] font-black outline-none">
-            <option value="Todos" style={selectStyle}>Todos los clubes</option>
-            {clubs.map((club) => <option key={club.nombre} value={club.nombre} style={selectStyle}>{club.nombre}</option>)}
-          </select>
+          <APASelect
+            value={clubName}
+            onChange={onClubChange}
+            options={[{ value: "Todos", label: "Todos los clubes" }, ...clubs.map((club) => ({ value: club.nombre, label: club.nombre }))]}
+            ariaLabel="Club"
+          />
         </label>
         <label>
           <span className="mb-1.5 block text-[11px] font-black text-[#173c64]">Buscar jugador</span>
