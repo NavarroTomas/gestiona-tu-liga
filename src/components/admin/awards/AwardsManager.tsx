@@ -162,6 +162,30 @@ function awardMerit(key: string) {
 }
 function normalizeMetric(value: number, max: number) { return max > 0 ? Math.min(100, (value / max) * 100) : 0; }
 
+const STATS_PAGE_SIZE = 1000;
+
+async function fetchAllSeasonStats(temporada: string) {
+  const rows: StatRow[] = [];
+
+  for (let from = 0; ; from += STATS_PAGE_SIZE) {
+    const to = from + STATS_PAGE_SIZE - 1;
+    const { data, error } = await supabase
+      .from("estadisticas_jugadores")
+      .select("partido_id,nombre,playerId,equipo,temporada,division,posicion,goals,assists,mvp,rating_apa,score,tackles,interceptions,gKSaves,gKCatches")
+      .eq("temporada", temporada)
+      .range(from, to);
+
+    if (error) return { data: rows, error };
+
+    const batch = (data || []) as StatRow[];
+    rows.push(...batch);
+
+    if (batch.length < STATS_PAGE_SIZE) break;
+  }
+
+  return { data: rows, error: null };
+}
+
 export default function AwardsManager() {
   const [temporada, setTemporada] = useState("Temporada 4");
   const [division, setDivision] = useState("Todas");
@@ -199,12 +223,17 @@ export default function AwardsManager() {
       supabase.from("plantillas").select("playerid,steam_id"),
     ]);
     const seasonMatches = (matchesRes.data || []) as MatchRow[];
-    const ids = seasonMatches.map((m) => String(m.partido_id || m.id)).filter(Boolean);
-    const statsRes = ids.length ? await supabase.from("estadisticas_jugadores").select("partido_id,nombre,playerId,equipo,temporada,division,posicion,goals,assists,mvp,rating_apa,score,tackles,interceptions,gKSaves,gKCatches").eq("temporada", temporada).in("partido_id", ids) : { data: [], error: null } as any;
-    const pids = [...new Set(((statsRes.data || []) as StatRow[]).map(playerId).filter(Boolean))];
+    const ids = new Set(
+      seasonMatches.map((m) => String(m.partido_id || m.id)).filter(Boolean),
+    );
+    const statsRes = await fetchAllSeasonStats(temporada);
+    const officialStats = ((statsRes.data || []) as StatRow[]).filter((row) =>
+      ids.has(String(row.partido_id || "")),
+    );
+    const pids = [...new Set(officialStats.map(playerId).filter(Boolean))];
     const profilesRes = pids.length ? await supabase.from("profiles").select("id,playerid").in("playerid", pids) : { data: [], error: null } as any;
     if (matchesRes.error || statsRes.error) setMessage("No se pudieron cargar todos los datos del ranking.");
-    setMatches(seasonMatches); setStats((statsRes.data || []) as StatRow[]); setSavedAwards((awardsRes.data || []) as SavedAward[]);
+    setMatches(seasonMatches); setStats(officialStats); setSavedAwards((awardsRes.data || []) as SavedAward[]);
     const dbTitles = (titlesRes.data || []) as TitleRow[];
     const inferred = inferLeagueChampions(seasonMatches).map((t) => ({ ...t, temporada }));
     const titleKeys = new Set(dbTitles.map((t) => `${norm(t.competicion)}|${norm(t.division)}|${norm(t.equipo)}`));
