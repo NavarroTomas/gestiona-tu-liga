@@ -72,15 +72,15 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="text-white overflow-x-hidden">
-        <Suspense fallback={null}>
-          <SiteEditorRuntime />
-        </Suspense>
         <IntroAPA />
         <BienvenidaAPA />
         <APAHeader />
         {children}
         <APAFooter />
         <CookieConsent />
+        <Suspense fallback={null}>
+          <SiteEditorRuntime />
+        </Suspense>
       </body>
     </html>
   );
