@@ -602,12 +602,27 @@ export default function PaginaEquipo() {
 
       setTitulos(titulosData || []);
 
-      const { data: estadisticasJugadoresData } = await supabase
-        .from("estadisticas_jugadores")
-        .select(
-          "id, partido_id, nombre, playerId, posicion, equipo, goals, assists, mvp, temporada, division",
-        )
-        .limit(5000);
+      const idsOficialesClub = Array.from(
+        new Set(partidosDelEquipo.flatMap((partido) => matchIds(partido))),
+      );
+
+      const { data: estadisticasJugadoresData, error: estadisticasJugadoresError } =
+        idsOficialesClub.length > 0
+          ? await supabase
+              .from("estadisticas_jugadores")
+              .select(
+                "id, partido_id, nombre, playerId, posicion, equipo, goals, assists, mvp, temporada, division",
+              )
+              .eq("equipo", nombreExacto)
+              .in("partido_id", idsOficialesClub)
+          : { data: [], error: null };
+
+      if (estadisticasJugadoresError) {
+        console.error(
+          "ERROR CARGANDO ESTADÍSTICAS DE JUGADORES DEL CLUB:",
+          estadisticasJugadoresError,
+        );
+      }
 
       const { data: plantillasData } = await supabase
         .from("plantillas")
@@ -623,27 +638,9 @@ export default function PaginaEquipo() {
         (plantillasData || []).map((p: any) => String(p.playerid || "").trim()),
       );
 
-      // Fuente de verdad para estadísticas de la temporada:
-      // los partidos oficiales cargados en `partidos`. Esto evita perder goles de
-      // copas/playoffs cuando una fila de estadisticas_jugadores tiene una división
-      // o temporada escrita de forma distinta, pero está vinculada al partido correcto.
-      const idsPartidosTemporada = new Set(
-        partidosTemporada.flatMap((partido) => matchIds(partido)),
-      );
-
-      const estadisticasDelClub = (estadisticasJugadoresData || []).filter(
-        (j: any) => {
-          if (normalizar(j.equipo) !== normalizar(nombreExacto)) return false;
-
-          const partidoId = String(j.partido_id || "").trim();
-
-          // Si la estadística está ligada a un partido oficial, manda el partido.
-          if (partidoId) return idsPartidosTemporada.has(partidoId);
-
-          // Compatibilidad con registros antiguos sin partido_id.
-          return normalizeSeason(j.temporada) === normalizeSeason(temporadaActual);
-        },
-      );
+      // La consulta ya viene limitada a los partidos oficiales del club
+      // en la temporada seleccionada, incluyendo liga, copas y playoffs.
+      const estadisticasDelClub = estadisticasJugadoresData || [];
 
       // Historial del club: no depende de la plantilla actual.
       // Si un jugador se va de este club, sus goles/asistencias/MVP anteriores
