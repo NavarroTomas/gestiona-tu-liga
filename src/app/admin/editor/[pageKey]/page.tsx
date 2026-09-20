@@ -57,13 +57,14 @@ export default function UniversalSiteEditorPage() {
 
   const loadVersions = useCallback(async () => {
     if (!page) return;
-    const { data } = await supabase.from("site_editor_versions").select("id,version_number,document,created_at").eq("page_key", page.key).order("version_number", { ascending: false }).limit(30);
+    const { data } = await supabase.from("site_editor_versions").select("id,version_number,document,created_at").eq("page_key", currentPage.key).order("version_number", { ascending: false }).limit(30);
     setVersions((data || []) as VersionRow[]);
   }, [page]);
 
   useEffect(() => {
-    if (!page) return;
-    if (page.specialized) { router.replace("/admin/editor"); return; }
+    const currentPage = page;
+    if (!currentPage) return;
+    if (currentPage.specialized) { router.replace("/admin/editor"); return; }
     let active = true;
     async function init() {
       const { data: auth } = await supabase.auth.getUser();
@@ -72,21 +73,21 @@ export default function UniversalSiteEditorPage() {
       const { data: owner } = await supabase.from("site_editor_owners").select("user_id").eq("user_id", user.id).maybeSingle();
       if (!owner || !active) return setStatus("denied");
       const [draftResult, publishedResult] = await Promise.all([
-        supabase.from("site_editor_drafts").select("document,updated_at").eq("page_key", page.key).maybeSingle(),
-        supabase.from("site_public_pages").select("document,version_number,published_at").eq("page_key", page.key).maybeSingle(),
+        supabase.from("site_editor_drafts").select("document,updated_at").eq("page_key", currentPage.key).maybeSingle(),
+        supabase.from("site_public_pages").select("document,version_number,published_at").eq("page_key", currentPage.key).maybeSingle(),
       ]);
       if (!active) return;
       const draftUpdatedAt = draftResult.data?.updated_at ? new Date(draftResult.data.updated_at).getTime() : 0;
       const publishedAt = publishedResult.data?.published_at ? new Date(publishedResult.data.published_at).getTime() : 0;
       const hasNewerDraft = Boolean(draftResult.data?.document) && (!publishedResult.data?.document || draftUpdatedAt > publishedAt);
       const initialSource = hasNewerDraft ? draftResult.data?.document : publishedResult.data?.document ?? draftResult.data?.document;
-      const initial = normalizeUniversalDocument(initialSource, page.key, page.route);
+      const initial = normalizeUniversalDocument(initialSource, currentPage.key, currentPage.route);
       setDocumentValue(initial);
       setUserId(user.id);
       setPublishedVersion(publishedResult.data?.version_number ?? null);
       setStatus("ready");
       void loadVersions();
-      if (!draftResult.data) await supabase.from("site_editor_drafts").upsert({ page_key: page.key, document: initial, updated_by: user.id, updated_at: new Date().toISOString() });
+      if (!draftResult.data) await supabase.from("site_editor_drafts").upsert({ page_key: currentPage.key, document: initial, updated_by: user.id, updated_at: new Date().toISOString() });
     }
     void init();
     return () => { active = false; };
@@ -221,8 +222,8 @@ export default function UniversalSiteEditorPage() {
 
     const expectedVersion = Number(data);
     const [{ data: publishedCheck, error: publishedCheckError }, { data: versionCheck, error: versionCheckError }] = await Promise.all([
-      supabase.from("site_public_pages").select("version_number,published_at").eq("page_key", page.key).maybeSingle(),
-      supabase.from("site_editor_versions").select("version_number").eq("page_key", page.key).eq("version_number", expectedVersion).maybeSingle(),
+      supabase.from("site_public_pages").select("version_number,published_at").eq("page_key", currentPage.key).maybeSingle(),
+      supabase.from("site_editor_versions").select("version_number").eq("page_key", currentPage.key).eq("version_number", expectedVersion).maybeSingle(),
     ]);
 
     setSaving(false);
