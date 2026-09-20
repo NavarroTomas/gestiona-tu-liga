@@ -255,3 +255,29 @@
     gap: 10px 14px;
   }
 }
+
+
+@media (max-width: 480px) {
+  .superior {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .columnas {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+
+  .marca {
+    max-width: 100%;
+  }
+
+  .marcaTexto strong {
+    font-size: 29px;
+  }
+
+  .baseInterior {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
