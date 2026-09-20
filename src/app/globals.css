@@ -837,3 +837,31 @@ table {
   }
 }
 
+
+
+/* /jugadores: filtros y tabs más compactos en teléfono */
+@media (max-width: 640px) {
+  .players-mobile-select {
+    min-height: 36px !important;
+    height: 36px !important;
+    padding-left: 10px !important;
+    padding-right: 28px !important;
+    font-size: 12px !important;
+    line-height: 1.1 !important;
+  }
+
+  .players-mobile-select option {
+    font-size: 12px !important;
+  }
+
+  .players-ranking-tabs {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .players-ranking-tabs::-webkit-scrollbar {
+    display: none;
+  }
+}
