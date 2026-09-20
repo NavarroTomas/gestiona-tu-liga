@@ -24,11 +24,12 @@ export default function ClubProfileLayout({
   useEffect(() => {
     const root = rootRef.current;
     if (!(root instanceof HTMLDivElement)) return;
+    const rootNode: HTMLDivElement = root;
 
     const emojiPattern = /[\p{Extended_Pictographic}\uFE0F]/gu;
 
     function cleanTextNodes() {
-      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      const walker = document.createTreeWalker(rootNode, NodeFilter.SHOW_TEXT);
       let node: Node | null = walker.nextNode();
 
       while (node) {
@@ -42,7 +43,7 @@ export default function ClubProfileLayout({
     cleanTextNodes();
 
     const observer = new MutationObserver(() => cleanTextNodes());
-    observer.observe(root, { childList: true, subtree: true, characterData: true });
+    observer.observe(rootNode, { childList: true, subtree: true, characterData: true });
 
     return () => observer.disconnect();
   }, [children]);
