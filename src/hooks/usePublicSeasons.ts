@@ -59,17 +59,24 @@ export function usePublicSeasons(fallback = "Temporada 4") {
     [records],
   );
 
-  const activeRecord =
-    records.find((row) => row.activa) ||
-    visibleRecords[0] ||
-    records[0] ||
-    null;
+  const activeRecord = useMemo(
+    () =>
+      records.find((row) => row.activa) ||
+      visibleRecords[0] ||
+      records[0] ||
+      null,
+    [records, visibleRecords],
+  );
 
-  const seasons = visibleRecords.length
-    ? visibleRecords.map((row) => row.nombre)
-    : activeRecord?.nombre
-      ? [activeRecord.nombre]
-      : [fallback];
+  const seasons = useMemo(
+    () =>
+      visibleRecords.length
+        ? visibleRecords.map((row) => row.nombre)
+        : activeRecord?.nombre
+          ? [activeRecord.nombre]
+          : [fallback],
+    [visibleRecords, activeRecord, fallback],
+  );
 
   function getSeasonYear(name?: string | null) {
     const row = records.find((item) => item.nombre === name);
