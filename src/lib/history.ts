@@ -368,54 +368,25 @@ function firstAward(rows: HistoryAwardRow[], keys: string[]) {
   return rows.find((row) => keys.includes(normalize(row.premio))) || null;
 }
 
-export function buildAwards(rows: HistoryAwardRow[], players: PlayerAggregate[]) {
-  const scorer = [...players].sort((a, b) => b.goles - a.goles)[0] || null;
-  const mvpLeader = [...players].sort((a, b) => b.mvps - a.mvps || b.score - a.score)[0] || null;
-  const goalkeepers = players.filter((player) => {
-    const position = normalize(player.posicion);
-    return position.includes("gk") || position.includes("arq") || position.includes("port");
-  });
-  const goalkeeperLeader = [...(goalkeepers.length ? goalkeepers : players)]
-    .sort((a, b) => b.atajadas - a.atajadas || b.ratingPromedio - a.ratingPromedio)[0] || null;
-
-  const balonOro = firstAward(rows, ["balon_oro", "balon de oro", "mvp"]);
-  const theBest = firstAward(rows, ["the_best", "the best"]);
-  const raiko = firstAward(rows, ["raiko_trophy", "raiko trophy", "arquero_del_ano", "arquero del ano"]);
-  const botaOro = firstAward(rows, ["bota_oro", "bota de oro", "goleador"]);
-  const goldenBoy = firstAward(rows, ["golden_boy", "golden boy"]);
-
-  return [
-    {
-      key: "balon_oro",
-      label: "Balón de Oro",
-      nombre: balonOro?.nombre || mvpLeader?.nombre || "Sin definir",
-      equipo: balonOro?.equipo || mvpLeader?.equipo || "",
-    },
-    {
-      key: "the_best",
-      label: "The Best",
-      nombre: theBest?.nombre || "Sin definir",
-      equipo: theBest?.equipo || "",
-    },
-    {
-      key: "raiko_trophy",
-      label: "Raiko Trophy",
-      nombre: raiko?.nombre || goalkeeperLeader?.nombre || "Sin definir",
-      equipo: raiko?.equipo || goalkeeperLeader?.equipo || "",
-    },
-    {
-      key: "bota_oro",
-      label: "Bota de Oro",
-      nombre: botaOro?.nombre || scorer?.nombre || "Sin definir",
-      equipo: botaOro?.equipo || scorer?.equipo || "",
-    },
-    {
-      key: "golden_boy",
-      label: "Golden Boy",
-      nombre: goldenBoy?.nombre || "Sin definir",
-      equipo: goldenBoy?.equipo || "",
-    },
+export function buildAwards(rows: HistoryAwardRow[], _players: PlayerAggregate[]) {
+  const configs = [
+    { key: "balon_oro", label: "Balón de Oro", keys: ["balon_oro", "balon de oro"] },
+    { key: "the_best", label: "The Best", keys: ["the_best", "the best"] },
+    { key: "raiko_trophy", label: "Raiko Trophy", keys: ["raiko_trophy", "raiko trophy", "arquero_del_ano", "arquero del ano"] },
+    { key: "bota_oro", label: "Bota de Oro", keys: ["bota_oro", "bota de oro", "goleador"] },
   ];
+
+  return configs.flatMap((config) => {
+    const award = firstAward(rows, config.keys);
+    if (!award) return [];
+
+    return [{
+      key: config.key,
+      label: config.label,
+      nombre: award.nombre || "Sin definir",
+      equipo: award.equipo || "",
+    }];
+  });
 }
 
 export function competitionSummary(
