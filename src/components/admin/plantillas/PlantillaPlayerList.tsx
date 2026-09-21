@@ -24,6 +24,7 @@ export default function PlantillaPlayerList({
   onFilter,
   onTransfer,
   onRelease,
+  onReactivate,
 }: {
   players: PlantillaRow[];
   search: string;
@@ -33,6 +34,7 @@ export default function PlantillaPlayerList({
   onFilter: (value: "activos" | "bajas" | "todos") => void;
   onTransfer: (player: PlantillaRow) => void;
   onRelease: (player: PlantillaRow) => void;
+  onReactivate: (player: PlantillaRow) => void;
 }) {
   return (
     <TournamentPanel
@@ -71,15 +73,19 @@ export default function PlantillaPlayerList({
                 </div>
               </div>
               <div className={styles.actions}>
-                {player.estado !== "baja" && (
-                  <button type="button" className={styles.secondary} onClick={() => onTransfer(player)}>
-                    Transferir
+                {player.estado === "baja" ? (
+                  <button type="button" className={styles.primary} onClick={() => onReactivate(player)}>
+                    Reincorporar
                   </button>
-                )}
-                {player.estado !== "baja" && (
-                  <button type="button" className={styles.danger} onClick={() => onRelease(player)}>
-                    Liberar
-                  </button>
+                ) : (
+                  <>
+                    <button type="button" className={styles.secondary} onClick={() => onTransfer(player)}>
+                      Transferir
+                    </button>
+                    <button type="button" className={styles.danger} onClick={() => onRelease(player)}>
+                      Liberar
+                    </button>
+                  </>
                 )}
               </div>
             </div>
