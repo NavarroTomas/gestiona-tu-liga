@@ -10,6 +10,7 @@ export default function AddPlayerPanel({
   teams,
   loading,
   searching,
+  membershipWarning,
   onPlayerId,
   onPlayer,
   onSteamId,
@@ -24,6 +25,7 @@ export default function AddPlayerPanel({
   teams: string[];
   loading: boolean;
   searching: boolean;
+  membershipWarning: string;
   onPlayerId: (value: string) => void;
   onPlayer: (value: string) => void;
   onSteamId: (value: string) => void;
@@ -37,6 +39,23 @@ export default function AddPlayerPanel({
       title="Agregar jugador"
       description="Usá PSO ID como identificador principal. Si existe en APA, completamos los datos automáticamente."
     >
+      {membershipWarning ? (
+        <div
+          style={{
+            marginBottom: 14,
+            border: "1px solid #e8b45c",
+            background: "#fff8e8",
+            color: "#7a4b00",
+            borderRadius: 12,
+            padding: "12px 14px",
+            fontSize: 12,
+            fontWeight: 800,
+          }}
+        >
+          {membershipWarning}
+        </div>
+      ) : null}
+
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 14 }}>
         <Field label="PSO ID">
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
