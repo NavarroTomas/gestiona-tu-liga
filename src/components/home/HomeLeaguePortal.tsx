@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState, type CSSProperties, type MouseEvent, type
 import { supabase } from "@/lib/supabase";
 import LeagueHero from "@/components/home/LeagueHero";
 import HomeNewsStandings from "@/components/home/HomeNewsStandings";
-import HomeAwards from "@/components/home/HomeAwards";
 import HomeCompetitionStrip from "@/components/home/HomeCompetitionStrip";
 import HomeMatchStrip from "@/components/home/HomeMatchStrip";
 import { usePublishedHomeDocument } from "@/lib/usePublishedSitePage";
@@ -23,7 +22,6 @@ import {
   normalizeText,
   sortMatches,
   type ClubInfo,
-  type HomeAward,
   type HomeMatch,
 } from "@/lib/homePortal";
 
@@ -65,7 +63,6 @@ export default function HomeLeaguePortal({
   const [temporada, setTemporada] = useState("Temporada 4");
   const [matches, setMatches] = useState<HomeMatch[]>([]);
   const [clubs, setClubs] = useState<ClubInfo[]>([]);
-  const [awards, setAwards] = useState<HomeAward[]>([]);
   const [stats, setStats] = useState<PlayerStat[]>([]);
   const [runtimeBreakpoint, setRuntimeBreakpoint] = useState<EditorBreakpoint>("desktop");
   const { document: publishedDocument } = usePublishedHomeDocument(!editorDocument);
@@ -99,14 +96,13 @@ export default function HomeLeaguePortal({
         "Temporada 4";
       if (!active) return;
       setTemporada(currentSeason);
-      const [matchesRes, awardsRes] = await Promise.all([
-        supabase.from("partidos").select("id,partido_id,local,visitante,resultado,fecha,temporada,division,competicion,fase,grupo,dia,hora").eq("temporada", currentSeason),
-        supabase.from("premios_apa").select("id,premio,nombre,equipo,puntos,posicion").eq("temporada", currentSeason).order("id", { ascending: false }).limit(8),
-      ]);
+      const matchesRes = await supabase
+        .from("partidos")
+        .select("id,partido_id,local,visitante,resultado,fecha,temporada,division,competicion,fase,grupo,dia,hora")
+        .eq("temporada", currentSeason);
       if (!active) return;
       const seasonMatches = ((matchesRes.data || []) as HomeMatch[]).sort(sortMatches);
       setMatches(seasonMatches);
-      setAwards((awardsRes.data || []) as HomeAward[]);
       const teamNames = [...new Set(seasonMatches.flatMap((match) => [match.local, match.visitante]).filter(Boolean))] as string[];
       if (teamNames.length) {
         const clubsRes = await supabase.from("clubes_info").select("nombre,logo_url").in("nombre", teamNames);
@@ -293,7 +289,7 @@ export default function HomeLeaguePortal({
         );
       }
       case "awards":
-        return shell(id, <HomeAwards awards={awards} logoEquipo={logoEquipo} editor={pageDocument.awards} elements={pageDocument.elements} breakpoint={activeBreakpoint} editorMode={editorMode} selectedElement={selectedElement} onSelectElement={onSelectElement} />);
+        return null;
       case "competitions":
         return shell(id, <HomeCompetitionStrip editor={pageDocument.competitions} elements={pageDocument.elements} breakpoint={activeBreakpoint} editorMode={editorMode} selectedElement={selectedElement} onSelectElement={onSelectElement} />);
       case "match": {
