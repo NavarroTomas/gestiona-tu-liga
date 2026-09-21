@@ -46,6 +46,7 @@ export default function PlantillasManager() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchingPlayer, setSearchingPlayer] = useState(false);
+  const [playerMembershipWarning, setPlayerMembershipWarning] = useState("");
 
   const [playerName, setPlayerName] = useState("");
   const [playerId, setPlayerId] = useState("");
@@ -125,6 +126,27 @@ export default function PlantillasManager() {
     });
   }, [players, search, team, filter]);
 
+  async function findActiveMembership(psoId: string, excludeId?: number | string) {
+    const cleanId = psoId.trim();
+    if (!cleanId) return null;
+
+    const { data, error } = await supabase
+      .from("plantillas")
+      .select("id,jugador,playerid,equipo,temporada,division,estado")
+      .eq("temporada", season)
+      .ilike("playerid", cleanId)
+      .neq("estado", "baja");
+
+    if (error) {
+      console.error("No pude verificar la pertenencia actual del jugador:", error);
+      return null;
+    }
+
+    return ((data || []) as PlantillaRow[]).find(
+      (row) => String(row.id) !== String(excludeId ?? ""),
+    ) || null;
+  }
+
   async function searchByPsoId() {
     const cleanId = playerId.trim();
     if (!cleanId) {
@@ -134,7 +156,14 @@ export default function PlantillasManager() {
 
     setSearchingPlayer(true);
     setMessage("");
+    setPlayerMembershipWarning("");
     try {
+      const activeMembership = await findActiveMembership(cleanId);
+      if (activeMembership) {
+        setPlayerMembershipWarning(
+          `Este PSO ID ya está activo en ${activeMembership.equipo || "otro club"} (${activeMembership.division || "sin división"}).`,
+        );
+      }
       const { data: profile } = await supabase
         .from("profiles")
         .select("id,display_name,username,playerid,steam_id")
@@ -185,6 +214,24 @@ export default function PlantillasManager() {
       return;
     }
 
+    const activeMembership = await findActiveMembership(cleanId);
+    if (activeMembership) {
+      const sameTeam =
+        String(activeMembership.equipo || "").trim().toLowerCase() === cleanTeam.toLowerCase();
+      setPlayerMembershipWarning(
+        sameTeam
+          ? `Este jugador ya está activo en ${activeMembership.equipo || cleanTeam}.`
+          : `No se puede agregar: este PSO ID ya está activo en ${activeMembership.equipo || "otro club"}.`,
+      );
+      setMessage(
+        sameTeam
+          ? "El jugador ya pertenece a este plantel."
+          : "El jugador ya pertenece a otro club. Usá Mercado para transferirlo.",
+      );
+      return;
+    }
+
+    setPlayerMembershipWarning("");
     setLoading(true);
     setMessage("");
     try {
@@ -210,6 +257,7 @@ export default function PlantillasManager() {
       setPlayerId("");
       setSteamId("");
       setProfileId(null);
+      setPlayerMembershipWarning("");
       setMessage("Jugador agregado al plantel.");
       setView("plantel");
       await reloadPlayers();
@@ -259,6 +307,38 @@ export default function PlantillasManager() {
       fecha: null,
     });
     setMessage("Jugador liberado.");
+    await reloadPlayers();
+  }
+
+  async function reactivatePlayer(player: PlantillaRow) {
+    if (!player.playerid) {
+      setMessage("Este jugador no tiene PSO ID y no se puede validar su reincorporación.");
+      return;
+    }
+
+    const activeMembership = await findActiveMembership(player.playerid, player.id);
+    if (activeMembership) {
+      setMessage(
+        `No se puede reincorporar: el jugador ya está activo en ${activeMembership.equipo || "otro club"}.`,
+      );
+      return;
+    }
+
+    if (!window.confirm(`¿Reincorporar a ${player.jugador || "este jugador"} a ${player.equipo || "este club"}?`)) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from("plantillas")
+      .update({ estado: "activo" })
+      .eq("id", player.id);
+
+    if (error) {
+      setMessage("No pude reincorporar al jugador: " + error.message);
+      return;
+    }
+
+    setMessage("Jugador reincorporado al plantel.");
     await reloadPlayers();
   }
 
@@ -402,6 +482,7 @@ export default function PlantillasManager() {
               onFilter={setFilter}
               onTransfer={prepareTransfer}
               onRelease={releasePlayer}
+              onReactivate={reactivatePlayer}
             />
           )}
 
@@ -414,7 +495,11 @@ export default function PlantillasManager() {
               teams={teams}
               loading={loading}
               searching={searchingPlayer}
-              onPlayerId={setPlayerId}
+              membershipWarning={playerMembershipWarning}
+              onPlayerId={(value) => {
+                setPlayerId(value);
+                setPlayerMembershipWarning("");
+              }}
               onPlayer={setPlayerName}
               onSteamId={setSteamId}
               onTeam={setTeam}
