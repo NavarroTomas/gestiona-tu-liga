@@ -316,16 +316,57 @@ export default function PlantillasManager() {
       return;
     }
 
-    const activeMembership = await findActiveMembership(player.playerid, player.id);
-    if (activeMembership) {
+    const { data: activeRows, error: activeRowsError } = await supabase
+      .from("plantillas")
+      .select(PLANTILLAS_SELECT)
+      .eq("temporada", season)
+      .ilike("playerid", player.playerid.trim())
+      .neq("estado", "baja");
+
+    if (activeRowsError) {
+      setMessage("No pude validar la situación actual del jugador.");
+      return;
+    }
+
+    const activeMemberships = ((activeRows || []) as unknown as PlantillaRow[]).filter(
+      (row) => String(row.id) !== String(player.id),
+    );
+
+    const activeInOtherTeam = activeMemberships.find(
+      (row) =>
+        String(row.equipo || "").trim().toLowerCase() !==
+        String(player.equipo || "").trim().toLowerCase(),
+    );
+
+    if (activeInOtherTeam) {
       setMessage(
-        `No se puede reincorporar: el jugador ya está activo en ${activeMembership.equipo || "otro club"}.`,
+        `No se puede reincorporar: el jugador ya está activo en ${activeInOtherTeam.equipo || "otro club"}.`,
       );
       return;
     }
 
     if (!window.confirm(`¿Reincorporar a ${player.jugador || "este jugador"} a ${player.equipo || "este club"}?`)) {
       return;
+    }
+
+    const duplicateIdsSameTeam = activeMemberships
+      .filter(
+        (row) =>
+          String(row.equipo || "").trim().toLowerCase() ===
+          String(player.equipo || "").trim().toLowerCase(),
+      )
+      .map((row) => row.id);
+
+    if (duplicateIdsSameTeam.length > 0) {
+      const { error: duplicateError } = await supabase
+        .from("plantillas")
+        .update({ estado: "baja" })
+        .in("id", duplicateIdsSameTeam);
+
+      if (duplicateError) {
+        setMessage("No pude consolidar los registros duplicados del jugador.");
+        return;
+      }
     }
 
     const { error } = await supabase
@@ -338,7 +379,11 @@ export default function PlantillasManager() {
       return;
     }
 
-    setMessage("Jugador reincorporado al plantel.");
+    setMessage(
+      duplicateIdsSameTeam.length > 0
+        ? "Jugador reincorporado. También consolidé registros duplicados del mismo club."
+        : "Jugador reincorporado al plantel.",
+    );
     await reloadPlayers();
   }
 
