@@ -100,6 +100,30 @@ function seasonNumber(value: string) {
   return Number(value.match(/(\d+)/)?.[1] || 0);
 }
 
+const PLAYER_STATS_PAGE_SIZE = 1000;
+
+async function fetchAllPlayerStatsForSeason(temporada: string) {
+  const rows: RawJugadorRow[] = [];
+
+  for (let from = 0; ; from += PLAYER_STATS_PAGE_SIZE) {
+    const to = from + PLAYER_STATS_PAGE_SIZE - 1;
+    const { data, error } = await supabase
+      .from("estadisticas_jugadores")
+      .select("partido_id,playerId,nombre,equipo,posicion,goals,assists,mvp,rating_apa,score")
+      .eq("temporada", temporada)
+      .range(from, to);
+
+    if (error) return { data: rows, error };
+
+    const batch = (data || []) as RawJugadorRow[];
+    rows.push(...batch);
+
+    if (batch.length < PLAYER_STATS_PAGE_SIZE) break;
+  }
+
+  return { data: rows, error: null };
+}
+
 function PlayerAvatar({ player, size = "md" }: { player: Jugador; size?: "sm" | "md" | "lg" }) {
   const sizes = {
     sm: "h-8 w-8",
@@ -256,17 +280,17 @@ export default function JugadoresPage() {
           const matchIds = Array.from(new Set((matchesResult.data || []).map((row: any) => String(row.partido_id || "").trim()).filter(Boolean)));
 
           if (matchIds.length) {
-            const statsResult = await supabase
-              .from("estadisticas_jugadores")
-              .select("partido_id,playerId,nombre,equipo,posicion,goals,assists,mvp,rating_apa,score")
-              .eq("temporada", temporada)
-              .in("partido_id", matchIds);
-
+            const statsResult = await fetchAllPlayerStatsForSeason(temporada);
             loadError = statsResult.error;
 
             if (!statsResult.error) {
+              const allowedMatchIds = new Set(matchIds);
+              const completeStats = (statsResult.data || []).filter((row) =>
+                allowedMatchIds.has(String(row.partido_id || "").trim()),
+              );
+
               const map = new Map<string, Jugador & { matchIds: Set<string> }>();
-              for (const row of (statsResult.data || []) as RawJugadorRow[]) {
+              for (const row of completeStats) {
                 const name = String(row.nombre || "").trim();
                 const playerId = String(row.playerId || "").trim();
                 if (!name && !playerId) continue;
