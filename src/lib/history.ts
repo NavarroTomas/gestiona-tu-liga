@@ -378,14 +378,43 @@ export function buildAwards(rows: HistoryAwardRow[], players: PlayerAggregate[])
   const goalkeeperLeader = [...(goalkeepers.length ? goalkeepers : players)]
     .sort((a, b) => b.atajadas - a.atajadas || b.ratingPromedio - a.ratingPromedio)[0] || null;
 
-  const mvpAward = firstAward(rows, ["balon_oro", "balon de oro", "mvp"]);
-  const scorerAward = firstAward(rows, ["bota_oro", "bota de oro", "goleador"]);
-  const goalkeeperAward = firstAward(rows, ["raiko_trophy", "raiko trophy", "arquero_del_ano", "arquero del ano"]);
+  const balonOro = firstAward(rows, ["balon_oro", "balon de oro", "mvp"]);
+  const theBest = firstAward(rows, ["the_best", "the best"]);
+  const raiko = firstAward(rows, ["raiko_trophy", "raiko trophy", "arquero_del_ano", "arquero del ano"]);
+  const botaOro = firstAward(rows, ["bota_oro", "bota de oro", "goleador"]);
+  const goldenBoy = firstAward(rows, ["golden_boy", "golden boy"]);
 
   return [
-    { key: "mvp", label: "MVP", nombre: mvpAward?.nombre || mvpLeader?.nombre || "Sin definir", equipo: mvpAward?.equipo || mvpLeader?.equipo || "" },
-    { key: "scorer", label: "Goleador", nombre: scorerAward?.nombre || scorer?.nombre || "Sin definir", equipo: scorerAward?.equipo || scorer?.equipo || "" },
-    { key: "goalkeeper", label: "Arquero del Año", nombre: goalkeeperAward?.nombre || goalkeeperLeader?.nombre || "Sin definir", equipo: goalkeeperAward?.equipo || goalkeeperLeader?.equipo || "" },
+    {
+      key: "balon_oro",
+      label: "Balón de Oro",
+      nombre: balonOro?.nombre || mvpLeader?.nombre || "Sin definir",
+      equipo: balonOro?.equipo || mvpLeader?.equipo || "",
+    },
+    {
+      key: "the_best",
+      label: "The Best",
+      nombre: theBest?.nombre || "Sin definir",
+      equipo: theBest?.equipo || "",
+    },
+    {
+      key: "raiko_trophy",
+      label: "Raiko Trophy",
+      nombre: raiko?.nombre || goalkeeperLeader?.nombre || "Sin definir",
+      equipo: raiko?.equipo || goalkeeperLeader?.equipo || "",
+    },
+    {
+      key: "bota_oro",
+      label: "Bota de Oro",
+      nombre: botaOro?.nombre || scorer?.nombre || "Sin definir",
+      equipo: botaOro?.equipo || scorer?.equipo || "",
+    },
+    {
+      key: "golden_boy",
+      label: "Golden Boy",
+      nombre: goldenBoy?.nombre || "Sin definir",
+      equipo: goldenBoy?.equipo || "",
+    },
   ];
 }
 
