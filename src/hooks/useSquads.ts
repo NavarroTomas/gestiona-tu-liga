@@ -101,11 +101,10 @@ export function useSquads() {
           (club) => normalizeSquadDivision(club.division) === divisionKey,
         ),
       );
-      setRankings(
-        ((rankingsRes.data || []) as SquadRankingRow[]).filter(
-          (row) => normalizeSquadDivision(row.division) === divisionKey,
-        ),
-      );
+      // La división define qué plantel mostramos, no qué partidos cuentan.
+      // Conservamos todas las filas de ranking de la temporada para poder sumar
+      // Liga + copas + playoffs del jugador con su club.
+      setRankings((rankingsRes.data || []) as SquadRankingRow[]);
       setProfiles((profilesRes.data || []) as SquadPublicProfile[]);
       setLoading(false);
     }
@@ -156,11 +155,51 @@ export function useSquads() {
   }, [seasonClubs]);
 
   const rankingByPlayer = useMemo(() => {
-    const map = new Map<string, SquadRankingRow>();
+    type AggregatedRanking = SquadRankingRow & {
+      ratingWeightedTotal: number;
+    };
+
+    const map = new Map<string, AggregatedRanking>();
+
     rankings.forEach((row) => {
-      const keys = [String(row.playerId || ""), normalizeName(row.nombre)].filter(Boolean);
-      keys.forEach((key) => map.set(key, row));
+      const playerKey = String(row.playerId || "").trim() || normalizeName(row.nombre);
+      const teamKey = normalizeName(row.equipo);
+      if (!playerKey || !teamKey) return;
+
+      const key = `${teamKey}::${playerKey}`;
+      const matches = Number(row.partidos_jugados || 0);
+      const rating = Number(row.rating_apa_promedio || 0);
+
+      const current = map.get(key) || {
+        ...row,
+        partidos_jugados: 0,
+        goals: 0,
+        assists: 0,
+        mvp: 0,
+        rating_apa_promedio: 0,
+        ratingWeightedTotal: 0,
+      };
+
+      current.partidos_jugados = Number(current.partidos_jugados || 0) + matches;
+      current.goals = Number(current.goals || 0) + Number(row.goals || 0);
+      current.assists = Number(current.assists || 0) + Number(row.assists || 0);
+      current.mvp = Number(current.mvp || 0) + Number(row.mvp || 0);
+      current.ratingWeightedTotal += rating * matches;
+
+      if (row.nombre) current.nombre = row.nombre;
+      if (row.playerId) current.playerId = row.playerId;
+      if (row.equipo) current.equipo = row.equipo;
+      if (row.posicion) current.posicion = row.posicion;
+
+      map.set(key, current);
     });
+
+    map.forEach((row) => {
+      const matches = Number(row.partidos_jugados || 0);
+      row.rating_apa_promedio =
+        matches > 0 ? Math.round((row.ratingWeightedTotal / matches) * 100) / 100 : 0;
+    });
+
     return map;
   }, [rankings]);
 
@@ -181,9 +220,12 @@ export function useSquads() {
   const playerViews = useMemo<SquadPlayerView[]>(
     () =>
       players.map((player) => {
+        const teamKey = normalizeName(player.equipo);
+        const playerIdKey = String(player.playerid || "").trim();
+        const playerNameKey = normalizeName(player.jugador);
         const ranking =
-          rankingByPlayer.get(String(player.playerid || "")) ||
-          rankingByPlayer.get(normalizeName(player.jugador));
+          (playerIdKey ? rankingByPlayer.get(`${teamKey}::${playerIdKey}`) : undefined) ||
+          (playerNameKey ? rankingByPlayer.get(`${teamKey}::${playerNameKey}`) : undefined);
         const resolvedPlayerId = String(player.playerid || ranking?.playerId || "").trim();
         const profile =
           profileByPlayer.byPlayerId.get(resolvedPlayerId) ||
