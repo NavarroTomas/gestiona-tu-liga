@@ -10,7 +10,8 @@ const AUSPICIANTES = [
     description: "Comunidad compañera de Pro Soccer Online.",
     href: "https://discord.gg/q9nWQxBuMX",
     type: "Discord",
-    banner: "/images/auspiciantes/pso-mix-banner.png",
+    banner: "/images/auspiciantes/pso-mix-banner.webp",
+    logo: "/images/auspiciantes/pso-mix-logo.webp",
   },
   {
     name: "PSO Brasil",
@@ -19,6 +20,8 @@ const AUSPICIANTES = [
     href: "https://discord.gg/j5hcsPp3bS",
     type: "Discord",
     banner: null,
+    logo: null,
+    logo: null,
   },
   {
     name: "COPERO PSO SA",
@@ -95,9 +98,18 @@ function AuspiciantesVisual() {
 
           <div className="relative z-10 flex min-h-[150px] flex-col justify-end p-4">
             <div className="mb-auto flex items-center justify-between gap-2">
-              <span className="rounded-full border border-white/15 bg-black/20 px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-white backdrop-blur">
-                {community.type}
-              </span>
+              <div className="flex items-center gap-2">
+                {community.logo ? (
+                  <img
+                    src={community.logo}
+                    alt=""
+                    className="h-8 w-8 rounded-lg object-contain"
+                  />
+                ) : null}
+                <span className="rounded-full border border-white/15 bg-black/20 px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-white backdrop-blur">
+                  {community.type}
+                </span>
+              </div>
               <span className="text-[9px] font-black uppercase tracking-[0.08em] text-white/75">
                 ↗
               </span>
@@ -123,7 +135,7 @@ function StreamerVisual() {
   return (
     <div className="relative min-h-[330px] overflow-hidden rounded-[28px] bg-[#071d34]">
       <img
-        src="/images/home/streamer-twitch.png"
+        src="/images/home/streamer-twitch.webp"
         alt="Transmisión y presentación oficial de APA"
         className="absolute inset-0 h-full w-full object-cover"
       />
@@ -139,7 +151,7 @@ function CreateVisual() {
   return (
     <div className="overflow-hidden rounded-[28px]">
       <img
-        src="/images/home/crea-equipo-chelsea.png"
+        src="/images/home/crea-equipo-chelsea.webp"
         alt="Chelsea campeón de Copa APA"
         className="block min-h-[330px] w-full object-cover"
       />
@@ -151,7 +163,7 @@ function SearchVisual() {
   return (
     <div className="flex min-h-[330px] items-center justify-center">
       <img
-        src="/images/home/busca-equipo.png"
+        src="/images/home/busca-equipo.webp"
         alt="Escudos de clubes de la comunidad"
         className="block max-h-[360px] w-full object-contain"
       />
