@@ -133,7 +133,7 @@ export default function HomeNewsStandings({
       whileInView={{opacity:1,y:0}}
       viewport={{once:true,amount:0.12}}
       transition={{duration:0.8,ease:[0.2,0.8,0.2,1]}}
-      className="min-h-[100svh] overflow-hidden rounded-[30px] border border-[#c8e0ed] bg-white shadow-[0_22px_60px_rgba(16,47,85,.09)]"
+      className="min-h-[100svh] overflow-hidden bg-white"
     >
       <div className="grid min-h-[100svh] lg:grid-cols-[minmax(0,1.48fr)_minmax(420px,.82fr)]">
         <article className="border-b border-[#d8e8f0] p-6 sm:p-8 lg:border-b-0 lg:border-r lg:p-10">

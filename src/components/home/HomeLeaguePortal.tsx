@@ -271,22 +271,37 @@ export default function HomeLeaguePortal({
         }}
         className={(selectionClass + " " + forceColorClass).trim() || undefined}
         style={{
-          background: section.background,
+          background:
+            editorMode
+              ? section.background
+              : id === "competitions"
+                ? "#eef8fd"
+                : "#ffffff",
           color: section.textColor,
           ...(forceTextColor
             ? { "--apa-editor-text-color": section.textColor }
             : {}),
-          borderRadius: valueForBreakpoint(section.radius, activeBreakpoint),
+          borderRadius: editorMode
+            ? valueForBreakpoint(section.radius, activeBreakpoint)
+            : 0,
           paddingTop: valueForBreakpoint(section.paddingY, activeBreakpoint),
           paddingBottom: valueForBreakpoint(section.paddingY, activeBreakpoint),
           paddingLeft: valueForBreakpoint(section.paddingX, activeBreakpoint),
           paddingRight: valueForBreakpoint(section.paddingX, activeBreakpoint),
-          marginTop: valueForBreakpoint(section.marginTop, activeBreakpoint),
-          marginBottom: valueForBreakpoint(section.marginBottom, activeBreakpoint),
-          border: section.borderWidth
-            ? section.borderWidth + "px solid " + section.borderColor
-            : undefined,
-          boxShadow: section.shadow === "none" ? undefined : section.shadow,
+          marginTop: editorMode
+            ? valueForBreakpoint(section.marginTop, activeBreakpoint)
+            : 0,
+          marginBottom: editorMode
+            ? valueForBreakpoint(section.marginBottom, activeBreakpoint)
+            : 0,
+          border:
+            editorMode && section.borderWidth
+              ? section.borderWidth + "px solid " + section.borderColor
+              : undefined,
+          boxShadow:
+            editorMode && section.shadow !== "none"
+              ? section.shadow
+              : undefined,
         } as CSSProperties}
       >
         {editorMode ? (
@@ -377,7 +392,7 @@ export default function HomeLeaguePortal({
     <main
       style={{
         minHeight: "100vh",
-        background: pageDocument.global.pageBackground,
+        background: editorMode ? pageDocument.global.pageBackground : "#ffffff",
         color: "#0b2747",
         fontFamily:
           "var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif",
@@ -386,16 +401,16 @@ export default function HomeLeaguePortal({
       <style>{".apa-editor-force-text-color, .apa-editor-force-text-color * { color: var(--apa-editor-text-color) !important; } .apa-home-cta, .apa-home-cta *, .apa-home-cta:visited, .apa-home-cta:hover, .apa-home-cta:focus { color: #ffffff !important; }"}</style>
 
       <div
-        className="mx-auto py-5 md:py-8"
+        className="flex w-full flex-col"
         style={{
-          width: "min(94vw, 1760px)",
-          maxWidth: "1760px",
-          display: "flex",
-          flexDirection: "column",
-          gap: valueForBreakpoint(
-            pageDocument.global.sectionGap,
-            activeBreakpoint,
-          ),
+          width: "100%",
+          maxWidth: "none",
+          gap: editorMode
+            ? valueForBreakpoint(
+                pageDocument.global.sectionGap,
+                activeBreakpoint,
+              )
+            : 0,
         }}
       >
         {pageDocument.order.map((id) => (

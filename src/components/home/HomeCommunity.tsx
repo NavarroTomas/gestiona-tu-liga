@@ -43,16 +43,18 @@ const SOCIALS = [
   {
     label: "Discord",
     eyebrow: "Comunidad",
-    description: "Buscá equipo, seguí torneos y recibí anuncios oficiales.",
+    description: "Buscá equipo, seguí torneos y recibí todos los anuncios oficiales.",
     href: SOCIAL_LINKS.discord,
     icon: <DiscordIcon />,
+    accent: "#5865F2",
   },
   {
     label: "Instagram",
     eyebrow: "Contenido",
-    description: "Resultados, anuncios y contenido visual de la liga.",
+    description: "Resultados, novedades y contenido visual de la liga.",
     href: SOCIAL_LINKS.instagram,
     icon: <InstagramIcon />,
+    accent: "#168fd4",
   },
   {
     label: "Twitch",
@@ -60,6 +62,7 @@ const SOCIALS = [
     description: "Partidos y transmisiones oficiales de APA.",
     href: TWITCH_URL,
     icon: <TwitchIcon />,
+    accent: "#6f57b8",
   },
   {
     label: "YouTube",
@@ -67,73 +70,83 @@ const SOCIALS = [
     description: "Highlights, premiaciones y contenido audiovisual.",
     href: SOCIAL_LINKS.youtube,
     icon: <YoutubeIcon />,
+    accent: "#102f55",
   },
 ] as const;
 
 export default function HomeCommunity() {
   return (
-    <section className="relative left-1/2 flex min-h-[100svh] w-[100dvw] -translate-x-1/2 bg-[#102f55] text-white">
-      <div className="mx-auto flex min-h-[100svh] w-[min(94vw,1760px)] flex-col justify-between py-10 sm:py-14 lg:py-16">
+    <section className="relative min-h-[100svh] w-full overflow-hidden bg-[#eef8fd]">
+      <div className="pointer-events-none absolute -left-28 top-20 h-[360px] w-[360px] rounded-full bg-[#d5effb]" />
+      <div className="pointer-events-none absolute -right-24 bottom-[-100px] h-[420px] w-[420px] rounded-full bg-[#dff3ff]" />
+
+      <div className="relative mx-auto grid min-h-[100svh] w-[min(94vw,1760px)] gap-14 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,.9fr)_minmax(520px,1.1fr)] lg:items-center lg:px-8 lg:py-20">
         <motion.div
-          initial={{ opacity: 0, y: 28 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, x: -40 }}
+          whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-[1100px]"
         >
-          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#74c8f0]">
+          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#168fd4]">
             Comunidad APA
           </p>
 
-          <h2 className="mt-4 text-[clamp(4rem,10vw,10rem)] font-black uppercase leading-[0.82] tracking-[-0.07em] text-white">
+          <h2 className="mt-4 text-[clamp(4rem,8vw,8.5rem)] font-black uppercase leading-[0.84] tracking-[-0.07em] text-[#102f55]">
             REDES
             <br />
             SOCIALES
           </h2>
 
-          <p className="mt-7 max-w-[660px] text-[14px] font-semibold leading-7 text-white/65 sm:text-[16px]">
+          <p className="mt-7 max-w-[620px] text-[14px] font-semibold leading-7 text-[#58788f] sm:text-[16px]">
             Todo lo que pasa en APA también vive fuera de la web. Elegí tu plataforma y seguí la liga donde más te guste.
           </p>
+
+          <div className="mt-10 flex items-center gap-3">
+            <span className="h-3 w-3 rounded-full bg-[#168fd4]" />
+            <span className="h-3 w-10 rounded-full bg-[#8fd1ef]" />
+            <span className="h-3 w-3 rounded-full bg-[#102f55]" />
+          </div>
         </motion.div>
 
-        <div className="mt-16 grid border-t border-white/20 md:grid-cols-2 lg:grid-cols-4">
+        <div className="space-y-2">
           {SOCIALS.map((social, index) => (
             <motion.a
               key={social.label}
-              initial={{ opacity: 0, y: 26 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: 36 }}
+              whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, amount: 0.18 }}
               transition={{
-                duration: 0.65,
+                duration: 0.68,
                 delay: index * 0.07,
                 ease: [0.16, 1, 0.3, 1],
               }}
               href={social.href}
               target="_blank"
               rel="noreferrer"
-              className="group flex min-h-[220px] flex-col justify-between border-b border-white/20 py-7 transition hover:bg-white/[0.04] md:px-6 lg:border-b-0 lg:border-r lg:last:border-r-0"
+              className="group flex items-center gap-5 rounded-[24px] px-4 py-5 transition hover:bg-white/70 sm:px-6 sm:py-6"
             >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex h-12 w-12 items-center justify-center text-white">
-                  {social.icon}
-                </div>
-
-                <span className="text-[18px] font-black text-white/55 transition group-hover:translate-x-1 group-hover:text-white">
-                  ↗
-                </span>
+              <div
+                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] text-white shadow-[0_10px_28px_rgba(16,47,85,.08)]"
+                style={{ backgroundColor: social.accent }}
+              >
+                {social.icon}
               </div>
 
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#74c8f0]">
+              <div className="min-w-0 flex-1">
+                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#168fd4]">
                   {social.eyebrow}
                 </p>
-                <h3 className="mt-2 text-[30px] font-black tracking-[-0.045em] text-white">
+                <h3 className="mt-1 text-[26px] font-black tracking-[-0.04em] text-[#102f55] sm:text-[30px]">
                   {social.label}
                 </h3>
-                <p className="mt-3 max-w-[30ch] text-[11px] font-semibold leading-5 text-white/55">
+                <p className="mt-1.5 max-w-[48ch] text-[11px] font-semibold leading-5 text-[#6d8797] sm:text-[12px]">
                   {social.description}
                 </p>
               </div>
+
+              <span className="shrink-0 text-[24px] font-black text-[#93b8ca] transition group-hover:translate-x-1 group-hover:text-[#102f55]">
+                ↗
+              </span>
             </motion.a>
           ))}
         </div>

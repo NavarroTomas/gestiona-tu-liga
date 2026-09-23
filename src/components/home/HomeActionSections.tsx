@@ -85,7 +85,7 @@ function WhiteButton({
 
 function AuspiciantesVisual() {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2">
       {AUSPICIANTES.map((community) => (
         <a
           key={community.name}
@@ -208,7 +208,7 @@ function ActionSection({
       viewport={{ once: true, amount: 0.16 }}
       transition={{ duration: 0.98, ease: [0.16, 1, 0.3, 1] }}
       className={
-        "border-t border-[#c9e1ed] px-6 py-11 sm:px-10 sm:py-14 lg:px-12 " +
+        "w-full overflow-hidden " +
         (surface === "sky"
           ? "bg-[#dff3ff]"
           : surface === "white"
@@ -216,12 +216,13 @@ function ActionSection({
             : "bg-transparent")
       }
     >
-      <div
-        className={
-          "grid items-center gap-9 lg:grid-cols-2 lg:gap-14 " +
-          (reverse ? "lg:[&>*:first-child]:order-2" : "")
-        }
-      >
+      <div className="mx-auto w-[min(94vw,1760px)] px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+        <div
+          className={
+            "grid items-center gap-10 lg:grid-cols-2 lg:gap-16 " +
+            (reverse ? "lg:[&>*:first-child]:order-2" : "")
+          }
+        >
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#168fd4]">
             {eyebrow}
@@ -240,7 +241,8 @@ function ActionSection({
           </div>
         </div>
 
-        <ActionVisual type={visual} />
+          <ActionVisual type={visual} />
+        </div>
       </div>
     </motion.section>
   );

@@ -264,7 +264,7 @@ export default function HomeMatchStrip({
   const slots = Array.from({ length: 6 }, (_, index) => upcoming[index] || null);
 
   return (
-    <section className="rounded-[30px] border border-[#d0e3ed] bg-[#f8fbfd] p-5 sm:p-8 lg:p-10">
+    <section className="py-8 sm:py-10 lg:py-12">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p
