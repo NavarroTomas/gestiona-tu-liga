@@ -32,7 +32,7 @@ export default function HomeSuggestions() {
           href={SUGGESTIONS_URL}
           target="_blank"
           rel="noreferrer"
-          className="apa-home-cta inline-flex min-h-14 shrink-0 items-center justify-center rounded-xl bg-[#168fd4] px-7 text-[11px] font-black uppercase tracking-[.06em] transition hover:-translate-y-0.5 hover:bg-[#0f7ebd]"
+          className="apa-home-cta !text-white [&_*]:!text-white inline-flex min-h-14 shrink-0 items-center justify-center rounded-xl bg-[#168fd4] px-7 text-[11px] font-black uppercase tracking-[.06em] transition hover:-translate-y-0.5 hover:bg-[#0f7ebd]"
         >
           Enviar sugerencia <span className="ml-3">→</span>
         </a>

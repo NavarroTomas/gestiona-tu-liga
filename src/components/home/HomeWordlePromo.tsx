@@ -40,7 +40,7 @@ export default function HomeWordlePromo() {
 
           <Link
             href="/entretenimiento/wordle"
-            className="apa-home-cta mt-7 inline-flex min-h-12 items-center rounded-xl bg-[#081f38] px-6 text-[10px] font-black uppercase tracking-[0.06em] transition hover:-translate-y-0.5 hover:bg-[#06182b]"
+            className="apa-home-cta !text-white [&_*]:!text-white mt-7 inline-flex min-h-12 items-center rounded-xl bg-[#081f38] px-6 text-[10px] font-black uppercase tracking-[0.06em] transition hover:-translate-y-0.5 hover:bg-[#06182b]"
           >
             Jugar Wordle <span className="ml-3">→</span>
           </Link>

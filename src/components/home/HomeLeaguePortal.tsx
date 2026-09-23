@@ -383,7 +383,7 @@ export default function HomeLeaguePortal({
           "var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif",
       }}
     >
-      <style>{".apa-editor-force-text-color, .apa-editor-force-text-color * { color: var(--apa-editor-text-color) !important; } .apa-home-cta, .apa-home-cta * { color: #ffffff !important; }"}</style>
+      <style>{".apa-editor-force-text-color, .apa-editor-force-text-color * { color: var(--apa-editor-text-color) !important; } .apa-home-cta, .apa-home-cta *, .apa-home-cta:visited, .apa-home-cta:hover, .apa-home-cta:focus { color: #ffffff !important; }"}</style>
 
       <div
         className="mx-auto py-5 md:py-8"

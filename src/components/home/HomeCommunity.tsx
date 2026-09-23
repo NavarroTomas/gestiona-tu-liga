@@ -88,7 +88,7 @@ export default function HomeCommunity() {
               href={SOCIAL_LINKS.discord}
               target="_blank"
               rel="noreferrer"
-              className="apa-home-cta inline-flex min-h-12 items-center rounded-xl bg-[#102f55] px-6 text-[10px] font-black uppercase tracking-[0.05em] transition hover:-translate-y-0.5 hover:bg-[#173e68]"
+              className="apa-home-cta !text-white [&_*]:!text-white inline-flex min-h-12 items-center rounded-xl bg-[#102f55] px-6 text-[10px] font-black uppercase tracking-[0.05em] transition hover:-translate-y-0.5 hover:bg-[#173e68]"
             >
               Unirme al Discord <span className="ml-3">→</span>
             </a>
