@@ -366,7 +366,7 @@ export default function HomeLeaguePortal({
         return null;
 
       case "community":
-        return shell(id, <HomeCommunity />);
+        return null;
 
       default:
         return null;
@@ -407,15 +407,13 @@ export default function HomeLeaguePortal({
             {renderSection(id)}
 
             {id === "news" ? <HomeWordlePromo /> : null}
-            {id === "community" ? (
-              <>
-                <HomeFindTeamCTA />
-                <HomeSuggestions />
-                <HomeDonation />
-              </>
-            ) : null}
           </Fragment>
         ))}
+
+        <HomeSuggestions />
+        <HomeFindTeamCTA />
+        <HomeDonation />
+        {shell("community", <HomeCommunity />)}
       </div>
     </main>
   );
