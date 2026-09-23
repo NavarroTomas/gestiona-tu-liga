@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     siteName: "APA PSO Argentina",
     title: "APA PSO Argentina",
     description:
-      "Fixture, Resultados, estadísticas, clubes, jugadores y competiciones de APA PSO Argentina.",
+      "Fixture, resultados, estadísticas, clubes, jugadores y competiciones de APA PSO Argentina.",
   },
   twitter: {
     card: "summary_large_image",
