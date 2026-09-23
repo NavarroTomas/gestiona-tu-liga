@@ -5,7 +5,8 @@ import { supabase } from "@/lib/supabase";
 import LeagueHero from "@/components/home/LeagueHero";
 import HomeNewsStandings from "@/components/home/HomeNewsStandings";
 import HomeCompetitionStrip from "@/components/home/HomeCompetitionStrip";
-import HomeMatchStrip from "@/components/home/HomeMatchStrip";\nimport HomeCommunity from "@/components/home/HomeCommunity";
+import HomeMatchStrip from "@/components/home/HomeMatchStrip";
+import HomeCommunity from "@/components/home/HomeCommunity";
 import { usePublishedHomeDocument } from "@/lib/usePublishedSitePage";
 import {
   elementInlineStyle,
