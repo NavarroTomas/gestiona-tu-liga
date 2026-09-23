@@ -20,10 +20,11 @@ function clubLogo(clubs: ClubInfo[], name?: string | null) {
 
 function Crest({ clubs, team }: { clubs: ClubInfo[]; team?: string | null }) {
   const logo = clubLogo(clubs, team);
+
   return logo ? (
-    <img src={logo} alt="" className="h-10 w-10 shrink-0 object-contain" />
+    <img src={logo} alt="" className="h-11 w-11 shrink-0 object-contain" />
   ) : (
-    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#edf5f9] text-[9px] font-black text-[#7691a2]">
+    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#edf5f9] text-[9px] font-black text-[#7691a2]">
       {String(team || "?").slice(0, 2).toUpperCase()}
     </div>
   );
@@ -31,11 +32,13 @@ function Crest({ clubs, team }: { clubs: ClubInfo[]; team?: string | null }) {
 
 function competitionLabel(match: HomeMatch) {
   const competition = normalizeText(match.competicion || "liga");
+
   if (competition === "liga") return match.division ? "Liga " + match.division : "Liga";
   if (competition === "copa_argentina") return "Copa Argentina";
   if (competition === "copa_apa") return "Copa APA";
   if (competition === "copa_campeones") return "Copa de Campeones";
   if (competition === "playoffs") return "Playoffs";
+
   return String(match.competicion || "APA").replaceAll("_", " ");
 }
 
@@ -56,13 +59,17 @@ function dateForMatch(match: HomeMatch, index: number, base = new Date()) {
     if (!Number.isNaN(date.getTime())) return date;
   }
 
-  const fallback = new Date(base.getFullYear(), base.getMonth(), base.getDate() + index);
-  return fallback;
+  return new Date(base.getFullYear(), base.getMonth(), base.getDate() + index);
 }
 
 function Calendar({ upcoming }: { upcoming: HomeMatch[] }) {
   const today = new Date();
-  const dated = upcoming.slice(0, 12).map((match, index) => ({ match, date: dateForMatch(match, index, today) }));
+
+  const dated = upcoming.slice(0, 12).map((match, index) => ({
+    match,
+    date: dateForMatch(match, index, today),
+  }));
+
   const focusDate = dated[0]?.date || today;
   const year = focusDate.getFullYear();
   const month = focusDate.getMonth();
@@ -70,11 +77,17 @@ function Calendar({ upcoming }: { upcoming: HomeMatch[] }) {
   const mondayFirstOffset = (firstWeekday + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const totalCells = Math.ceil((mondayFirstOffset + daysInMonth) / 7) * 7;
-  const monthName = new Intl.DateTimeFormat("es-AR", { month: "long", year: "numeric" }).format(focusDate);
+
+  const monthName = new Intl.DateTimeFormat("es-AR", {
+    month: "long",
+    year: "numeric",
+  }).format(focusDate);
+
   const byDay = new Map<number, HomeMatch[]>();
 
   dated.forEach(({ match, date }) => {
     if (date.getFullYear() !== year || date.getMonth() !== month) return;
+
     const day = date.getDate();
     const current = byDay.get(day) || [];
     current.push(match);
@@ -82,22 +95,25 @@ function Calendar({ upcoming }: { upcoming: HomeMatch[] }) {
   });
 
   return (
-    <aside className="sticky top-[110px] overflow-hidden rounded-[24px] border border-[#cce1ec] bg-white shadow-[0_18px_50px_rgba(16,47,85,.08)]">
-      <div className="border-b border-[#d9e8ef] bg-[linear-gradient(135deg,#102f55,#175b8a)] px-6 py-5 text-white">
+    <aside className="h-full overflow-hidden rounded-[28px] border border-[#cce1ec] bg-white shadow-[0_18px_50px_rgba(16,47,85,.08)]">
+      <div className="border-b border-[#d9e8ef] bg-[linear-gradient(135deg,#102f55,#175b8a)] px-7 py-6 text-white">
         <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#86d4f7]">Calendario APA</p>
-        <h3 className="mt-1 capitalize text-[24px] font-black tracking-[-0.04em]">{monthName}</h3>
+        <h3 className="mt-1 capitalize text-[28px] font-black tracking-[-0.045em]">{monthName}</h3>
       </div>
 
-      <div className="p-5">
-        <div className="grid grid-cols-7 gap-1 text-center">
+      <div className="p-6">
+        <div className="grid grid-cols-7 gap-1.5 text-center">
           {["L", "M", "X", "J", "V", "S", "D"].map((day) => (
-            <div key={day} className="py-2 text-[9px] font-black uppercase text-[#8ca2b1]">{day}</div>
+            <div key={day} className="py-2 text-[9px] font-black uppercase text-[#8ca2b1]">
+              {day}
+            </div>
           ))}
 
           {Array.from({ length: totalCells }, (_, cellIndex) => {
             const dayNumber = cellIndex - mondayFirstOffset + 1;
             const valid = dayNumber >= 1 && dayNumber <= daysInMonth;
-            const matches = valid ? byDay.get(dayNumber) || [] : [];
+            const dayMatches = valid ? byDay.get(dayNumber) || [] : [];
+
             const isToday =
               valid &&
               today.getFullYear() === year &&
@@ -111,35 +127,59 @@ function Calendar({ upcoming }: { upcoming: HomeMatch[] }) {
                   "relative flex aspect-square items-center justify-center rounded-xl text-[11px] font-black transition " +
                   (!valid
                     ? "text-transparent"
-                    : matches.length
+                    : dayMatches.length
                       ? "bg-[#102f55] text-white shadow-sm"
                       : isToday
                         ? "border border-[#77c6e9] bg-[#edf8fd] text-[#168fd4]"
                         : "text-[#58788f] hover:bg-[#f1f7fa]")
                 }
-                title={matches.length ? matches.map((match) => String(match.local) + " vs " + String(match.visitante)).join(" · ") : undefined}
+                title={
+                  dayMatches.length
+                    ? dayMatches
+                        .map(
+                          (match) =>
+                            String(match.local) + " vs " + String(match.visitante),
+                        )
+                        .join(" · ")
+                    : undefined
+                }
               >
                 {valid ? dayNumber : "."}
-                {matches.length > 0 ? <span className="absolute bottom-1 h-1 w-1 rounded-full bg-[#69cbf5]" /> : null}
+                {dayMatches.length ? (
+                  <span className="absolute bottom-1 h-1 w-1 rounded-full bg-[#69cbf5]" />
+                ) : null}
               </div>
             );
           })}
         </div>
 
-        <div className="mt-5 border-t border-[#e2edf2] pt-4">
-          <p className="text-[9px] font-black uppercase tracking-[0.14em] text-[#168fd4]">Próxima actividad</p>
+        <div className="mt-6 border-t border-[#e2edf2] pt-5">
+          <p className="text-[9px] font-black uppercase tracking-[0.14em] text-[#168fd4]">
+            Próxima actividad
+          </p>
+
           {dated[0] ? (
-            <div className="mt-3 rounded-xl bg-[#f3f8fb] p-4">
-              <p className="text-[10px] font-black uppercase text-[#6b8799]">{competitionLabel(dated[0].match)}</p>
-              <p className="mt-2 text-[13px] font-black leading-5 text-[#102f55]">
-                {dated[0].match.local} <span className="text-[#9ab0bf]">vs</span> {dated[0].match.visitante}
+            <div className="mt-3 rounded-2xl bg-[#f3f8fb] p-4">
+              <p className="text-[10px] font-black uppercase text-[#6b8799]">
+                {competitionLabel(dated[0].match)}
+              </p>
+              <p className="mt-2 text-[14px] font-black leading-5 text-[#102f55]">
+                {dated[0].match.local}{" "}
+                <span className="text-[#9ab0bf]">vs</span>{" "}
+                {dated[0].match.visitante}
               </p>
               <p className="mt-2 text-[10px] font-bold text-[#6d899b]">
-                {dated[0].match.dia || "Fecha a confirmar"} · {dated[0].match.hora || "A confirmar"}
+                {dated[0].match.dia || "Fecha a confirmar"} ·{" "}
+                {dated[0].match.hora || "A confirmar"}
               </p>
             </div>
           ) : (
-            <p className="mt-3 text-[11px] font-semibold text-[#7d96a6]">Sin fechas cargadas.</p>
+            <div className="mt-3 rounded-2xl border border-dashed border-[#c8dce7] bg-[#f8fbfd] p-5">
+              <p className="text-[16px] font-black text-[#102f55]">Próximamente...</p>
+              <p className="mt-1 text-[11px] font-semibold text-[#7d96a6]">
+                Las próximas fechas aparecerán cuando se publique el fixture.
+              </p>
+            </div>
           )}
         </div>
       </div>
@@ -147,8 +187,38 @@ function Calendar({ upcoming }: { upcoming: HomeMatch[] }) {
   );
 }
 
+function PlaceholderMatch({ index }: { index: number }) {
+  return (
+    <div className="grid min-h-[88px] gap-3 px-5 py-5 md:grid-cols-[160px_minmax(0,1fr)_120px] md:items-center">
+      <div>
+        <p className="text-[9px] font-black uppercase tracking-[0.13em] text-[#9bb0bd]">
+          Próximo espacio
+        </p>
+        <p className="mt-1 text-[10px] font-bold text-[#b0bec7]">Partido {index + 1}</p>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-dashed border-[#bfd5e0] bg-[#f7fafc] text-[15px] font-black text-[#b0c0c9]">
+          ?
+        </span>
+        <div>
+          <p className="text-[18px] font-black tracking-[-0.025em] text-[#6f899b]">
+            Próximamente...
+          </p>
+          <p className="mt-1 text-[10px] font-semibold text-[#a0b1bc]">
+            Los equipos se mostrarán cuando el partido sea publicado.
+          </p>
+        </div>
+      </div>
+
+      <p className="text-left text-[10px] font-black uppercase tracking-[0.08em] text-[#b0bec7] md:text-right">
+        A confirmar
+      </p>
+    </div>
+  );
+}
+
 type Props = {
-  featured?: HomeMatch;
   upcoming: HomeMatch[];
   clubs: ClubInfo[];
   elements?: HomeEditorDocument["elements"];
@@ -191,14 +261,22 @@ export default function HomeMatchStrip({
   const fixtureSelection = selectable("match.fixtureLink");
   const listSelection = selectable("match.list");
 
+  const slots = Array.from({ length: 6 }, (_, index) => upcoming[index] || null);
+
   return (
-    <section className="rounded-[28px] border border-[#d0e3ed] bg-[#f8fbfd] p-5 sm:p-8">
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+    <section className="rounded-[30px] border border-[#d0e3ed] bg-[#f8fbfd] p-5 sm:p-8 lg:p-10">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p {...eyebrowSelection} className={(eyebrowSelection.className ?? "") + " text-[11px] font-black uppercase tracking-[0.2em] text-[#168fd4]"}>
+          <p
+            {...eyebrowSelection}
+            className={(eyebrowSelection.className ?? "") + " text-[11px] font-black uppercase tracking-[0.2em] text-[#168fd4]"}
+          >
             Agenda
           </p>
-          <h2 {...titleSelection} className={(titleSelection.className ?? "") + " mt-1 text-[38px] font-black uppercase tracking-[-0.045em] text-[#102f55] sm:text-[48px]"}>
+          <h2
+            {...titleSelection}
+            className={(titleSelection.className ?? "") + " mt-1 text-[40px] font-black uppercase tracking-[-0.05em] text-[#102f55] sm:text-[52px]"}
+          >
             Próximos partidos
           </h2>
         </div>
@@ -212,64 +290,76 @@ export default function HomeMatchStrip({
         </Link>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(330px,.55fr)]">
+      <div className="grid gap-7 lg:grid-cols-[minmax(0,1.5fr)_minmax(340px,.5fr)]">
         <motion.div
-          initial={{ opacity: 0, x: -48 }}
+          initial={{ opacity: 0, x: -70 }}
           whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, amount: 0.16 }}
-          transition={{ duration: 0.65, ease: [0.2, 0.8, 0.2, 1] }}
+          viewport={{ once: true, amount: 0.14 }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
           {...listSelection}
           className={listSelection.className}
         >
-          {upcoming.length ? (
-            <div className="overflow-hidden rounded-[22px] border border-[#d4e5ee] bg-white">
-              {upcoming.slice(0, 6).map((match, index) => (
-                <Link
-                  key={String(match.partido_id || match.id)}
-                  href="/fixture"
-                  className={
-                    "group grid gap-3 px-5 py-[18px] transition hover:bg-[#f7fbfd] md:grid-cols-[150px_minmax(0,1fr)_54px_minmax(0,1fr)_116px] md:items-center " +
-                    (index < Math.min(upcoming.length, 6) - 1 ? "border-b border-[#e3edf2]" : "")
-                  }
-                >
-                  <div className="flex items-center justify-between gap-3 md:block">
-                    <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[#168fd4]">{competitionLabel(match)}</p>
-                    <p className="mt-1 text-[11px] font-bold text-[#7d96a6]">{match.fecha ? "Fecha " + match.fecha : match.fase || ""}</p>
-                  </div>
+          <div className="overflow-hidden rounded-[26px] border border-[#d4e5ee] bg-white">
+            {slots.map((match, index) => (
+              <div key={match ? String(match.partido_id || match.id) : "placeholder-" + index} className={index < slots.length - 1 ? "border-b border-[#e3edf2]" : ""}>
+                {match ? (
+                  <Link
+                    href="/fixture"
+                    className="group grid min-h-[88px] gap-3 px-5 py-[18px] transition hover:bg-[#f7fbfd] md:grid-cols-[155px_minmax(0,1fr)_54px_minmax(0,1fr)_120px] md:items-center"
+                  >
+                    <div className="flex items-center justify-between gap-3 md:block">
+                      <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[#168fd4]">
+                        {competitionLabel(match)}
+                      </p>
+                      <p className="mt-1 text-[11px] font-bold text-[#7d96a6]">
+                        {match.fecha ? "Fecha " + match.fecha : match.fase || ""}
+                      </p>
+                    </div>
 
-                  <div className="flex min-w-0 items-center gap-2.5 md:justify-end">
-                    <span className="truncate text-[14px] font-black text-[#173e68]">{match.local}</span>
-                    <Crest clubs={clubs} team={match.local} />
-                  </div>
+                    <div className="flex min-w-0 items-center gap-2.5 md:justify-end">
+                      <span className="truncate text-[14px] font-black text-[#173e68]">
+                        {match.local}
+                      </span>
+                      <Crest clubs={clubs} team={match.local} />
+                    </div>
 
-                  <div className="text-center">
-                    <span className="inline-flex rounded-full bg-[#edf5f9] px-2 py-1 text-[9px] font-black uppercase text-[#8198a8]">vs</span>
-                  </div>
+                    <div className="text-center">
+                      <span className="inline-flex rounded-full bg-[#edf5f9] px-2 py-1 text-[9px] font-black uppercase text-[#8198a8]">
+                        vs
+                      </span>
+                    </div>
 
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <Crest clubs={clubs} team={match.visitante} />
-                    <span className="truncate text-[14px] font-black text-[#173e68]">{match.visitante}</span>
-                  </div>
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <Crest clubs={clubs} team={match.visitante} />
+                      <span className="truncate text-[14px] font-black text-[#173e68]">
+                        {match.visitante}
+                      </span>
+                    </div>
 
-                  <div className="text-left md:text-right">
-                    <p className="text-[14px] font-black text-[#102f55]">{match.hora || "A confirmar"}</p>
-                    {match.dia ? <p className="mt-0.5 text-[10px] font-bold text-[#7d96a6]">{match.dia}</p> : null}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-[22px] border border-[#d4e5ee] bg-white px-5 py-12 text-center text-[12px] font-bold text-[#7891a3]">
-              No hay próximos partidos cargados.
-            </div>
-          )}
+                    <div className="text-left md:text-right">
+                      <p className="text-[14px] font-black text-[#102f55]">
+                        {match.hora || "A confirmar"}
+                      </p>
+                      {match.dia ? (
+                        <p className="mt-0.5 text-[10px] font-bold text-[#7d96a6]">
+                          {match.dia}
+                        </p>
+                      ) : null}
+                    </div>
+                  </Link>
+                ) : (
+                  <PlaceholderMatch index={index} />
+                )}
+              </div>
+            ))}
+          </div>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, x: 48 }}
+          initial={{ opacity: 0, x: 70 }}
           whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, amount: 0.16 }}
-          transition={{ duration: 0.65, delay: 0.08, ease: [0.2, 0.8, 0.2, 1] }}
+          viewport={{ once: true, amount: 0.14 }}
+          transition={{ duration: 0.9, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
         >
           <Calendar upcoming={upcoming} />
         </motion.div>

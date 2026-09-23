@@ -17,7 +17,8 @@ const competitions = [
     elementId: "competitions.league" as const,
     label: "Liga",
     title: "Primera División",
-    description: "La máxima categoría de APA. Tabla, resultados, clubes y recorrido completo de la temporada.",
+    description:
+      "La máxima categoría de APA. Tabla, resultados, clubes y recorrido completo de la temporada.",
     href: "/divisiones?division=primera",
     image: "/images/fixture/liga.png",
   },
@@ -26,7 +27,8 @@ const competitions = [
     elementId: "competitions.league" as const,
     label: "Liga",
     title: "Segunda División",
-    description: "El camino del ascenso y la pelea por un lugar entre los mejores equipos de la comunidad.",
+    description:
+      "El camino del ascenso y la pelea por un lugar entre los mejores equipos de la comunidad.",
     href: "/divisiones?division=segunda",
     image: "/images/competicion/fondo_principal.png",
   },
@@ -35,7 +37,8 @@ const competitions = [
     elementId: "competitions.cups" as const,
     label: "Copa",
     title: "Copa Argentina",
-    description: "Cruces directos, series decisivas y una llave que lleva a la final nacional de APA.",
+    description:
+      "Cruces directos, series decisivas y una llave que lleva a la final nacional de APA.",
     href: "/competicion/copa-argentina",
     image: "/images/competicion/copa-argentina.png",
   },
@@ -44,7 +47,8 @@ const competitions = [
     elementId: "competitions.cups" as const,
     label: "Copa",
     title: "Copa APA",
-    description: "La copa oficial de la temporada con formato propio y partidos de eliminación.",
+    description:
+      "La copa oficial de la temporada con formato propio y partidos de eliminación.",
     href: "/competicion/copa-apa",
     image: "/images/competicion/copa-apa.png",
   },
@@ -53,7 +57,8 @@ const competitions = [
     elementId: "competitions.cups" as const,
     label: "Copa",
     title: "Copa de Campeones",
-    description: "Los clubes más destacados vuelven a enfrentarse por uno de los títulos más importantes.",
+    description:
+      "Los clubes más destacados vuelven a enfrentarse por uno de los títulos más importantes.",
     href: "/competicion/copa-campeones",
     image: "/images/competicion/copa-campeones.png",
   },
@@ -62,7 +67,8 @@ const competitions = [
     elementId: "competitions.playoffs" as const,
     label: "Definición",
     title: "Playoffs",
-    description: "Los cruces que deciden ascensos, permanencias y el cierre competitivo de la temporada.",
+    description:
+      "Los cruces que deciden ascensos, permanencias y el cierre competitivo de la temporada.",
     href: "/competicion/playoffs",
     image: "/images/competicion/playoffs.png",
   },
@@ -86,7 +92,6 @@ export default function HomeCompetitionStrip({
   onSelectElement,
 }: Props) {
   function selectable(id: HomeEditorElementId) {
-    const inlineStyle = elementInlineStyle(elements[id], breakpoint);
     return {
       "data-editor-element": id,
       onClick: (event: MouseEvent<HTMLElement>) => {
@@ -101,7 +106,7 @@ export default function HomeCompetitionStrip({
             ? "outline outline-2 outline-offset-2 outline-[#ffcc4d]"
             : "hover:outline hover:outline-1 hover:outline-offset-2 hover:outline-[#ffcc4d]/70")
         : undefined,
-      style: inlineStyle,
+      style: elementInlineStyle(elements[id], breakpoint),
     };
   }
 
@@ -111,21 +116,27 @@ export default function HomeCompetitionStrip({
   const calendarSelection = selectable("competitions.calendarLink");
 
   return (
-    <section className="relative overflow-hidden rounded-[28px] border border-[#c7e0ed] bg-[#eef8fd] px-5 py-8 sm:px-8 sm:py-10">
-      <div className="pointer-events-none absolute -right-28 -top-36 h-96 w-96 rounded-full bg-[#76c7ef]/15 blur-3xl" />
-
-      <div className="relative z-10 grid gap-4 border-b border-[#bfd9e7] pb-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+    <section className="relative py-10 sm:py-14">
+      <div className="grid gap-5 border-b border-[#c9dfe9] pb-8 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
         <div>
-          <p {...eyebrowSelection} className={(eyebrowSelection.className ?? "") + " text-[11px] font-black uppercase tracking-[0.22em] text-[#168fd4]"}>
+          <p
+            {...eyebrowSelection}
+            className={(eyebrowSelection.className ?? "") + " text-[11px] font-black uppercase tracking-[0.22em] text-[#168fd4]"}
+          >
             {editor.eyebrow}
           </p>
+
           <h2
             {...titleSelection}
-            className={(titleSelection.className ?? "") + " mt-1 text-[42px] font-black uppercase tracking-[-0.05em] text-[#0d3158] sm:text-[56px]"}
+            className={(titleSelection.className ?? "") + " mt-1 text-[44px] font-black uppercase tracking-[-0.055em] text-[#0d3158] sm:text-[60px]"}
           >
             {editor.title}
           </h2>
-          <p {...subtitleSelection} className={(subtitleSelection.className ?? "") + " mt-3 max-w-xl text-[14px] font-semibold leading-6 text-[#58788f]"}>
+
+          <p
+            {...subtitleSelection}
+            className={(subtitleSelection.className ?? "") + " mt-3 max-w-xl text-[14px] font-semibold leading-6 text-[#58788f]"}
+          >
             Toda la temporada, en un vistazo.
           </p>
         </div>
@@ -139,48 +150,75 @@ export default function HomeCompetitionStrip({
         </Link>
       </div>
 
-      <div className="relative z-10 mt-7 space-y-4">
+      <div className="mt-12 space-y-14 lg:space-y-20">
         {competitions.map((competition, index) => {
           const selection = selectable(competition.elementId);
-          const imageRight = index % 2 === 1;
+          const alignRight = index % 2 === 1;
 
           return (
             <motion.div
               key={competition.key}
-              initial={{ opacity: 0, x: index % 2 === 0 ? -90 : 90 }}
+              initial={{ opacity: 0, x: alignRight ? 140 : -140 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, amount: 0.24, margin: "0px 0px -8% 0px" }}
-              transition={{ duration: 0.72, ease: [0.2, 0.8, 0.2, 1] }}
+              viewport={{ once: true, amount: 0.18, margin: "0px 0px -6% 0px" }}
+              transition={{ duration: 1.08, ease: [0.16, 1, 0.3, 1] }}
             >
               <article
                 {...selection}
-                className={(selection.className ?? "") + " group grid min-h-[190px] overflow-hidden rounded-[22px] border border-[#cfe2ec] bg-white shadow-[0_12px_36px_rgba(16,47,85,.06)] md:grid-cols-[minmax(260px,.75fr)_minmax(0,1.25fr)]"}
+                className={
+                  (selection.className ?? "") +
+                  " group relative min-h-[340px] overflow-hidden rounded-[34px] sm:min-h-[390px] xl:min-h-[430px]"
+                }
               >
-                <div className={"relative min-h-[180px] overflow-hidden " + (imageRight ? "md:order-2" : "")}>
-                  <img src={competition.image} alt="" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]" />
-                  <div className="absolute inset-0 bg-[linear-gradient(110deg,rgba(7,35,61,.72),rgba(7,35,61,.08))]" />
-                  <span className="absolute left-5 top-5 rounded-full border border-white/25 bg-[#102f55]/80 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.14em] text-white backdrop-blur">
-                    {competition.label}
-                  </span>
-                </div>
+                <img
+                  src={competition.image}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover transition duration-[1400ms] ease-out group-hover:scale-[1.045]"
+                />
+
+                <div
+                  className={
+                    "absolute inset-0 " +
+                    (alignRight
+                      ? "bg-[linear-gradient(270deg,rgba(5,25,45,.96)_0%,rgba(5,25,45,.79)_38%,rgba(5,25,45,.18)_72%,rgba(5,25,45,.05)_100%)]"
+                      : "bg-[linear-gradient(90deg,rgba(5,25,45,.96)_0%,rgba(5,25,45,.79)_38%,rgba(5,25,45,.18)_72%,rgba(5,25,45,.05)_100%)]")
+                  }
+                />
 
                 <Link
                   href={competition.href}
-                  className={"flex min-h-[190px] flex-col justify-center p-6 sm:p-8 " + (imageRight ? "md:order-1" : "")}
+                  className={
+                    "relative z-10 flex min-h-[340px] w-full items-center p-7 sm:min-h-[390px] sm:p-10 xl:min-h-[430px] xl:p-14 " +
+                    (alignRight ? "justify-end text-right" : "justify-start text-left")
+                  }
                 >
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#168fd4]">
-                    0{index + 1} / {String(competitions.length).padStart(2, "0")}
-                  </p>
-                  <div className="mt-3 flex items-start justify-between gap-5">
-                    <div>
-                      <h3 className="text-[30px] font-black leading-[.98] tracking-[-0.045em] text-[#102f55] transition group-hover:text-[#168fd4] sm:text-[38px]">
-                        {competition.title}
-                      </h3>
-                      <p className="mt-4 max-w-[58ch] text-[13px] font-semibold leading-6 text-[#648297]">
-                        {competition.description}
-                      </p>
+                  <div className={"max-w-[680px] " + (alignRight ? "ml-auto" : "")}>
+                    <div className={"flex items-center gap-3 " + (alignRight ? "justify-end" : "")}>
+                      <span className="rounded-full border border-white/20 bg-[#0b2747]/55 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-white backdrop-blur">
+                        {competition.label}
+                      </span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.14em] text-[#83d4f6]">
+                        0{index + 1} / {String(competitions.length).padStart(2, "0")}
+                      </span>
                     </div>
-                    <span className="mt-1 text-[22px] font-black text-[#a1bbc9] transition group-hover:translate-x-1 group-hover:text-[#168fd4]">→</span>
+
+                    <h3 className="mt-6 text-[44px] font-black leading-[0.92] tracking-[-0.055em] text-white sm:text-[58px] xl:text-[68px]">
+                      {competition.title}
+                    </h3>
+
+                    <p
+                      className={
+                        "mt-6 max-w-[58ch] text-[14px] font-semibold leading-7 text-white/75 sm:text-[15px] " +
+                        (alignRight ? "ml-auto" : "")
+                      }
+                    >
+                      {competition.description}
+                    </p>
+
+                    <span className="mt-8 inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.08em] text-white">
+                      Ver competición
+                      <span className="text-[18px] transition duration-300 group-hover:translate-x-2">→</span>
+                    </span>
                   </div>
                 </Link>
               </article>
