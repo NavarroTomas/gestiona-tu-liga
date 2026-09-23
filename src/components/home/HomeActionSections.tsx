@@ -24,8 +24,8 @@ const AUSPICIANTES = [
       "Comunidad brasileña compañera de Pro Soccer Online.",
     href: "https://discord.gg/j5hcsPp3bS",
     type: "Discord",
-    banner: null,
-    logo: null,
+    banner: "/images/auspiciantes/pso-brasil-banner.webp",
+    logo: "/images/auspiciantes/pso-brasil-icon.webp",
   },
 
   {
@@ -35,7 +35,7 @@ const AUSPICIANTES = [
       "Proyecto y web compañera de la comunidad sudamericana.",
     href: "https://copero-bp1.pages.dev/",
     type: "Web",
-    banner: null,
+    banner: "/images/auspiciantes/banner-copero.webp",
     logo: null,
   },
 
