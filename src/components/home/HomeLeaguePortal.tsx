@@ -311,8 +311,9 @@ export default function HomeLeaguePortal({
         );
       }
       case "stats":
-      case "community":
         return null;
+      case "community":
+        return shell(id, <HomeCommunity />);
     }
   }
 
