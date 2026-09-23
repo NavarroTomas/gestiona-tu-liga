@@ -35,15 +35,28 @@ function TrophyIcon({ className = "" }: { className?: string }) {
   );
 }
 
+function WordIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
+      <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  );
+}
+
 function ExperienceIcon({ id, className = "" }: { id: EntertainmentExperienceId; className?: string }) {
   if (id === "predicciones") return <ChartIcon className={className} />;
   if (id === "dream-team") return <TeamIcon className={className} />;
+  if (id === "wordle") return <WordIcon className={className} />;
   return <TrophyIcon className={className} />;
 }
 
 const descriptions: Record<EntertainmentExperienceId, string> = {
   predicciones: "Adiviná los resultados y sumá puntos",
   "dream-team": "Armá tu equipo ideal",
+  wordle: "Descubrí la palabra APA del día",
   premios: "Seguí los reconocimientos APA",
 };
 
@@ -141,6 +154,44 @@ function DreamTeamPreview() {
   );
 }
 
+function WordlePreview() {
+  const rows = [
+    ["A", "P", "A", "L", "E"],
+    ["P", "S", "O", "R", "D"],
+    ["L", "I", "G", "A", "?"],
+  ];
+
+  return (
+    <div className="rounded-[10px] border border-[#c9e3f1] bg-white p-5 sm:p-7">
+      <div className="mx-auto max-w-[430px] space-y-2.5">
+        {rows.map((row, rowIndex) => (
+          <div key={rowIndex} className="grid grid-cols-5 gap-2.5">
+            {row.map((letter, index) => (
+              <div
+                key={index}
+                className={
+                  "flex aspect-square items-center justify-center rounded-[9px] border text-[20px] font-black " +
+                  (rowIndex === 0 && index < 3
+                    ? "border-[#168fd4] bg-[#168fd4] text-white"
+                    : rowIndex === 1 && index < 2
+                      ? "border-[#e6b84f] bg-[#e6b84f] text-[#102f55]"
+                      : "border-[#c9dde8] bg-[#f7fbfd] text-[#102f55]")
+                }
+              >
+                {letter}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      <div className="mx-auto mt-6 max-w-[430px] rounded-[9px] bg-[#f3f8fb] px-4 py-3 text-center text-[11px] font-bold text-[#607b90]">
+        Una palabra por día · 6 intentos · temática APA
+      </div>
+    </div>
+  );
+}
+
 function AwardsPreview() {
   const awards = [
     ["MVP", "Figura de la fecha"],
@@ -168,6 +219,7 @@ function AwardsPreview() {
 function ExperiencePreview({ id }: { id: EntertainmentExperienceId }) {
   if (id === "predicciones") return <PredictionsPreview />;
   if (id === "dream-team") return <DreamTeamPreview />;
+  if (id === "wordle") return <WordlePreview />;
   return <AwardsPreview />;
 }
 
@@ -203,7 +255,7 @@ export default function EntertainmentPortal() {
 
       <section className="border-b border-[#c9e3f1] bg-white">
         <div className="mx-auto max-w-[1680px] px-5 sm:px-8 lg:px-10">
-          <div className="grid sm:grid-cols-3" role="tablist" aria-label="Experiencias de entretenimiento">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4" role="tablist" aria-label="Experiencias de entretenimiento">
             {ENTERTAINMENT_EXPERIENCES.map((experience) => {
               const selected = experience.id === activeId;
               return (

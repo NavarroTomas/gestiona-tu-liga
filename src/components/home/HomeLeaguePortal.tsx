@@ -16,6 +16,13 @@ import HomeMatchStrip from "@/components/home/HomeMatchStrip";
 import HomeCommunity from "@/components/home/HomeCommunity";
 import HomeWordlePromo from "@/components/home/HomeWordlePromo";
 import HomeDonation from "@/components/home/HomeDonation";
+import HomeSuggestions from "@/components/home/HomeSuggestions";
+import {
+  HomeSponsors,
+  HomeStreamerCTA,
+  HomeCreateTeamCTA,
+  HomeFindTeamCTA,
+} from "@/components/home/HomeActionSections";
 import { usePublishedHomeDocument } from "@/lib/usePublishedSitePage";
 import {
   elementInlineStyle,
@@ -393,9 +400,20 @@ export default function HomeLeaguePortal({
       >
         {pageDocument.order.map((id) => (
           <Fragment key={id}>
+            {id === "competitions" ? <HomeSponsors /> : null}
+            {id === "match" ? <HomeStreamerCTA /> : null}
+            {id === "community" ? <HomeCreateTeamCTA /> : null}
+
             {renderSection(id)}
+
             {id === "news" ? <HomeWordlePromo /> : null}
-            {id === "community" ? <HomeDonation /> : null}
+            {id === "community" ? (
+              <>
+                <HomeFindTeamCTA />
+                <HomeSuggestions />
+                <HomeDonation />
+              </>
+            ) : null}
           </Fragment>
         ))}
       </div>

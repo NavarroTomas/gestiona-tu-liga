@@ -31,7 +31,7 @@ export default function HomeWordlePromo() {
           </p>
 
           <h2 className="mt-3 text-[48px] font-black leading-[0.92] tracking-[-0.055em] text-white sm:text-[64px]">
-            WORDLE DE LA LIGA
+            APA WORDLE
           </h2>
 
           <p className="mt-5 max-w-[58ch] text-[14px] font-semibold leading-7 text-white/72">
@@ -39,7 +39,7 @@ export default function HomeWordlePromo() {
           </p>
 
           <Link
-            href="/entretenimiento"
+            href="/entretenimiento/wordle"
             className="apa-home-cta mt-7 inline-flex min-h-12 items-center rounded-xl bg-[#081f38] px-6 text-[10px] font-black uppercase tracking-[0.06em] transition hover:-translate-y-0.5 hover:bg-[#06182b]"
           >
             Jugar Wordle <span className="ml-3">→</span>

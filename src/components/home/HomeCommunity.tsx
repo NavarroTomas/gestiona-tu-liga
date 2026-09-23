@@ -76,7 +76,7 @@ export default function HomeCommunity() {
           </p>
 
           <h2 className="mt-3 text-[46px] font-black leading-[.94] tracking-[-0.055em] text-[#102f55] sm:text-[60px]">
-            Seguinos fuera de la cancha.
+            REDES SOCIALES
           </h2>
 
           <p className="mt-5 max-w-[48ch] text-[13px] font-semibold leading-6 text-[#58788f]">

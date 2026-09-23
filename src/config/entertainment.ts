@@ -1,4 +1,4 @@
-export type EntertainmentExperienceId = "predicciones" | "dream-team" | "premios";
+export type EntertainmentExperienceId = "predicciones" | "dream-team" | "wordle" | "premios";
 
 export type EntertainmentExperience = {
   id: EntertainmentExperienceId;
@@ -48,6 +48,21 @@ export const ENTERTAINMENT_EXPERIENCES: EntertainmentExperience[] = [
       { label: "Posiciones", value: "Fijas" },
       { label: "Puntaje", value: "Por rendimiento" },
       { label: "Comparación", value: "Comunidad APA" },
+    ],
+  },
+  {
+    id: "wordle",
+    title: "APA Wordle",
+    kicker: "Una palabra nueva cada día",
+    description:
+      "Descubrí la palabra del día inspirada en la liga, los clubes, las posiciones, los torneos y la cultura de APA.",
+    href: "/entretenimiento/wordle",
+    cta: "Jugar APA Wordle",
+    highlights: [
+      { label: "Intentos", value: "6 por día" },
+      { label: "Palabra", value: "Cambia diariamente" },
+      { label: "Banco", value: "Preparado para +200" },
+      { label: "Temática", value: "100% APA" },
     ],
   },
   {
