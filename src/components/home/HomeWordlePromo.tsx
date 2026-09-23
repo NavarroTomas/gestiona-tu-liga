@@ -19,9 +19,9 @@ export default function HomeWordlePromo() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-      className="rounded-[30px] bg-[#185b8d] p-7 text-white sm:p-10 lg:p-12"
+      className="w-full bg-[#185b8d] text-white"
     >
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,.95fr)] lg:items-center">
+      <div className="mx-auto grid w-[min(94vw,1760px)] gap-10 px-4 py-14 sm:px-6 sm:py-16 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,.95fr)] lg:items-center lg:px-8 lg:py-20">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#bdeaff]">
             Nuevo juego de APA

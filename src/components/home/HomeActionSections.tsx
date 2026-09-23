@@ -7,28 +7,46 @@ const AUSPICIANTES = [
   {
     name: "PSO COMMUNITY HUB",
     short: "PSO MIX",
-    description: "Comunidad compañera de Pro Soccer Online.",
+    description:
+      "Comunidad compañera de Pro Soccer Online.",
     href: "https://discord.gg/q9nWQxBuMX",
     type: "Discord",
-    banner: "/images/auspiciantes/pso-mix-banner.webp",
-    logo: "/images/auspiciantes/pso-mix-logo.webp",
+    banner:
+      "/images/auspiciantes/pso-mix-banner.webp",
+    logo:
+      "/images/auspiciantes/pso-mix-logo.webp",
   },
+
   {
     name: "PSO Brasil",
     short: "PSO BRASIL",
-    description: "Comunidad brasileña compañera de Pro Soccer Online.",
+    description:
+      "Comunidad brasileña compañera de Pro Soccer Online.",
     href: "https://discord.gg/j5hcsPp3bS",
     type: "Discord",
     banner: null,
     logo: null,
   },
+
   {
     name: "COPERO PSO SA",
     short: "COPERO",
-    description: "Proyecto y web compañera de la comunidad sudamericana.",
+    description:
+      "Proyecto y web compañera de la comunidad sudamericana.",
     href: "https://copero-bp1.pages.dev/",
     type: "Web",
     banner: null,
+    logo: null,
+  },
+
+  {
+    name: "Pro Soccer Online",
+    short: "PSO OFICIAL",
+    description:
+      "Comunidad oficial de Pro Soccer Online.",
+    href: "https://discord.gg/WJx6k7KxPd",
+    type: "Discord",
+    banner: "/images/fixture/liga.png",
     logo: null,
   },
 ] as const;
@@ -41,7 +59,15 @@ type ActionSectionProps = {
   href: string;
   direction?: "left" | "right";
   dark?: boolean;
-  visual: "auspiciantes" | "streamer" | "create" | "search";
+  visual:
+    | "auspiciantes"
+    | "streamer"
+    | "create"
+    | "search";
+  surface?:
+    | "transparent"
+    | "sky"
+    | "white";
 };
 
 function WhiteButton({
@@ -75,42 +101,44 @@ function WhiteButton({
 
 function AuspiciantesVisual() {
   return (
-    <div className="grid gap-3 sm:grid-cols-3">
+    <div className="grid gap-5 sm:grid-cols-2">
       {AUSPICIANTES.map((community) => (
         <a
           key={community.name}
           href={community.href}
           target="_blank"
           rel="noreferrer"
-          className="group relative min-h-[150px] overflow-hidden rounded-[20px] border border-[#cfe2ed] bg-[#102f55] transition hover:-translate-y-1 hover:border-[#82c5e4] hover:shadow-[0_16px_34px_rgba(16,47,85,.11)]"
+          className="group relative min-h-[205px] overflow-hidden rounded-[24px] border border-[#cfe2ed] bg-[#102f55] transition hover:-translate-y-1 hover:border-[#82c5e4] hover:shadow-[0_18px_40px_rgba(16,47,85,.12)]"
         >
           {community.banner ? (
             <img
               src={community.banner}
               alt=""
-              className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]"
+              className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
             />
           ) : (
-            <div className="absolute inset-0 bg-[linear-gradient(135deg,#102f55,#176a9e)]" />
+            <div className="absolute inset-0 bg-[#14527e]" />
           )}
 
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,18,32,.06),rgba(4,18,32,.88))]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,18,32,.05),rgba(4,18,32,.92))]" />
 
-          <div className="relative z-10 flex min-h-[150px] flex-col justify-end p-4">
+          <div className="relative z-10 flex min-h-[205px] flex-col justify-end p-5">
             <div className="mb-auto flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 {community.logo ? (
                   <img
                     src={community.logo}
                     alt=""
-                    className="h-8 w-8 rounded-lg object-contain"
+                    className="h-10 w-10 rounded-xl object-contain"
                   />
                 ) : null}
-                <span className="rounded-full border border-white/15 bg-black/20 px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-white backdrop-blur">
+
+                <span className="rounded-full border border-white/15 bg-black/20 px-3 py-1.5 text-[8px] font-black uppercase tracking-[0.12em] text-white backdrop-blur">
                   {community.type}
                 </span>
               </div>
-              <span className="text-[9px] font-black uppercase tracking-[0.08em] text-white/75">
+
+              <span className="text-[12px] font-black uppercase text-white/75">
                 ↗
               </span>
             </div>
@@ -118,10 +146,12 @@ function AuspiciantesVisual() {
             <p className="text-[9px] font-black uppercase tracking-[0.13em] text-[#8bd9fa]">
               {community.short}
             </p>
-            <h3 className="mt-1 text-[18px] font-black leading-tight tracking-[-0.025em] text-white">
+
+            <h3 className="mt-1 text-[23px] font-black leading-[0.98] tracking-[-0.035em] text-white">
               {community.name}
             </h3>
-            <p className="mt-1.5 line-clamp-2 text-[10px] font-semibold leading-4 text-white/65">
+
+            <p className="mt-2 line-clamp-2 text-[11px] font-semibold leading-5 text-white/70">
               {community.description}
             </p>
           </div>
@@ -139,7 +169,9 @@ function StreamerVisual() {
         alt="Transmisión y presentación oficial de APA"
         className="absolute inset-0 h-full w-full object-cover"
       />
+
       <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,18,32,.72),rgba(4,18,32,.08))]" />
+
       <div className="absolute left-5 top-5 rounded-full bg-[#9146ff] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-white">
         Twitch
       </div>
@@ -171,10 +203,20 @@ function SearchVisual() {
   );
 }
 
-function ActionVisual({ type }: { type: ActionSectionProps["visual"] }) {
-  if (type === "auspiciantes") return <AuspiciantesVisual />;
-  if (type === "streamer") return <StreamerVisual />;
-  if (type === "create") return <CreateVisual />;
+function ActionVisual({
+  type,
+}: {
+  type: ActionSectionProps["visual"];
+}) {
+  if (type === "auspiciantes")
+    return <AuspiciantesVisual />;
+
+  if (type === "streamer")
+    return <StreamerVisual />;
+
+  if (type === "create")
+    return <CreateVisual />;
+
   return <SearchVisual />;
 }
 
@@ -187,42 +229,75 @@ function ActionSection({
   direction = "left",
   dark = false,
   visual,
+  surface = "transparent",
 }: ActionSectionProps) {
   const reverse = direction === "right";
 
+  const gridClass =
+    visual === "auspiciantes"
+      ? "lg:grid-cols-[1.18fr_.82fr]"
+      : "lg:grid-cols-2";
+
   return (
     <motion.section
-      initial={{ opacity: 0, x: reverse ? 72 : -72 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true, amount: 0.16 }}
-      transition={{ duration: 0.98, ease: [0.16, 1, 0.3, 1] }}
-      className="border-t border-[#c9e1ed] py-11 sm:py-14"
+      initial={{
+        opacity: 0,
+        x: reverse ? 72 : -72,
+      }}
+      whileInView={{
+        opacity: 1,
+        x: 0,
+      }}
+      viewport={{
+        once: true,
+        amount: 0.16,
+      }}
+      transition={{
+        duration: 0.98,
+        ease: [0.16, 1, 0.3, 1],
+      }}
+      className={
+        "w-full overflow-hidden " +
+        (surface === "sky"
+          ? "bg-[#dff3ff]"
+          : surface === "white"
+            ? "bg-white"
+            : "bg-transparent")
+      }
     >
-      <div
-        className={
-          "grid items-center gap-9 lg:grid-cols-2 lg:gap-14 " +
-          (reverse ? "lg:[&>*:first-child]:order-2" : "")
-        }
-      >
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#168fd4]">
-            {eyebrow}
-          </p>
+      <div className="mx-auto w-[min(94vw,1760px)] px-4 py-16 sm:px-6 sm:py-18 lg:px-8 lg:py-20">
+        <div
+          className={
+            `grid items-center gap-12 ${gridClass} lg:gap-16 ` +
+            (reverse
+              ? "lg:[&>*:first-child]:order-2"
+              : "")
+          }
+        >
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#168fd4]">
+              {eyebrow}
+            </p>
 
-          <h2 className="mt-3 max-w-[780px] text-[clamp(2.5rem,4.8vw,5rem)] font-black leading-[0.94] tracking-[-0.055em] text-[#102f55]">
-            {title}
-          </h2>
+            <h2 className="mt-3 max-w-[780px] text-[clamp(2.5rem,4.8vw,5rem)] font-black leading-[0.94] tracking-[-0.055em] text-[#102f55]">
+              {title}
+            </h2>
 
-          <p className="mt-5 max-w-[62ch] text-[14px] font-semibold leading-7 text-[#58788f]">
-            {description}
-          </p>
+            <p className="mt-5 max-w-[62ch] text-[14px] font-semibold leading-7 text-[#58788f]">
+              {description}
+            </p>
 
-          <div className="mt-7">
-            <WhiteButton href={href} label={cta} dark={dark} />
+            <div className="mt-7">
+              <WhiteButton
+                href={href}
+                label={cta}
+                dark={dark}
+              />
+            </div>
           </div>
-        </div>
 
-        <ActionVisual type={visual} />
+          <ActionVisual type={visual} />
+        </div>
       </div>
     </motion.section>
   );
@@ -238,6 +313,7 @@ export function HomeSponsors() {
       href={SOCIAL_LINKS.discord}
       visual="auspiciantes"
       direction="right"
+      surface="white"
     />
   );
 }
@@ -251,6 +327,7 @@ export function HomeStreamerCTA() {
       cta="Quiero ser streamer"
       href={SOCIAL_LINKS.discord}
       visual="streamer"
+      surface="sky"
     />
   );
 }
@@ -265,6 +342,7 @@ export function HomeCreateTeamCTA() {
       href={SOCIAL_LINKS.discord}
       visual="create"
       direction="right"
+      surface="white"
     />
   );
 }
@@ -278,6 +356,7 @@ export function HomeFindTeamCTA() {
       cta="Buscar equipo"
       href={SOCIAL_LINKS.discord}
       visual="search"
+      surface="white"
     />
   );
 }

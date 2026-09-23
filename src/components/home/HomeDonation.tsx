@@ -10,9 +10,9 @@ export default function HomeDonation() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.18 }}
       transition={{ duration: 0.95, ease: [0.16, 1, 0.3, 1] }}
-      className="border-t border-[#c9e1ed] py-11 sm:py-14"
+      className="w-full bg-[#dff3ff]"
     >
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_auto] lg:items-center">
+      <div className="mx-auto grid w-[min(94vw,1760px)] gap-8 px-4 py-14 sm:px-6 sm:py-16 lg:grid-cols-[minmax(0,1.2fr)_auto] lg:items-center lg:px-8 lg:py-20">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#168fd4]">
             Apoyá la liga

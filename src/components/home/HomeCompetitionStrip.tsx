@@ -94,18 +94,22 @@ export default function HomeCompetitionStrip({
   function selectable(id: HomeEditorElementId) {
     return {
       "data-editor-element": id,
+
       onClick: (event: MouseEvent<HTMLElement>) => {
         if (!editorMode) return;
+
         event.preventDefault();
         event.stopPropagation();
         onSelectElement?.(id);
       },
+
       className: editorMode
         ? "relative cursor-pointer " +
           (selectedElement === id
             ? "outline outline-2 outline-offset-2 outline-[#ffcc4d]"
             : "hover:outline hover:outline-1 hover:outline-offset-2 hover:outline-[#ffcc4d]/70")
         : undefined,
+
       style: elementInlineStyle(elements[id], breakpoint),
     };
   }
@@ -116,26 +120,50 @@ export default function HomeCompetitionStrip({
   const calendarSelection = selectable("competitions.calendarLink");
 
   return (
-    <section className="relative py-10 sm:py-14">
-      <div className="grid gap-5 border-b border-[#c9dfe9] pb-8 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-        <div>
+    <section className="relative py-12 sm:py-16">
+      <div className="relative border-b border-[#c9dfe9] pb-10">
+        <div className="mx-auto flex max-w-[900px] flex-col items-center text-center">
           <p
             {...eyebrowSelection}
-            className={(eyebrowSelection.className ?? "") + " text-[11px] font-black uppercase tracking-[0.22em] text-[#168fd4]"}
+            style={{
+              ...eyebrowSelection.style,
+              textAlign: "center",
+              width: "100%",
+            }}
+            className={
+              (eyebrowSelection.className ?? "") +
+              " text-center text-[11px] font-black uppercase tracking-[0.22em] text-[#168fd4]"
+            }
           >
             {editor.eyebrow}
           </p>
 
           <h2
             {...titleSelection}
-            className={(titleSelection.className ?? "") + " mt-1 text-[44px] font-black uppercase tracking-[-0.055em] text-[#0d3158] sm:text-[60px]"}
+            style={{
+              ...titleSelection.style,
+              textAlign: "center",
+              width: "100%",
+            }}
+            className={
+              (titleSelection.className ?? "") +
+              " mt-2 text-center text-[44px] font-black uppercase tracking-[-0.055em] text-[#0d3158] sm:text-[60px] lg:text-[68px]"
+            }
           >
             {editor.title}
           </h2>
 
           <p
             {...subtitleSelection}
-            className={(subtitleSelection.className ?? "") + " mt-3 max-w-xl text-[14px] font-semibold leading-6 text-[#58788f]"}
+            style={{
+              ...subtitleSelection.style,
+              textAlign: "center",
+              width: "100%",
+            }}
+            className={
+              (subtitleSelection.className ?? "") +
+              " mx-auto mt-3 max-w-xl text-center text-[14px] font-semibold leading-6 text-[#58788f]"
+            }
           >
             Toda la temporada, en un vistazo.
           </p>
@@ -144,9 +172,12 @@ export default function HomeCompetitionStrip({
         <Link
           {...calendarSelection}
           href="/competicion"
-          className={(calendarSelection.className ?? "") + " w-fit text-[11px] font-black uppercase tracking-[0.08em] text-[#168fd4] transition hover:text-[#0f6f9e]"}
+          className={
+            (calendarSelection.className ?? "") +
+            " mt-7 flex justify-center text-[12px] font-black uppercase tracking-[0.08em] text-[#168fd4] transition hover:text-[#0f6f9e] md:absolute md:bottom-10 md:right-0 md:mt-0"
+          }
         >
-          Ver calendario completo →
+         
         </Link>
       </div>
 
@@ -158,10 +189,23 @@ export default function HomeCompetitionStrip({
           return (
             <motion.div
               key={competition.key}
-              initial={{ opacity: 0, x: alignRight ? 140 : -140 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, amount: 0.18, margin: "0px 0px -6% 0px" }}
-              transition={{ duration: 1.08, ease: [0.16, 1, 0.3, 1] }}
+              initial={{
+                opacity: 0,
+                x: alignRight ? 140 : -140,
+              }}
+              whileInView={{
+                opacity: 1,
+                x: 0,
+              }}
+              viewport={{
+                once: true,
+                amount: 0.18,
+                margin: "0px 0px -6% 0px",
+              }}
+              transition={{
+                duration: 1.08,
+                ease: [0.16, 1, 0.3, 1],
+              }}
             >
               <article
                 {...selection}
@@ -189,16 +233,30 @@ export default function HomeCompetitionStrip({
                   href={competition.href}
                   className={
                     "relative z-10 flex min-h-[340px] w-full items-center p-7 sm:min-h-[390px] sm:p-10 xl:min-h-[430px] xl:p-14 " +
-                    (alignRight ? "justify-end text-right" : "justify-start text-left")
+                    (alignRight
+                      ? "justify-end text-right"
+                      : "justify-start text-left")
                   }
                 >
-                  <div className={"max-w-[680px] " + (alignRight ? "ml-auto" : "")}>
-                    <div className={"flex items-center gap-3 " + (alignRight ? "justify-end" : "")}>
+                  <div
+                    className={
+                      "max-w-[680px] " +
+                      (alignRight ? "ml-auto" : "")
+                    }
+                  >
+                    <div
+                      className={
+                        "flex items-center gap-3 " +
+                        (alignRight ? "justify-end" : "")
+                      }
+                    >
                       <span className="rounded-full border border-white/20 bg-[#0b2747]/55 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-white backdrop-blur">
                         {competition.label}
                       </span>
+
                       <span className="text-[10px] font-black uppercase tracking-[0.14em] text-[#83d4f6]">
-                        0{index + 1} / {String(competitions.length).padStart(2, "0")}
+                        0{index + 1} /{" "}
+                        {String(competitions.length).padStart(2, "0")}
                       </span>
                     </div>
 
@@ -215,9 +273,12 @@ export default function HomeCompetitionStrip({
                       {competition.description}
                     </p>
 
-                    <span className="mt-8 inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.08em] text-white">
+                    <span className="mt-8 inline-flex items-center gap-3 rounded-xl bg-white/10 px-5 py-3 text-[11px] font-black uppercase tracking-[0.08em] text-white backdrop-blur transition group-hover:bg-white/15">
                       Ver competición
-                      <span className="text-[18px] transition duration-300 group-hover:translate-x-2">→</span>
+
+                      <span className="text-[20px] transition duration-300 group-hover:translate-x-2">
+                        →
+                      </span>
                     </span>
                   </div>
                 </Link>
