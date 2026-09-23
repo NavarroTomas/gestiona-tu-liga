@@ -21,7 +21,6 @@ const AUSPICIANTES = [
     type: "Discord",
     banner: null,
     logo: null,
-    logo: null,
   },
   {
     name: "COPERO PSO SA",
@@ -30,6 +29,7 @@ const AUSPICIANTES = [
     href: "https://copero-bp1.pages.dev/",
     type: "Web",
     banner: null,
+    logo: null,
   },
 ] as const;
 
