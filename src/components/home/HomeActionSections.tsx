@@ -5,14 +5,28 @@ import { SOCIAL_LINKS } from "@/config/social";
 
 const AUSPICIANTES = [
   {
-    name: "PSO MIX",
+    name: "PSO COMMUNITY HUB",
+    short: "PSO MIX",
     description: "Comunidad compañera de Pro Soccer Online.",
     href: "https://discord.gg/q9nWQxBuMX",
+    type: "Discord",
+    banner: "/images/auspiciantes/pso-mix-banner.png",
   },
   {
     name: "PSO Brasil",
+    short: "PSO BRASIL",
     description: "Comunidad brasileña compañera de Pro Soccer Online.",
     href: "https://discord.gg/j5hcsPp3bS",
+    type: "Discord",
+    banner: null,
+  },
+  {
+    name: "COPERO PSO SA",
+    short: "COPERO",
+    description: "Proyecto y web compañera de la comunidad sudamericana.",
+    href: "https://copero-bp1.pages.dev/",
+    type: "Web",
+    banner: null,
   },
 ] as const;
 
@@ -50,38 +64,55 @@ function WhiteButton({
           : "bg-[#102f55] hover:bg-[#173e68]")
       }
     >
-      {label}
-      <span className="ml-3 !text-white">→</span>
+      <span>{label}</span>
+      <span className="ml-3">→</span>
     </a>
   );
 }
 
 function AuspiciantesVisual() {
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className="grid gap-3 sm:grid-cols-3">
       {AUSPICIANTES.map((community) => (
         <a
           key={community.name}
           href={community.href}
           target="_blank"
           rel="noreferrer"
-          className="group flex min-h-[190px] flex-col justify-between rounded-[26px] border border-[#cfe2ed] bg-white p-6 transition hover:-translate-y-1 hover:border-[#8fc9e4] hover:shadow-[0_18px_40px_rgba(16,47,85,.08)]"
+          className="group relative min-h-[150px] overflow-hidden rounded-[20px] border border-[#cfe2ed] bg-[#102f55] transition hover:-translate-y-1 hover:border-[#82c5e4] hover:shadow-[0_16px_34px_rgba(16,47,85,.11)]"
         >
-          <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#168fd4]">
-              Comunidad auspiciante
+          {community.banner ? (
+            <img
+              src={community.banner}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,#102f55,#176a9e)]" />
+          )}
+
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,18,32,.06),rgba(4,18,32,.88))]" />
+
+          <div className="relative z-10 flex min-h-[150px] flex-col justify-end p-4">
+            <div className="mb-auto flex items-center justify-between gap-2">
+              <span className="rounded-full border border-white/15 bg-black/20 px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-white backdrop-blur">
+                {community.type}
+              </span>
+              <span className="text-[9px] font-black uppercase tracking-[0.08em] text-white/75">
+                ↗
+              </span>
+            </div>
+
+            <p className="text-[9px] font-black uppercase tracking-[0.13em] text-[#8bd9fa]">
+              {community.short}
             </p>
-            <h3 className="mt-3 text-[30px] font-black tracking-[-0.045em] text-[#102f55] transition group-hover:text-[#168fd4]">
+            <h3 className="mt-1 text-[18px] font-black leading-tight tracking-[-0.025em] text-white">
               {community.name}
             </h3>
-            <p className="mt-3 text-[12px] font-semibold leading-5 text-[#668397]">
+            <p className="mt-1.5 line-clamp-2 text-[10px] font-semibold leading-4 text-white/65">
               {community.description}
             </p>
           </div>
-
-          <span className="mt-6 text-[10px] font-black uppercase tracking-[0.08em] text-[#168fd4]">
-            Entrar al Discord →
-          </span>
         </a>
       ))}
     </div>
@@ -90,21 +121,15 @@ function AuspiciantesVisual() {
 
 function StreamerVisual() {
   return (
-    <div className="relative mx-auto aspect-video w-full max-w-[620px] overflow-hidden rounded-[24px] border border-white/15 bg-[#071d34] shadow-[0_22px_60px_rgba(0,0,0,.18)]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(86,175,226,.34),transparent_34%),linear-gradient(135deg,#0b2747,#07182a)]" />
-      <div className="absolute left-5 top-5 flex items-center gap-2 rounded-full bg-[#df3c45] px-3 py-1.5 text-[9px] font-black uppercase tracking-[.1em] text-white">
-        <span className="h-2 w-2 rounded-full bg-white" /> EN VIVO
-      </div>
-      <div className="absolute inset-x-6 bottom-6">
-        <p className="text-[28px] font-black tracking-[-.04em] text-white sm:text-[36px]">
-          APA MATCHDAY
-        </p>
-        <div className="mt-3 flex items-center gap-2">
-          <span className="h-2 flex-1 rounded-full bg-white/15">
-            <span className="block h-full w-[68%] rounded-full bg-[#56afe2]" />
-          </span>
-          <span className="text-[9px] font-black uppercase text-white/60">STREAM</span>
-        </div>
+    <div className="relative min-h-[330px] overflow-hidden rounded-[28px] bg-[#071d34]">
+      <img
+        src="/images/home/streamer-twitch.png"
+        alt="Transmisión y presentación oficial de APA"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,18,32,.72),rgba(4,18,32,.08))]" />
+      <div className="absolute left-5 top-5 rounded-full bg-[#9146ff] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-white">
+        Twitch
       </div>
     </div>
   );
@@ -112,46 +137,29 @@ function StreamerVisual() {
 
 function CreateVisual() {
   return (
-    <div className="mx-auto grid w-full max-w-[620px] grid-cols-[1fr_auto_1fr] items-center gap-4">
-      <div className="flex aspect-square items-center justify-center rounded-[28px] border border-[#c9e1ed] bg-white text-[54px] font-black text-[#102f55] shadow-[0_16px_40px_rgba(16,47,85,.08)]">
-        ?
-      </div>
-      <span className="text-[26px] font-black text-[#8bbdd5]">+</span>
-      <div className="flex aspect-square items-center justify-center rounded-[28px] bg-[#102f55] p-7 text-center text-[18px] font-black uppercase leading-tight text-white shadow-[0_16px_40px_rgba(16,47,85,.15)]">
-        Tu club
-      </div>
+    <div className="overflow-hidden rounded-[28px]">
+      <img
+        src="/images/home/crea-equipo-chelsea.png"
+        alt="Chelsea campeón de Copa APA"
+        className="block min-h-[330px] w-full object-cover"
+      />
     </div>
   );
 }
 
 function SearchVisual() {
   return (
-    <div className="mx-auto w-full max-w-[620px] space-y-3">
-      {["Arquero · Libre", "Defensor · Busca club", "Volante · Disponible", "Delantero · Busca proyecto"].map((label, index) => (
-        <div
-          key={label}
-          className="flex min-h-[72px] items-center justify-between rounded-[18px] border border-[#d2e4ed] bg-white px-5 shadow-[0_10px_28px_rgba(16,47,85,.05)]"
-        >
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#edf7fc] text-[11px] font-black text-[#168fd4]">
-              {String(index + 1).padStart(2, "0")}
-            </span>
-            <span className="text-[13px] font-black text-[#102f55]">{label}</span>
-          </div>
-          <span className="text-[11px] font-black uppercase text-[#168fd4]">
-            Disponible
-          </span>
-        </div>
-      ))}
+    <div className="flex min-h-[330px] items-center justify-center">
+      <img
+        src="/images/home/busca-equipo.png"
+        alt="Escudos de clubes de la comunidad"
+        className="block max-h-[360px] w-full object-contain"
+      />
     </div>
   );
 }
 
-function ActionVisual({
-  type,
-}: {
-  type: ActionSectionProps["visual"];
-}) {
+function ActionVisual({ type }: { type: ActionSectionProps["visual"] }) {
   if (type === "auspiciantes") return <AuspiciantesVisual />;
   if (type === "streamer") return <StreamerVisual />;
   if (type === "create") return <CreateVisual />;
@@ -172,28 +180,28 @@ function ActionSection({
 
   return (
     <motion.section
-      initial={{ opacity: 0, x: reverse ? 80 : -80 }}
+      initial={{ opacity: 0, x: reverse ? 72 : -72 }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true, amount: 0.16 }}
-      transition={{ duration: 0.95, ease: [0.16, 1, 0.3, 1] }}
-      className={
-        "overflow-hidden rounded-[30px] border p-7 sm:p-10 lg:p-12 " +
-        (dark
-          ? "border-[#194f77] bg-[linear-gradient(135deg,#0b2747,#123f68)] text-white"
-          : "border-[#c9e1ed] bg-[#f6fbfe] text-[#102f55]")
-      }
+      transition={{ duration: 0.98, ease: [0.16, 1, 0.3, 1] }}
+      className="border-t border-[#c9e1ed] py-11 sm:py-14"
     >
-      <div className={"grid gap-10 lg:grid-cols-2 lg:items-center " + (reverse ? "lg:[&>*:first-child]:order-2" : "")}>
+      <div
+        className={
+          "grid items-center gap-9 lg:grid-cols-2 lg:gap-14 " +
+          (reverse ? "lg:[&>*:first-child]:order-2" : "")
+        }
+      >
         <div>
-          <p className={"text-[10px] font-black uppercase tracking-[.2em] " + (dark ? "text-[#83d4f6]" : "text-[#168fd4]")}>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#168fd4]">
             {eyebrow}
           </p>
 
-          <h2 className={"mt-3 max-w-[760px] text-[44px] font-black leading-[.94] tracking-[-.055em] sm:text-[60px] " + (dark ? "text-white" : "text-[#102f55]")}>
+          <h2 className="mt-3 max-w-[780px] text-[clamp(2.5rem,4.8vw,5rem)] font-black leading-[0.94] tracking-[-0.055em] text-[#102f55]">
             {title}
           </h2>
 
-          <p className={"mt-5 max-w-[62ch] text-[14px] font-semibold leading-7 " + (dark ? "text-white/70" : "text-[#58788f]")}>
+          <p className="mt-5 max-w-[62ch] text-[14px] font-semibold leading-7 text-[#58788f]">
             {description}
           </p>
 
@@ -212,8 +220,8 @@ export function HomeSponsors() {
   return (
     <ActionSection
       eyebrow="Auspiciantes"
-      title="Comunidades que acompañan a APA."
-      description="Comunidades compañeras de Pro Soccer Online que colaboran con APA y forman parte de una red regional que conecta jugadores, ligas y proyectos."
+      title="Comunidades y proyectos que acompañan a APA."
+      description="Espacio para comunidades, servidores y proyectos compañeros de Pro Soccer Online que forman parte del ecosistema sudamericano junto a APA."
       cta="Quiero ser auspiciante"
       href={SOCIAL_LINKS.discord}
       visual="auspiciantes"
@@ -231,7 +239,6 @@ export function HomeStreamerCTA() {
       cta="Quiero ser streamer"
       href={SOCIAL_LINKS.discord}
       visual="streamer"
-      dark
     />
   );
 }
