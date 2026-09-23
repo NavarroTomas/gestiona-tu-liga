@@ -1,14 +1,17 @@
 .header {
   --azul: #102f55;
   --celeste: #56afe2;
-  position: relative;
-  z-index: 60;
+  position: sticky;
+  top: 0;
+  z-index: 120;
   width: 100%;
-  height: clamp(72px, 6vw, 96px);
-  border-bottom: 1px solid #c9e3f1;
-  background: linear-gradient(100deg, #f3fafe 0%, #edf8fe 48%, #f8fcff 100%);
+  height: clamp(78px, 6.2vw, 98px);
+  border-bottom: 1px solid rgba(169, 211, 232, 0.92);
+  background: linear-gradient(100deg, rgba(243, 250, 254, 0.94) 0%, rgba(237, 248, 254, 0.96) 48%, rgba(248, 252, 255, 0.94) 100%);
   color: var(--azul);
-  box-shadow: 0 4px 24px rgba(16, 47, 85, 0.06);
+  box-shadow: 0 10px 34px rgba(16, 47, 85, 0.11);
+  backdrop-filter: blur(18px) saturate(1.08);
+  -webkit-backdrop-filter: blur(18px) saturate(1.08);
 }
 
 .interior {

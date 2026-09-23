@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import LeagueHero from "@/components/home/LeagueHero";
 import HomeNewsStandings from "@/components/home/HomeNewsStandings";
 import HomeCompetitionStrip from "@/components/home/HomeCompetitionStrip";
-import HomeMatchStrip from "@/components/home/HomeMatchStrip";
+import HomeMatchStrip from "@/components/home/HomeMatchStrip";\nimport HomeCommunity from "@/components/home/HomeCommunity";
 import { usePublishedHomeDocument } from "@/lib/usePublishedSitePage";
 import {
   elementInlineStyle,
@@ -317,7 +317,7 @@ export default function HomeLeaguePortal({
   }
 
   return (
-    <main style={{ minHeight: "100vh", background: pageDocument.global.pageBackground, color: "#0b2747", fontFamily: pageDocument.global.fontFamily }}>
+    <main style={{ minHeight: "100vh", background: pageDocument.global.pageBackground, color: "#0b2747", fontFamily: "var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif" }}>
       <style>{`.apa-editor-force-text-color, .apa-editor-force-text-color * { color: var(--apa-editor-text-color) !important; }`}</style>
       <div
         className="mx-auto px-4 py-5 md:px-8 md:py-8"
