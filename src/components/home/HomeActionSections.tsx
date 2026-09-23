@@ -31,6 +31,15 @@ const AUSPICIANTES = [
     banner: null,
     logo: null,
   },
+  {
+    name: "Pro Soccer Online",
+    short: "PSO OFICIAL",
+    description: "Comunidad oficial de Pro Soccer Online.",
+    href: "https://discord.gg/WJx6k7KxPd",
+    type: "Discord",
+    banner: "/images/fixture/liga.png",
+    logo: null,
+  },
 ] as const;
 
 type ActionSectionProps = {
@@ -42,6 +51,7 @@ type ActionSectionProps = {
   direction?: "left" | "right";
   dark?: boolean;
   visual: "auspiciantes" | "streamer" | "create" | "search";
+  surface?: "transparent" | "sky" | "white";
 };
 
 function WhiteButton({
@@ -75,7 +85,7 @@ function WhiteButton({
 
 function AuspiciantesVisual() {
   return (
-    <div className="grid gap-3 sm:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {AUSPICIANTES.map((community) => (
         <a
           key={community.name}
@@ -187,6 +197,7 @@ function ActionSection({
   direction = "left",
   dark = false,
   visual,
+  surface = "transparent",
 }: ActionSectionProps) {
   const reverse = direction === "right";
 
@@ -196,7 +207,14 @@ function ActionSection({
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true, amount: 0.16 }}
       transition={{ duration: 0.98, ease: [0.16, 1, 0.3, 1] }}
-      className="border-t border-[#c9e1ed] py-11 sm:py-14"
+      className={
+        "border-t border-[#c9e1ed] px-6 py-11 sm:px-10 sm:py-14 lg:px-12 " +
+        (surface === "sky"
+          ? "bg-[#dff3ff]"
+          : surface === "white"
+            ? "bg-white"
+            : "bg-transparent")
+      }
     >
       <div
         className={
@@ -251,6 +269,7 @@ export function HomeStreamerCTA() {
       cta="Quiero ser streamer"
       href={SOCIAL_LINKS.discord}
       visual="streamer"
+      surface="sky"
     />
   );
 }
@@ -278,6 +297,7 @@ export function HomeFindTeamCTA() {
       cta="Buscar equipo"
       href={SOCIAL_LINKS.discord}
       visual="search"
+      surface="white"
     />
   );
 }

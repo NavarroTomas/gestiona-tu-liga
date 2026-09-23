@@ -413,7 +413,7 @@ export default function HomeLeaguePortal({
         <HomeSuggestions />
         <HomeFindTeamCTA />
         <HomeDonation />
-        {shell("community", <HomeCommunity />)}
+        {editorMode ? shell("community", <HomeCommunity />) : <HomeCommunity />}
       </div>
     </main>
   );

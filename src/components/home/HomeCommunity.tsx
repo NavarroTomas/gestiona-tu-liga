@@ -39,127 +39,103 @@ function YoutubeIcon() {
   );
 }
 
-type SocialBlockProps = {
-  href: string;
-  eyebrow: string;
-  title: string;
-  description: string;
-  background: string;
-  icon: React.ReactNode;
-  large?: boolean;
-};
-
-function SocialBlock({
-  href,
-  eyebrow,
-  title,
-  description,
-  background,
-  icon,
-  large = false,
-}: SocialBlockProps) {
-  return (
-    <motion.a
-      initial={{ opacity: 0, y: 34 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.18 }}
-      transition={{ duration: 0.72, ease: [0.16, 1, 0.3, 1] }}
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className={
-        "group relative flex overflow-hidden rounded-[28px] p-6 text-white transition hover:-translate-y-1 sm:p-8 " +
-        (large ? "min-h-[250px] items-end" : "min-h-[190px] flex-col justify-between")
-      }
-      style={{ backgroundColor: background }}
-    >
-      <div className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-white/14 text-white sm:h-14 sm:w-14">
-        {icon}
-      </div>
-
-      <div className={large ? "mt-10 max-w-[820px]" : "mt-8"}>
-        <p className="text-[9px] font-black uppercase tracking-[0.16em] text-white/70">
-          {eyebrow}
-        </p>
-        <h3
-          className={
-            "mt-2 font-black leading-[0.95] tracking-[-0.045em] text-white " +
-            (large ? "text-[clamp(2.2rem,4vw,4.5rem)]" : "text-[28px]")
-          }
-        >
-          {title}
-        </h3>
-        <p className="mt-3 max-w-[58ch] text-[12px] font-semibold leading-5 text-white/78">
-          {description}
-        </p>
-      </div>
-
-      <span className="absolute right-6 top-6 text-[20px] font-black text-white transition group-hover:translate-x-1 sm:right-8 sm:top-8">
-        →
-      </span>
-    </motion.a>
-  );
-}
+const SOCIALS = [
+  {
+    label: "Discord",
+    eyebrow: "Comunidad",
+    description: "Buscá equipo, seguí torneos y recibí anuncios oficiales.",
+    href: SOCIAL_LINKS.discord,
+    icon: <DiscordIcon />,
+  },
+  {
+    label: "Instagram",
+    eyebrow: "Contenido",
+    description: "Resultados, anuncios y contenido visual de la liga.",
+    href: SOCIAL_LINKS.instagram,
+    icon: <InstagramIcon />,
+  },
+  {
+    label: "Twitch",
+    eyebrow: "En vivo",
+    description: "Partidos y transmisiones oficiales de APA.",
+    href: TWITCH_URL,
+    icon: <TwitchIcon />,
+  },
+  {
+    label: "YouTube",
+    eyebrow: "Videos",
+    description: "Highlights, premiaciones y contenido audiovisual.",
+    href: SOCIAL_LINKS.youtube,
+    icon: <YoutubeIcon />,
+  },
+] as const;
 
 export default function HomeCommunity() {
   return (
-    <section className="border-t border-[#c9e1ed] pb-4 pt-14 sm:pt-16">
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.22 }}
-        transition={{ duration: 0.78, ease: [0.16, 1, 0.3, 1] }}
-        className="mb-8"
-      >
-        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#168fd4]">
-          Comunidad
-        </p>
-        <h2 className="mt-2 text-[clamp(2.8rem,6vw,6.4rem)] font-black uppercase leading-[0.88] tracking-[-0.06em] text-[#102f55]">
-          REDES SOCIALES
-        </h2>
-        <p className="mt-5 max-w-[700px] text-[14px] font-semibold leading-7 text-[#58788f]">
-          Seguí toda la actividad de APA, sumate a la comunidad y acompañá cada fecha también fuera de la web.
-        </p>
-      </motion.div>
+    <section className="relative left-1/2 flex min-h-[100svh] w-[100dvw] -translate-x-1/2 bg-[#102f55] text-white">
+      <div className="mx-auto flex min-h-[100svh] w-[min(94vw,1760px)] flex-col justify-between py-10 sm:py-14 lg:py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-[1100px]"
+        >
+          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#74c8f0]">
+            Comunidad APA
+          </p>
 
-      <div className="grid gap-4">
-        <SocialBlock
-          href={SOCIAL_LINKS.discord}
-          eyebrow="Comunidad principal"
-          title="Discord oficial de APA"
-          description="Buscá equipo, seguí los torneos, participá de la comunidad y recibí los anuncios oficiales en tiempo real."
-          background="#5865F2"
-          icon={<DiscordIcon />}
-          large
-        />
+          <h2 className="mt-4 text-[clamp(4rem,10vw,10rem)] font-black uppercase leading-[0.82] tracking-[-0.07em] text-white">
+            REDES
+            <br />
+            SOCIALES
+          </h2>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <SocialBlock
-            href={SOCIAL_LINKS.instagram}
-            eyebrow="Contenido"
-            title="Instagram"
-            description="Resultados, anuncios, placas y contenido visual de la liga."
-            background="#E4405F"
-            icon={<InstagramIcon />}
-          />
+          <p className="mt-7 max-w-[660px] text-[14px] font-semibold leading-7 text-white/65 sm:text-[16px]">
+            Todo lo que pasa en APA también vive fuera de la web. Elegí tu plataforma y seguí la liga donde más te guste.
+          </p>
+        </motion.div>
 
-          <SocialBlock
-            href={TWITCH_URL}
-            eyebrow="En vivo"
-            title="Twitch"
-            description="Transmisiones oficiales, partidos y contenido en directo de APA."
-            background="#9146FF"
-            icon={<TwitchIcon />}
-          />
+        <div className="mt-16 grid border-t border-white/20 md:grid-cols-2 lg:grid-cols-4">
+          {SOCIALS.map((social, index) => (
+            <motion.a
+              key={social.label}
+              initial={{ opacity: 0, y: 26 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.18 }}
+              transition={{
+                duration: 0.65,
+                delay: index * 0.07,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              href={social.href}
+              target="_blank"
+              rel="noreferrer"
+              className="group flex min-h-[220px] flex-col justify-between border-b border-white/20 py-7 transition hover:bg-white/[0.04] md:px-6 lg:border-b-0 lg:border-r lg:last:border-r-0"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex h-12 w-12 items-center justify-center text-white">
+                  {social.icon}
+                </div>
 
-          <SocialBlock
-            href={SOCIAL_LINKS.youtube}
-            eyebrow="Videos"
-            title="YouTube"
-            description="Partidos, highlights, premiaciones y contenido audiovisual."
-            background="#FF0033"
-            icon={<YoutubeIcon />}
-          />
+                <span className="text-[18px] font-black text-white/55 transition group-hover:translate-x-1 group-hover:text-white">
+                  ↗
+                </span>
+              </div>
+
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#74c8f0]">
+                  {social.eyebrow}
+                </p>
+                <h3 className="mt-2 text-[30px] font-black tracking-[-0.045em] text-white">
+                  {social.label}
+                </h3>
+                <p className="mt-3 max-w-[30ch] text-[11px] font-semibold leading-5 text-white/55">
+                  {social.description}
+                </p>
+              </div>
+            </motion.a>
+          ))}
         </div>
       </div>
     </section>

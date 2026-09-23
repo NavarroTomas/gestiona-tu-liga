@@ -10,7 +10,7 @@ export default function HomeDonation() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.18 }}
       transition={{ duration: 0.95, ease: [0.16, 1, 0.3, 1] }}
-      className="border-t border-[#c9e1ed] py-11 sm:py-14"
+      className="bg-[#dff3ff] px-6 py-12 sm:px-10 sm:py-16 lg:px-12"
     >
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_auto] lg:items-center">
         <div>
