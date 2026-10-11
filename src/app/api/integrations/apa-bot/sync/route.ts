@@ -4,8 +4,19 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 type Club = { source_key: string; team_tag: string; team_name: string; division: string; logo_url?: string | null };
 type Player = { source_key: string; player_id: string; player_name: string; team_tag: string; team_name: string; division: string; media?: number | null; positions?: string | null };
-type Transfer = { source_key: string; player_id: string; player_name: string; from_team?: string | null; from_tag?: string | null; to_team?: string | null; to_tag?: string | null; created_at?: string | null; change_type: "transfer" | "release" };
+type Transfer = { source_key: string; player_id: string; player_name: string; division?: string | null; from_team?: string | null; from_tag?: string | null; to_team?: string | null; to_tag?: string | null; created_at?: string | null; change_type: "transfer" | "release" };
 type SyncPayload = { source: string; guild_id: string; season_id: number; season: string; clubs: Club[]; players: Player[]; transfers: Transfer[] };
+
+function normalizeDivision(value: unknown) {
+  const normalized = String(value ?? "").trim().toLowerCase().replace(/\s+divisi[oó]n$/, "");
+  const byNumber: Record<string, string> = { "1": "primera", "2": "segunda", "3": "tercera", "4": "cuarta" };
+  if (byNumber[normalized]) return byNumber[normalized];
+  if (normalized.includes("primera")) return "primera";
+  if (normalized.includes("segunda")) return "segunda";
+  if (normalized.includes("tercera")) return "tercera";
+  if (normalized.includes("cuarta")) return "cuarta";
+  return normalized || "sin-definir";
+}
 
 function authorized(request: Request, rawBody: string) {
   const expected = process.env.APA_BOT_SYNC_TOKEN;
@@ -52,19 +63,19 @@ export async function POST(request: Request) {
       if (error) throw error;
       clubId = data.id;
     }
-    const { error } = await supabase.from("clubes_temporada").upsert({ club_id: clubId, temporada: body.season, division: club.division || "sin-definir", activo: true, updated_at: new Date().toISOString() }, { onConflict: "club_id,temporada" });
+    const { error } = await supabase.from("clubes_temporada").upsert({ club_id: clubId, temporada: body.season, division: normalizeDivision(club.division), activo: true, updated_at: new Date().toISOString() }, { onConflict: "club_id,temporada" });
     if (error) throw error;
     summary.clubs += 1;
   }
 
   for (const player of body.players) {
-    const { error } = await supabase.from("plantillas").upsert({ jugador: player.player_name, playerid: player.player_id, equipo: player.team_name, temporada: body.season, division: player.division || "sin-definir", posicion: player.positions || "N/D", estado: "activo" }, { onConflict: "temporada,division,equipo,playerid" });
+    const { error } = await supabase.from("plantillas").upsert({ jugador: player.player_name, playerid: player.player_id, equipo: player.team_name, temporada: body.season, division: normalizeDivision(player.division), posicion: player.positions || "N/D", estado: "activo" }, { onConflict: "temporada,division,equipo,playerid" });
     if (error) throw error;
     summary.players += 1;
   }
 
   for (const transfer of body.transfers) {
-    const movement = { jugador: transfer.player_name || transfer.player_id, desde: transfer.from_team || null, hacia: transfer.to_team || null, temporada: body.season, division: transfer.to_tag || transfer.from_tag || "sin-definir", tipo: transfer.change_type === "release" ? "Libre" : "Fichaje", fecha: transfer.created_at || null };
+    const movement = { jugador: transfer.player_name || transfer.player_id, desde: transfer.from_team || null, hacia: transfer.to_team || null, temporada: body.season, division: normalizeDivision(transfer.division), tipo: transfer.change_type === "release" ? "Libre" : "Fichaje", fecha: transfer.created_at || null };
     const { data: existing } = await supabase.from("transferencias").select("id").match(movement).limit(1);
     if (!existing?.length) {
       const { error } = await supabase.from("transferencias").insert(movement);
