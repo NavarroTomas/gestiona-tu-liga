@@ -47,12 +47,16 @@ export async function POST(request: Request) {
   const { data: previousRun, error: previousRunError } = await supabase.from("apa_bot_sync_runs").select("id,status").eq("payload_hash", payloadHash).maybeSingle();
   if (previousRunError) return NextResponse.json({ error: "audit_unavailable" }, { status: 503 });
   if (previousRun) return NextResponse.json({ ok: true, duplicate: true, run_id: previousRun.id, status: previousRun.status });
-  const summary = { clubs: 0, players: 0, transfers: 0, releases: 0 };
+  const summary = { clubs: 0, players: 0, transfers: 0, releases: 0, stale_deactivated: 0 };
 
   for (const club of body.clubs) {
-    const slug = `${club.team_name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}-t${body.season_id}`;
-    const { data: existing, error: findError } = await supabase.from("clubes_info").select("id").eq("slug", slug).maybeSingle();
-    if (findError) throw findError;
+    const slug = club.team_tag.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || club.team_name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const { data: bySlug, error: slugError } = await supabase.from("clubes_info").select("id").eq("slug", slug).maybeSingle();
+    if (slugError) throw slugError;
+    const { data: byName, error: nameError } = bySlug ? { data: null, error: null } : await supabase.from("clubes_info").select("id").ilike("nombre", club.team_name).limit(2);
+    if (nameError) throw nameError;
+    if (!bySlug && byName && byName.length > 1) return NextResponse.json({ error: "ambiguous_club", club: club.team_name }, { status: 409 });
+    const existing = bySlug || byName?.[0] || null;
     const clubPayload = { nombre: club.team_name, slug, logo_url: club.logo_url || null, updated_at: new Date().toISOString() };
     let clubId = existing?.id;
     if (clubId) {
@@ -72,6 +76,18 @@ export async function POST(request: Request) {
     const { error } = await supabase.from("plantillas").upsert({ jugador: player.player_name, playerid: player.player_id, equipo: player.team_name, temporada: body.season, division: normalizeDivision(player.division), posicion: player.positions || "N/D", estado: "activo" }, { onConflict: "temporada,division,equipo,playerid" });
     if (error) throw error;
     summary.players += 1;
+  }
+
+  const incomingPlayerIds = new Set(body.players.map((player) => player.player_id.trim().toLowerCase()));
+  const syncedTeamNames = new Set(body.clubs.map((club) => club.team_name.trim().toLowerCase()));
+  const { data: activeRows, error: activeRowsError } = await supabase.from("plantillas").select("id,playerid,equipo").eq("temporada", body.season).neq("estado", "baja");
+  if (activeRowsError) throw activeRowsError;
+  for (const row of activeRows || []) {
+    if (syncedTeamNames.has(String(row.equipo || "").trim().toLowerCase()) && !incomingPlayerIds.has(String(row.playerid || "").trim().toLowerCase())) {
+      const { error } = await supabase.from("plantillas").update({ estado: "baja" }).eq("id", row.id);
+      if (error) throw error;
+      summary.stale_deactivated += 1;
+    }
   }
 
   for (const transfer of body.transfers) {
