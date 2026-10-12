@@ -53,11 +53,25 @@ export async function POST(request: Request) {
     const slug = club.team_tag.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || club.team_name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     const { data: bySlug, error: slugError } = await supabase.from("clubes_info").select("id").eq("slug", slug).maybeSingle();
     if (slugError) throw slugError;
-    const { data: byName, error: nameError } = bySlug ? { data: null, error: null } : await supabase.from("clubes_info").select("id").ilike("nombre", club.team_name).limit(2);
+    const { data: byName, error: nameError } = bySlug ? { data: null, error: null } : await supabase.from("clubes_info").select("id").ilike("nombre", club.team_name).limit(10);
     if (nameError) throw nameError;
-    if (!bySlug && byName && byName.length > 1) return NextResponse.json({ error: "ambiguous_club", club: club.team_name }, { status: 409 });
-    const existing = bySlug || byName?.[0] || null;
-    const clubPayload = { nombre: club.team_name, slug, logo_url: club.logo_url || null, updated_at: new Date().toISOString() };
+    let existing = bySlug || null;
+    if (!existing && byName?.length) {
+      const candidateIds = byName.map((row) => row.id);
+      const { data: seasonLinks, error: seasonLinksError } = await supabase
+        .from("clubes_temporada")
+        .select("club_id")
+        .eq("temporada", body.season)
+        .in("club_id", candidateIds);
+      if (seasonLinksError) throw seasonLinksError;
+      const seasonIds = [...new Set((seasonLinks || []).map((row) => row.club_id))];
+      if (seasonIds.length === 1) existing = { id: seasonIds[0] };
+      else if (seasonIds.length > 1) return NextResponse.json({ error: "ambiguous_club", club: club.team_name, season: body.season, candidate_ids: seasonIds }, { status: 409 });
+      else if (byName.length === 1) existing = byName[0];
+      else return NextResponse.json({ error: "ambiguous_club", club: club.team_name, season: body.season, candidate_ids: candidateIds }, { status: 409 });
+    }
+    const clubPayload = { nombre: club.team_name, slug: existing ? undefined : slug, logo_url: club.logo_url || null, updated_at: new Date().toISOString() };
+    if (existing) delete (clubPayload as { slug?: string }).slug;
     let clubId = existing?.id;
     if (clubId) {
       const { error } = await supabase.from("clubes_info").update(clubPayload).eq("id", clubId);
