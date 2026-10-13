@@ -27,6 +27,9 @@ export default function CopasPublicPage() {
     if (!seasonsLoading) setSeason(activeSeason);
   }, [activeSeason, seasonsLoading]);
   const [group, setGroup] = useState<string>(CUPS_CONFIG.defaultGroup);
+  useEffect(() => {
+    if (season === "Temporada 5" && !["A", "B", "C"].includes(group)) setGroup("A");
+  }, [season, group]);
 
   const {
     loading,
@@ -52,6 +55,7 @@ export default function CopasPublicPage() {
 
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_390px] xl:gap-5">
           <CupGroupStandings
+            season={season}
             group={group}
             rows={standings}
             loading={loading}

@@ -10,11 +10,13 @@ function formClass(result: "W" | "D" | "L") {
 }
 
 export default function CupGroupStandings({
+  season,
   group,
   rows,
   loading,
   getLogo,
 }: {
+  season?: string;
   group: string;
   rows: CupStandingRow[];
   loading: boolean;
@@ -63,7 +65,9 @@ export default function CupGroupStandings({
             ) : (
               rows.map((row, index) => {
                 const position = index + 1;
-                const destination = getCupDestination(position);
+                const destination = season === "Temporada 5"
+                  ? position <= 2 ? "argentina" : position === 3 || position === 6 ? "pending" : "apa"
+                  : getCupDestination(position);
                 const logo = getLogo(row.equipo);
                 const rivalLogo = getLogo(row.proximoRival);
 
@@ -75,10 +79,10 @@ export default function CupGroupStandings({
                     <td className="relative px-1 text-center font-medium text-[#46698d]">
                       <span
                         className={`absolute bottom-0 left-0 top-0 w-[3px] ${
-                          destination === "argentina" ? "bg-[#2fb56d]" : "bg-[#56afe2]"
+                          destination === "argentina" ? "bg-[#2fb56d]" : destination === "pending" ? "bg-[#d6a334]" : "bg-[#56afe2]"
                         }`}
                         title={
-                          destination === "argentina"
+                          destination === "pending" ? "Depende de la comparación entre grupos" : destination === "argentina"
                             ? CUPS_CONFIG.qualification.copaArgentinaLabel
                             : CUPS_CONFIG.qualification.copaApaLabel
                         }
@@ -166,6 +170,7 @@ export default function CupGroupStandings({
       </div>
 
       <footer className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#d7e6f0] bg-[#fbfdff] px-4 py-3 text-[9px] font-semibold text-[#67819a] sm:text-[10px]">
+        {season === "Temporada 5" && <p className="w-full">Copa Argentina: 1.º y 2.º de cada grupo y los 2 mejores terceros. Copa APA: el tercero restante, 4.º y 5.º de cada grupo y el mejor sexto. Los otros 2 sextos quedan eliminados.</p>}
         <span className="flex items-center gap-1.5">
           <i className="h-2.5 w-2.5 rounded-full bg-[#2fb56d]" />
           Clasifica a {CUPS_CONFIG.qualification.copaArgentinaLabel}

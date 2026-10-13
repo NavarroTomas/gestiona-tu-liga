@@ -54,7 +54,7 @@ export default function CupControls({
             Para agregar Grupo E/F/etc. no copies este botón: agregá la letra en
             `src/config/cups.ts` y aparecerá acá solo.
           */}
-          {CUPS_CONFIG.groups.map((item) => {
+          {(season === "Temporada 5" ? ["A", "B", "C"] : CUPS_CONFIG.groups).map((item) => {
             const active = item === group;
             return (
               <button
