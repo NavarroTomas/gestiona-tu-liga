@@ -12,6 +12,7 @@ import {
   fetchTournamentTeams,
   generateRoundRobin,
   isLoadedMatch,
+  normalizeDivision,
   type StandingRow,
   type TournamentMatch,
   type TournamentTeam,
@@ -85,10 +86,11 @@ function GroupEditor({
   );
 }
 
-function StandingsTable({ rows, argentinaPlaces, apaPlaces }: {
+function StandingsTable({ rows, argentinaPlaces, apaPlaces, mixedQualification }: {
   rows: StandingRow[];
   argentinaPlaces: number;
   apaPlaces: number;
+  mixedQualification: boolean;
 }) {
   return (
     <div className={styles.tableWrap}>
@@ -97,7 +99,9 @@ function StandingsTable({ rows, argentinaPlaces, apaPlaces }: {
         <tbody>
           {rows.map((row, index) => {
             const position = index + 1;
-            const destination = position <= argentinaPlaces
+            const destination = mixedQualification
+              ? position <= 2 ? "Copa Argentina" : position === 3 ? "Comparar terceros" : position <= 5 ? "Copa APA" : "Comparar sextos"
+              : position <= argentinaPlaces
               ? "Copa Argentina"
               : position <= argentinaPlaces + apaPlaces
                 ? "Copa APA"
@@ -129,6 +133,8 @@ export default function ClassificationCupManager() {
   const [showApa, setShowApa] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [mixedQualification, setMixedQualification] = useState(false);
+  const [balancedPots, setBalancedPots] = useState(false);
 
   const labels = useMemo(() => groupNames(groupCount), [groupCount]);
   const groupMatches = useMemo(() => matches.filter((match) => match.competicion === COMPETITION && match.fase === "grupos"), [matches]);
@@ -177,6 +183,8 @@ export default function ClassificationCupManager() {
       setTeamsPerGroup(nextSize);
       setArgentinaPerGroup(Math.max(0, Number(config?.reglas?.clasifican_copa_argentina ?? 2)));
       setApaPerGroup(Math.max(0, Number(config?.reglas?.clasifican_copa_apa ?? 2)));
+      setMixedQualification(config?.reglas?.formato_clasificacion === "t5_mejores_terceros_sextos");
+      setBalancedPots(Boolean(config?.reglas?.bombos_por_division));
       setGroups(nextGroups);
       setShowArgentina(Boolean(publicState.data?.copa_argentina_activa));
       setShowApa(Boolean(publicState.data?.copa_apa_activa));
@@ -202,6 +210,13 @@ export default function ClassificationCupManager() {
     }
     if (groupMatches.some(isLoadedMatch)) {
       setMessage("La fase ya tiene resultados. No se puede regenerar desde el flujo normal; usá Más opciones.");
+      return;
+    }
+    if (balancedPots && labels.some((group) => {
+      const divisions = groups[group].map((name) => normalizeDivision(teams.find((team) => team.nombre === name)?.division));
+      return divisions.filter((value) => value === "primera").length !== 3 || divisions.filter((value) => value === "segunda").length !== 3;
+    })) {
+      setMessage("Cada grupo debe tener 3 clubes de Primera y 3 de Segunda, según los dos bombos del sorteo.");
       return;
     }
     const games = labels.flatMap((group) => generateRoundRobin(groups[group], false).map((game) => ({ ...game, group })));
@@ -238,6 +253,10 @@ export default function ClassificationCupManager() {
   }
 
   async function createCupCrosses() {
+    if (mixedQualification) {
+      setMessage("Antes de generar las copas hay que definir los desempates entre grupos y el armado de los cruces para los mejores terceros y sextos.");
+      return;
+    }
     if (!groupsComplete) {
       setMessage("Primero tienen que estar completos todos los partidos de grupos.");
       return;
@@ -325,14 +344,15 @@ export default function ClassificationCupManager() {
         ]} />
 
         {view === "grupos" && <>
-          <TournamentPanel eyebrow="Paso 1" title="Armar grupos" description={`La configuración actual espera ${groupCount} grupos de ${teamsPerGroup} clubes.`} action={<button className={styles.primary} disabled={loading} type="button" onClick={createGroups}>{groupMatches.length ? "Regenerar grupos" : "Crear grupos"}</button>}>
+          <TournamentPanel eyebrow="Paso 1" title="Armar grupos" description={`${groupCount} grupos de ${teamsPerGroup} clubes.${balancedPots ? " Cada grupo: 3 de Primera y 3 de Segunda. Cargá aquí el resultado del sorteo." : ""}`} action={<button className={styles.primary} disabled={loading} type="button" onClick={createGroups}>{groupMatches.length ? "Regenerar grupos" : "Crear grupos"}</button>}>
             <GroupEditor labels={labels} groups={groups} teams={teams} onChange={updateGroup} />
           </TournamentPanel>
         </>}
 
         {view === "clasificados" && <div className={styles.list}>
           <TournamentPanel eyebrow="Paso 2" title="Tablas y clasificados" description={groupsComplete ? "La fase está completa. Ya podés crear las copas." : "Se actualiza sola con los resultados cargados en Centro de partidos."} action={<button className={styles.primary} type="button" disabled={loading || !groupsComplete || Boolean(argentinaMatches.length || apaMatches.length)} onClick={createCupCrosses}>Crear cruces de copas</button>}>
-            <div className={styles.grid2}>{labels.map((group) => <div key={group}><p className={styles.sectionEyebrow}>Grupo {group}</p><StandingsTable rows={tables[group] || []} argentinaPlaces={argentinaPerGroup} apaPlaces={apaPerGroup} /></div>)}</div>
+            {mixedQualification && <p>Copa Argentina: primeros, segundos y 2 mejores terceros. Copa APA: el tercer tercero, cuartos, quintos y mejor sexto. Los otros 2 sextos quedan eliminados.</p>}
+            <div className={styles.grid2}>{labels.map((group) => <div key={group}><p className={styles.sectionEyebrow}>Grupo {group}</p><StandingsTable rows={tables[group] || []} argentinaPlaces={argentinaPerGroup} apaPlaces={apaPerGroup} mixedQualification={mixedQualification} /></div>)}</div>
           </TournamentPanel>
           {(argentinaMatches.length > 0 || apaMatches.length > 0) && <div className={styles.actionGrid}>
             <Link href="/admin/torneos/copa-argentina" className={styles.actionCard}><strong>Copa Argentina</strong><span>Abrir →</span></Link>
