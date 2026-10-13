@@ -786,13 +786,13 @@ table {
   }
   .apa-cups-page .apa-cups-hero,
   .apa-cups-page .apa-cups-hero > div.relative {
-    min-height: 84px;
+    min-height: 64px;
   }
   .apa-cups-page .apa-cups-hero > div.relative {
-    padding: 12px 24px;
+    padding: 8px 24px;
   }
-  .apa-cups-page .apa-cups-hero h1 { font-size: 32px; }
-  .apa-cups-page .apa-cups-hero p { margin-top: 6px; font-size: 14px; }
+  .apa-cups-page .apa-cups-hero h1 { font-size: 28px; }
+  .apa-cups-page .apa-cups-hero p { margin-top: 4px; font-size: 12px; line-height: 1.2; }
   .apa-cups-page nav[aria-label="Secciones de Clasificación a Copas"] a { padding-block: 8px; }
   .apa-cups-content { padding: 12px 24px !important; }
   .apa-cups-content > div:first-child { margin-bottom: 12px; }
@@ -832,7 +832,7 @@ table {
   .apa-cups-grid td:last-child a > span:not(.apa-cup-badge) > span { font-size: 12px; }
   .apa-cups-grid td:last-child a > span:not(.apa-cup-badge) > span { line-height: 16px; }
   .apa-cups-grid footer { padding: 10px 12px; font-size: 12px; gap: 8px; }
-  .apa-cups-grid aside section > div { padding: 12px; }
+  .apa-cups-grid aside section > div { padding: 8px; }
   .apa-cups-grid aside strong { font-size: 14px; }
   .apa-cups-grid aside a { font-size: 12px; }
   .apa-cups-grid aside .mt-5 { margin-top: 10px; padding-top: 8px; }
