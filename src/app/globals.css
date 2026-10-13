@@ -784,6 +784,54 @@ table {
   .apa-cups-page {
     zoom: 1.3333333333;
   }
+  .apa-cups-page .apa-cups-hero,
+  .apa-cups-page .apa-cups-hero > div.relative {
+    min-height: 84px;
+  }
+  .apa-cups-page .apa-cups-hero > div.relative {
+    padding: 12px 24px;
+  }
+  .apa-cups-page .apa-cups-hero h1 { font-size: 32px; }
+  .apa-cups-page .apa-cups-hero p { margin-top: 6px; font-size: 14px; }
+  .apa-cups-page nav[aria-label="Secciones de Clasificación a Copas"] a { padding-block: 8px; }
+  .apa-cups-content { padding: 12px 24px !important; }
+  .apa-cups-content > div:first-child { margin-bottom: 12px; }
+  .apa-cups-content > div:first-child > div + div { margin-top: 8px; }
+  .apa-cups-content > div:first-child button { padding: 8px 16px; font-size: 14px; }
+  .apa-cups-content > div:first-child p { font-size: 12px; }
+  .apa-cups-content > div:first-child select { height: 36px; font-size: 14px; }
+  .apa-cups-grid {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 16px;
+  }
+  .apa-cups-grid aside { grid-template-columns: 1fr; gap: 12px; }
+  .apa-cups-grid header { min-height: 40px; height: auto; padding: 8px 12px; }
+  .apa-cups-grid h2 { font-size: 18px; }
+  .apa-cups-grid aside h2 { font-size: 14px; }
+  .apa-cups-grid table { min-width: 0; }
+  .apa-cups-grid thead tr { height: 34px; font-size: 12px; }
+  .apa-cups-grid tbody tr { height: 46px; font-size: 14px; }
+  .apa-cups-grid th:first-child { width: 30px; }
+  .apa-cups-grid th:nth-child(n+3):nth-child(-n+8) { width: 32px; }
+  .apa-cups-grid th:nth-child(9) { width: 68px; }
+  .apa-cups-grid th:nth-child(10) { width: 160px; }
+  .apa-cups-grid td { padding-inline: 6px; }
+  .apa-cups-grid td a { gap: 6px; }
+  .apa-cups-grid td a > span:not(.apa-cup-badge) { font-size: 14px; }
+  .apa-cups-grid td:nth-child(8) { font-size: 16px; }
+  .apa-cups-grid td:last-child a > span:not(.apa-cup-badge) > span { font-size: 12px; }
+  .apa-cups-grid footer { padding: 10px 12px; font-size: 12px; gap: 8px; }
+  .apa-cups-grid aside section > div { padding: 12px; }
+  .apa-cups-grid aside strong { font-size: 14px; }
+  .apa-cups-grid aside a { font-size: 12px; }
+  .apa-cups-grid aside .mt-5 { margin-top: 10px; padding-top: 8px; }
+  .apa-cups-grid aside .mt-3 { margin-top: 6px; }
+  .apa-cups-grid aside div.grid.min-h-\[80px\] { min-height: 60px; padding-block: 8px; }
+}
+
+.apa-cups-page .apa-cup-badge {
+  width: 32px !important;
+  height: 32px !important;
 }
 
 @media (max-width: 1099px) {

@@ -44,7 +44,7 @@ export default function CopasPublicPage() {
       <CupsHero season={season} />
       <CupsTabs activeId="grupos" />
 
-      <section className="mx-auto w-full max-w-[1680px] px-5 py-6 sm:px-8 sm:py-8 lg:px-10">
+      <section className="apa-cups-content mx-auto w-full max-w-[1680px] px-5 py-6 sm:px-8 sm:py-8 lg:px-10">
         <CupControls
           season={season}
           seasons={seasons}
@@ -53,7 +53,7 @@ export default function CopasPublicPage() {
           onGroupChange={setGroup}
         />
 
-        <div className="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="apa-cups-grid grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,1fr)_420px]">
           <CupGroupStandings
             season={season}
             group={group}

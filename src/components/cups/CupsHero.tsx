@@ -2,7 +2,7 @@ import { CUPS_CONFIG } from "@/config/cups";
 
 export default function CupsHero({ season }: { season: string }) {
   return (
-    <section className="relative min-h-[170px] overflow-hidden border-b border-[#c9e3f1] sm:min-h-[190px]">
+    <section className="apa-cups-hero relative min-h-[170px] overflow-hidden border-b border-[#c9e3f1] sm:min-h-[190px]">
       <img
         src={CUPS_CONFIG.hero.image}
         alt={CUPS_CONFIG.hero.alt}
