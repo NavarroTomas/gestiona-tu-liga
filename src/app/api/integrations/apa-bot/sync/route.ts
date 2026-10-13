@@ -134,7 +134,12 @@ export async function POST(request: Request) {
     summary.clubs += 1;
   }
 
-  const playerRows = body.players.map((player) => ({ jugador: player.player_name, playerid: player.player_id, equipo: player.team_name, temporada: webSeason, division: normalizeDivision(player.division), posicion: player.positions || "N/D", estado: "activo" }));
+  const normalizeTag = (tag: string) => tag.trim().replace(/^\[|\]$/g, "").toLowerCase();
+  const clubsByTag = new Map(body.clubs.map((club) => [normalizeTag(club.team_tag), club]));
+  const playerRows = body.players.map((player) => {
+    const club = clubsByTag.get(normalizeTag(player.team_tag || ""));
+    return { jugador: player.player_name, playerid: player.player_id, equipo: club?.team_name || player.team_name, temporada: webSeason, division: normalizeDivision(club?.division || player.division), posicion: player.positions || "N/D", estado: "activo" };
+  });
   for (const batch of chunks(playerRows, 500)) {
     const { error } = await supabase.from("plantillas").upsert(batch, { onConflict: "temporada,division,equipo,playerid" });
     if (error) throw error;
