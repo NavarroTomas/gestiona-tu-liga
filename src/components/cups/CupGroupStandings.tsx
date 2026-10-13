@@ -2,7 +2,7 @@ import TeamLink from "@/components/team/TeamLink";
 import ClubBadge from "./ClubBadge";
 import { CUPS_CONFIG, getCupDestination } from "@/config/cups";
 import type { CupStandingRow } from "@/lib/cups/types";
-import { formatCupDate, resultLabel } from "@/lib/cups/utils";
+import { resultLabel } from "@/lib/cups/utils";
 
 function formClass(result: "W" | "D" | "L") {
   if (result === "W") return "bg-[#2fb56d]";
@@ -67,7 +67,7 @@ export default function CupGroupStandings({
               rows.map((row, index) => {
                 const position = index + 1;
                 const destination = season === "Temporada 5"
-                  ? position <= 2 ? "argentina" : position === 3 || position === 6 ? "pending" : "apa"
+                  ? position <= 2 ? "argentina" : position === 6 ? "elimination" : position === 3 ? "pending" : "apa"
                   : getCupDestination(position);
                 const logo = getLogo(row.equipo);
                 const rivalLogo = getLogo(row.proximoRival);
@@ -80,10 +80,10 @@ export default function CupGroupStandings({
                     <td className="relative px-1 text-center font-medium text-[#46698d]">
                       <span
                         className={`absolute bottom-0 left-0 top-0 w-[3px] ${
-                          destination === "argentina" ? "bg-[#2fb56d]" : destination === "pending" ? "bg-[#d6a334]" : "bg-[#56afe2]"
+                          destination === "argentina" ? "bg-[#2fb56d]" : destination === "elimination" ? "bg-[#e34b50]" : destination === "pending" ? "bg-[#d6a334]" : "bg-[#56afe2]"
                         }`}
                         title={
-                          destination === "pending" ? "Depende de la comparación entre grupos" : destination === "argentina"
+                          destination === "elimination" ? "Zona de eliminación: el mejor sexto clasifica a Copa APA" : destination === "pending" ? "Depende de la comparación entre grupos" : destination === "argentina"
                             ? CUPS_CONFIG.qualification.copaArgentinaLabel
                             : CUPS_CONFIG.qualification.copaApaLabel
                         }
@@ -123,16 +123,10 @@ export default function CupGroupStandings({
                       </div>
                     </td>
 
-                    <td className="px-3">
+                    <td className="px-3 text-center">
                       {row.proximoRival ? (
-                        <TeamLink name={row.proximoRival} className="group/team flex min-w-0 items-center gap-2">
+                        <TeamLink name={row.proximoRival} className="group/team inline-flex items-center justify-center" title={`Próximo rival: ${row.proximoRival}`}>
                           <ClubBadge name={row.proximoRival} src={rivalLogo} className="h-9 w-9" />
-                          <span className="min-w-0">
-                            <span className="block text-sm leading-snug font-bold text-[#355d83] transition-colors group-hover/team:text-[#258fcf]">
-                              {row.proximoRival}
-                            </span>
-                            <span className="block text-xs font-semibold text-[#7d94aa]">{formatCupDate(row.proximoPartido)}</span>
-                          </span>
                         </TeamLink>
                       ) : (
                         <span className="text-[#9aabb9]">—</span>
@@ -156,6 +150,7 @@ export default function CupGroupStandings({
           <i className="h-2.5 w-2.5 rounded-full bg-[#56afe2]" />
           Clasifica a {CUPS_CONFIG.qualification.copaApaLabel}
         </span>
+        {season === "Temporada 5" && <span className="flex w-full items-center gap-1.5"><i className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#e34b50]" />6.º: zona de eliminación; el mejor sexto clasifica a Copa APA y los otros dos quedan eliminados.</span>}
       </footer>
     </section>
   );
