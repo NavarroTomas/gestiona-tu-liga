@@ -36,6 +36,18 @@ function resolveWebSeason(body: SyncPayload) {
   }
 }
 
+function configuredClubId(teamTag: string) {
+  const mappingText = process.env.APA_BOT_CLUB_MAP;
+  if (!mappingText) return null;
+  try {
+    const mapping = JSON.parse(mappingText) as Record<string, number | string>;
+    const value = mapping[teamTag.trim().toLowerCase()];
+    return value === undefined ? null : Number(value);
+  } catch {
+    return null;
+  }
+}
+
 function authorized(request: Request, rawBody: string) {
   const expected = process.env.APA_BOT_SYNC_TOKEN;
   const timestamp = request.headers.get("x-apa-timestamp");
@@ -70,11 +82,18 @@ export async function POST(request: Request) {
 
   for (const club of body.clubs) {
     const slug = club.team_tag.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || club.team_name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    const { data: bySlug, error: slugError } = await supabase.from("clubes_info").select("id").eq("slug", slug).maybeSingle();
+    const configuredId = configuredClubId(club.team_tag);
+    const { data: byConfiguredId, error: configuredError } = configuredId
+      ? await supabase.from("clubes_info").select("id").eq("id", configuredId).maybeSingle()
+      : { data: null, error: null };
+    if (configuredError) throw configuredError;
+    const { data: bySlug, error: slugError } = byConfiguredId
+      ? { data: null, error: null }
+      : await supabase.from("clubes_info").select("id").eq("slug", slug).maybeSingle();
     if (slugError) throw slugError;
     const { data: byName, error: nameError } = bySlug ? { data: null, error: null } : await supabase.from("clubes_info").select("id,slug").ilike("nombre", club.team_name).limit(10);
     if (nameError) throw nameError;
-    let existing = bySlug || null;
+    let existing = byConfiguredId || bySlug || null;
     if (!existing && byName?.length) {
       const candidateIds = byName.map((row) => row.id);
       const { data: seasonLinks, error: seasonLinksError } = await supabase
