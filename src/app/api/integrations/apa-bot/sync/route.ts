@@ -7,6 +7,12 @@ type Player = { source_key: string; player_id: string; player_name: string; team
 type Transfer = { source_key: string; player_id: string; player_name: string; division?: string | null; from_team?: string | null; from_tag?: string | null; to_team?: string | null; to_tag?: string | null; created_at?: string | null; change_type: "transfer" | "release" };
 type SyncPayload = { source: string; guild_id: string; season_id: number; season: string; clubs: Club[]; players: Player[]; transfers: Transfer[] };
 
+function chunks<T>(items: T[], size: number) {
+  const result: T[][] = [];
+  for (let index = 0; index < items.length; index += size) result.push(items.slice(index, index + size));
+  return result;
+}
+
 function normalizeDivision(value: unknown) {
   const normalized = String(value ?? "").trim().toLowerCase().replace(/\s+divisi[oó]n$/, "");
   const byNumber: Record<string, string> = { "1": "primera", "2": "segunda", "3": "tercera", "4": "cuarta" };
@@ -128,10 +134,11 @@ export async function POST(request: Request) {
     summary.clubs += 1;
   }
 
-  for (const player of body.players) {
-    const { error } = await supabase.from("plantillas").upsert({ jugador: player.player_name, playerid: player.player_id, equipo: player.team_name, temporada: webSeason, division: normalizeDivision(player.division), posicion: player.positions || "N/D", estado: "activo" }, { onConflict: "temporada,division,equipo,playerid" });
+  const playerRows = body.players.map((player) => ({ jugador: player.player_name, playerid: player.player_id, equipo: player.team_name, temporada: webSeason, division: normalizeDivision(player.division), posicion: player.positions || "N/D", estado: "activo" }));
+  for (const batch of chunks(playerRows, 500)) {
+    const { error } = await supabase.from("plantillas").upsert(batch, { onConflict: "temporada,division,equipo,playerid" });
     if (error) throw error;
-    summary.players += 1;
+    summary.players += batch.length;
   }
 
   const incomingPlayerIds = new Set(body.players.map((player) => player.player_id.trim().toLowerCase()));
@@ -146,18 +153,23 @@ export async function POST(request: Request) {
     }
   }
 
-  for (const transfer of body.transfers) {
-    const movement = { jugador: transfer.player_name || transfer.player_id, desde: transfer.from_team || null, hacia: transfer.to_team || null, temporada: webSeason, division: normalizeDivision(transfer.division), tipo: transfer.change_type === "release" ? "Libre" : "Fichaje", fecha: transfer.created_at || null };
-    const { data: existing } = await supabase.from("transferencias").select("id").match(movement).limit(1);
-    if (!existing?.length) {
-      const { error } = await supabase.from("transferencias").insert(movement);
+  const movements = body.transfers.map((transfer) => ({ transfer, movement: { jugador: transfer.player_name || transfer.player_id, desde: transfer.from_team || null, hacia: transfer.to_team || null, temporada: webSeason, division: normalizeDivision(transfer.division), tipo: transfer.change_type === "release" ? "Libre" : "Fichaje", fecha: transfer.created_at || null } }));
+  for (const batch of chunks(movements, 20)) {
+    await Promise.all(batch.map(async ({ transfer, movement }) => {
+      const { data: existing, error: existingError } = await supabase.from("transferencias").select("id").match(movement).limit(1);
+      if (existingError) throw existingError;
+      if (!existing?.length) {
+        const { error } = await supabase.from("transferencias").insert(movement);
+        if (error) throw error;
+      }
+    }));
+    const releaseIds = batch.filter(({ transfer }) => transfer.change_type === "release").map(({ transfer }) => transfer.player_id);
+    if (releaseIds.length) {
+      const { error } = await supabase.from("plantillas").update({ estado: "baja" }).in("playerid", releaseIds).eq("temporada", webSeason);
       if (error) throw error;
     }
-    if (transfer.change_type === "release") {
-      const { error } = await supabase.from("plantillas").update({ estado: "baja" }).eq("playerid", transfer.player_id).eq("temporada", webSeason);
-      if (error) throw error;
-      summary.releases += 1;
-    } else summary.transfers += 1;
+    summary.releases += releaseIds.length;
+    summary.transfers += batch.length - releaseIds.length;
   }
   const { data: run, error: auditError } = await supabase.from("apa_bot_sync_runs").insert({ guild_id: body.guild_id, season_id: body.season_id, season: webSeason, payload_hash: payloadHash, clubs_count: summary.clubs, players_count: summary.players, transfers_count: summary.transfers, releases_count: summary.releases, status: "applied" }).select("id").single();
   if (auditError) return NextResponse.json({ error: "audit_write_failed" }, { status: 503 });
