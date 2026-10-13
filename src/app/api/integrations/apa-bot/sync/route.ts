@@ -80,7 +80,7 @@ export async function POST(request: Request) {
   if (!url || !serviceKey) return NextResponse.json({ error: "server_not_configured" }, { status: 503 });
   const supabase = createClient(url, serviceKey, { auth: { persistSession: false } });
   const webSeason = resolveWebSeason(body);
-  const payloadHash = createHash("sha256").update(rawBody).digest("hex");
+  const payloadHash = createHash("sha256").update(JSON.stringify({ version: 2, webSeason, clubMap: process.env.APA_BOT_CLUB_MAP || "", rawBody })).digest("hex");
   const { data: previousRun, error: previousRunError } = await supabase.from("apa_bot_sync_runs").select("id,status").eq("payload_hash", payloadHash).maybeSingle();
   if (previousRunError) return NextResponse.json({ error: "audit_unavailable" }, { status: 503 });
   if (previousRun) return NextResponse.json({ ok: true, duplicate: true, run_id: previousRun.id, status: previousRun.status });
@@ -146,16 +146,17 @@ export async function POST(request: Request) {
     summary.players += batch.length;
   }
 
-  const incomingPlayerIds = new Set(body.players.map((player) => player.player_id.trim().toLowerCase()));
+  const incomingPlayerIds = new Set(body.players.map((player) => player.player_id));
+  const membershipKey = (playerId: string, teamName: string, divisionValue: string) => JSON.stringify([playerId, teamName, divisionValue]);
+  const incomingMemberships = new Set(playerRows.map((row) => membershipKey(row.playerid, row.equipo, row.division)));
   const syncedTeamNames = new Set(body.clubs.map((club) => club.team_name.trim().toLowerCase()));
-  const { data: activeRows, error: activeRowsError } = await supabase.from("plantillas").select("id,playerid,equipo").eq("temporada", webSeason).neq("estado", "baja");
+  const { data: activeRows, error: activeRowsError } = await supabase.from("plantillas").select("id,playerid,equipo,division").eq("temporada", webSeason).neq("estado", "baja");
   if (activeRowsError) throw activeRowsError;
-  for (const row of activeRows || []) {
-    if (syncedTeamNames.has(String(row.equipo || "").trim().toLowerCase()) && !incomingPlayerIds.has(String(row.playerid || "").trim().toLowerCase())) {
-      const { error } = await supabase.from("plantillas").update({ estado: "baja" }).eq("id", row.id);
+  const staleIds = (activeRows || []).filter((row) => syncedTeamNames.has(String(row.equipo || "").trim().toLowerCase()) && !incomingMemberships.has(membershipKey(String(row.playerid || ""), String(row.equipo || ""), String(row.division || "")))).map((row) => row.id);
+  for (const batch of chunks(staleIds, 500)) {
+      const { error } = await supabase.from("plantillas").update({ estado: "baja" }).eq("temporada", webSeason).in("id", batch);
       if (error) throw error;
-      summary.stale_deactivated += 1;
-    }
+      summary.stale_deactivated += batch.length;
   }
 
   const movements = body.transfers.map((transfer) => ({ transfer, movement: { jugador: transfer.player_name || transfer.player_id, desde: transfer.from_team || null, hacia: transfer.to_team || null, temporada: webSeason, division: normalizeDivision(transfer.division), tipo: transfer.change_type === "release" ? "Libre" : "Fichaje", fecha: transfer.created_at || null } }));
@@ -168,13 +169,14 @@ export async function POST(request: Request) {
         if (error) throw error;
       }
     }));
-    const releaseIds = batch.filter(({ transfer }) => transfer.change_type === "release").map(({ transfer }) => transfer.player_id);
+    const releases = batch.filter(({ transfer }) => transfer.change_type === "release");
+    const releaseIds = releases.filter(({ transfer }) => !incomingPlayerIds.has(transfer.player_id)).map(({ transfer }) => transfer.player_id);
     if (releaseIds.length) {
       const { error } = await supabase.from("plantillas").update({ estado: "baja" }).in("playerid", releaseIds).eq("temporada", webSeason);
       if (error) throw error;
     }
-    summary.releases += releaseIds.length;
-    summary.transfers += batch.length - releaseIds.length;
+    summary.releases += releases.length;
+    summary.transfers += batch.length - releases.length;
   }
   const { data: run, error: auditError } = await supabase.from("apa_bot_sync_runs").insert({ guild_id: body.guild_id, season_id: body.season_id, season: webSeason, payload_hash: payloadHash, clubs_count: summary.clubs, players_count: summary.players, transfers_count: summary.transfers, releases_count: summary.releases, status: "applied" }).select("id").single();
   if (auditError) return NextResponse.json({ error: "audit_write_failed" }, { status: 503 });
