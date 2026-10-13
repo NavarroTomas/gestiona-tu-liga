@@ -1,4 +1,5 @@
 import TeamLink from "@/components/team/TeamLink";
+import ClubBadge from "./ClubBadge";
 import { CUPS_CONFIG, getCupDestination } from "@/config/cups";
 import type { CupStandingRow } from "@/lib/cups/types";
 import { formatCupDate, resultLabel } from "@/lib/cups/utils";
@@ -26,16 +27,16 @@ export default function CupGroupStandings({
     <section className="overflow-hidden rounded-[10px] border border-[#d7e6f0] bg-white text-[#102f55]">
       <header className="flex min-h-[56px] items-center justify-between gap-4 border-b border-[#d7e6f0] bg-[#fbfdff] px-4 py-3 sm:px-5">
         <div className="min-w-0">
-          <p className="text-[8px] font-black uppercase tracking-[.17em] text-[#7890a7] sm:text-[9px]">Tabla de posiciones</p>
-          <h2 className="mt-0.5 text-[20px] font-black tracking-[-.035em] text-[#102f55] sm:text-[22px]">Grupo {group}</h2>
+          <p className="text-xs font-black uppercase tracking-[.12em] text-[#7890a7]">Tabla de posiciones</p>
+          <h2 className="mt-1 text-2xl font-black tracking-[-.035em] text-[#102f55] sm:text-3xl">Grupo {group}</h2>
         </div>
-        <span className="shrink-0 text-[9px] font-bold uppercase tracking-[.1em] text-[#7890a7] sm:text-[10px]">Orden: PTS · DG · GF</span>
+        <span className="shrink-0 text-xs font-bold uppercase tracking-[.1em] text-[#7890a7]">Orden: PTS · DG · GF</span>
       </header>
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] table-fixed border-collapse">
+        <table className="w-full min-w-[960px] table-fixed border-collapse">
           <thead>
-            <tr className="h-10 border-b border-[#d7e6f0] bg-[#eef6fb] text-[12px] font-black uppercase tracking-[.045em] text-[#244d76]">
+            <tr className="h-12 border-b border-[#d7e6f0] bg-[#eef6fb] text-sm font-black uppercase tracking-[.045em] text-[#244d76]">
               <th className="w-[46px] px-1 text-center">#</th>
               <th className="px-3 text-left">Club</th>
               <th className="w-[48px] px-1 text-center">PJ</th>
@@ -45,7 +46,7 @@ export default function CupGroupStandings({
               <th className="w-[54px] px-1 text-center">DG</th>
               <th className="w-[58px] px-1 text-center">PTS</th>
               <th className="w-[112px] px-2 text-center">Forma</th>
-              <th className="w-[178px] px-3 text-left">Próximo rival</th>
+              <th className="w-[220px] px-3 text-left">Próximo rival</th>
             </tr>
           </thead>
 
@@ -74,7 +75,7 @@ export default function CupGroupStandings({
                 return (
                   <tr
                     key={row.equipo}
-                    className="group h-[48px] border-b border-[#e4edf3] bg-white text-[14px] font-semibold transition-colors last:border-b-0 hover:bg-[#f5faff] sm:text-[15px]"
+                    className="group h-[72px] border-b border-[#e4edf3] bg-white text-lg font-semibold transition-colors last:border-b-0 hover:bg-[#f5faff]"
                   >
                     <td className="relative px-1 text-center font-medium text-[#46698d]">
                       <span
@@ -92,20 +93,8 @@ export default function CupGroupStandings({
 
                     <td className="min-w-0 px-3">
                       <TeamLink name={row.equipo} className="group/team flex min-w-0 items-center gap-2.5">
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center">
-                          {logo ? (
-                            <img
-                              src={logo}
-                              alt={row.equipo}
-                              className="h-full w-full object-contain transition-transform group-hover/team:scale-[1.04]"
-                            />
-                          ) : (
-                            <span className="flex h-7 w-7 items-center justify-center rounded bg-[#edf5fa] text-[8px] font-black text-[#597895]">
-                              {row.equipo.slice(0, 2).toUpperCase()}
-                            </span>
-                          )}
-                        </span>
-                        <span className="truncate text-[16px] font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">
+                        <ClubBadge name={row.equipo} src={logo} />
+                        <span className="break-words text-lg leading-snug font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">
                           {row.equipo}
                         </span>
                       </TeamLink>
@@ -116,7 +105,7 @@ export default function CupGroupStandings({
                     <td className="px-1 text-center text-[#45698e]">{row.pe}</td>
                     <td className="px-1 text-center text-[#45698e]">{row.pp}</td>
                     <td className="px-1 text-center text-[#45698e]">{row.dg > 0 ? "+" : ""}{row.dg}</td>
-                    <td className="px-1 text-center text-[16px] font-black text-[#102f55] sm:text-[17px]">{row.pts}</td>
+                    <td className="px-1 text-center text-xl font-black text-[#102f55]">{row.pts}</td>
 
                     <td className="px-2">
                       <div className="flex justify-center gap-[5px]">
@@ -137,24 +126,12 @@ export default function CupGroupStandings({
                     <td className="px-3">
                       {row.proximoRival ? (
                         <TeamLink name={row.proximoRival} className="group/team flex min-w-0 items-center gap-2">
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center">
-                            {rivalLogo ? (
-                              <img
-                                src={rivalLogo}
-                                alt={row.proximoRival}
-                                className="h-6 w-6 object-contain transition-transform group-hover/team:scale-[1.04]"
-                              />
-                            ) : (
-                              <span className="flex h-6 w-6 items-center justify-center rounded bg-[#edf5fa] text-[7px] font-black text-[#597895]">
-                                {row.proximoRival.slice(0, 2).toUpperCase()}
-                              </span>
-                            )}
-                          </span>
+                          <ClubBadge name={row.proximoRival} src={rivalLogo} className="h-9 w-9" />
                           <span className="min-w-0">
-                            <span className="block truncate text-[13px] font-bold text-[#355d83] transition-colors group-hover/team:text-[#258fcf]">
+                            <span className="block text-sm leading-snug font-bold text-[#355d83] transition-colors group-hover/team:text-[#258fcf]">
                               {row.proximoRival}
                             </span>
-                            <span className="block text-[11px] font-semibold text-[#7d94aa]">{formatCupDate(row.proximoPartido)}</span>
+                            <span className="block text-xs font-semibold text-[#7d94aa]">{formatCupDate(row.proximoPartido)}</span>
                           </span>
                         </TeamLink>
                       ) : (
@@ -169,7 +146,7 @@ export default function CupGroupStandings({
         </table>
       </div>
 
-      <footer className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#d7e6f0] bg-[#fbfdff] px-4 py-3 text-[9px] font-semibold text-[#67819a] sm:text-[10px]">
+      <footer className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-[#d7e6f0] bg-[#fbfdff] px-5 py-5 text-sm leading-relaxed font-semibold text-[#67819a]">
         {season === "Temporada 5" && <p className="w-full">Copa Argentina: 1.º y 2.º de cada grupo y los 2 mejores terceros. Copa APA: el tercero restante, 4.º y 5.º de cada grupo y el mejor sexto. Los otros 2 sextos quedan eliminados.</p>}
         <span className="flex items-center gap-1.5">
           <i className="h-2.5 w-2.5 rounded-full bg-[#2fb56d]" />

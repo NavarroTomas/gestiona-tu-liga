@@ -17,14 +17,14 @@ export default function CupControls({
     <div className="mb-4 space-y-3 sm:mb-5">
       <div className="flex items-end justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-[9px] font-black uppercase tracking-[.16em] text-[#7991a8]">Grupos</p>
-          <p className="mt-1 text-[11px] font-semibold text-[#5f7891] sm:text-[12px]">
+          <p className="text-sm font-black uppercase tracking-[.12em] text-[#7991a8]">Grupos</p>
+          <p className="mt-1 text-base font-semibold text-[#5f7891]">
             Elegí el grupo que querés consultar.
           </p>
         </div>
 
         <label className="grid shrink-0 gap-1.5">
-          <span className="text-[9px] font-black uppercase tracking-[.15em] text-[#7991a8]">Temporada</span>
+          <span className="text-xs font-black uppercase tracking-[.12em] text-[#7991a8]">Temporada</span>
           <span className="relative">
             <select
               value={season}
@@ -61,7 +61,7 @@ export default function CupControls({
                 key={item}
                 type="button"
                 onClick={() => onGroupChange(item)}
-                className={`min-w-[104px] rounded-[8px] border px-4 py-2.5 text-[14px] font-black transition sm:min-w-[114px] sm:text-[15px] ${
+                className={`min-w-[120px] rounded-[8px] border px-5 py-3 text-base font-black transition ${
                   active
                     ? "border-[#56afe2] bg-[#56afe2] text-white"
                     : "border-[#d4e5ef] bg-[#eef6fb] text-[#244d76] hover:border-[#a8cfe6] hover:bg-[#e5f3fb]"

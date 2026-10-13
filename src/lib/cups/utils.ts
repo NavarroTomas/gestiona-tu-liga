@@ -15,8 +15,12 @@ export function hasCupResult(match: CupMatch) {
 
 export function formatCupDate(match?: CupMatch | null) {
   if (!match) return "—";
-  if (match.dia) return String(match.dia);
+  if (match.dia) {
+    const iso = String(match.dia).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return iso ? `${iso[3]}/${iso[2]}/${iso[1]}` : String(match.dia);
+  }
   if (!match.fecha) return "—";
+  if (/^\d+$/.test(String(match.fecha))) return `Fecha ${match.fecha} · A programar`;
 
   const date = new Date(match.fecha);
   if (Number.isNaN(date.getTime())) return String(match.fecha);

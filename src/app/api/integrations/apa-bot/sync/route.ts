@@ -118,7 +118,9 @@ export async function POST(request: Request) {
         else return NextResponse.json({ error: "ambiguous_club", club: club.team_name, season: webSeason, candidate_ids: candidateIds }, { status: 409 });
       }
     }
-    const clubPayload = { nombre: club.team_name, slug: existing ? undefined : slug, logo_url: club.logo_url || null, updated_at: new Date().toISOString() };
+    const clubPayload: { nombre: string; slug?: string; logo_url?: string | null; updated_at: string } = { nombre: club.team_name, slug: existing ? undefined : slug, updated_at: new Date().toISOString() };
+    // Discord attachment URLs expire; preserve the web's permanent club assets.
+    if (!existing && club.logo_url && !/^https:\/\/(?:cdn|media)\.discordapp\.(?:com|net)\//i.test(club.logo_url)) clubPayload.logo_url = club.logo_url;
     if (existing) delete (clubPayload as { slug?: string }).slug;
     let clubId = existing?.id;
     if (clubId) {

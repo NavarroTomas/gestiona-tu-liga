@@ -781,6 +781,9 @@ table {
   body {
     zoom: 0.75;
   }
+  .apa-cups-page {
+    zoom: 1.3333333333;
+  }
 }
 
 @media (max-width: 1099px) {

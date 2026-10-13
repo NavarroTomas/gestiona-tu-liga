@@ -1,23 +1,13 @@
 import Link from "next/link";
 import TeamLink from "@/components/team/TeamLink";
+import ClubBadge from "./ClubBadge";
 import type { CupMatch } from "@/lib/cups/types";
 import { formatCupDate } from "@/lib/cups/utils";
 
 function TeamLogo({ name, getLogo, size = "md" }: { name: string; getLogo: (name?: string | null) => string | null; size?: "sm" | "md" | "lg" }) {
   const logo = getLogo(name);
-  const sizeClass = size === "lg" ? "h-16 w-16" : size === "sm" ? "h-6 w-6" : "h-8 w-8";
-
-  return (
-    <span className={`flex shrink-0 items-center justify-center ${sizeClass}`}>
-      {logo ? (
-        <img src={logo} alt={name} className="h-full w-full object-contain" />
-      ) : (
-        <span className="flex h-full w-full items-center justify-center rounded bg-[#edf5fa] text-[8px] font-black text-[#597895]">
-          {name.slice(0, 2).toUpperCase()}
-        </span>
-      )}
-    </span>
-  );
+  const sizeClass = size === "lg" ? "h-20 w-20" : size === "sm" ? "h-9 w-9" : "h-11 w-11";
+  return <ClubBadge name={name} src={logo} className={sizeClass} />;
 }
 
 export default function CupSidebar({
@@ -30,11 +20,11 @@ export default function CupSidebar({
   getLogo: (name?: string | null) => string | null;
 }) {
   return (
-    <aside className="grid items-start gap-4 sm:grid-cols-2 xl:grid-cols-1 xl:self-start">
+    <aside className="grid items-start gap-6 lg:grid-cols-2 2xl:grid-cols-1 2xl:self-start">
       <section className="overflow-hidden rounded-[10px] border border-[#d8e7f0] bg-white">
         <header className="flex h-[48px] items-center justify-between border-b border-[#e1edf4] bg-[#f8fbfd] px-4 sm:px-5">
           <h2 className="text-[18px] font-black uppercase tracking-[-.02em] text-[#102f55] sm:text-[18px]">Próximo partido</h2>
-          <Link href="/fixture" className="text-[10px] font-bold text-[#5d7893] transition hover:text-[#2498d8] sm:text-[11px]">Ver fixture →</Link>
+          <Link href="/fixture" className="text-sm font-bold text-[#5d7893] transition hover:text-[#2498d8]">Ver fixture →</Link>
         </header>
 
         {nextMatch ? (
@@ -47,7 +37,7 @@ export default function CupSidebar({
                 <span className="transition-transform group-hover/team:scale-[1.04]">
                   <TeamLogo name={nextMatch.local} getLogo={getLogo} size="lg" />
                 </span>
-                <strong className="max-w-full truncate text-[16px] font-black text-[#173e68] transition-colors group-hover/team:text-[#258fcf] sm:text-[16px]">
+                <strong className="max-w-full break-words text-lg leading-snug font-black text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">
                   {nextMatch.local}
                 </strong>
               </TeamLink>
@@ -67,21 +57,21 @@ export default function CupSidebar({
                 <span className="transition-transform group-hover/team:scale-[1.04]">
                   <TeamLogo name={nextMatch.visitante} getLogo={getLogo} size="lg" />
                 </span>
-                <strong className="max-w-full truncate text-[16px] font-black text-[#173e68] transition-colors group-hover/team:text-[#258fcf] sm:text-[16px]">
+                <strong className="max-w-full break-words text-lg leading-snug font-black text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">
                   {nextMatch.visitante}
                 </strong>
               </TeamLink>
             </div>
 
             <div className="mt-5 border-t border-[#e7eff5] pt-4">
-              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] font-bold text-[#66819b]">
+              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm font-bold text-[#66819b]">
                 <span>{formatCupDate(nextMatch)}</span>
                 <span className="hidden h-3 w-px bg-[#cbdce7] sm:block" />
                 <span>{nextMatch.hora || "Horario a confirmar"}</span>
               </div>
 
               <div className="mt-3 flex justify-center">
-                <Link href="/fixture" className="text-[10px] font-black text-[#2498d8] transition hover:text-[#102f55] sm:text-[11px]">
+                <Link href="/fixture" className="text-sm font-black text-[#2498d8] transition hover:text-[#102f55]">
                   Ver partido →
                 </Link>
               </div>
@@ -99,7 +89,7 @@ export default function CupSidebar({
               {nextMatch?.dia ? `Partidos · ${nextMatch.dia}` : "Próxima fecha"}
             </h2>
           </div>
-          <Link href="/fixture" className="shrink-0 text-[10px] font-bold text-[#5d7893] transition hover:text-[#2498d8]">Ver todos →</Link>
+          <Link href="/fixture" className="shrink-0 text-sm font-bold text-[#5d7893] transition hover:text-[#2498d8]">Ver todos →</Link>
         </header>
 
         <div className="px-3.5 sm:px-4">
@@ -109,13 +99,13 @@ export default function CupSidebar({
             matchdayMatches.map((match) => (
               <div
                 key={match.id}
-                className="grid min-h-[56px] grid-cols-[minmax(0,1fr)_24px_minmax(0,1fr)_54px] items-center gap-1.5 border-b border-[#e7eff5] py-2.5 last:border-b-0 transition hover:bg-[#f8fbfd]"
+                className="grid min-h-[80px] grid-cols-[minmax(0,1fr)_24px_minmax(0,1fr)] items-center gap-2 border-b border-[#e7eff5] py-3 last:border-b-0 transition hover:bg-[#f8fbfd]"
               >
                 <TeamLink name={match.local} className="group/team flex min-w-0 items-center gap-1.5">
                   <span className="transition-transform group-hover/team:scale-[1.04]">
                     <TeamLogo name={match.local} getLogo={getLogo} size="sm" />
                   </span>
-                  <span className="truncate text-[13px] font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">{match.local}</span>
+                  <span className="text-sm leading-snug font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">{match.local}</span>
                 </TeamLink>
 
                 <Link
@@ -127,7 +117,7 @@ export default function CupSidebar({
                 </Link>
 
                 <TeamLink name={match.visitante} className="group/team flex min-w-0 items-center justify-end gap-1.5">
-                  <span className="truncate text-right text-[13px] font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">{match.visitante}</span>
+                  <span className="text-right text-sm leading-snug font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">{match.visitante}</span>
                   <span className="transition-transform group-hover/team:scale-[1.04]">
                     <TeamLogo name={match.visitante} getLogo={getLogo} size="sm" />
                   </span>
@@ -135,7 +125,7 @@ export default function CupSidebar({
 
                 <Link
                   href="/fixture"
-                  className="text-right text-[9px] font-bold leading-[1.3] text-[#7890a7] transition-colors hover:text-[#258fcf]"
+                  className="col-span-3 text-right text-xs font-bold leading-[1.3] text-[#7890a7] transition-colors hover:text-[#258fcf]"
                   aria-label={`Ver ${match.local} vs ${match.visitante} en el fixture`}
                 >
                   {match.hora || formatCupDate(match)}
