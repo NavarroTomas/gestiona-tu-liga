@@ -90,9 +90,9 @@ export default function PlantillasManager() {
     }
 
     const currentDivision = normalizeDivision(division);
-    const names = ((teamsRes.data || []) as Team[])
+    const names = [...new Set(((teamsRes.data || []) as Team[])
       .filter((item) => normalizeDivision(item.division || "") === currentDivision)
-      .map((item) => item.nombre)
+      .map((item) => item.nombre))]
       .sort((a, b) => a.localeCompare(b));
 
     setTeams(names);
@@ -495,7 +495,7 @@ export default function PlantillasManager() {
                 </Select>
               </Field>
               <Field label="Club">
-                <Select value={team} onChange={(event) => setTeam(event.target.value)}>
+                <Select key={`${season}:${division}`} value={team} onChange={(event) => setTeam(event.target.value)}>
                   <option value="">Todos los clubes</option>
                   {teams.map((value) => <option key={value}>{value}</option>)}
                 </Select>
