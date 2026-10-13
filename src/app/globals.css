@@ -796,6 +796,16 @@ table {
   .apa-cups-page nav[aria-label="Secciones de Clasificación a Copas"] a { padding-block: 8px; }
   .apa-cups-content { padding: 12px 24px !important; }
   .apa-cups-content > div:first-child { margin-bottom: 12px; }
+  .apa-cups-content > div:first-child {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+  }
+  .apa-cups-content > div:first-child > div:first-child { display: contents; }
+  .apa-cups-content > div:first-child > div:first-child > div { display: none; }
+  .apa-cups-content > div:first-child label { grid-column: 2; grid-row: 1; gap: 2px; }
+  .apa-cups-content > div:first-child > div:last-child { grid-column: 1; grid-row: 1; margin-top: 0; }
   .apa-cups-content > div:first-child > div + div { margin-top: 8px; }
   .apa-cups-content > div:first-child button { padding: 8px 16px; font-size: 14px; }
   .apa-cups-content > div:first-child p { font-size: 12px; }
@@ -820,6 +830,7 @@ table {
   .apa-cups-grid td a > span:not(.apa-cup-badge) { font-size: 14px; }
   .apa-cups-grid td:nth-child(8) { font-size: 16px; }
   .apa-cups-grid td:last-child a > span:not(.apa-cup-badge) > span { font-size: 12px; }
+  .apa-cups-grid td:last-child a > span:not(.apa-cup-badge) > span { line-height: 16px; }
   .apa-cups-grid footer { padding: 10px 12px; font-size: 12px; gap: 8px; }
   .apa-cups-grid aside section > div { padding: 12px; }
   .apa-cups-grid aside strong { font-size: 14px; }
@@ -827,6 +838,7 @@ table {
   .apa-cups-grid aside .mt-5 { margin-top: 10px; padding-top: 8px; }
   .apa-cups-grid aside .mt-3 { margin-top: 6px; }
   .apa-cups-grid aside div.grid.min-h-\[80px\] { min-height: 60px; padding-block: 8px; }
+  .apa-cups-grid aside div.grid.min-h-\[80px\] a > span.text-sm { font-size: 12px; line-height: 16px; }
 }
 
 .apa-cups-page .apa-cup-badge {

@@ -147,7 +147,7 @@ export default function CupGroupStandings({
       </div>
 
       <footer className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-[#d7e6f0] bg-[#fbfdff] px-5 py-5 text-sm leading-relaxed font-semibold text-[#67819a]">
-        {season === "Temporada 5" && <p className="w-full">Copa Argentina: 1.º y 2.º de cada grupo y los 2 mejores terceros. Copa APA: el tercero restante, 4.º y 5.º de cada grupo y el mejor sexto. Los otros 2 sextos quedan eliminados.</p>}
+        {season === "Temporada 5" && <details className="w-full"><summary className="cursor-pointer">Reglas de clasificación</summary><p className="mt-2">Copa Argentina: 1.º y 2.º de cada grupo y los 2 mejores terceros. Copa APA: el tercero restante, 4.º y 5.º de cada grupo y el mejor sexto. Los otros 2 sextos quedan eliminados.</p></details>}
         <span className="flex items-center gap-1.5">
           <i className="h-2.5 w-2.5 rounded-full bg-[#2fb56d]" />
           Clasifica a {CUPS_CONFIG.qualification.copaArgentinaLabel}
