@@ -114,6 +114,7 @@ export default function CupSidebar({
                   aria-label={`Ver ${match.local} vs ${match.visitante} en el fixture`}
                 >
                   vs
+                  <span className="mt-1 block text-[10px] leading-tight">{match.hora || formatCupDate(match)}</span>
                 </Link>
 
                 <TeamLink name={match.visitante} className="group/team flex min-w-0 items-center justify-end gap-1.5">
@@ -123,13 +124,6 @@ export default function CupSidebar({
                   </span>
                 </TeamLink>
 
-                <Link
-                  href="/fixture"
-                  className="col-span-3 text-right text-xs font-bold leading-[1.3] text-[#7890a7] transition-colors hover:text-[#258fcf]"
-                  aria-label={`Ver ${match.local} vs ${match.visitante} en el fixture`}
-                >
-                  {match.hora || formatCupDate(match)}
-                </Link>
               </div>
             ))
           )}
