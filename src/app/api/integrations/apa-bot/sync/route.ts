@@ -18,6 +18,13 @@ function normalizeDivision(value: unknown) {
   return normalized || "sin-definir";
 }
 
+function seasonSlugMatches(slug: unknown, season: string) {
+  const value = String(slug || "").toLowerCase();
+  const number = season.match(/\d+/)?.[0];
+  if (!number) return false;
+  return new RegExp(`(?:^|-)t${number}$`).test(value) || new RegExp(`(?:^|-)temporada-${number}$`).test(value);
+}
+
 function authorized(request: Request, rawBody: string) {
   const expected = process.env.APA_BOT_SYNC_TOKEN;
   const timestamp = request.headers.get("x-apa-timestamp");
@@ -53,7 +60,7 @@ export async function POST(request: Request) {
     const slug = club.team_tag.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || club.team_name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     const { data: bySlug, error: slugError } = await supabase.from("clubes_info").select("id").eq("slug", slug).maybeSingle();
     if (slugError) throw slugError;
-    const { data: byName, error: nameError } = bySlug ? { data: null, error: null } : await supabase.from("clubes_info").select("id").ilike("nombre", club.team_name).limit(10);
+    const { data: byName, error: nameError } = bySlug ? { data: null, error: null } : await supabase.from("clubes_info").select("id,slug").ilike("nombre", club.team_name).limit(10);
     if (nameError) throw nameError;
     let existing = bySlug || null;
     if (!existing && byName?.length) {
@@ -67,8 +74,12 @@ export async function POST(request: Request) {
       const seasonIds = [...new Set((seasonLinks || []).map((row) => row.club_id))];
       if (seasonIds.length === 1) existing = { id: seasonIds[0] };
       else if (seasonIds.length > 1) return NextResponse.json({ error: "ambiguous_club", club: club.team_name, season: body.season, candidate_ids: seasonIds }, { status: 409 });
-      else if (byName.length === 1) existing = byName[0];
-      else return NextResponse.json({ error: "ambiguous_club", club: club.team_name, season: body.season, candidate_ids: candidateIds }, { status: 409 });
+      else {
+        const seasonalSlugCandidates = byName.filter((row) => seasonSlugMatches(row.slug, body.season));
+        if (seasonalSlugCandidates.length === 1) existing = seasonalSlugCandidates[0];
+        else if (byName.length === 1) existing = byName[0];
+        else return NextResponse.json({ error: "ambiguous_club", club: club.team_name, season: body.season, candidate_ids: candidateIds }, { status: 409 });
+      }
     }
     const clubPayload = { nombre: club.team_name, slug: existing ? undefined : slug, logo_url: club.logo_url || null, updated_at: new Date().toISOString() };
     if (existing) delete (clubPayload as { slug?: string }).slug;
