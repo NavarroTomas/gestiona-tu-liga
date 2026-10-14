@@ -26,7 +26,7 @@ export default function DivisionesPage() {
   );
 
   return (
-    <main className="min-h-screen bg-[#f4f9fd] text-[#102f55]">
+    <main className="apa-league-page min-h-screen bg-[#f4f9fd] text-[#102f55]">
       <LeagueHero temporada={temporada} division={division} />
       <LeagueTabs activeId="tabla" />
 

@@ -841,6 +841,21 @@ table {
   .apa-cups-grid aside .mt-3 { margin-top: 6px; }
   .apa-cups-grid aside div.grid.min-h-\[80px\] { min-height: 60px; padding-block: 8px; }
   .apa-cups-grid aside div.grid.min-h-\[80px\] a > span.text-sm { font-size: 12px; line-height: 16px; }
+
+  /* La tabla de liga necesita más aire que la vista compacta de copas. */
+  .apa-league-page section.mx-auto { padding-top: 20px; padding-bottom: 28px; }
+  .apa-league-page table thead tr { height: 46px; font-size: 14px; }
+  .apa-league-page table tbody tr { height: 68px; font-size: 15px; }
+  .apa-league-page table tbody td { padding-top: 8px; padding-bottom: 8px; }
+  .apa-league-page table tbody td:nth-child(2) a { gap: 12px; }
+  .apa-league-page table tbody td:nth-child(2) a > span:first-child,
+  .apa-league-page table tbody td:nth-child(2) a > span:first-child > img,
+  .apa-league-page table tbody td:nth-child(2) a > span:first-child > span { width: 42px; height: 42px; }
+  .apa-league-page table tbody td:nth-child(2) a > span:last-child { font-size: 16px; }
+  .apa-league-page table tbody td:nth-child(8) { font-size: 18px; }
+  .apa-league-page table tbody td:last-child img { width: 34px; height: 34px; }
+  .apa-league-page table tbody td:last-child a { width: 38px; height: 38px; }
+  .apa-league-page > section.mx-auto > div.grid { gap: 24px; }
 }
 
 .apa-cups-page .apa-cup-badge {
