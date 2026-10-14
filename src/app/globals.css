@@ -894,8 +894,9 @@ table {
   .apa-cups-page .apa-cups-grid th:nth-child(3),
   .apa-cups-page .apa-cups-grid th:nth-child(7),
   .apa-cups-page .apa-cups-grid th:nth-child(8) { width: 26px; }
-  .apa-cups-page .apa-cups-grid th:nth-child(10) { width: 48px; }
-  .apa-cups-page .apa-cups-grid th { padding-inline: 2px; font-size: 11px; }
+  .apa-cups-page .apa-cups-grid th:nth-child(8) { width: 32px; }
+  .apa-cups-page .apa-cups-grid th:nth-child(10) { width: 54px; }
+  .apa-cups-page .apa-cups-grid th { padding-inline: 2px; font-size: 11px; white-space: nowrap; overflow-wrap: normal; }
   .apa-cups-page .apa-cups-grid td { font-size: 12px; }
   .apa-cups-page .apa-cups-grid td:nth-child(8) { font-size: 14px; }
   .apa-cups-page .apa-cups-grid td:nth-child(2) a { gap: 5px; }
