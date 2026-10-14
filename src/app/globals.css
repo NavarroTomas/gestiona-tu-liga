@@ -819,13 +819,15 @@ table {
   .apa-cups-grid h2 { font-size: 18px; }
   .apa-cups-grid aside h2 { font-size: 14px; }
   .apa-cups-grid table { min-width: 0; }
+  .apa-cups-grid table { table-layout: fixed; }
   .apa-cups-grid thead tr { height: 34px; font-size: 12px; }
   .apa-cups-grid tbody tr { height: clamp(42px, calc((100dvh - 460px) / 6), 72px); font-size: clamp(14px, 1.2vw, 16px); }
   .apa-cups-grid th:first-child { width: 30px; }
+  .apa-cups-grid th:nth-child(2) { width: 46%; }
   .apa-cups-grid th:nth-child(n+3):nth-child(-n+8) { width: 32px; }
   .apa-cups-grid th:nth-child(9) { width: 68px; }
   .apa-cups-grid th:nth-child(10) { width: 110px; }
-  .apa-cups-grid td { padding-inline: 6px; }
+  .apa-cups-grid td { padding-inline: 4px; }
   .apa-cups-grid td a { gap: 6px; }
   .apa-cups-grid td a > span:not(.apa-cup-badge) { font-size: clamp(14px, 1.2vw, 16px); }
   .apa-cups-grid td:nth-child(8) { font-size: 16px; }
