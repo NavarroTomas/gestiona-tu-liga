@@ -275,7 +275,7 @@ export default function Navbar() {
         .filter((u: any) => u.username)
         .map((u: any) => ({
           tipo: "usuario",
-          titulo: u.display_name || u.username || "Usuario APA",
+          titulo: u.display_name || u.username || "Usuario Liga",
           subtitulo: `@${u.username}${u.playerid ? ` · PlayerID ${u.playerid}` : ""}`,
           href: `/u/${encodeURIComponent(u.username)}`,
           icono: "👤",
@@ -285,7 +285,7 @@ export default function Navbar() {
 
       (jugadoresRes.data || []).forEach((j: any) => {
         const playerId = String(j.playerId || j.player_id || "").trim();
-        const nombre = String(j.nombre || j.jugador || "Jugador APA").trim();
+        const nombre = String(j.nombre || j.jugador || "Jugador Liga").trim();
 
         if (!playerId) return;
 
@@ -312,7 +312,7 @@ export default function Navbar() {
           clubesUnicos.set(key, {
             tipo: "club",
             titulo: nombre,
-            subtitulo: `${c.temporada || "Temporada"} · ${c.division || "División"}`,
+            subtitulo: `${c.temporada || "Torneo"} · ${c.division || "División"}`,
             href: `/equipos/${encodeURIComponent(nombre)}`,
             icono: "🏟️",
           });
@@ -476,14 +476,14 @@ export default function Navbar() {
         <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-sky-400/30 bg-black/40 shadow-[0_0_18px_rgba(56,189,248,.20)]">
           <img
             src="/logo-apa.png"
-            alt="APA PSO"
+            alt="Liga PSO"
             className="h-full w-full object-cover transition duration-300 group-hover:scale-110"
           />
         </div>
 
         <div className="min-w-0 leading-none">
           <p className="truncate text-xs font-black uppercase tracking-[0.24em] text-white">
-            APA PSO
+            Liga PSO
           </p>
 
           <p className="mt-1 truncate text-[10px] font-black uppercase tracking-[0.32em] text-sky-300">
@@ -504,10 +504,10 @@ export default function Navbar() {
           type="button"
           onClick={() => setNotificacionesAbiertas(!notificacionesAbiertas)}
           className="relative rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-4 py-2.5 text-sm font-black uppercase text-yellow-300 transition hover:bg-yellow-400 hover:text-black"
-          aria-label={`Notificaciones APA${notificacionesNoLeidas > 0 ? `, ${notificacionesNoLeidas} sin leer` : ""}`}
+          aria-label={`Notificaciones Liga${notificacionesNoLeidas > 0 ? `, ${notificacionesNoLeidas} sin leer` : ""}`}
           aria-expanded={notificacionesAbiertas}
           aria-controls="apa-notifications-menu"
-          title="Notificaciones APA"
+          title="Notificaciones Liga"
         >
           🔔
           {notificacionesNoLeidas > 0 && (
@@ -521,7 +521,7 @@ export default function Navbar() {
           <div
             id="apa-notifications-menu"
             role="region"
-            aria-label="Notificaciones APA"
+            aria-label="Notificaciones Liga"
             className="absolute right-0 top-full z-[99999] mt-3 w-[min(380px,calc(100vw-1rem))] overflow-hidden rounded-[26px] border border-yellow-400/20 bg-[#050914]/96 p-3 shadow-[0_24px_70px_rgba(0,0,0,.65)] backdrop-blur-2xl"
           >
             <div className="mb-3 flex items-center justify-between gap-3 border-b border-white/10 pb-3">
@@ -789,7 +789,7 @@ export default function Navbar() {
                     </p>
 
                     <p className="mt-1 text-xs font-bold text-zinc-500">
-                      Accesos rápidos APA
+                      Accesos rápidos Liga
                     </p>
                   </div>
 
@@ -907,7 +907,7 @@ export default function Navbar() {
               }}
               className="flex w-full items-center justify-between rounded-2xl border border-sky-400/25 bg-sky-400/10 px-5 py-4 text-sm font-black uppercase text-sky-300 transition hover:bg-sky-400 hover:text-black"
             >
-              🔍 Buscar en APA <span>→</span>
+              🔍 Buscar en Liga <span>→</span>
             </button>
 
             {menus.map((menu) => (
@@ -1020,8 +1020,8 @@ export default function Navbar() {
               type="button"
               onClick={() => setBuscadorAbierto(true)}
               className="hidden rounded-2xl border border-sky-400/25 bg-sky-400/10 px-4 py-2.5 text-sm font-black uppercase text-sky-300 transition hover:bg-sky-400 hover:text-black md:inline-flex xl:hidden"
-              aria-label="Buscar en APA"
-              title="Buscar en APA"
+              aria-label="Buscar en Liga"
+              title="Buscar en Liga"
             >
               🔍
             </button>
@@ -1094,7 +1094,7 @@ export default function Navbar() {
                     Buscador global
                   </p>
                   <h2 id="apa-search-title" className="mt-2 text-3xl font-black uppercase text-white">
-                    Buscar en APA
+                    Buscar en Liga
                   </h2>
                 </div>
 
@@ -1148,7 +1148,7 @@ export default function Navbar() {
               <div className="mt-5 max-h-[460px] space-y-2 overflow-y-auto pr-1">
                 {queryBusqueda.trim().length < 2 ? (
                   <div className="rounded-2xl border border-white/10 bg-black/35 p-5 text-sm text-zinc-500">
-                    Escribí al menos 2 caracteres para buscar en APA.
+                    Escribí al menos 2 caracteres para buscar en Liga.
                   </div>
                 ) : buscando ? (
                   <div className="rounded-2xl border border-sky-400/20 bg-sky-400/10 p-5 text-sm font-black uppercase tracking-[0.2em] text-sky-300">

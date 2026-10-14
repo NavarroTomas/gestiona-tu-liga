@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Image from "next/image";
 import Link from "next/link";
@@ -17,9 +19,9 @@ type Props = {
 };
 
 const introStats = [
-  { value: "T4", label: "Temporada oficial", icon: "🏆" },
+  { value: "T4", label: "Torneo oficial", icon: "🏆" },
   { value: "2", label: "Divisiones activas", icon: "⚽" },
-  { value: "APA", label: "Liga competitiva", icon: "AR" },
+  { value: "Liga", label: "Liga competitiva", icon: "AR" },
   { value: "Stats", label: "Fixture y rankings", icon: "📊" },
 ];
 
@@ -74,23 +76,23 @@ export default function HomeIntro({ theme, temporada, divisionActual }: Props) {
         <div className="max-w-[650px]">
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-200/30 bg-black/22 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-amber-100 shadow-[0_12px_35px_rgba(0,0,0,.25)] backdrop-blur-md">
             <span className="h-1.5 w-1.5 rounded-full bg-amber-300 shadow-[0_0_16px_rgba(252,211,77,.9)]" />
-            <span>Liga Oficial APA</span>
+            <span>Liga Oficial Liga</span>
           </div>
 
           <h2 className="mt-6 max-w-[720px] text-[clamp(2.35rem,6.4vw,5.05rem)] font-black uppercase italic leading-[0.86] tracking-[-0.07em] text-white drop-shadow-[0_10px_30px_rgba(0,0,0,.55)]">
-            APA
+            Liga
             <span className="block bg-gradient-to-r from-sky-200 via-white to-amber-100 bg-clip-text text-transparent">
               Liga Oficial
             </span>
           </h2>
 
           <p className="mt-6 max-w-2xl text-sm leading-7 text-slate-200/92 md:text-base md:leading-8">
-            Seguí la temporada oficial de APA en Pro Soccer Online: divisiones, fixture, clubes, estadísticas, rankings y toda la actividad competitiva.
+            Seguí el torneo oficial de Liga en Pro Soccer Online: divisiones, fixture, clubes, estadísticas, rankings y toda la actividad competitiva.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-2.5">
             <span className="rounded-full border border-sky-200/25 bg-sky-200/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-sky-100 backdrop-blur-md md:text-xs">
-              {temporada}
+              {displayLabel(temporada)}
             </span>
             <span className="rounded-full border border-amber-200/30 bg-amber-200/12 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-100 backdrop-blur-md md:text-xs">
               {divisionActual.icon} {divisionActual.label} División
@@ -112,7 +114,7 @@ export default function HomeIntro({ theme, temporada, divisionActual }: Props) {
               href="/guia"
               className="rounded-2xl border border-white/16 bg-white/[0.06] px-6 py-3 text-xs font-black uppercase tracking-[0.14em] text-slate-100 shadow-[0_16px_35px_rgba(0,0,0,.22)] backdrop-blur-md transition hover:-translate-y-0.5 hover:border-sky-200/35 hover:bg-sky-200/10 md:px-7 md:text-sm"
             >
-              Cómo funciona APA
+              Cómo funciona Liga
             </Link>
           </div>
         </div>
@@ -133,7 +135,7 @@ export default function HomeIntro({ theme, temporada, divisionActual }: Props) {
                 <div className="flex items-start justify-between gap-3">
                   <span className="text-lg text-amber-200">{stat.icon}</span>
                   <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-slate-400">
-                    APA
+                    Liga
                   </span>
                 </div>
                 <p className="mt-4 text-2xl font-black uppercase leading-none tracking-[-0.05em] text-white md:text-3xl">

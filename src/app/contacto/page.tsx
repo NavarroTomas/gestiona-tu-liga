@@ -2,20 +2,20 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Contacto y Privacidad",
-  description: "Canales de contacto y solicitudes de datos de APA PSO Argentina.",
+  description: "Canales de contacto y solicitudes de datos de Gestioná tu Liga.",
 };
 
 export default function ContactoPage() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-16 text-zinc-200">
       <h1 className="text-4xl font-black text-white">Contacto y solicitudes de datos</h1>
-      <p className="mt-3 text-sm text-zinc-500">APA PSO Argentina</p>
+      <p className="mt-3 text-sm text-zinc-500">Gestioná tu Liga</p>
 
       <div className="mt-10 space-y-8 leading-7">
         <section>
           <h2 className="text-xl font-black text-white">Soporte oficial</h2>
           <p className="mt-3">
-            El canal oficial disponible actualmente para soporte de cuentas, competiciones y consultas de privacidad es el Discord de APA PSO Argentina.
+            El canal oficial disponible actualmente para soporte de cuentas, competiciones y consultas de privacidad es el Discord de Gestioná tu Liga.
           </p>
           <a
             href="https://discord.gg/WCyqeJMmCU"
@@ -23,21 +23,21 @@ export default function ContactoPage() {
             rel="noopener noreferrer"
             className="mt-4 inline-block underline underline-offset-4"
           >
-            Abrir Discord oficial de APA PSO Argentina
+            Abrir Discord oficial de Gestioná tu Liga
           </a>
         </section>
 
         <section>
           <h2 className="text-xl font-black text-white">Solicitudes sobre datos personales</h2>
           <p className="mt-3">
-            Podés solicitar acceso, información, actualización, rectificación o supresión de los datos asociados a tu cuenta. Para proteger a los usuarios, APA puede pedir elementos razonables que permitan comprobar que la solicitud corresponde a la persona titular de la cuenta.
+            Podés solicitar acceso, información, actualización, rectificación o supresión de los datos asociados a tu cuenta. Para proteger a los usuarios, Liga puede pedir elementos razonables que permitan comprobar que la solicitud corresponde a la persona titular de la cuenta.
           </p>
         </section>
 
         <section>
           <h2 className="text-xl font-black text-white">Qué incluir</h2>
           <p className="mt-3">
-            Indicá tu usuario de APA y explicá con claridad la solicitud. No envíes contraseñas, códigos de sesión ni información financiera. Si la consulta se relaciona con Steam o Discord, compartí únicamente los identificadores necesarios para localizar tu cuenta.
+            Indicá tu usuario de Liga y explicá con claridad la solicitud. No envíes contraseñas, códigos de sesión ni información financiera. Si la consulta se relaciona con Steam o Discord, compartí únicamente los identificadores necesarios para localizar tu cuenta.
           </p>
         </section>
 

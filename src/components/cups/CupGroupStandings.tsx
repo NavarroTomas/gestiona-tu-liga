@@ -1,3 +1,5 @@
+
+import {displayLabel} from "@/lib/displayLabels";
 import TeamLink from "@/components/team/TeamLink";
 import ClubBadge from "./ClubBadge";
 import { CUPS_CONFIG, getCupDestination } from "@/config/cups";
@@ -83,7 +85,7 @@ export default function CupGroupStandings({
                           destination === "argentina" ? "bg-[#2fb56d]" : destination === "elimination" ? "bg-[#e34b50]" : destination === "pending" ? "bg-[#d6a334]" : "bg-[#56afe2]"
                         }`}
                         title={
-                          destination === "elimination" ? "Zona de eliminación: el mejor sexto clasifica a Copa APA" : destination === "pending" ? "Depende de la comparación entre grupos" : destination === "argentina"
+                          destination === "elimination" ? "Zona de eliminación: el mejor sexto clasifica a Copa de la Liga" : destination === "pending" ? "Depende de la comparación entre grupos" : destination === "argentina"
                             ? CUPS_CONFIG.qualification.copaArgentinaLabel
                             : CUPS_CONFIG.qualification.copaApaLabel
                         }
@@ -141,7 +143,7 @@ export default function CupGroupStandings({
       </div>
 
       <footer className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-[#d7e6f0] bg-[#fbfdff] px-5 py-5 text-sm leading-relaxed font-semibold text-[#67819a]">
-        {season === "Temporada 5" && <details className="w-full"><summary className="cursor-pointer">Reglas de clasificación</summary><p className="mt-2">Copa Argentina: 1.º y 2.º de cada grupo y los 2 mejores terceros. Copa APA: el tercero restante, 4.º y 5.º de cada grupo y el mejor sexto. Los otros 2 sextos quedan eliminados.</p></details>}
+        {displayLabel(season === "Temporada 5" && <details className="w-full"><summary className="cursor-pointer">Reglas de clasificación</summary><p className="mt-2">Copa Argentina: 1.º y 2.º de cada grupo y los 2 mejores terceros. Copa de la Liga: el tercero restante, 4.º y 5.º de cada grupo y el mejor sexto. Los otros 2 sextos quedan eliminados.</p></details>)}
         <span className="flex items-center gap-1.5">
           <i className="h-2.5 w-2.5 rounded-full bg-[#2fb56d]" />
           Clasifica a {CUPS_CONFIG.qualification.copaArgentinaLabel}
@@ -150,7 +152,7 @@ export default function CupGroupStandings({
           <i className="h-2.5 w-2.5 rounded-full bg-[#56afe2]" />
           Clasifica a {CUPS_CONFIG.qualification.copaApaLabel}
         </span>
-        {season === "Temporada 5" && <span className="flex w-full items-center gap-1.5"><i className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#e34b50]" />6.º: zona de eliminación; el mejor sexto clasifica a Copa APA y los otros dos quedan eliminados.</span>}
+        {displayLabel(season === "Temporada 5" && <span className="flex w-full items-center gap-1.5"><i className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#e34b50]" />6.º: zona de eliminación; el mejor sexto clasifica a Copa de la Liga y los otros dos quedan eliminados.</span>)}
       </footer>
     </section>
   );

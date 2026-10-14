@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
@@ -33,11 +35,11 @@ export default function Header() {
         <div>
 
           <p className="uppercase text-cyan-400 text-sm tracking-[5px] mb-3 font-bold">
-            APA PSO ARGENTINA
+            Liga PSO ARGENTINA
           </p>
 
           <h1 className="text-6xl font-black tracking-tight">
-            {temporada}
+            {displayLabel(temporada)}
           </h1>
 
           <p className="text-zinc-500 mt-3 text-lg">

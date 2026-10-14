@@ -122,7 +122,7 @@ export function TopPlayers({ players }: { players: JugadorStats[] }) {
             <div className="grid grid-cols-3 gap-3 mt-6">
               <MiniStat label="Goles" value={j.goals} />
               <MiniStat label="Asist." value={j.assists} />
-              <MiniStat label="Rating APA" value={ratingJugador(j)} />
+              <MiniStat label="Valoración" value={ratingJugador(j)} />
             </div>
           </div>
         ))}
@@ -172,7 +172,7 @@ export function Goalkeepers({ players }: { players: JugadorStats[] }) {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
               <MiniStat label="Atajadas" value={valorGKSave(j as JugadorStats & Record<string, unknown>)} />
               <MiniStat label="Atrapadas" value={j.gKCatches} />
-              <MiniStat label="Rating APA" value={ratingJugador(j)} />
+              <MiniStat label="Valoración" value={ratingJugador(j)} />
               <MiniStat label="Score" value={j.score} />
             </div>
           </div>

@@ -12,7 +12,7 @@ export async function generateMetadata({
 
   return createPageMetadata({
     title: club,
-    description: `Plantel, estadísticas, resultados e historial de ${club} en APA PSO Argentina.`,
+    description: `Plantel, estadísticas, resultados e historial de ${club} en Gestioná tu Liga.`,
     path: `/equipos/${encodeURIComponent(club)}`,
   });
 }

@@ -12,7 +12,7 @@ const LABELS: Record<string, string> = {
   liga: "Liga",
   copa_clasificatoria: "Clasificación",
   copa_argentina: "Copa Argentina",
-  copa_apa: "Copa APA",
+  copa_apa: "Copa de la Liga",
   copa_campeones: "Copa Campeones",
   playoffs: "Playoffs",
 };
@@ -50,7 +50,7 @@ export default function ClubsHonours({
             <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#245f8e]">Reconocimiento oficial</p>
             <h2 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#0b2747] sm:text-3xl">Palmarés de clubes</h2>
           </div>
-          <p className="max-w-xl text-sm leading-6 text-[#65788b]">Los títulos se muestran únicamente dentro de la temporada de esta identidad competitiva.</p>
+          <p className="max-w-xl text-sm leading-6 text-[#65788b]">Los títulos se muestran únicamente dentro del torneo de esta identidad competitiva.</p>
         </div>
 
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">

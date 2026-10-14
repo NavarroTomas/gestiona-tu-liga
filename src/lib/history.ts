@@ -416,7 +416,7 @@ export function competitionSummary(
     },
     {
       key: "copa_apa",
-      label: "Copa APA",
+      label: "Copa de la Liga",
       rows: [
         { label: "Campeón", team: apa?.champion || "Por definir" },
         { label: "Subcampeón", team: apa?.runnerUp || "Por definir" },

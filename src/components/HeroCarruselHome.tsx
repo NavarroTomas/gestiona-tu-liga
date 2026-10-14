@@ -8,7 +8,7 @@ export default function HeroCarruselHome() {
       <div className="relative z-10 flex flex-col items-center justify-between gap-8 lg:flex-row lg:gap-10">
         <div className="max-w-2xl">
           <p className="mb-4 text-[10px] sm:text-xs font-black tracking-[0.25em] sm:tracking-[0.45em] uppercase text-sky-400">
-            COMUNIDAD APA PSO
+            COMUNIDAD Liga PSO
           </p>
 
           <h2 className="text-[clamp(2.2rem,8vw,4.2rem)] font-black leading-[0.95] uppercase">
@@ -27,7 +27,7 @@ export default function HeroCarruselHome() {
 
           <p className="mt-5 max-w-xl text-sm sm:text-base lg:text-lg text-zinc-300">
             Entrá al Discord oficial, seguí las novedades de la liga,
-            highlights, clips, mercado de pases y toda la comunidad APA PSO.
+            highlights, clips, mercado de pases y toda la comunidad Liga PSO.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3 sm:gap-4">
@@ -105,7 +105,7 @@ export default function HeroCarruselHome() {
             </h3>
 
             <p className="text-zinc-400 text-sm mt-2">
-              Temporadas competitivas y estadísticas reales.
+              Torneos competitivas y estadísticas reales.
             </p>
           </div>
         </div>

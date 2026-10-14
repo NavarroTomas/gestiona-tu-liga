@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -83,7 +85,7 @@ export default function JugadorPage() {
     }
 
     if (perfilResult.error) {
-      console.error("Error cargando perfil APA:", perfilResult.error);
+      console.error("Error cargando perfil Liga:", perfilResult.error);
       setPerfilAPA(null);
     } else {
       setPerfilAPA(perfilResult.data || null);
@@ -253,7 +255,7 @@ export default function JugadorPage() {
 
           <div className="relative z-10 p-5 sm:p-7 md:p-10">
             <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-400 sm:text-xs sm:tracking-[0.45em]">
-              Jugador APA · Perfil oficial
+              Jugador Liga · Perfil oficial
             </p>
 
             <div className="mt-7 flex flex-col items-center gap-6 text-center lg:flex-row lg:items-center lg:text-left xl:gap-8">
@@ -299,7 +301,7 @@ export default function JugadorPage() {
                 </div>
 
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-zinc-300 sm:text-base md:text-lg">
-                  {perfilAPA?.bio || "Carrera completa registrada en APA PSO Argentina UE5."}
+                  {perfilAPA?.bio || "Carrera completa registrada en Gestioná tu Liga UE5."}
                 </p>
 
                 {perfilAPA?.username && (
@@ -307,7 +309,7 @@ export default function JugadorPage() {
                     href={`/u/${perfilAPA.username}`}
                     className="mt-5 inline-flex rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-white transition hover:border-yellow-400/40 hover:bg-yellow-400/10 hover:text-yellow-300"
                   >
-                    Ver perfil APA
+                    Ver perfil Liga
                   </Link>
                 )}
 
@@ -317,7 +319,7 @@ export default function JugadorPage() {
                   </span>
 
                   <span className="rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-sm font-black uppercase text-yellow-300">
-                    {temporadas.length} temporadas
+                    {temporadas.length} torneos
                   </span>
 
                   <span className="rounded-2xl border border-white/10 bg-black/30 px-4 py-2 text-sm font-black uppercase text-zinc-400">
@@ -387,13 +389,13 @@ export default function JugadorPage() {
               </div>
 
               <p className="max-w-xl text-base leading-7 text-zinc-400">
-                Resumen general del recorrido competitivo del jugador dentro de APA.
+                Resumen general del recorrido competitivo del jugador dentro de Liga.
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
               {[
-                ["Temporadas", temporadas.length, "📅", "text-sky-300"],
+                ["Torneos", temporadas.length, "📅", "text-sky-300"],
                 ["Clubes", equipos.length, "🛡️", "text-yellow-300"],
                 ["Divisiones", divisiones.length, "🏆", "text-purple-300"],
                 ["Partidos", totales.partidos, "⚽", "text-green-300"],
@@ -472,9 +474,9 @@ export default function JugadorPage() {
 
                 <div className="rounded-2xl border border-sky-500/20 bg-black/35 p-4">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
-                    Temporada
+                    Torneo
                   </p>
-                  <p className="mt-2 font-black">{mejorPartido.temporada}</p>
+                  <p className="mt-2 font-black">{displayLabel(mejorPartido.temporada)}</p>
                 </div>
 
                 <div className="rounded-2xl border border-sky-500/20 bg-black/35 p-4">
@@ -546,7 +548,7 @@ export default function JugadorPage() {
         )}
         <section className="rounded-[28px] border border-purple-500/25 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6">
           <h2 className="mb-6 break-words text-xl font-black uppercase sm:text-2xl sm:text-3xl">
-            📈 Evolución por temporada
+            📈 Evolución por torneo
           </h2>
 
           <div className="space-y-4">
@@ -558,7 +560,7 @@ export default function JugadorPage() {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
                     <p className="text-purple-300 text-xs uppercase tracking-[0.2em] font-black">
-                      {t.temporada}
+                      {displayLabel(t.temporada)}
                     </p>
 
                     <h3 className="break-words text-xl font-black uppercase sm:text-2xl">
@@ -619,7 +621,7 @@ export default function JugadorPage() {
         </section>
         <section className="rounded-[28px] border border-sky-500/25 bg-[#020714] p-5 sm:rounded-[34px] sm:p-6">
           <h2 className="mb-6 break-words text-xl font-black uppercase sm:text-2xl sm:text-3xl">
-            Carrera por temporada
+            Carrera por torneo
           </h2>
 
           <div className="overflow-x-auto">
@@ -627,7 +629,7 @@ export default function JugadorPage() {
               <thead>
                 <tr className="text-[11px] uppercase tracking-[0.25em] text-sky-300/80">
                   <th className="text-left py-3">Equipo</th>
-                  <th className="text-center py-3">Temporada</th>
+                  <th className="text-center py-3">Torneo</th>
                   <th className="text-center py-3">División</th>
                   <th className="text-center py-3">PJ</th>
                   <th className="text-center py-3">G</th>
@@ -649,7 +651,7 @@ export default function JugadorPage() {
                       {item.equipo}
                     </td>
                     <td className="py-4 text-center font-black">
-                      {item.temporada}
+                      {displayLabel(item.temporada)}
                     </td>
                     <td className="py-4 text-center font-black">
                       {item.division}
@@ -735,7 +737,7 @@ export default function JugadorPage() {
                       </Link>
 
                       <p className="mt-2 text-xs text-zinc-500 uppercase tracking-[0.18em]">
-                        {r.temporada} · {r.division} · Fecha {r.fecha}
+                        {displayLabel(r.temporada)} · {r.division} · Fecha {r.fecha}
                       </p>
                     </div>
 

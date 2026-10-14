@@ -71,7 +71,7 @@ function PlayoffsContent() {
         )}
 
         <div className="mt-4 border-t border-[#d7e6f0] pt-4 text-[11px] font-semibold leading-5 text-[#6f879d]">
-          El ganador de la Final de Ascenso disputa la Promoción contra el anteúltimo de Primera División. El resultado de esa serie define quién ocupa la plaza en Primera la temporada siguiente.
+          El ganador de la Final de Ascenso disputa la Promoción contra el anteúltimo de Primera División. El resultado de esa serie define quién ocupa la plaza en Primera el torneo siguiente.
         </div>
       </section>
 

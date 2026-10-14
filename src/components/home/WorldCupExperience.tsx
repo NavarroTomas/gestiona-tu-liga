@@ -58,14 +58,14 @@ export default function WorldCupExperience({
           </h2>
 
           <p className="mt-5 max-w-[460px] text-sm leading-6 text-slate-200/90">
-            Elegí temporada, competición o división para actualizar estadísticas,
+            Elegí torneo, competición o división para actualizar estadísticas,
             fixture, rankings y partido destacado.
           </p>
 
           <div className="mt-7 space-y-5">
             <div>
               <p className="mb-3 text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">
-                Temporada
+                Torneo
               </p>
 
               <div className="flex flex-wrap gap-2">

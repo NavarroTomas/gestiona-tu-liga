@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
@@ -59,7 +61,7 @@ const nombresDivision: Record<string, string> = {
   "grupo-c": "Grupo C",
   "grupo-d": "Grupo D",
   "copa-argentina": "Copa Argentina",
-  "copa-apa": "Copa APA",
+  "copa-apa": "Copa de la Liga",
   "copa-campeones": "Copa de Campeones",
   playoffs: "Playoffs de Ascenso",
 };
@@ -358,7 +360,7 @@ export default function FixtureDivisionPage() {
                   {nombresDivision[division] || division}
                 </span>
                 <span className="block text-sky-400 drop-shadow-[0_0_22px_rgba(56,189,248,.55)]">
-                  {temporada}
+                  {displayLabel(temporada)}
                 </span>
               </h1>
 

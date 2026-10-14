@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -83,7 +85,7 @@ type Candidate = {
 
 const DIVISIONES = ["Todas", "Primera", "Segunda"];
 const PREMIO_CONFIG: Record<PremioKey, { nombre: string; icono: string; descripcion: string }> = {
-  balon_oro: { nombre: "Balón de Oro", icono: "🏆", descripcion: "Mejor temporada completa: rendimiento individual, títulos/premios, nivel competitivo y regularidad." },
+  balon_oro: { nombre: "Balón de Oro", icono: "🏆", descripcion: "Mejor torneo completa: rendimiento individual, títulos/premios, nivel competitivo y regularidad." },
   the_best: { nombre: "The Best", icono: "🏅", descripcion: "Mejor jugador de Segunda División con el mismo modelo equilibrado del Balón de Oro." },
   raiko_trophy: { nombre: "Raiko Trophy", icono: "🧤", descripcion: "Mejor arquero por eficiencia y solidez. Las atajadas brutas ya no dan ventaja por recibir más tiros." },
   bota_oro: { nombre: "Bota de Oro", icono: "⚽", descripcion: "Máximo goleador oficial, ponderado por importancia de la competición." },
@@ -253,7 +255,7 @@ export default function AwardsManager() {
       const id = playerId(row); if (!id) return;
       const weight = competitionWeight(match.competicion, officialDivision, match.fase);
       if (!map.has(id)) map.set(id, {
-        playerid: id, nombre: row.nombre || "Jugador APA", equipo: row.equipo || "Sin club", divisiones: {}, divisionesLiga: {}, posiciones: {}, partidos: 0,
+        playerid: id, nombre: row.nombre || "Jugador Liga", equipo: row.equipo || "Sin club", divisiones: {}, divisionesLiga: {}, posiciones: {}, partidos: 0,
         goles: 0, asistencias: 0, mvps: 0, ratingTotal: 0, ratings: 0, atajadas: 0, atrapadas: 0, individualRaw: 0,
         competenciaRaw: 0, golesPonderados: 0, golesRecibidos: 0, tirosRecibidos: 0, vallasInvictas: 0, gkPartidos: 0,
         gkPesoCompetitivoTotal: 0,
@@ -422,7 +424,7 @@ export default function AwardsManager() {
         <div className="mx-auto max-w-[1500px] space-y-5 px-4 py-7 md:px-8">
           <Link href="/admin/historia" className="text-xs font-black uppercase tracking-[0.16em] text-[#245f8e]">← Volver a historia</Link>
           <section className="rounded-[24px] bg-gradient-to-br from-[#0b2747] via-[#123f69] to-[#245f8e] p-6 !text-white md:p-8">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] !text-white/70">Premios APA</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] !text-white/70">Premios Liga</p>
             <h1 className="mt-2 text-3xl font-black uppercase !text-white md:text-5xl">Ranking de premios</h1>
             <p className="mt-3 max-w-3xl text-sm !text-white/80">El Balón de Oro no usa score bruto. El Raiko Trophy mide eficiencia real: no premia simplemente al arquero que más tiros recibe.</p>
           </section>
@@ -433,11 +435,11 @@ export default function AwardsManager() {
                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#245f8e]">Configuración</p>
                 <h2 className="mt-2 text-xl font-black uppercase">Seleccionar premio</h2>
                 <div className="mt-5 space-y-4">
-                  <label className="block text-[10px] font-black uppercase tracking-[0.12em]">Temporada
-                    <select value={temporada} onChange={(e) => setTemporada(e.target.value)} className="mt-2 w-full rounded-xl border border-[#d8e2ec] bg-white px-3 py-3 text-[#0b2747]">{temporadas.map((t) => <option key={t}>{t}</option>)}</select>
+                  <label className="block text-[10px] font-black uppercase tracking-[0.12em]">Torneo
+                    <select value={temporada} onChange={(e) => setTemporada(e.target.value)} className="mt-2 w-full rounded-xl border border-[#d8e2ec] bg-white px-3 py-3 text-[#0b2747]">{temporadas.map((t) => <option key={t} value={t}>{displayLabel(t)}</option>)}</select>
                   </label>
                   <label className="block text-[10px] font-black uppercase tracking-[0.12em]">División
-                    <select value={division} onChange={(e) => setDivision(e.target.value)} className="mt-2 w-full rounded-xl border border-[#d8e2ec] bg-white px-3 py-3 text-[#0b2747]">{DIVISIONES.map((d) => <option key={d}>{d}</option>)}</select>
+                    <select value={division} onChange={(e) => setDivision(e.target.value)} className="mt-2 w-full rounded-xl border border-[#d8e2ec] bg-white px-3 py-3 text-[#0b2747]">{DIVISIONES.map((d) => <option key={d} value={d}>{displayLabel(d)}</option>)}</select>
                   </label>
                   <label className="block text-[10px] font-black uppercase tracking-[0.12em]">Premio
                     <select value={premio} onChange={(e) => setPremio(e.target.value as PremioKey)} className="mt-2 w-full rounded-xl border border-[#d8e2ec] bg-white px-3 py-3 text-[#0b2747]">{Object.entries(PREMIO_CONFIG).map(([key, value]) => <option key={key} value={key}>{value.icono} {value.nombre}</option>)}</select>
@@ -489,7 +491,7 @@ export default function AwardsManager() {
 
               <section className="rounded-[22px] border border-[#d8e2ec] bg-white p-5">
                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#245f8e]">Historial</p><h2 className="mt-1 text-xl font-black uppercase">Premios asignados</h2>
-                <div className="mt-4 space-y-2">{savedAwards.length === 0 ? <p className="text-sm text-[#245f8e]">Todavía no hay premios cargados.</p> : savedAwards.slice(0, 20).map((award) => <div key={award.id} className="flex items-center justify-between gap-3 rounded-xl bg-[#f3f4f6] px-3 py-3"><div className="min-w-0"><p className="truncate text-sm font-black uppercase">{PREMIO_CONFIG[award.premio as PremioKey]?.icono || "🏆"} {award.nombre}</p><p className="text-[11px] text-[#245f8e]">{PREMIO_CONFIG[award.premio as PremioKey]?.nombre || award.premio} · {award.temporada} · {award.equipo || "Sin club"}</p></div><button onClick={() => void deleteAward(award.id)} className="rounded-lg border border-red-300 px-3 py-2 text-[10px] font-black uppercase text-red-700">Borrar</button></div>)}</div>
+                <div className="mt-4 space-y-2">{savedAwards.length === 0 ? <p className="text-sm text-[#245f8e]">Todavía no hay premios cargados.</p> : savedAwards.slice(0, 20).map((award) => <div key={award.id} className="flex items-center justify-between gap-3 rounded-xl bg-[#f3f4f6] px-3 py-3"><div className="min-w-0"><p className="truncate text-sm font-black uppercase">{PREMIO_CONFIG[award.premio as PremioKey]?.icono || "🏆"} {award.nombre}</p><p className="text-[11px] text-[#245f8e]">{PREMIO_CONFIG[award.premio as PremioKey]?.nombre || award.premio} · {displayLabel(award.temporada)} · {award.equipo || "Sin club"}</p></div><button onClick={() => void deleteAward(award.id)} className="rounded-lg border border-red-300 px-3 py-2 text-[10px] font-black uppercase text-red-700">Borrar</button></div>)}</div>
               </section>
             </section>
           </section>

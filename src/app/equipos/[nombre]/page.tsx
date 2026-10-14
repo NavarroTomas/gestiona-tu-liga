@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -334,7 +336,7 @@ export default function PaginaEquipo() {
     if (key === "liga") return `Liga ${divisionBonita(partido.division)}`;
     if (key === "copa_clasificatoria") return "Clasificación a Copas";
     if (key === "copa_argentina") return "Copa Argentina";
-    if (key === "copa_apa") return "Copa APA";
+    if (key === "copa_apa") return "Copa de la Liga";
     if (key === "copa_campeones") return "Copa de Campeones";
     if (key === "playoffs") return "Playoffs de Ascenso";
     return partido.competicion || "Competición";
@@ -465,7 +467,7 @@ export default function PaginaEquipo() {
         };
       })
       .sort((a, b) => {
-        const orden = ["Liga", "Clasificación", "Copa Argentina", "Copa APA", "Copa de Campeones", "Playoffs"];
+        const orden = ["Liga", "Clasificación", "Copa Argentina", "Copa de la Liga", "Copa de Campeones", "Playoffs"];
         return orden.findIndex((x) => a.nombre.startsWith(x)) - orden.findIndex((x) => b.nombre.startsWith(x));
       });
   }
@@ -833,7 +835,7 @@ export default function PaginaEquipo() {
         "Liga Segunda",
         "Clasificación a Copas",
         "Copa Argentina",
-        "Copa APA",
+        "Copa de la Liga",
         "Copa de Campeones",
         "Playoffs de Ascenso",
       ];
@@ -874,7 +876,7 @@ export default function PaginaEquipo() {
         <div className="max-w-xl rounded-3xl border border-sky-400/20 bg-sky-400/10 p-8 text-center">
           <h1 className="text-3xl font-black uppercase">Club no encontrado</h1>
           <p className="mt-3 text-zinc-400">
-            No se encontró un club activo para esta temporada.
+            No se encontró un club activo para este torneo.
           </p>
           <Link
             href="/clubes"
@@ -921,11 +923,11 @@ export default function PaginaEquipo() {
               <div>
                 <div className="mb-6 flex flex-wrap gap-3">
                   <span className="rounded-2xl border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-sky-300">
-                    🏆 Torneo de Liga APA
+                    🏆 Torneo de Liga Liga
                   </span>
 
                   <span className="rounded-2xl border border-white/10 bg-black/35 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-zinc-300">
-                    Clubes APA · Perfil oficial
+                    Clubes Liga · Perfil oficial
                   </span>
                 </div>
 
@@ -956,7 +958,7 @@ export default function PaginaEquipo() {
 
                     <div className="mt-4 max-w-2xl text-base leading-7 text-zinc-300 md:text-lg md:leading-8">
                       {(clubVisual?.descripcion ||
-                        "Institución oficial registrada en APA PSO Argentina UE5. Perfil competitivo con plantel, estadísticas, racha e historial del club.")
+                        "Institución oficial registrada en Gestioná tu Liga UE5. Perfil competitivo con plantel, estadísticas, racha e historial del club.")
                         .split(/\r?\n/)
                         .map((line, index) => (
                           <p
@@ -970,7 +972,7 @@ export default function PaginaEquipo() {
 
                     <div className="mt-5 flex flex-wrap gap-3">
                       <label className="relative">
-                        <span className="sr-only">Temporada</span>
+                        <span className="sr-only">Torneo</span>
                         <select
                           value={temporadaSeleccionada}
                           onChange={(event) => {
@@ -987,7 +989,7 @@ export default function PaginaEquipo() {
                             : seasons
                           ).map((season) => (
                             <option key={season} value={season} className="bg-[#06152c] text-white">
-                              {season}
+                              {displayLabel(season)}
                             </option>
                           ))}
                         </select>
@@ -1084,7 +1086,7 @@ export default function PaginaEquipo() {
           <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-300">
-                Temporada completa
+                Torneo completa
               </p>
               <h2 className="mt-2 text-3xl font-black uppercase">
                 Rendimiento por competición
@@ -1097,7 +1099,7 @@ export default function PaginaEquipo() {
 
           {resumenCompeticiones.length === 0 ? (
             <p className="rounded-2xl border border-white/10 bg-black/35 p-5 text-zinc-500">
-              El club todavía no tiene partidos registrados en esta temporada.
+              El club todavía no tiene partidos registrados en este torneo.
             </p>
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -1202,7 +1204,7 @@ export default function PaginaEquipo() {
                     </p>
 
                     <p className="mt-2 text-sm font-black uppercase tracking-[0.12em] text-zinc-500">
-                      {titulo.temporada}
+                      {displayLabel(titulo.temporada)}
                       {titulo.division ? ` · ${titulo.division}` : ""}
                     </p>
 
@@ -1266,7 +1268,7 @@ export default function PaginaEquipo() {
                 </div>
 
                 <p className="mt-4 text-center text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
-                  {proximoPartido.temporada || equipoTemporada?.temporada} · {proximoPartido.division || equipoTemporada?.division}
+                  {displayLabel(proximoPartido.temporada || equipoTemporada?.temporada)} · {proximoPartido.division || equipoTemporada?.division}
                 </p>
               </Link>
             ) : (
@@ -1684,7 +1686,7 @@ export default function PaginaEquipo() {
                           </div>
 
                           <div className="mt-3 flex justify-between gap-3 text-[11px] text-zinc-600">
-                            <span>{partido.temporada || equipoTemporada?.temporada}</span>
+                            <span>{displayLabel(partido.temporada || equipoTemporada?.temporada)}</span>
                             <span className="truncate text-right">{nombreCompeticion(partido)}</span>
                           </div>
                         </Link>

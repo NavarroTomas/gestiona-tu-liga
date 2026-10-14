@@ -42,7 +42,7 @@ export function usePublicSeasons(fallback = "Temporada 4") {
       if (cancelled) return;
 
       if (error) {
-        console.error("No se pudieron cargar las temporadas:", error);
+        console.error("No se pudieron cargar los torneos:", error);
         setRecords([]);
       } else {
         setRecords(sortSeasons((data || []) as PublicSeason[]));

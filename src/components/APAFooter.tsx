@@ -1,9 +1,12 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import estilos from "./APAFooter.module.css";
+import {getActiveLocalLeague,getLocalLeagueSummary} from "@/lib/localLeagueClient";
 
 const columnas = [
   {
@@ -12,7 +15,7 @@ const columnas = [
       ["Torneos", "/competicion"],
       ["Fixture", "/fixture"],
       ["Historia", "/historia"],
-      ["Premios APA", "/entretenimiento/premios"],
+      ["Premios Liga", "/entretenimiento/premios"],
     ],
   },
   {
@@ -24,7 +27,7 @@ const columnas = [
     ],
   },
   {
-    titulo: "APA",
+    titulo: "Liga",
     enlaces: [
       ["Guía", "/guia"],
       ["Entretenimiento", "/entretenimiento"],
@@ -52,6 +55,11 @@ export default function APAFooter() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  const localLeague=getActiveLocalLeague();
+  if(localLeague){
+    let season="";try{season=getLocalLeagueSummary(localLeague.id).season;}catch{}
+    return <footer className={estilos.leagueFooter}><div className={estilos.leagueFooterGrid}><div className={estilos.footerIdentity}><Link href="/liga">{localLeague.name}</Link><p>{displayLabel(season)}{displayLabel(season?" · ":"")}{localLeague.mode==="teams"?"Liga por equipos":"Liga por jugadores"}</p><p>Resultados, calendario y novedades de tu competencia.</p></div><nav aria-label="La liga"><h2>La liga</h2><Link href="/liga">Inicio</Link><Link href="/fixture">Partidos</Link><Link href="/divisiones">Posiciones</Link><Link href="/clubes">Equipos</Link><Link href="/jugadores">Jugadores</Link></nav><nav aria-label="Gestión de la liga"><h2>Gestión</h2><Link href="/admin">Panel de administración</Link><Link href="/admin/torneos">Torneos</Link><Link href="/admin/plantillas">Planteles</Link><Link href="/admin/noticias">Publicar noticias</Link></nav><nav aria-label="La plataforma"><h2>La plataforma</h2><Link href="/mis-ligas">Mis ligas</Link><Link href="/">Gestioná tu Liga</Link><Link href="/#planes">Planes</Link><button type="button" onClick={volverArriba}>Volver arriba</button></nav></div><div className={estilos.footerBase}><span>Gestioná tu Liga · {new Date().getFullYear()}</span><p>Versión de prueba. Los cambios se guardan en este navegador.</p></div></footer>;
+  }
   return (
     <footer className={estilos.footer}>
       <div className={estilos.decoracion} aria-hidden="true" />
@@ -67,7 +75,7 @@ export default function APAFooter() {
             <span className={estilos.logoCaja}>
               <Image
                 src="/logo-apa-oficial.webp"
-                alt="Logo PSO Argentina"
+                alt="Logo Gestioná tu Liga"
                 fill
                 sizes="84px"
                 className={estilos.logo}
@@ -81,7 +89,7 @@ export default function APAFooter() {
           </button>
 
           <div className={estilos.identidad}>
-            <span>APA PSO Argentina</span>
+            <span>Gestioná tu Liga</span>
             <strong>Competición oficial de Pro Soccer Online.</strong>
           </div>
         </div>
@@ -104,7 +112,7 @@ export default function APAFooter() {
 
       <div className={estilos.base}>
         <div className={estilos.baseInterior}>
-          <span>© {new Date().getFullYear()} APA PSO Argentina</span>
+          <span>© {new Date().getFullYear()} Gestioná tu Liga</span>
           <div className={estilos.legalesBase}>
             <Link href="/legal/privacidad">Privacidad</Link>
             <Link href="/legal/terminos">Términos</Link>

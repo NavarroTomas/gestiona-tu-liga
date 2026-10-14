@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -225,9 +227,9 @@ export default function KnockoutCupManager({ title, competition }: Props) {
         <TournamentBackLink />
         <TournamentHero eyebrow={title} title={title} description="Cruces, pases directos y próxima ronda en una sola pantalla.">
           <div className={styles.toolbar}>
-            <Field label="Temporada">
+            <Field label="Torneo">
               <Select value={temporada} onChange={(event) => setTemporada(event.target.value)}>
-                {seasons.map((season) => <option key={season}>{season}</option>)}
+                {seasons.map((season) => <option key={season} value={season}>{displayLabel(season)}</option>)}
               </Select>
             </Field>
             <Link href="/admin/torneos/acciones-avanzadas" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Más opciones</Link>

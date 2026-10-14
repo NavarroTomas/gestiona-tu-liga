@@ -331,7 +331,7 @@ export default function SiteEditorRuntime() {
 
       if (!active) return;
       if (error) {
-        console.error(`[APA editor] No se pudo cargar la versión publicada de ${resolvedPageKey}:`, error);
+        console.error(`[Liga editor] No se pudo cargar la versión publicada de ${resolvedPageKey}:`, error);
         return;
       }
       if (!data?.document) return;

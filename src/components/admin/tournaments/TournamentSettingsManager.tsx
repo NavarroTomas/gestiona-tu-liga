@@ -1,4 +1,6 @@
 "use client";
+import {displayLabel} from "@/lib/displayLabels";
+
 
 import { useEffect, useMemo, useState } from "react";
 import PermissionGuard from "@/components/PermissionGuard";
@@ -59,7 +61,7 @@ export default function TournamentSettingsManager() {
   }
 
   useEffect(() => {
-    loadSeasons().catch((error) => setMessage(error?.message || "No pude cargar las temporadas."));
+    loadSeasons().catch((error) => setMessage(error?.message || "No pude cargar los torneos."));
   }, []);
 
   useEffect(() => {
@@ -93,16 +95,16 @@ export default function TournamentSettingsManager() {
         fecha_inicio: season.fecha_inicio || null,
         fecha_fin: season.fecha_fin || null,
       });
-      setMessage("Temporada actualizada.");
+      setMessage("Torneo actualizada.");
       await loadSeasons(season.nombre);
     } catch (error: any) {
-      setMessage(error?.message || "No pude guardar la temporada.");
+      setMessage(error?.message || "No pude guardar el torneo.");
     } finally { setLoading(false); }
   }
 
   async function createSeason() {
     if (!newSeasonName.trim()) {
-      setMessage("Escribí un nombre para la nueva temporada.");
+      setMessage("Escribí un nombre para la nuevo torneo.");
       return;
     }
     setLoading(true);
@@ -114,12 +116,12 @@ export default function TournamentSettingsManager() {
         activa: false,
         cloneFrom: cloneFrom || null,
       });
-      setMessage(`Temporada ${newSeasonName.trim()} creada${cloneFrom ? " con reglas copiadas" : ""}.`);
+      setMessage(`Torneo ${newSeasonName.trim()} creada${cloneFrom ? " con reglas copiadas" : ""}.`);
       await loadSeasons(newSeasonName.trim());
       setNewSeasonName("");
       setNewSeasonNumber("");
     } catch (error: any) {
-      setMessage(error?.message || "No pude crear la temporada.");
+      setMessage(error?.message || "No pude crear el torneo.");
     } finally { setLoading(false); }
   }
 
@@ -186,19 +188,19 @@ export default function TournamentSettingsManager() {
         <TournamentBackLink />
         <TournamentHero
           eyebrow="Configuración"
-          title="Temporadas y reglas"
-          description="Cada pestaña modifica una sola parte del sistema. No hace falta tocar código para preparar una temporada nueva."
+          title="Torneos y reglas"
+          description="Cada pestaña modifica una sola parte del sistema. No hace falta tocar código para preparar un torneo nueva."
         />
 
         {message && <div className={styles.notice}>{message}</div>}
 
         <Tabs value={view} onChange={setView} items={[
-          { value: "temporada", label: "1 · Temporada" },
+          { value: "temporada", label: "1 · Torneo" },
           { value: "competiciones", label: "2 · Competiciones" },
           { value: "reglas", label: "3 · Reglas" },
         ]} />
 
-        {view === "temporada" && (
+        {displayLabel(view === "temporada" && (
           <SeasonSettingsSection
             seasons={seasons}
             season={season}
@@ -215,7 +217,7 @@ export default function TournamentSettingsManager() {
             onCloneFrom={setCloneFrom}
             onCreateSeason={createSeason}
           />
-        )}
+        ))}
 
         {view === "competiciones" && (
           <CompetitionCatalogSection

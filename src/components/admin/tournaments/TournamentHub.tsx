@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -74,7 +76,7 @@ export default function TournamentHub() {
         setConfigs(configRows);
         setTeamCount(teams.length);
       })
-      .catch((error: any) => active && setMessage(error?.message || "No pude cargar la temporada."))
+      .catch((error: any) => active && setMessage(error?.message || "No pude cargar el torneo."))
       .finally(() => active && setLoading(false));
     return () => { active = false; };
   }, [season]);
@@ -111,7 +113,7 @@ export default function TournamentHub() {
       },
       {
         key: "copa_apa",
-        title: "Copa APA",
+        title: "Copa de la Liga",
         subtitle: "Cruces y pases directos",
         matches: matches.filter((match) => match.competicion === "copa_apa"),
         href: "/admin/torneos/copa-apa",
@@ -165,14 +167,14 @@ export default function TournamentHub() {
 
     for (const [key, title, href] of [
       ["copa_argentina", "Copa Argentina", "/admin/torneos/copa-argentina"],
-      ["copa_apa", "Copa APA", "/admin/torneos/copa-apa"],
+      ["copa_apa", "Copa de la Liga", "/admin/torneos/copa-apa"],
       ["copa_campeones", "Copa de Campeones", "/admin/torneos/copa-campeones"],
     ] as const) {
       const rows = matches.filter((match) => match.competicion === key);
       if (rows.length && rows.some((match) => isLoadedMatch(match))) actions.push({ title: `Revisar ${title}`, href });
     }
 
-    if (!actions.length) actions.push({ title: "Revisar configuración de temporada", href: "/admin/torneos/configuracion" });
+    if (!actions.length) actions.push({ title: "Revisar configuración de torneo", href: "/admin/torneos/configuracion" });
     return actions.slice(0, 4);
   }, [matches]);
 
@@ -182,14 +184,14 @@ export default function TournamentHub() {
     <TournamentPage>
       <Link href="/admin" className={styles.backLink}>← Volver al panel</Link>
 
-      <TournamentHero eyebrow="Torneos" title={season || "Temporada"} description="Cada competición tiene su propio espacio. Entrá solamente a lo que querés modificar.">
+      <TournamentHero eyebrow="Torneos" title={displayLabel(season || "Temporada")} description="Cada competición tiene su propio espacio. Entrá solamente a lo que querés modificar.">
         <div className={styles.toolbar}>
-          <Field label="Temporada">
+          <Field label="Torneo">
             <Select value={season} onChange={(event) => setSeason(event.target.value)}>
-              {seasons.map((item) => <option key={item}>{item}</option>)}
+              {seasons.map((item) => <option key={item} value={item}>{displayLabel(item)}</option>)}
             </Select>
           </Field>
-          {canCompetition && <Link href="/admin/torneos/configuracion" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Configurar temporada</Link>}
+          {canCompetition && <Link href="/admin/torneos/configuracion" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Configurar torneo</Link>}
         </div>
         <div className={styles.kpis}>
           <div className={styles.kpi}><div className={styles.kpiLabel}>Clubes</div><div className={styles.kpiValue}>{teamCount}</div></div>
@@ -213,7 +215,7 @@ export default function TournamentHub() {
 
       <section className={styles.commandSection}>
         <div className={styles.commandHeader}>
-          <div><p className={styles.sectionEyebrow}>Temporada</p><h2 className={styles.commandTitle}>Competiciones</h2></div>
+          <div><p className={styles.sectionEyebrow}>Torneo</p><h2 className={styles.commandTitle}>Competiciones</h2></div>
         </div>
         <div className={styles.competitionList}>
           {competitions.map((competition) => {

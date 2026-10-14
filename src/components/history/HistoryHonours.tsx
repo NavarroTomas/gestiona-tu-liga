@@ -1,3 +1,5 @@
+
+import { displayLabel } from "@/lib/displayLabels";
 import HistorySectionTitle from "@/components/history/HistorySectionTitle";
 import { HistoryTeamIdentity } from "@/components/history/HistoryTeamIdentity";
 import type { HistoryClub } from "@/lib/history";
@@ -15,7 +17,7 @@ const COMPETITION_LABELS: Record<string, string> = {
   liga: "Liga",
   copa_clasificatoria: "Clasificación a Copas",
   copa_argentina: "Copa Argentina",
-  copa_apa: "Copa APA",
+  copa_apa: "Copa de la Liga",
   copa_campeones: "Copa de Campeones",
   playoffs: "Playoffs de Ascenso",
 };
@@ -45,7 +47,7 @@ export default function HistoryHonours({
       <div className="mx-auto max-w-[1680px] px-5 py-8 sm:px-8 lg:px-10">
         <HistorySectionTitle>Palmarés oficial</HistorySectionTitle>
         <div className="mb-6 max-w-3xl text-sm leading-6 text-[#526579]">
-          Campeones registrados oficialmente por el staff para esta temporada.
+          Campeones registrados oficialmente por el staff para este torneo.
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -64,7 +66,7 @@ export default function HistoryHonours({
                 {rows.map((title) => (
                   <div key={title.id} className="rounded-lg border border-[#d8e2ec] bg-white p-4">
                     <div className="mb-2 flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-wider text-[#245f8e]">
-                      <span>{title.temporada}</span>
+                      <span>{displayLabel(title.temporada)}</span>
                       {title.division ? <span>· {title.division}</span> : null}
                     </div>
                     <HistoryTeamIdentity name={title.equipo} clubs={clubs} compact />

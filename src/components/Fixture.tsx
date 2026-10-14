@@ -35,7 +35,7 @@ export default function Fixture() {
         <div>
 
           <p className="uppercase tracking-[5px] text-sky-300 text-sm font-black mb-2">
-            APA PSO ARGENTINA
+            Liga PSO ARGENTINA
           </p>
 
           <h2 className="text-4xl font-black text-white">

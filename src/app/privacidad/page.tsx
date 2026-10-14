@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Política de Privacidad",
-  description: "Política de privacidad y tratamiento de datos de APA PSO Argentina.",
+  description: "Política de privacidad y tratamiento de datos de Gestioná tu Liga.",
 };
 
 export default function PrivacidadPage() {
@@ -15,17 +15,17 @@ export default function PrivacidadPage() {
         <section>
           <h2 className="text-xl font-black text-white">1. Responsable y alcance</h2>
           <p className="mt-3">
-            APA PSO Argentina es una comunidad dedicada a la organización de competiciones de Pro Soccer Online. Esta política explica cómo se tratan los datos vinculados con las cuentas, la participación competitiva y el uso de psoargentina.com.
+            Gestioná tu Liga es una comunidad dedicada a la organización de competiciones de Pro Soccer Online. Esta política explica cómo se tratan los datos vinculados con las cuentas, la participación competitiva y el uso de psoargentina.com.
           </p>
           <p className="mt-3">
-            Para consultas o ejercicio de derechos, podés comunicarte mediante el canal oficial de soporte de APA PSO Argentina en Discord: https://discord.gg/WCyqeJMmCU.
+            Para consultas o ejercicio de derechos, podés comunicarte mediante el canal oficial de soporte de Gestioná tu Liga en Discord: https://discord.gg/WCyqeJMmCU.
           </p>
         </section>
 
         <section>
           <h2 className="text-xl font-black text-white">2. Datos tratados</h2>
           <p className="mt-3">
-            Según las funciones que utilices, APA puede tratar nombre visible, nombre de usuario, email, PlayerId de Pro Soccer Online, SteamID64, Discord ID, avatar, biografía, estado de verificación, historial de clubes y transferencias, estadísticas de partidos, predicciones, votos, premios y demás actividad competitiva vinculada con tu participación.
+            Según las funciones que utilices, Liga puede tratar nombre visible, nombre de usuario, email, PlayerId de Pro Soccer Online, SteamID64, Discord ID, avatar, biografía, estado de verificación, historial de clubes y transferencias, estadísticas de partidos, predicciones, votos, premios y demás actividad competitiva vinculada con tu participación.
           </p>
         </section>
 
@@ -39,7 +39,7 @@ export default function PrivacidadPage() {
         <section>
           <h2 className="text-xl font-black text-white">4. Servicios de terceros</h2>
           <p className="mt-3">
-            APA utiliza proveedores técnicos necesarios para operar el servicio, entre ellos Supabase para autenticación y base de datos, Vercel para alojamiento, Steam para consultas relacionadas con cuentas/juegos y, sólo cuando exista consentimiento cuando corresponda, Google Analytics y Google AdSense. Estos proveedores pueden tratar información técnica conforme a sus propias políticas y ubicaciones de infraestructura.
+            Liga utiliza proveedores técnicos necesarios para operar el servicio, entre ellos Supabase para autenticación y base de datos, Vercel para alojamiento, Steam para consultas relacionadas con cuentas/juegos y, sólo cuando exista consentimiento cuando corresponda, Google Analytics y Google AdSense. Estos proveedores pueden tratar información técnica conforme a sus propias políticas y ubicaciones de infraestructura.
           </p>
         </section>
 
@@ -53,7 +53,7 @@ export default function PrivacidadPage() {
         <section>
           <h2 className="text-xl font-black text-white">6. Conservación y seguridad</h2>
           <p className="mt-3">
-            APA conserva la información mientras resulte necesaria para administrar la cuenta, preservar el historial deportivo, cumplir funciones de seguridad o resolver disputas. Se aplican controles de acceso, Row Level Security, permisos por rol, registros de auditoría y otras medidas técnicas. Ningún sistema puede garantizar seguridad absoluta.
+            Liga conserva la información mientras resulte necesaria para administrar la cuenta, preservar el historial deportivo, cumplir funciones de seguridad o resolver disputas. Se aplican controles de acceso, Row Level Security, permisos por rol, registros de auditoría y otras medidas técnicas. Ningún sistema puede garantizar seguridad absoluta.
           </p>
         </section>
 
@@ -67,7 +67,7 @@ export default function PrivacidadPage() {
         <section>
           <h2 className="text-xl font-black text-white">8. Menores de edad</h2>
           <p className="mt-3">
-            Si una persona menor de edad participa en APA, debe hacerlo conforme a las reglas de la comunidad y con la autorización que corresponda según su situación. APA procura no solicitar datos personales que no sean necesarios para la participación.
+            Si una persona menor de edad participa en Liga, debe hacerlo conforme a las reglas de la comunidad y con la autorización que corresponda según su situación. Liga procura no solicitar datos personales que no sean necesarios para la participación.
           </p>
         </section>
 

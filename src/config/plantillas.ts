@@ -2,10 +2,10 @@ export const PLANTILLAS_CONFIG = {
   defaultSeason: "Temporada 4" as string,
   defaultDivision: "Primera" as string,
   hero: {
-    eyebrow: "Plantillas APA",
+    eyebrow: "Plantillas Liga",
     title: "Plantillas",
     description:
-      "Explorá los planteles oficiales por temporada, categoría y club.",
+      "Explorá los planteles oficiales por torneo, categoría y club.",
   },
 } as const;
 

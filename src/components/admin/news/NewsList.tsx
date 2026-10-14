@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { Input, TournamentPanel, tournamentStyles as styles } from "@/components/admin/tournaments/TournamentUi";
 import type { AdminNewsItem } from "@/lib/adminNews";
@@ -42,7 +44,7 @@ export default function NewsList({ items, search, loading, onSearch, onEdit, onT
                 </div>
                 <div className={styles.rowTitle}>{item.titulo}</div>
                 <div className={styles.rowMeta} style={{ marginTop: 4 }}>{item.descripcion}</div>
-                <div className={styles.rowMeta} style={{ marginTop: 6 }}>{item.temporada || "Sin temporada"} · {item.autor || "Prensa APA"}</div>
+                <div className={styles.rowMeta} style={{ marginTop: 6 }}>{displayLabel(item.temporada || "Sin temporada")} · {item.autor || "Prensa Liga"}</div>
               </div>
             </div>
 

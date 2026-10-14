@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { useEffect, useState } from "react";
 import KnockoutBracket from "@/components/cups/knockout/KnockoutBracket";
@@ -51,20 +53,20 @@ export default function CopaApaPage() {
         onSeasonChange={setSeason}
         seasons={seasons}
         tabs={COPA_APA_CONFIG.tabs}
-        ariaLabel="Secciones de Copa APA"
+        ariaLabel="Secciones de Copa de la Liga"
       />
 
       <section className="mx-auto w-full max-w-[1480px] px-5 py-4 sm:px-8 sm:py-5 lg:px-12">
         {loading ? (
           <section className="rounded-[10px] border border-[#d7e6f0] bg-white px-5 py-14 text-center text-sm font-semibold text-[#7890a7]">
-            Cargando cuadro de Copa APA…
+            Cargando cuadro de Copa de la Liga…
           </section>
         ) : !active ? (
           <section className="rounded-[10px] border border-[#d7e6f0] bg-white px-5 py-12 text-center">
             <p className="text-[9px] font-black uppercase tracking-[.16em] text-[#56afe2]">Competición pendiente</p>
-            <h2 className="mt-2 text-[24px] font-black uppercase tracking-[-.035em] text-[#102f55]">Copa APA todavía no está activa</h2>
+            <h2 className="mt-2 text-[24px] font-black uppercase tracking-[-.035em] text-[#102f55]">Copa de la Liga todavía no está activa</h2>
             <p className="mx-auto mt-2 max-w-[640px] text-[12px] font-semibold leading-5 text-[#6a839b]">
-              Cuando la habilites para {season} y cargues los cruces en Supabase, este cuadro se completa automáticamente.
+              Cuando la habilites para {displayLabel(season)} y cargues los cruces en Supabase, este cuadro se completa automáticamente.
             </p>
           </section>
         ) : (

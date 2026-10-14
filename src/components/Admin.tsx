@@ -53,7 +53,7 @@ export default function Admin() {
         </div>
 
         <div className="bg-cyan-400 text-black px-5 py-3 rounded-2xl font-black">
-          APA ADMIN
+          Liga ADMIN
         </div>
 
       </div>
@@ -88,7 +88,7 @@ export default function Admin() {
         <div className="bg-black border border-zinc-800 rounded-2xl p-4">
 
           <p className="text-zinc-500 text-sm">
-            Temporada
+            Torneo
           </p>
 
           <h2 className="text-3xl font-black mt-2">

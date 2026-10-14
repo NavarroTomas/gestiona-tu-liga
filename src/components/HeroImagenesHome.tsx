@@ -10,7 +10,7 @@ const slides = [
     titulo2: "CADA PARTIDO.",
     titulo3: "CADA FINAL.",
     bajada: "Fixture, resultados y tabla oficial.",
-    descripcion: "Seguí la temporada con estética mundialista.",
+    descripcion: "Seguí el torneo con estética mundialista.",
     boton: "VER FIXTURE",
     href: "/fixture",
   },
@@ -20,7 +20,7 @@ const slides = [
     titulo2: "TU LIGA.",
     titulo3: "TU LEGADO.",
     bajada: "Clubes, planteles e historia.",
-    descripcion: "Representá tu escudo dentro de APA.",
+    descripcion: "Representá tu escudo dentro de Liga.",
     boton: "VER CLUBES",
     href: "/clubes",
   },
@@ -30,7 +30,7 @@ const slides = [
     titulo2: "COMPETÍ.",
     titulo3: "ASCENDÉ.",
     bajada: "Mercado, jugadores y rankings.",
-    descripcion: "Armá tu camino en la Temporada 4.",
+    descripcion: "Armá tu camino en la Torneo 4.",
     boton: "VER MERCADO",
     href: "/mercado",
   },
@@ -60,7 +60,7 @@ const features = [
   {
     href: "/historia",
     title: "Historial",
-    text: "Campeones, temporadas, finales y récords históricos.",
+    text: "Campeones, torneos, finales y récords históricos.",
     img: "/themes/worldcup/backgrounds/stadium-night-01.png",
     bg: "/themes/worldcup/backgrounds/stadium-night-01.png",
   },
@@ -121,7 +121,7 @@ export default function HeroImagenesHome() {
             </span>
 
             <span className="text-[9px] font-black uppercase leading-none tracking-[0.22em] text-sky-300 sm:text-[10px] sm:tracking-[0.26em]">
-              APA PSO ARGENTINA
+              Liga PSO ARGENTINA
             </span>
           </div>
 
@@ -174,7 +174,7 @@ export default function HeroImagenesHome() {
 
               <img
                 src="/logo-apa.png"
-                alt="APA PSO"
+                alt="Liga PSO"
                 className="relative z-10 h-full w-full object-cover opacity-90"
               />
 
@@ -243,7 +243,7 @@ export default function HeroImagenesHome() {
 
         <div className="flex flex-col items-center justify-between gap-2 border-t border-sky-500/20 bg-black px-4 py-3 text-center text-[9px] uppercase sm:px-5 sm:text-[10px] md:flex-row md:text-left">
           <p className="text-zinc-400">
-            <b className="text-white">APA PSO ARGENTINA</b> · Somos una familia,
+            <b className="text-white">Liga PSO ARGENTINA</b> · Somos una familia,
             somos una liga.
           </p>
 

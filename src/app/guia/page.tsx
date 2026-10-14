@@ -118,7 +118,7 @@ export default function GuiaPage() {
         <div className="mx-auto grid min-h-[300px] max-w-[1680px] items-end gap-8 px-5 py-10 sm:px-8 lg:grid-cols-[minmax(0,1fr)_420px] lg:px-10 lg:py-14">
           <div>
             <p className="text-[11px] font-black uppercase tracking-[.18em] text-[#7ccaf0]">
-              Guía oficial APA
+              Guía oficial Liga
             </p>
             <h1 className="mt-3 max-w-[900px] text-[clamp(3rem,7vw,6.2rem)] font-black uppercase leading-[.87] tracking-[-.055em]">
               Entendé la plataforma

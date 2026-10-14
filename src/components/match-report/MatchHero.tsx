@@ -1,3 +1,5 @@
+
+import { displayLabel } from "@/lib/displayLabels";
 import Link from "next/link";
 import type { EquipoStats, JugadorStats, PartidoInfo } from "./types";
 import { ratingJugador } from "./utils";
@@ -55,7 +57,7 @@ export default function MatchHero({
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,.12),transparent_40%)]" />
       <div className="relative z-10">
         <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-400 sm:text-xs sm:tracking-[0.45em]">
-          APA PSO ARGENTINA
+          Liga PSO ARGENTINA
         </p>
 
         <div className="mt-7 grid grid-cols-1 items-center gap-6 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-8">
@@ -69,7 +71,7 @@ export default function MatchHero({
               </span>
             </div>
             <p className="mt-5 text-zinc-500 uppercase tracking-[0.18em] text-xs font-black">
-              Fecha {partido.fecha || local.fecha} · {partido.temporada || local.temporada} · {partido.division || local.division}
+              Fecha {partido.fecha || local.fecha} · {displayLabel(partido.temporada || local.temporada)} · {partido.division || local.division}
             </p>
             {(partido.dia || partido.hora) && (
               <p className="mt-2 text-zinc-500 uppercase tracking-[0.14em] text-[10px] font-black">

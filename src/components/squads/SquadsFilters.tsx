@@ -23,8 +23,8 @@ export default function SquadsFilters({
     <section className="border-b border-[#d6e9f3] bg-[#f7fcff]">
       <div className="mx-auto grid max-w-[1680px] gap-3 px-5 py-4 sm:px-8 md:grid-cols-2 xl:grid-cols-[220px_220px_260px_1fr] lg:px-10">
         <label>
-          <span className="mb-1.5 block text-[11px] font-black text-[#173c64]">Temporada</span>
-          <APASelect value={season} onChange={onSeasonChange} options={seasons.map((item) => ({ value: item, label: item }))} ariaLabel="Temporada" />
+          <span className="mb-1.5 block text-[11px] font-black text-[#173c64]">Torneo</span>
+          <APASelect value={season} onChange={onSeasonChange} options={seasons.map((item) => ({ value: item, label: item }))} ariaLabel="Torneo" />
         </label>
         <label>
           <span className="mb-1.5 block text-[11px] font-black text-[#173c64]">Categoría</span>

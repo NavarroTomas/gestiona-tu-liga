@@ -7,7 +7,7 @@ export default function LeagueFooter() {
       <div className="mx-auto flex min-h-[72px] w-full max-w-[1480px] flex-col justify-center gap-3 px-5 py-4 text-[#102f55] sm:px-8 md:flex-row md:items-center md:justify-between lg:px-12">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2.5">
-            <img src="/logo-apa.png" alt="PSO Argentina" className="h-8 w-8 object-cover" />
+            <img src="/logo-apa.png" alt="Gestioná tu Liga" className="h-8 w-8 object-cover" />
             <strong className="text-[12px] font-black uppercase tracking-[.15em]">{LEAGUE_CONFIG.footer.brand}</strong>
           </div>
           <span className="hidden h-5 w-px bg-[#d5e4ed] sm:block" />

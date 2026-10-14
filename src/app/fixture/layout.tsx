@@ -2,7 +2,7 @@ import { createPageMetadata } from "@/lib/seo";
 
 export const metadata = createPageMetadata({
   title: "Fixture oficial",
-  description: "Calendario, fechas, horarios y resultados oficiales de las competiciones de APA PSO Argentina.",
+  description: "Calendario, fechas, horarios y resultados oficiales de las competiciones de Gestioná tu Liga.",
   path: "/fixture",
 });
 

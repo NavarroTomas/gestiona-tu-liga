@@ -1,3 +1,5 @@
+
+import { displayLabel } from "@/lib/displayLabels";
 export type KnockoutCupHeroConfig = {
   title: string;
   subtitle: string;
@@ -32,7 +34,7 @@ export default function KnockoutCupHero({
             {hero.title}
           </h1>
           <p className="mt-3 text-[clamp(14px,1.45vw,22px)] font-semibold text-[#214b77] sm:mt-4">
-            {hero.subtitle} · {season}
+            {hero.subtitle} · {displayLabel(season)}
           </p>
         </div>
       </div>

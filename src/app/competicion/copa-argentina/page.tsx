@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { useEffect, useState } from "react";
 import KnockoutBracket from "@/components/cups/knockout/KnockoutBracket";
@@ -66,7 +68,7 @@ export default function CopaArgentinaPage() {
             <p className="text-[9px] font-black uppercase tracking-[.16em] text-[#56afe2]">Competición pendiente</p>
             <h2 className="mt-2 text-[24px] font-black uppercase tracking-[-.035em] text-[#102f55]">Copa Argentina todavía no está activa</h2>
             <p className="mx-auto mt-2 max-w-[640px] text-[12px] font-semibold leading-5 text-[#6a839b]">
-              Cuando la habilites para {season} y cargues los cruces en Supabase, este cuadro se completa automáticamente.
+              Cuando la habilites para {displayLabel(season)} y cargues los cruces en Supabase, este cuadro se completa automáticamente.
             </p>
           </section>
         ) : (

@@ -19,7 +19,7 @@ export default function HomeSuggestions() {
             Tu opinión importa
           </p>
           <h2 className="mt-3 max-w-[900px] text-[clamp(2.5rem,4.8vw,5rem)] font-black leading-[0.95] tracking-[-0.055em] text-[#102f55]">
-            Ayudanos a mejorar APA.
+            Ayudanos a mejorar Liga.
           </h2>
           <p className="mt-5 max-w-[72ch] text-[14px] font-semibold leading-7 text-[#58788f]">
             Si tenés una idea para la liga, la web, los torneos, eventos o cualquier parte de la comunidad, dejala en el canal de sugerencias para que el staff la revise.

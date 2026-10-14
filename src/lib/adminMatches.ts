@@ -115,7 +115,7 @@ export const ADMIN_MATCH_COMPETITIONS = [
   { value: "liga", label: "Liga" },
   { value: "copa_clasificatoria", label: "Clasificación a Copas" },
   { value: "copa_argentina", label: "Copa Argentina" },
-  { value: "copa_apa", label: "Copa APA" },
+  { value: "copa_apa", label: "Copa de la Liga" },
   { value: "copa_campeones", label: "Copa de Campeones" },
   { value: "playoffs", label: "Playoffs de Ascenso" },
 ] as const;
@@ -290,7 +290,7 @@ export async function fetchAdminMatches({
   temporada: string;
   competicion?: string;
 }) {
-  if (!temporada) throw new Error("Seleccioná una temporada antes de cargar partidos.");
+  if (!temporada) throw new Error("Seleccioná un torneo antes de cargar partidos.");
   let query = supabase
     .from("partidos")
     .select(
@@ -314,7 +314,7 @@ export async function fetchMatchRoster(match: AdminMatch) {
     .select("jugador,playerid,equipo,posicion,estado")
     .eq("temporada", (() => {
       const season = textValue(match.temporada);
-      if (!season) throw new Error("El partido no tiene temporada asociada.");
+      if (!season) throw new Error("El partido no tiene torneo asociada.");
       return season;
     })())
     .in("equipo", teams)

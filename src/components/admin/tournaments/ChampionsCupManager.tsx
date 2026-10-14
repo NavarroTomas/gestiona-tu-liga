@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -264,9 +266,9 @@ export default function ChampionsCupManager() {
         <TournamentBackLink />
         <TournamentHero eyebrow="Copa de Campeones" title="Copa de Campeones" description="Elegí los equipos. Si uno queda sin rival, pasa directo a la final.">
           <div className={styles.toolbar}>
-            <Field label="Temporada">
+            <Field label="Torneo">
               <Select value={temporada} onChange={(event) => setTemporada(event.target.value)}>
-                {seasons.map((season) => <option key={season}>{season}</option>)}
+                {seasons.map((season) => <option key={season} value={season}>{displayLabel(season)}</option>)}
               </Select>
             </Field>
             <Link href="/admin/torneos/acciones-avanzadas" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Más opciones</Link>
@@ -283,7 +285,7 @@ export default function ChampionsCupManager() {
                 <Field key={index} label={`Participante ${index + 1}`}>
                   <Select value={value} onChange={(event) => setParticipant(index, event.target.value)}>
                     <option value="">Sin rival · pase directo</option>
-                    {teams.filter((team) => team.nombre === value || !used.has(team.nombre)).map((team) => <option key={team.nombre} value={team.nombre}>{team.nombre}</option>)}
+                    {teams.filter((team) => team.nombre === value || !used.has(team.nombre)).map((team) => <option key={team.nombre} value={team.nombre}>{displayLabel(team.nombre)}</option>)}
                   </Select>
                 </Field>
               ))}

@@ -61,7 +61,7 @@ export const RANKING_COMPETITIONS: Array<{ value: RankingCompetition; label: str
   { value: "liga", label: "Liga" },
   { value: "copa_clasificatoria", label: "Clasificación a Copas" },
   { value: "copa_argentina", label: "Copa Argentina" },
-  { value: "copa_apa", label: "Copa APA" },
+  { value: "copa_apa", label: "Copa de la Liga" },
   { value: "copa_campeones", label: "Copa de Campeones" },
   { value: "playoffs", label: "Playoffs de Ascenso" },
 ];
@@ -229,7 +229,7 @@ export function usePredictionRanking() {
       if (!table[vote.usuario]) {
         table[vote.usuario] = {
           usuario: vote.usuario,
-          nombre: profile?.display_name || profile?.username || "Invitado APA",
+          nombre: profile?.display_name || profile?.username || "Invitado Liga",
           username: profile?.username || null,
           rol: profile?.visible_role || null,
           avatarUrl: profile?.avatar_url || null,

@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { useEffect, useMemo, useState } from "react";
 import PermissionGuard from "@/components/PermissionGuard";
@@ -312,11 +314,11 @@ export default function MatchTxtImporter() {
 
         <MatchCard title="1. Partido programado" description="El resultado siempre se vincula al fixture existente; no se crean partidos paralelos.">
           <div className={styles.grid4}>
-            <Field label="Temporada"><Select value={temporada} onChange={(e) => setTemporada(e.target.value)}><option>Temporada 4</option></Select></Field>
-            <Field label="Competición"><Select value={competition} onChange={(e) => setCompetition(e.target.value)}>{ADMIN_MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</Select></Field>
-            {competition === "liga" && <Field label="División"><Select value={division} onChange={(e) => setDivision(e.target.value)}>{DIVISIONS.map((item) => <option key={item}>{item}</option>)}</Select></Field>}
-            {competition === "copa_clasificatoria" && <Field label="Grupo"><Select value={group} onChange={(e) => setGroup(e.target.value)}>{GROUPS.map((item) => <option key={item}>{item}</option>)}</Select></Field>}
-            {["copa_argentina","copa_apa","copa_campeones","playoffs"].includes(competition) && <Field label="Fase"><Select value={phase} onChange={(e) => setPhase(e.target.value)}>{phases.map((item) => <option key={item}>{item}</option>)}</Select></Field>}
+            <Field label="Torneo"><Select value={temporada} onChange={(e) => setTemporada(e.target.value)}><option value="Temporada 4">Torneo 4</option></Select></Field>
+            <Field label="Competición"><Select value={competition} onChange={(e) => setCompetition(e.target.value)}>{ADMIN_MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{displayLabel(item.label)}</option>)}</Select></Field>
+            {competition === "liga" && <Field label="División"><Select value={division} onChange={(e) => setDivision(e.target.value)}>{DIVISIONS.map((item) => <option key={item} value={item}>{displayLabel(item)}</option>)}</Select></Field>}
+            {competition === "copa_clasificatoria" && <Field label="Grupo"><Select value={group} onChange={(e) => setGroup(e.target.value)}>{GROUPS.map((item) => <option key={item} value={item}>{displayLabel(item)}</option>)}</Select></Field>}
+            {["copa_argentina","copa_apa","copa_campeones","playoffs"].includes(competition) && <Field label="Fase"><Select value={phase} onChange={(e) => setPhase(e.target.value)}>{phases.map((item) => <option key={item} value={item}>{displayLabel(item)}</option>)}</Select></Field>}
             <Field label="Partido"><Select value={String(match?.id || "")} onChange={(e) => setMatchId(e.target.value)}>{visibleMatches.length === 0 && <option value="">Sin partidos</option>}{visibleMatches.map((item) => <option key={item.id} value={String(item.id)}>F{item.fecha || "-"} · {item.local} vs {item.visitante}</option>)}</Select></Field>
           </div>
           {match && <p className={styles.muted} style={{ marginTop: 12 }}>{matchContextLabel(match)} · TXT guardados: {existing.length}</p>}

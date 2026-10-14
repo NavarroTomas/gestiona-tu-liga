@@ -24,7 +24,7 @@ export const TYPOGRAPHY_THEMES: TypographyTheme[] = [
   {
     id: "data-first",
     name: "Inter",
-    intent: "Tipografía oficial de APA PSO Argentina",
+    intent: "Tipografía oficial de Gestioná tu Liga",
     headingLabel: "Inter",
     bodyLabel: "Inter",
     heading: { family: INTER, weight: 850, lineHeight: "1", letterSpacing: "-0.035em" },

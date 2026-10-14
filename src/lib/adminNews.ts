@@ -108,7 +108,7 @@ export async function notifyNewsCommunity(title: string) {
     .from("notificaciones")
     .select("id")
     .eq("tipo", "news")
-    .eq("titulo", "Nueva noticia APA")
+    .eq("titulo", "Nueva noticia Liga")
     .eq("mensaje", title)
     .eq("href", "/")
     .gte("created_at", since)
@@ -124,7 +124,7 @@ export async function notifyNewsCommunity(title: string) {
     users.map((user) => ({
       user_id: user.id,
       tipo: "news",
-      titulo: "Nueva noticia APA",
+      titulo: "Nueva noticia Liga",
       mensaje: title,
       href: "/",
       leida: false,

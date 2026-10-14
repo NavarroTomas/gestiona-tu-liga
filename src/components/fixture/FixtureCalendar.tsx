@@ -1,3 +1,5 @@
+
+import { displayLabel } from "@/lib/displayLabels";
 import {
   buildFixtureCalendar,
   dateKey,
@@ -87,7 +89,7 @@ export default function FixtureCalendar({
             className="h-9 min-w-0 w-full border-0 px-1 text-[11px] font-black outline-none sm:px-2"
           >
             <option value="all" style={selectStyle}>Todos los equipos</option>
-            {teams.map((item) => <option key={item} value={item} style={selectStyle}>{item}</option>)}
+            {teams.map((item) => <option key={item} value={item} style={selectStyle}>{displayLabel(item)}</option>)}
           </select>
         </label>
 

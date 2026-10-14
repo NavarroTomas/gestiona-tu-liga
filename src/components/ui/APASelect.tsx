@@ -1,4 +1,5 @@
 "use client";
+import {displayLabel} from "@/lib/displayLabels";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -52,7 +53,7 @@ export default function APASelect({
         onClick={() => setOpen((current) => !current)}
         className={`flex w-full items-center justify-between gap-2 border border-[#c9e3f1] bg-white text-left font-black text-[#102f55] outline-none transition hover:border-[#56afe2] focus:border-[#56afe2] focus:ring-2 focus:ring-[#56afe2]/20 ${compact ? "h-9 rounded-[8px] px-2.5 text-[11px]" : "h-11 rounded-[9px] px-3 text-[12px] sm:h-12 sm:text-[13px]"}`}
       >
-        <span className="min-w-0 truncate">{selected}</span>
+        <span className="min-w-0 truncate">{displayLabel(selected)}</span>
         <span className={`shrink-0 text-[10px] text-[#459bd0] transition-transform ${open ? "rotate-180" : ""}`}>⌄</span>
       </button>
 
@@ -75,7 +76,7 @@ export default function APASelect({
                 }}
                 className={`flex min-h-8 w-full items-center rounded-[7px] px-2.5 py-1.5 text-left text-[11px] font-bold leading-tight transition sm:text-[12px] ${active ? "bg-[#dff2fb] text-[#102f55]" : "text-[#315f89] hover:bg-[#f1f9fe]"}`}
               >
-                <span className="truncate">{option.label}</span>
+                <span className="truncate">{displayLabel(option.label)}</span>
               </button>
             );
           })}

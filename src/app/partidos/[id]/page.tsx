@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -89,9 +91,9 @@ export default function PartidoDetallePage() {
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="rounded-2xl border border-sky-500/25 bg-black/35 p-4">
             <p className="text-zinc-500 text-xs uppercase font-black">
-              Temporada
+              Torneo
             </p>
-            <b className="text-sky-300">{partido.temporada || "Sin temporada"}</b>
+            <b className="text-sky-300">{displayLabel(partido.temporada || "Sin temporada")}</b>
           </div>
 
           <div className="rounded-2xl border border-sky-500/25 bg-black/35 p-4">

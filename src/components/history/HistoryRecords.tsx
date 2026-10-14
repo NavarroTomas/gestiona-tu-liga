@@ -42,7 +42,7 @@ export default function HistoryRecords({
     <section className="bg-[#052f50] text-white">
       <div className="mx-auto grid max-w-[1680px] gap-9 px-5 py-8 sm:px-8 lg:grid-cols-2 lg:px-10">
         <div>
-          <HistorySectionTitle inverse>Récords de la temporada</HistorySectionTitle>
+          <HistorySectionTitle inverse>Récords del torneo</HistorySectionTitle>
           <RecordList records={seasonRecords} />
         </div>
 
@@ -51,7 +51,7 @@ export default function HistoryRecords({
             <span>
               Récords históricos{" "}
               <span className="block text-[10px] font-bold tracking-wider text-[#91c4e2] sm:inline sm:text-[11px]">
-                (todas las temporadas)
+                (todas los torneos)
               </span>
             </span>
           </HistorySectionTitle>

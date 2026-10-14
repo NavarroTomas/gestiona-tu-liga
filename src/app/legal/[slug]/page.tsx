@@ -21,12 +21,12 @@ const legalPages: Record<string, LegalPageConfig> = {
   privacidad: {
     title: "Política de privacidad",
     intro:
-      "Esta política explica qué información puede tratar APA PSO Argentina, para qué se utiliza, qué parte puede hacerse pública dentro de la competición y qué opciones tienen los usuarios sobre sus datos.",
+      "Esta política explica qué información puede tratar Gestioná tu Liga, para qué se utiliza, qué parte puede hacerse pública dentro de la competición y qué opciones tienen los usuarios sobre sus datos.",
     sections: [
       {
         title: "1. Alcance y responsable",
         paragraphs: [
-          "APA PSO Argentina administra psoargentina.com como plataforma comunitaria y competitiva vinculada a Pro Soccer Online. Esta política se aplica a las funciones públicas y privadas del sitio, a las cuentas registradas y a los datos utilizados para organizar la competición.",
+          "Gestioná tu Liga administra psoargentina.com como plataforma comunitaria y competitiva vinculada a Pro Soccer Online. Esta política se aplica a las funciones públicas y privadas del sitio, a las cuentas registradas y a los datos utilizados para organizar la competición.",
           "La plataforma puede incluir áreas públicas, perfiles, estadísticas, rankings, clubes, plantillas, noticias, entretenimiento, predicciones, premios y zonas administrativas reservadas al staff.",
         ],
       },
@@ -47,12 +47,12 @@ const legalPages: Record<string, LegalPageConfig> = {
       {
         title: "3. Finalidades del tratamiento",
         paragraphs: [
-          "APA utiliza la información para operar y proteger la plataforma y para mantener la integridad de las competiciones.",
+          "Liga utiliza la información para operar y proteger la plataforma y para mantener la integridad de las competiciones.",
         ],
         bullets: [
           "Crear, autenticar y administrar cuentas.",
           "Relacionar a cada jugador con su identidad competitiva y sus estadísticas.",
-          "Organizar clubes, plantillas, fixtures, resultados, rankings, premios y temporadas.",
+          "Organizar clubes, plantillas, fixtures, resultados, rankings, premios y torneos.",
           "Evitar suplantaciones, abuso, manipulación, evasión de sanciones y accesos no autorizados.",
           "Gestionar permisos del staff, registros de auditoría e incidencias.",
           "Permitir funciones de entretenimiento como predicciones, votaciones o Dream Team.",
@@ -69,7 +69,7 @@ const legalPages: Record<string, LegalPageConfig> = {
       {
         title: "5. Proveedores y servicios de terceros",
         paragraphs: [
-          "APA utiliza servicios externos necesarios para mantener la web y algunas de sus funciones. Cada proveedor puede tratar información técnica conforme a sus propias condiciones y políticas.",
+          "Liga utiliza servicios externos necesarios para mantener la web y algunas de sus funciones. Cada proveedor puede tratar información técnica conforme a sus propias condiciones y políticas.",
         ],
         bullets: [
           "Supabase: autenticación, base de datos, almacenamiento y servicios asociados.",
@@ -90,13 +90,13 @@ const legalPages: Record<string, LegalPageConfig> = {
         title: "7. Conservación",
         paragraphs: [
           "Los datos de cuenta se conservan mientras sean necesarios para prestar el servicio, mantener la seguridad o gestionar una relación activa con la comunidad.",
-          "Determinados resultados, estadísticas, rankings, historiales o premios pueden conservarse durante más tiempo como registro deportivo de temporadas ya disputadas. Cuando corresponda, puede reducirse o disociarse la información personal sin alterar la integridad histórica de la competición.",
+          "Determinados resultados, estadísticas, rankings, historiales o premios pueden conservarse durante más tiempo como registro deportivo de torneos ya disputadas. Cuando corresponda, puede reducirse o disociarse la información personal sin alterar la integridad histórica de la competición.",
         ],
       },
       {
         title: "8. Seguridad",
         paragraphs: [
-          "APA aplica medidas técnicas y organizativas orientadas a limitar accesos indebidos, entre ellas autenticación, permisos por rol, políticas de acceso a datos, áreas administrativas restringidas y registros de auditoría.",
+          "Liga aplica medidas técnicas y organizativas orientadas a limitar accesos indebidos, entre ellas autenticación, permisos por rol, políticas de acceso a datos, áreas administrativas restringidas y registros de auditoría.",
           "Ningún sistema conectado a Internet puede garantizar riesgo cero. Si detectás una vulnerabilidad o acceso indebido, informalo por los canales de soporte sin publicar datos sensibles.",
         ],
       },
@@ -110,7 +110,7 @@ const legalPages: Record<string, LegalPageConfig> = {
       {
         title: "10. Menores de edad",
         paragraphs: [
-          "APA procura limitar la recopilación de información a lo necesario para la participación. Si una persona menor de edad utiliza la plataforma, debe hacerlo conforme a las reglas de la comunidad y con las autorizaciones que correspondan según su situación.",
+          "Liga procura limitar la recopilación de información a lo necesario para la participación. Si una persona menor de edad utiliza la plataforma, debe hacerlo conforme a las reglas de la comunidad y con las autorizaciones que correspondan según su situación.",
         ],
       },
       {
@@ -125,12 +125,12 @@ const legalPages: Record<string, LegalPageConfig> = {
   terminos: {
     title: "Términos de uso",
     intro:
-      "Estas condiciones regulan el acceso y uso de psoargentina.com y complementan los reglamentos deportivos y normas comunitarias de APA PSO Argentina.",
+      "Estas condiciones regulan el acceso y uso de psoargentina.com y complementan los reglamentos deportivos y normas comunitarias de Gestioná tu Liga.",
     sections: [
       {
         title: "1. Naturaleza del servicio",
         paragraphs: [
-          "psoargentina.com es la plataforma de APA PSO Argentina para organizar, visualizar y administrar información vinculada con competiciones de Pro Soccer Online.",
+          "psoargentina.com es la plataforma de Gestioná tu Liga para organizar, visualizar y administrar información vinculada con competiciones de Pro Soccer Online.",
           "El servicio puede incluir fixture, resultados, estadísticas, clubes, plantillas, jugadores, mercado, noticias, historia, premios, predicciones, rankings y herramientas administrativas.",
         ],
       },
@@ -145,7 +145,7 @@ const legalPages: Record<string, LegalPageConfig> = {
         title: "3. Identidad, cuentas y verificación",
         paragraphs: [
           "Los datos competitivos asociados a una cuenta deben ser correctos. No está permitido suplantar jugadores, vincular deliberadamente identidades ajenas, compartir cuentas para evadir controles ni utilizar cuentas alternativas para obtener ventajas o eludir sanciones.",
-          "APA puede solicitar verificaciones razonables cuando sea necesario proteger la integridad de una competición o resolver una disputa de identidad.",
+          "Liga puede solicitar verificaciones razonables cuando sea necesario proteger la integridad de una competición o resolver una disputa de identidad.",
         ],
       },
       {
@@ -164,41 +164,41 @@ const legalPages: Record<string, LegalPageConfig> = {
       {
         title: "6. Contenido, perfiles y publicaciones",
         paragraphs: [
-          "La información pública puede incluir perfiles, clubes, resultados, rankings, estadísticas, premios e historial deportivo. APA puede corregir, retirar o actualizar contenido cuando existan errores, duplicados, datos inválidos o decisiones administrativas.",
+          "La información pública puede incluir perfiles, clubes, resultados, rankings, estadísticas, premios e historial deportivo. Liga puede corregir, retirar o actualizar contenido cuando existan errores, duplicados, datos inválidos o decisiones administrativas.",
           "El usuario no debe utilizar campos públicos para publicar información ilegal, invasiva, engañosa, ofensiva o ajena a la finalidad del servicio.",
         ],
       },
       {
         title: "7. Predicciones, votos y entretenimiento",
         paragraphs: [
-          "Las funciones de predicción, votación o selección comunitaria tienen finalidad recreativa dentro de APA. Salvo que se indique expresamente lo contrario, no constituyen apuestas, no tienen valor monetario y no generan derechos económicos.",
-          "APA puede cerrar votaciones en los horarios establecidos, anular participaciones inválidas o corregir resultados cuando exista un error técnico verificable.",
+          "Las funciones de predicción, votación o selección comunitaria tienen finalidad recreativa dentro de Liga. Salvo que se indique expresamente lo contrario, no constituyen apuestas, no tienen valor monetario y no generan derechos económicos.",
+          "Liga puede cerrar votaciones en los horarios establecidos, anular participaciones inválidas o corregir resultados cuando exista un error técnico verificable.",
         ],
       },
       {
         title: "8. Sanciones y restricciones",
         paragraphs: [
           "El incumplimiento de estas condiciones o de los reglamentos puede dar lugar a advertencias, restricciones de funciones, suspensión de cuenta, exclusión de competiciones u otras medidas previstas por las reglas internas.",
-          "Las medidas deportivas y comunitarias se gestionan mediante los mecanismos internos de APA y pueden ser independientes del acceso técnico al sitio.",
+          "Las medidas deportivas y comunitarias se gestionan mediante los mecanismos internos de Liga y pueden ser independientes del acceso técnico al sitio.",
         ],
       },
       {
         title: "9. Disponibilidad y cambios",
         paragraphs: [
-          "APA puede modificar, añadir, reorganizar o retirar funciones por mantenimiento, seguridad, cambios reglamentarios o evolución del proyecto. No se garantiza disponibilidad ininterrumpida ni ausencia absoluta de errores.",
+          "Liga puede modificar, añadir, reorganizar o retirar funciones por mantenimiento, seguridad, cambios reglamentarios o evolución del proyecto. No se garantiza disponibilidad ininterrumpida ni ausencia absoluta de errores.",
         ],
       },
       {
         title: "10. Servicios y marcas de terceros",
         paragraphs: [
-          "Pro Soccer Online, Steam, Discord, Google y otras marcas o servicios mencionados pertenecen a sus respectivos titulares. APA PSO Argentina opera como comunidad independiente salvo que se indique expresamente una relación oficial concreta.",
+          "Pro Soccer Online, Steam, Discord, Google y otras marcas o servicios mencionados pertenecen a sus respectivos titulares. Gestioná tu Liga opera como comunidad independiente salvo que se indique expresamente una relación oficial concreta.",
         ],
       },
       {
         title: "11. Limitación razonable de responsabilidad",
         paragraphs: [
-          "APA procura que la información sea correcta y que el servicio funcione adecuadamente, pero pueden existir errores temporales, interrupciones, retrasos en actualizaciones o datos sujetos a revisión.",
-          "La información competitiva publicada en APA tiene validez dentro del ámbito de la comunidad y no constituye una certificación oficial externa de terceros.",
+          "Liga procura que la información sea correcta y que el servicio funcione adecuadamente, pero pueden existir errores temporales, interrupciones, retrasos en actualizaciones o datos sujetos a revisión.",
+          "La información competitiva publicada en Liga tiene validez dentro del ámbito de la comunidad y no constituye una certificación oficial externa de terceros.",
         ],
       },
       {
@@ -213,7 +213,7 @@ const legalPages: Record<string, LegalPageConfig> = {
   cookies: {
     title: "Política de cookies",
     intro:
-      "Esta página explica qué tecnologías de almacenamiento utiliza APA PSO Argentina y cómo podés controlar las categorías opcionales.",
+      "Esta página explica qué tecnologías de almacenamiento utiliza Gestioná tu Liga y cómo podés controlar las categorías opcionales.",
     sections: [
       {
         title: "1. Qué son las cookies y tecnologías similares",
@@ -231,14 +231,14 @@ const legalPages: Record<string, LegalPageConfig> = {
       {
         title: "3. Analítica opcional",
         paragraphs: [
-          "Si autorizás Analítica, APA carga Google Analytics mediante el identificador configurado para el sitio. Se utiliza para comprender de forma agregada cómo se navega por la web y detectar oportunidades de mejora.",
+          "Si autorizás Analítica, Liga carga Google Analytics mediante el identificador configurado para el sitio. Se utiliza para comprender de forma agregada cómo se navega por la web y detectar oportunidades de mejora.",
           "La implementación actual solicita anonimización de IP mediante la configuración disponible de Google Analytics.",
         ],
       },
       {
         title: "4. Publicidad opcional",
         paragraphs: [
-          "Si autorizás Publicidad, APA puede cargar Google AdSense. Google puede utilizar cookies u otras tecnologías para mostrar, medir, limitar o proteger anuncios conforme a sus propias políticas.",
+          "Si autorizás Publicidad, Liga puede cargar Google AdSense. Google puede utilizar cookies u otras tecnologías para mostrar, medir, limitar o proteger anuncios conforme a sus propias políticas.",
           "El script publicitario no se carga desde el panel de consentimiento mientras esta categoría no haya sido autorizada.",
         ],
       },
@@ -277,38 +277,38 @@ const legalPages: Record<string, LegalPageConfig> = {
       {
         title: "1. Identidad del proyecto",
         paragraphs: [
-          "APA PSO Argentina es una comunidad competitiva dedicada a organizar y documentar competiciones de Pro Soccer Online. psoargentina.com funciona como su plataforma informativa, estadística y administrativa.",
+          "Gestioná tu Liga es una comunidad competitiva dedicada a organizar y documentar competiciones de Pro Soccer Online. psoargentina.com funciona como su plataforma informativa, estadística y administrativa.",
         ],
       },
       {
         title: "2. Independencia respecto de terceros",
         paragraphs: [
-          "Salvo indicación expresa, APA PSO Argentina no representa ni actúa en nombre de los titulares de Pro Soccer Online, Steam, Discord, Google u otros servicios mencionados en la plataforma.",
+          "Salvo indicación expresa, Gestioná tu Liga no representa ni actúa en nombre de los titulares de Pro Soccer Online, Steam, Discord, Google u otros servicios mencionados en la plataforma.",
         ],
       },
       {
         title: "3. Propiedad intelectual",
         paragraphs: [
-          "El diseño, estructura, código propio, textos, gráficos originales y elementos creados específicamente para APA están protegidos por las normas aplicables.",
+          "El diseño, estructura, código propio, textos, gráficos originales y elementos creados específicamente para Liga están protegidos por las normas aplicables.",
           "Los nombres comerciales, logotipos, imágenes, avatares y marcas de terceros pertenecen a sus respectivos titulares y se utilizan únicamente en el contexto permitido por la competición, identificación de clubes, jugadores o referencias externas.",
         ],
       },
       {
         title: "4. Información deportiva",
         paragraphs: [
-          "Resultados, estadísticas, rankings, plantillas, premios e historial se publican con finalidad informativa y competitiva dentro de APA. Pueden modificarse si se detectan errores, inconsistencias, sanciones o decisiones administrativas posteriores.",
+          "Resultados, estadísticas, rankings, plantillas, premios e historial se publican con finalidad informativa y competitiva dentro de Liga. Pueden modificarse si se detectan errores, inconsistencias, sanciones o decisiones administrativas posteriores.",
         ],
       },
       {
         title: "5. Enlaces externos",
         paragraphs: [
-          "El sitio puede contener enlaces a Discord, Steam u otros servicios. APA no controla el funcionamiento, disponibilidad, seguridad ni políticas de privacidad de sitios externos.",
+          "El sitio puede contener enlaces a Discord, Steam u otros servicios. Liga no controla el funcionamiento, disponibilidad, seguridad ni políticas de privacidad de sitios externos.",
         ],
       },
       {
         title: "6. Disponibilidad y mantenimiento",
         paragraphs: [
-          "La plataforma puede experimentar mantenimiento, interrupciones, fallos de terceros o cambios técnicos. APA puede modificar la estructura del sitio sin obligación de mantener indefinidamente una función concreta.",
+          "La plataforma puede experimentar mantenimiento, interrupciones, fallos de terceros o cambios técnicos. Liga puede modificar la estructura del sitio sin obligación de mantener indefinidamente una función concreta.",
         ],
       },
       {
@@ -321,7 +321,7 @@ const legalPages: Record<string, LegalPageConfig> = {
       {
         title: "8. Contacto por errores o derechos",
         paragraphs: [
-          "Si detectás contenido incorrecto, una posible infracción de derechos o un problema relacionado con información publicada, utilizá los canales oficiales de contacto de APA para solicitar revisión.",
+          "Si detectás contenido incorrecto, una posible infracción de derechos o un problema relacionado con información publicada, utilizá los canales oficiales de contacto de Liga para solicitar revisión.",
         ],
       },
     ],
@@ -330,7 +330,7 @@ const legalPages: Record<string, LegalPageConfig> = {
   conducta: {
     title: "Reglas de conducta",
     intro:
-      "Estas reglas establecen el estándar mínimo de comportamiento esperado en las funciones web y espacios vinculados a APA PSO Argentina.",
+      "Estas reglas establecen el estándar mínimo de comportamiento esperado en las funciones web y espacios vinculados a Gestioná tu Liga.",
     sections: [
       {
         title: "1. Respeto entre miembros",
@@ -359,7 +359,7 @@ const legalPages: Record<string, LegalPageConfig> = {
       {
         title: "5. Conducta en perfiles y contenido",
         paragraphs: [
-          "Los nombres, biografías, imágenes y demás contenido visible deben ser apropiados para la comunidad. APA puede retirar contenido ofensivo, ilegal, engañoso, sexualmente explícito, invasivo o destinado a acosar.",
+          "Los nombres, biografías, imágenes y demás contenido visible deben ser apropiados para la comunidad. Liga puede retirar contenido ofensivo, ilegal, engañoso, sexualmente explícito, invasivo o destinado a acosar.",
         ],
       },
       {
@@ -383,14 +383,14 @@ const legalPages: Record<string, LegalPageConfig> = {
       {
         title: "9. Medidas disciplinarias",
         paragraphs: [
-          "Según la gravedad y reincidencia, APA puede aplicar advertencias, eliminación de contenido, restricciones de funciones, suspensión temporal, sanciones deportivas o exclusión de la comunidad.",
+          "Según la gravedad y reincidencia, Liga puede aplicar advertencias, eliminación de contenido, restricciones de funciones, suspensión temporal, sanciones deportivas o exclusión de la comunidad.",
           "Las reglas específicas de cada competición pueden establecer sanciones adicionales y procedimientos de revisión.",
         ],
       },
       {
         title: "10. Cambios y casos no previstos",
         paragraphs: [
-          "APA puede actualizar estas reglas cuando aparezcan nuevas funciones o modalidades de abuso. Los casos no previstos pueden resolverse aplicando los principios de integridad competitiva, seguridad y respeto a la comunidad.",
+          "Liga puede actualizar estas reglas cuando aparezcan nuevas funciones o modalidades de abuso. Los casos no previstos pueden resolverse aplicando los principios de integridad competitiva, seguridad y respeto a la comunidad.",
         ],
       },
     ],
@@ -399,12 +399,12 @@ const legalPages: Record<string, LegalPageConfig> = {
   contacto: {
     title: "Contacto",
     intro:
-      "Canales y recomendaciones para contactar al staff de APA PSO Argentina por soporte, privacidad, seguridad o correcciones de información.",
+      "Canales y recomendaciones para contactar al staff de Gestioná tu Liga por soporte, privacidad, seguridad o correcciones de información.",
     sections: [
       {
         title: "1. Soporte general",
         paragraphs: [
-          "El canal principal de atención de APA se encuentra en el servidor oficial de Discord. Utilizá los canales de soporte definidos allí para consultas sobre cuentas, competiciones, plantillas, estadísticas o funcionamiento de la web.",
+          "El canal principal de atención de Liga se encuentra en el servidor oficial de Discord. Utilizá los canales de soporte definidos allí para consultas sobre cuentas, competiciones, plantillas, estadísticas o funcionamiento de la web.",
         ],
       },
       {
@@ -416,7 +416,7 @@ const legalPages: Record<string, LegalPageConfig> = {
       {
         title: "3. Correcciones deportivas",
         paragraphs: [
-          "Para errores en resultados, estadísticas, premios, clubes, perfiles o historial, incluí la temporada, competición, partido o jugador afectado y una descripción precisa del problema.",
+          "Para errores en resultados, estadísticas, premios, clubes, perfiles o historial, incluí el torneo, competición, partido o jugador afectado y una descripción precisa del problema.",
         ],
       },
       {
@@ -434,7 +434,7 @@ const legalPages: Record<string, LegalPageConfig> = {
       {
         title: "6. Discord oficial",
         paragraphs: [
-          "Podés acceder al Discord oficial de APA PSO Argentina desde el enlace de contacto disponible a continuación.",
+          "Podés acceder al Discord oficial de Gestioná tu Liga desde el enlace de contacto disponible a continuación.",
         ],
       },
     ],
@@ -470,7 +470,7 @@ export default async function LegalPage({
       <article className="mx-auto max-w-5xl overflow-hidden rounded-[18px] border border-[#cfe2ee] bg-white shadow-[0_16px_50px_rgba(11,39,71,.07)]">
         <header className="border-b border-[#1d5b87]/20 bg-[#103d66] px-6 py-9 text-white md:px-10 md:py-11">
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8ed2f3]">
-            APA PSO Argentina · Legal
+            Gestioná tu Liga · Legal
           </p>
           <h1 className="mt-3 text-[clamp(32px,5vw,54px)] font-black uppercase leading-[.95] tracking-[-0.04em]">
             {page.title}
@@ -539,7 +539,7 @@ export default async function LegalPage({
               <section className="mt-8 rounded-xl border border-[#bcddec] bg-[#eef8fd] p-5">
                 <h2 className="text-[16px] font-black">Discord oficial</h2>
                 <p className="mt-2 text-[13px] font-medium leading-6 text-[#496d88]">
-                  Canal principal de soporte y contacto de APA PSO Argentina.
+                  Canal principal de soporte y contacto de Gestioná tu Liga.
                 </p>
                 <a
                   href="https://discord.gg/WCyqeJMmCU"

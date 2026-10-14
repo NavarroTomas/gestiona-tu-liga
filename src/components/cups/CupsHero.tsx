@@ -1,3 +1,5 @@
+
+import { displayLabel } from "@/lib/displayLabels";
 import { CUPS_CONFIG } from "@/config/cups";
 
 export default function CupsHero({ season }: { season: string }) {
@@ -17,7 +19,7 @@ export default function CupsHero({ season }: { season: string }) {
             {CUPS_CONFIG.hero.title}
           </h1>
           <p className="mt-3 text-[clamp(14px,1.45vw,22px)] font-semibold text-[#214b77] sm:mt-4">
-            {CUPS_CONFIG.hero.subtitle} · {season}
+            {CUPS_CONFIG.hero.subtitle} · {displayLabel(season)}
           </p>
         </div>
       </div>

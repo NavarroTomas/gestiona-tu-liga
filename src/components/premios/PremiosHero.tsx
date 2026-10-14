@@ -3,7 +3,7 @@ import type { PremiosController } from "@/hooks/usePremios";
 export default function PremiosHero({ controller }: { controller: PremiosController }) {
   return (
     <section className="rounded-2xl border border-[#c9e3f1] bg-white p-6 md:p-8">
-      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#2d98d4]">APA PSO ARGENTINA</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#2d98d4]">Liga PSO ARGENTINA</p>
       <h1 className="mt-3 text-[clamp(2.6rem,7vw,5rem)] font-black uppercase leading-[.9] tracking-[-.045em] text-[#102f55]">
         Premios <span className="text-[#2d98d4]">de la fecha</span>
       </h1>

@@ -318,7 +318,7 @@ export default function PerfilPage() {
       return;
     }
 
-    setMensaje("Perfil actualizado. Tu PlayerId solicitado queda pendiente de verificación por un administrador APA.");
+    setMensaje("Perfil actualizado. Tu PlayerId solicitado queda pendiente de verificación por un administrador Liga.");
     await cargarPerfil();
   }
 
@@ -347,7 +347,7 @@ export default function PerfilPage() {
           <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.45em] text-sky-400">
-                Cuenta APA
+                Cuenta Liga
               </p>
 
               <h1 className="mt-4 text-5xl font-black uppercase italic leading-none md:text-6xl">
@@ -355,7 +355,7 @@ export default function PerfilPage() {
               </h1>
 
               <p className="mt-4 max-w-2xl text-zinc-400">
-                Administrá tus datos públicos. Tu PlayerId queda como solicitud y debe ser verificado por un administrador APA antes de vincularse oficialmente a tus estadísticas.
+                Administrá tus datos públicos. Tu PlayerId queda como solicitud y debe ser verificado por un administrador Liga antes de vincularse oficialmente a tus estadísticas.
               </p>
             </div>
 

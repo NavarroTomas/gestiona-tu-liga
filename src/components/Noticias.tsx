@@ -7,7 +7,7 @@ export default function Noticias() {
     "🔥 TX continúa líder absoluto de la liga.",
     "⚡ Wolves recorta distancia en la tabla.",
     "🏆 Monzon domina el ranking MVP.",
-    "🎯 La temporada entra en su fase decisiva."
+    "🎯 El torneo entra en su fase decisiva."
 
   ];
 
@@ -53,7 +53,7 @@ export default function Noticias() {
             rounded-xl
             text-sky-300
           ">
-            APA PSO
+            Liga PSO
           </div>
 
         </div>

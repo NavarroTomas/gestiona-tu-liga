@@ -56,8 +56,8 @@ function ExperienceIcon({ id, className = "" }: { id: EntertainmentExperienceId;
 const descriptions: Record<EntertainmentExperienceId, string> = {
   predicciones: "Adiviná los resultados y sumá puntos",
   "dream-team": "Armá tu equipo ideal",
-  wordle: "Descubrí la palabra APA del día",
-  premios: "Seguí los reconocimientos APA",
+  wordle: "Descubrí la palabra Liga del día",
+  premios: "Seguí los reconocimientos Liga",
 };
 
 function PredictionsPreview() {
@@ -186,7 +186,7 @@ function WordlePreview() {
       </div>
 
       <div className="mx-auto mt-6 max-w-[430px] rounded-[9px] bg-[#f3f8fb] px-4 py-3 text-center text-[11px] font-bold text-[#607b90]">
-        Una palabra por día · 6 intentos · temática APA
+        Una palabra por día · 6 intentos · temática Liga
       </div>
     </div>
   );
@@ -197,7 +197,7 @@ function AwardsPreview() {
     ["MVP", "Figura de la fecha"],
     ["Goleador", "Mayor aporte ofensivo"],
     ["Arquero", "Mejor rendimiento"],
-    ["Temporada", "Reconocimiento general"],
+    ["Torneo", "Reconocimiento general"],
   ];
 
   return (
@@ -242,13 +242,13 @@ export default function EntertainmentPortal() {
         <div className="pointer-events-none absolute inset-0 hidden bg-[linear-gradient(90deg,#ffffff_0%,#ffffff_42%,rgba(255,255,255,.83)_61%,rgba(255,255,255,.24)_100%)] lg:block" />
 
         <div className="relative mx-auto max-w-[1680px] px-5 py-9 sm:px-8 lg:px-10 lg:py-12">
-          <p className="text-[10px] font-black uppercase tracking-[.13em] text-[#2d98d4]">Comunidad APA</p>
+          <p className="text-[10px] font-black uppercase tracking-[.13em] text-[#2d98d4]">Comunidad Liga</p>
           <h1 className="mt-2 max-w-[980px] text-[clamp(3rem,7vw,6.9rem)] font-black uppercase leading-[.84] tracking-[-.055em]">
             Entretenimiento
             <span className="block text-[#2d98d4]">Comunidad</span>
           </h1>
           <p className="mt-5 max-w-2xl text-[15px] font-semibold leading-7 text-[#4f6e85] sm:text-[17px]">
-            Viví APA más allá de la competencia. Participá, jugá y elegí la experiencia que más te guste.
+            Viví Liga más allá de la competencia. Participá, jugá y elegí la experiencia que más te guste.
           </p>
         </div>
       </section>

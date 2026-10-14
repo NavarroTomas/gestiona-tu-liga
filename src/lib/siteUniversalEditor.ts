@@ -68,7 +68,7 @@ export const SITE_EDITOR_PAGES: SiteEditorPageDefinition[] = [
   { key: "historia", label: "Historia", route: "/historia", group: "Contenido" },
   { key: "competicion-copas", label: "Copas", route: "/competicion/copas", group: "Competición" },
   { key: "competicion-copa-argentina", label: "Copa Argentina", route: "/competicion/copa-argentina", group: "Competición" },
-  { key: "competicion-copa-apa", label: "Copa APA", route: "/competicion/copa-apa", group: "Competición" },
+  { key: "competicion-copa-apa", label: "Copa de la Liga", route: "/competicion/copa-apa", group: "Competición" },
   { key: "competicion-playoffs", label: "Playoffs", route: "/competicion/playoffs", group: "Competición" },
   { key: "competicion-copa-campeones", label: "Copa de Campeones", route: "/competicion/copa-campeones", group: "Competición" },
   { key: "fixture", label: "Fixture", route: "/fixture", group: "Competición" },

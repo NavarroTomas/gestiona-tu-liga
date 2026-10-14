@@ -1,3 +1,5 @@
+
+import { displayLabel } from "@/lib/displayLabels";
 import { CUPS_CONFIG } from "@/config/cups";
 
 export default function CupControls({
@@ -24,7 +26,7 @@ export default function CupControls({
         </div>
 
         <label className="grid shrink-0 gap-1.5">
-          <span className="text-xs font-black uppercase tracking-[.12em] text-[#7991a8]">Temporada</span>
+          <span className="text-xs font-black uppercase tracking-[.12em] text-[#7991a8]">Torneo</span>
           <span className="relative">
             <select
               value={season}
@@ -38,7 +40,7 @@ export default function CupControls({
                   value={item}
                   style={{ backgroundColor: "#f3fafe", color: "#102f55" }}
                 >
-                  {item}
+                  {displayLabel(item)}
                 </option>
               ))}
             </select>

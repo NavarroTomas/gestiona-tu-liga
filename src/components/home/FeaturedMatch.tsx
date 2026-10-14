@@ -23,7 +23,7 @@ function getCompeticionLabel(partido: any, fallback?: string) {
   if (value === "liga") return "Torneo de Liga";
   if (value === "copa_clasificatoria") return "Clasificación a Copas";
   if (value === "copa_argentina") return "Copa Argentina";
-  if (value === "copa_apa") return "Copa APA";
+  if (value === "copa_apa") return "Copa de la Liga";
 
   return fallback || "Competición oficial";
 }

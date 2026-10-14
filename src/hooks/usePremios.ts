@@ -44,7 +44,7 @@ export const PREMIOS_COMPETICIONES: Array<{ value: PremioCompeticion; label: str
   { value: "liga", label: "Liga" },
   { value: "copa_clasificatoria", label: "Clasificación a Copas" },
   { value: "copa_argentina", label: "Copa Argentina" },
-  { value: "copa_apa", label: "Copa APA" },
+  { value: "copa_apa", label: "Copa de la Liga" },
   { value: "copa_campeones", label: "Copa de Campeones" },
   { value: "playoffs", label: "Playoffs de Ascenso" },
 ];
@@ -55,7 +55,7 @@ export const PREMIOS_CONTEXTOS: PremioContexto[] = [
   ...["A", "B", "C", "D"].map((grupo) => ({ id: `copas-grupo-${grupo.toLowerCase()}`, label: `Clasificación · Grupo ${grupo}`, competicion: "copa_clasificatoria" as const, grupo, fase: "grupos", badge: `Grupo ${grupo}` })),
   ...["octavos", "cuartos", "semifinal", "final"].flatMap((fase) => [
     { id: `copa-argentina-${fase}`, label: `Copa Argentina · ${fase}`, competicion: "copa_argentina" as const, fase, badge: fase },
-    { id: `copa-apa-${fase}`, label: `Copa APA · ${fase}`, competicion: "copa_apa" as const, fase, badge: fase },
+    { id: `copa-apa-${fase}`, label: `Copa de la Liga · ${fase}`, competicion: "copa_apa" as const, fase, badge: fase },
   ]),
   { id: "copa-campeones-semifinal", label: "Copa de Campeones · Semifinal", competicion: "copa_campeones", fase: "semifinal", badge: "Semifinal" },
   { id: "copa-campeones-final", label: "Copa de Campeones · Final", competicion: "copa_campeones", fase: "final", badge: "Final" },

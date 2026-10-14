@@ -1,3 +1,5 @@
+
+import { displayLabel } from "@/lib/displayLabels";
 import TeamLink from "@/components/team/TeamLink";
 import { clubOpponent, formatClubMatchDate } from "@/lib/clubs";
 import type { ClubRecord, ClubStanding } from "@/lib/clubs/types";
@@ -67,7 +69,7 @@ export default function ClubsLeader({
                 <TeamLink name={leader.nombre} slug={leader.slug} temporada={season} className="block max-w-full text-white">
                   <h3 className="truncate text-[23px] font-black uppercase leading-tight sm:text-[30px]">{leader.nombre}</h3>
                 </TeamLink>
-                <p className="mt-1.5 text-[13px] font-semibold text-white/65 sm:text-sm">{season} · {division} División</p>
+                <p className="mt-1.5 text-[13px] font-semibold text-white/65 sm:text-sm">{displayLabel(season)} · {division} División</p>
                 <div className="mt-4 flex items-center gap-1.5">
                   {leader.forma.length ? leader.forma.map((result, index) => (
                     <span key={`${result}-${index}`} className={`flex h-7 w-7 items-center justify-center rounded-md text-[11px] font-black ${result === "W" ? "bg-[#37b97b] text-white" : result === "D" ? "bg-white/15 text-white" : "bg-[#e0525b] text-white"}`}>
@@ -107,7 +109,7 @@ export default function ClubsLeader({
 
           <div className="min-w-0 lg:pl-2">
             <p className="text-[11px] font-black uppercase tracking-[.12em] text-[#71d2fa]">Próximo partido</p>
-            {nextMatch && opponentName ? (
+            {displayLabel(nextMatch && opponentName ? (
               <>
                 <div className="mt-3 flex items-center gap-3">
                   <Crest name={leader.nombre} logo={leader.logo_url} size="md" />
@@ -117,11 +119,11 @@ export default function ClubsLeader({
                   </TeamLink>
                 </div>
                 <p className="mt-3 text-[14px] font-black">{formatClubMatchDate(nextMatch)} {nextMatch.hora ? `· ${nextMatch.hora}` : ""}</p>
-                <p className="mt-1 text-[11px] font-semibold text-white/50">{nextMatch.competicion ? String(nextMatch.competicion).replaceAll("_", " ") : "Competición APA"}</p>
+                <p className="mt-1 text-[11px] font-semibold text-white/50">{nextMatch.competicion ? String(nextMatch.competicion).replaceAll("_", " ") : "Competición Liga"}</p>
               </>
             ) : (
               <p className="mt-3 text-[13px] font-semibold text-white/55">No hay un próximo partido cargado.</p>
-            )}
+            ))}
             <TeamLink name={leader.nombre} slug={leader.slug} temporada={season} className="mt-4 inline-flex h-10 items-center gap-2 rounded-full border border-[#5fc4ef] px-5 text-[12px] font-black text-[#7ad5fb] hover:bg-[#0b4c7b] hover:text-white">
               Ver perfil del club <ArrowIcon className="h-4 w-4" />
             </TeamLink>

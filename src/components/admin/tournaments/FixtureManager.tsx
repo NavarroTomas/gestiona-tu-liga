@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -85,7 +87,7 @@ export default function FixtureManager() {
         const divisionRows = Array.from(new Set(rows.map((row) => normalizeDivision(row.division)).filter(Boolean))).sort();
         setDivision((current) => current && divisionRows.includes(current) ? current : divisionRows[0] || "primera");
       })
-      .catch((error: any) => active && setMessage(error?.message || "No pude cargar los clubes de la temporada."))
+      .catch((error: any) => active && setMessage(error?.message || "No pude cargar los clubes del torneo."))
       .finally(() => active && setLoading(false));
 
     return () => { active = false; };
@@ -305,14 +307,14 @@ export default function FixtureManager() {
             : "Creá la liga paso a paso. Elegís clubes, formato y revisás una vista previa antes de guardar nada."}
         >
           <div className={styles.toolbar}>
-            <Field label="Temporada">
+            <Field label="Torneo">
               <Select value={temporada} onChange={(e) => setTemporada(e.target.value)} disabled={!seasons.length}>
-                {seasons.map((season) => <option key={season}>{season}</option>)}
+                {seasons.map((season) => <option key={season} value={season}>{displayLabel(season)}</option>)}
               </Select>
             </Field>
             <Field label="División">
               <Select value={division} onChange={(e) => setDivision(e.target.value)} disabled={!divisions.length}>
-                {divisions.map((item) => <option key={item} value={item}>{prettyDivision(item)}</option>)}
+                {divisions.map((item) => <option key={item} value={item}>{displayLabel(prettyDivision(item))}</option>)}
               </Select>
             </Field>
             <Link href="/admin/torneos/configuracion" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
@@ -429,7 +431,7 @@ export default function FixtureManager() {
                   </div>
                 </TournamentPanel>
 
-                <TournamentPanel eyebrow="Qué hacer ahora" title="Acciones rápidas" description="Solo mostramos lo que normalmente necesitás durante la temporada.">
+                <TournamentPanel eyebrow="Qué hacer ahora" title="Acciones rápidas" description="Solo mostramos lo que normalmente necesitás durante el torneo.">
                   <div className={styles.list}>
                     {unscheduledCount > 0 && <button className={styles.primary} type="button" onClick={() => setView("programacion")}>Programar partidos sin horario</button>}
                     <button className={styles.secondary} type="button" onClick={() => setView("partidos")}>Ver todos los partidos</button>
@@ -510,7 +512,7 @@ export default function FixtureManager() {
 
             {view === "avanzado" && (
               <div className={styles.list}>
-                <TournamentPanel eyebrow="Reglas" title="Cambiar formato y puntuación" description="Para cambios estructurales de la competición usá el editor de temporada y reglas.">
+                <TournamentPanel eyebrow="Reglas" title="Cambiar formato y puntuación" description="Para cambios estructurales de la competición usá el editor de torneo y reglas.">
                   <div className={styles.actions}>
                     <Link href="/admin/torneos/configuracion" className={styles.primary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Abrir configuración</Link>
                   </div>

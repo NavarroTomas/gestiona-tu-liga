@@ -11,6 +11,11 @@ import {
 } from "react";
 
 import { supabase } from "@/lib/supabase";
+import {DEFAULT_HOME_EDITOR_DOCUMENT} from "@/lib/siteEditor";
+import CustomHomeBlocks from "@/components/site-editor/CustomHomeBlocks";
+import {getActiveLocalLeague} from "@/lib/localLeagueClient";
+import Hero from "@/components/Hero";
+import type {HomeNews} from "@/lib/homePortal";
 
 import HomeNewsStandings from "@/components/home/HomeNewsStandings";
 import HomeCompetitionStrip from "@/components/home/HomeCompetitionStrip";
@@ -90,6 +95,8 @@ export default function HomeLeaguePortal({
   onSelectSection,
   onSelectElement,
 }: Props = {}) {
+  const [publishedNews,setPublishedNews]=useState<HomeNews[]>([]);
+  const localLeague=getActiveLocalLeague();
   const [temporada, setTemporada] =
     useState("Temporada 4");
 
@@ -197,6 +204,8 @@ export default function HomeLeaguePortal({
       if (!active) return;
 
       setTemporada(currentSeason);
+      const newsRes=await supabase.from("noticias").select("*").eq("publicada",true).order("created_at",{ascending:false});
+      if(active)setPublishedNews((newsRes.data??[]).map(n=>({id:String(n.id),titulo:n.titulo,descripcion:n.descripcion,categoria:n.categoria,imagen_url:n.imagen_url,destacada:n.destacada,created_at:n.created_at,href:"/liga#home-news"})));
 
       const matchesRes =
         await supabase
@@ -326,11 +335,8 @@ export default function HomeLeaguePortal({
   const mergedNews =
     useMemo(
       () =>
-        automaticNews.slice(
-          0,
-          5,
-        ),
-      [automaticNews],
+        [...publishedNews,...automaticNews].slice(0,5),
+      [publishedNews,automaticNews],
     );
 
   const upcoming =
@@ -596,7 +602,7 @@ export default function HomeLeaguePortal({
   ) {
     switch (id) {
       case "hero":
-        return null;
+        return localLeague?shell(id,<Hero title={editorDocument||publishedDocument!==DEFAULT_HOME_EDITOR_DOCUMENT?pageDocument.hero.title:localLeague.name} subtitle={pageDocument.hero.subtitle||"Tu liga"} />):null;
 
       case "news": {
         const props =
@@ -816,48 +822,42 @@ export default function HomeLeaguePortal({
               : 0,
         }}
       >
-        {pageDocument.order.map(
+        <CustomHomeBlocks blocks={pageDocument.blocks.filter(b=>b.after==="start")} />
+        {(localLeague ? pageDocument.order.filter(id=>["hero","news","match"].includes(id)) : pageDocument.order).map(
           (id) => (
             <Fragment key={id}>
               {id ===
-              "competitions" ? (
-                <HomeSponsors />
-              ) : null}
+              "competitions" ? (!localLeague&&<HomeSponsors />) : null}
 
               {id ===
-              "match" ? (
-                <HomeStreamerCTA />
-              ) : null}
+              "match" ? (!localLeague&&<HomeStreamerCTA />) : null}
 
               {id ===
-              "community" ? (
-                <HomeCreateTeamCTA />
-              ) : null}
+              "community" ? (!localLeague&&<HomeCreateTeamCTA />) : null}
 
               {renderSection(
                 id,
               )}
 
+              <CustomHomeBlocks blocks={pageDocument.blocks.filter(b=>b.after===id)} />
               {id ===
-              "news" ? (
-                <HomeWordlePromo />
-              ) : null}
+              "news" ? (!localLeague&&<HomeWordlePromo />) : null}
             </Fragment>
           ),
         )}
 
-        <HomeSuggestions />
+        {!localLeague&&<HomeSuggestions />}
 
-        <HomeFindTeamCTA />
+        {!localLeague&&<HomeFindTeamCTA />}
 
-        <HomeDonation />
+        {!localLeague&&<HomeDonation />}
 
-        {editorMode
+        {!localLeague && (editorMode
           ? shell(
               "community",
               <HomeCommunity />,
             )
-          : <HomeCommunity />}
+          : <HomeCommunity />)}
       </div>
     </main>
   );

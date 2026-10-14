@@ -12,7 +12,7 @@ const competiciones: { id: Competicion; label: string; accent: string }[] = [
   { id: "liga", label: "Liga", accent: "text-sky-300" },
   { id: "copa_clasificatoria", label: "Clasificación a Copas", accent: "text-yellow-300" },
   { id: "copa_argentina", label: "Copa Argentina", accent: "text-yellow-300" },
-  { id: "copa_apa", label: "Copa APA", accent: "text-cyan-300" },
+  { id: "copa_apa", label: "Copa de la Liga", accent: "text-cyan-300" },
   { id: "copa_campeones", label: "Copa de Campeones", accent: "text-cyan-200" },
 ];
 

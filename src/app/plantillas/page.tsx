@@ -1,4 +1,6 @@
 "use client";
+import {displayLabel} from "@/lib/displayLabels";
+
 
 import SquadClubStrip from "@/components/squads/SquadClubStrip";
 import SquadRoster from "@/components/squads/SquadRoster";
@@ -71,7 +73,7 @@ export default function PlantillasPage() {
         onSelect={setClubName}
       />
 
-      {loading ? (
+      {displayLabel(loading ? (
         <div className="mx-auto max-w-[1680px] px-5 py-14 text-center text-sm font-black uppercase tracking-[.16em] text-[#4c7899] sm:px-8 lg:px-10">
           Cargando plantillas...
         </div>
@@ -83,7 +85,7 @@ export default function PlantillasPage() {
           division={division}
           players={players}
         />
-      )}
+      ))}
     </main>
   );
 }

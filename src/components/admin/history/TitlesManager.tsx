@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -92,7 +94,7 @@ export default function TitlesManager() {
 
   async function saveTitle() {
     if (!club || !season || !competition) {
-      setMessage("Elegí campeón, competición y temporada.");
+      setMessage("Elegí campeón, competición y torneo.");
       return;
     }
     setSaving(true);
@@ -133,11 +135,11 @@ export default function TitlesManager() {
         <TournamentHero
           eyebrow="Historia de clubes"
           title="Palmarés"
-          description="Registrá campeones oficiales sin escribir clubes a mano. Elegí temporada, competición y ganador."
+          description="Registrá campeones oficiales sin escribir clubes a mano. Elegí torneo, competición y ganador."
         >
           <div className={styles.kpis}>
             <div className={styles.kpi}><div className={styles.kpiLabel}>Títulos</div><div className={styles.kpiValue}>{titles.length}</div></div>
-            <div className={styles.kpi}><div className={styles.kpiLabel}>Temporada</div><div className={styles.kpiValue} style={{ fontSize: 18 }}>{season}</div></div>
+            <div className={styles.kpi}><div className={styles.kpiLabel}>Torneo</div><div className={styles.kpiValue} style={{ fontSize: 18 }}>{displayLabel(season)}</div></div>
             <div className={styles.kpi}><div className={styles.kpiLabel}>Competición</div><div className={styles.kpiValue} style={{ fontSize: 18 }}>{competitionLabel(competition)}</div></div>
           </div>
         </TournamentHero>
@@ -147,23 +149,23 @@ export default function TitlesManager() {
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 420px) minmax(0, 1fr)", gap: 18, marginTop: 22 }}>
           <TournamentPanel eyebrow="Nuevo título" title="Agregar campeón" description="Solo aparecen opciones que corresponden al contexto elegido.">
             <div style={{ display: "grid", gap: 14 }}>
-              <Field label="Temporada"><Select value={season} onChange={(e) => setSeason(e.target.value)}>{seasons.map((value) => <option key={value}>{value}</option>)}</Select></Field>
-              <Field label="Competición"><Select value={competition} onChange={(e) => setCompetition(e.target.value as CompetitionValue)}>{TITLE_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</Select></Field>
-              {categoryOptions.length > 0 && <Field label={competition === "liga" ? "División" : "Grupo"}><Select value={category} onChange={(e) => { setCategory(e.target.value); setClub(""); }}>{categoryOptions.map((value) => <option key={value}>{value}</option>)}</Select></Field>}
-              <Field label="Club campeón"><Select value={club} onChange={(e) => setClub(e.target.value)}><option value="">Elegir club</option>{visibleClubs.map((item) => <option key={item.nombre} value={item.nombre}>{item.nombre}</option>)}</Select></Field>
+              <Field label="Torneo"><Select value={season} onChange={(e) => setSeason(e.target.value)}>{seasons.map((value) => <option key={value} value={value}>{displayLabel(value)}</option>)}</Select></Field>
+              <Field label="Competición"><Select value={competition} onChange={(e) => setCompetition(e.target.value as CompetitionValue)}>{TITLE_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{displayLabel(item.label)}</option>)}</Select></Field>
+              {categoryOptions.length > 0 && <Field label={competition === "liga" ? "División" : "Grupo"}><Select value={category} onChange={(e) => { setCategory(e.target.value); setClub(""); }}>{categoryOptions.map((value) => <option key={value} value={value}>{displayLabel(value)}</option>)}</Select></Field>}
+              <Field label="Club campeón"><Select value={club} onChange={(e) => setClub(e.target.value)}><option value="">Elegir club</option>{visibleClubs.map((item) => <option key={item.nombre} value={item.nombre}>{displayLabel(item.nombre)}</option>)}</Select></Field>
               <Field label="Nota opcional"><Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Ej: Campeón invicto" /></Field>
               <button type="button" className={styles.primary} disabled={saving || !club} onClick={saveTitle}>{saving ? "Guardando..." : "Guardar título"}</button>
             </div>
           </TournamentPanel>
 
           <TournamentPanel eyebrow="Archivo" title="Títulos cargados" description={`${filteredTitles.length} registro${filteredTitles.length === 1 ? "" : "s"}.`}>
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar club, competición o temporada..." />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar club, competición o torneo..." />
             <div className={styles.list} style={{ marginTop: 14 }}>
               {filteredTitles.length === 0 ? <div className={styles.empty}>No hay títulos para este filtro.</div> : filteredTitles.map((item) => (
                 <div key={item.id} className={styles.row}>
                   <div>
                     <div className={styles.rowTitle}>{item.equipo}</div>
-                    <div className={styles.rowMeta}>{competitionLabel(item.competicion)}{item.division ? ` · ${item.division}` : ""} · {item.temporada}</div>
+                    <div className={styles.rowMeta}>{competitionLabel(item.competicion)}{item.division ? ` · ${item.division}` : ""} · {displayLabel(item.temporada)}</div>
                     {item.descripcion && <div className={styles.rowMeta}>{item.descripcion}</div>}
                   </div>
                   <button type="button" className={styles.danger} onClick={() => removeTitle(item)}>Eliminar</button>

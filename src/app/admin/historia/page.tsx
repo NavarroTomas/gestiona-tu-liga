@@ -5,15 +5,15 @@ const tools = [
     href: "/admin/titulos",
     eyebrow: "Historia de clubes",
     title: "Palmarés",
-    description: "Registrá campeones oficiales por competición, temporada y categoría.",
+    description: "Registrá campeones oficiales por competición, torneo y categoría.",
     permission: "titles.manage",
     recommended: true,
   },
   {
     href: "/admin/premios",
     eyebrow: "Reconocimientos individuales",
-    title: "Premios APA",
-    description: "Calculá y asigná premios individuales usando las estadísticas oficiales de la temporada.",
+    title: "Premios Liga",
+    description: "Calculá y asigná premios individuales usando las estadísticas oficiales del torneo.",
     permission: "titles.manage",
   },
 ];

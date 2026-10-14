@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { useMemo, useState } from "react";
 import type { PlantillaRow } from "./PlantillaPlayerList";
@@ -192,15 +194,15 @@ export default function TransferTextImporter({
                         onChange={(event) => setOverrides((old) => ({ ...old, [item.key]: { ...old[item.key], from: event.target.value } }))}
                       >
                         <option value="">Origen</option>
-                        {teams.map((team) => <option key={`${item.key}-from-${team}`} value={team}>{team}</option>)}
+                        {teams.map((team) => <option key={`${item.key}-from-${team}`} value={team}>{displayLabel(team)}</option>)}
                       </Select>
                       <Select
                         value={current.to}
                         disabled={item.type === "Libre"}
                         onChange={(event) => setOverrides((old) => ({ ...old, [item.key]: { ...old[item.key], to: event.target.value } }))}
                       >
-                        <option value="">{item.type === "Libre" ? "Queda libre" : "Destino"}</option>
-                        {teams.map((team) => <option key={`${item.key}-to-${team}`} value={team}>{team}</option>)}
+                        <option value="">{displayLabel(item.type === "Libre" ? "Queda libre" : "Destino")}</option>
+                        {teams.map((team) => <option key={`${item.key}-to-${team}`} value={team}>{displayLabel(team)}</option>)}
                       </Select>
                     </div>
 

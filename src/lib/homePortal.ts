@@ -130,11 +130,11 @@ export function buildAutomaticNews(matches: HomeMatch[], playerStats: HomePlayer
     const key = normalizeText(match.competicion || "liga");
     if (key === "liga") return match.division ? "Liga " + match.division : "Liga";
     if (key === "copa_argentina") return "Copa Argentina";
-    if (key === "copa_apa") return "Copa APA";
+    if (key === "copa_apa") return "Copa de la Liga";
     if (key === "copa_campeones") return "Copa de Campeones";
     if (key === "copa_clasificatoria") return "Clasificación a Copas";
     if (key === "playoffs") return "Playoffs";
-    return match.competicion || "Competición APA";
+    return match.competicion || "Competición Liga";
   };
 
   const phaseLabel = (match: HomeMatch) => {
@@ -212,7 +212,7 @@ export function buildAutomaticNews(matches: HomeMatch[], playerStats: HomePlayer
       const key = String(stat.playerId || stat.nombre || "").trim();
       if (!key) return;
       const current = totals.get(key) || {
-        playerId: String(stat.playerId || ""), nombre: String(stat.nombre || "Jugador APA"), equipo: String(stat.equipo || ""), goals: 0, assists: 0, mvp: 0,
+        playerId: String(stat.playerId || ""), nombre: String(stat.nombre || "Jugador Liga"), equipo: String(stat.equipo || ""), goals: 0, assists: 0, mvp: 0,
       };
       current.goals += Number(stat.goals || 0);
       current.assists += Number(stat.assists || 0);
@@ -257,7 +257,7 @@ export function buildAutomaticNews(matches: HomeMatch[], playerStats: HomePlayer
       id: "auto-current-" + metric + "-" + leader.playerId, titulo, categoria,
       descripcion: leader.equipo ? leader.equipo + " · " + categoria : categoria,
       href: leader.playerId ? "/jugadores/" + encodeURIComponent(leader.playerId) : null,
-      meta: "Temporada actual", sortOrder: completed.length * 10 + metricIndex,
+      meta: "Torneo actual", sortOrder: completed.length * 10 + metricIndex,
     });
   });
 

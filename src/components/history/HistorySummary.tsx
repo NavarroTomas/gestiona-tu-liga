@@ -1,3 +1,5 @@
+
+import { displayLabel } from "@/lib/displayLabels";
 import { HistoryTeamIdentity } from "@/components/history/HistoryTeamIdentity";
 import type { HistoryClub } from "@/lib/history";
 
@@ -38,7 +40,7 @@ export default function HistorySummary({
             Resumen general
           </p>
           <h2 className="mt-1 text-[34px] font-black uppercase tracking-tight sm:text-4xl">
-            {season}
+            {displayLabel(season)}
           </h2>
 
           <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">

@@ -11,7 +11,7 @@ const DESKTOP_EDITOR_MIN_WIDTH = 1181;
 
 function obtenerElementos() {
   return {
-    temporada: document.querySelector<HTMLElement>('[data-layout="temporada"]'),
+    temporada: document.querySelector<HTMLElement>("[data-layout=\"torneo\"]"),
     titulo: document.querySelector<HTMLElement>('[data-layout="titulo"]'),
     linea: document.querySelector<HTMLElement>('[data-layout="linea"]'),
     menu: document.querySelector<HTMLElement>('[data-layout="menu"]'),

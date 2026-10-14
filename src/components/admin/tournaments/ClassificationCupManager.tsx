@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -75,7 +77,7 @@ function GroupEditor({
                   <option value="">Elegir club</option>
                   {teams
                     .filter((team) => team.nombre === current || !used.has(team.nombre))
-                    .map((team) => <option key={team.nombre} value={team.nombre}>{team.nombre}</option>)}
+                    .map((team) => <option key={team.nombre} value={team.nombre}>{displayLabel(team.nombre)}</option>)}
                 </Select>
               </Field>
             ))}
@@ -100,11 +102,11 @@ function StandingsTable({ rows, argentinaPlaces, apaPlaces, mixedQualification }
           {rows.map((row, index) => {
             const position = index + 1;
             const destination = mixedQualification
-              ? position <= 2 ? "Copa Argentina" : position === 3 ? "Comparar terceros" : position <= 5 ? "Copa APA" : "Comparar sextos"
+              ? position <= 2 ? "Copa Argentina" : position === 3 ? "Comparar terceros" : position <= 5 ? "Copa de la Liga" : "Comparar sextos"
               : position <= argentinaPlaces
               ? "Copa Argentina"
               : position <= argentinaPlaces + apaPlaces
-                ? "Copa APA"
+                ? "Copa de la Liga"
                 : "Sin clasificación";
             return (
               <tr key={row.equipo}>
@@ -275,7 +277,7 @@ export default function ClassificationCupManager() {
     const apaPairs = seededPairs(apa);
     const payload = [
       ...argentinaPairs.map(([local, visitante], index) => ({ local, visitante, competicion: "copa_argentina", ronda: `Copa Argentina · Cruce ${index + 1}`, count: argentinaPairs.length })),
-      ...apaPairs.map(([local, visitante], index) => ({ local, visitante, competicion: "copa_apa", ronda: `Copa APA · Cruce ${index + 1}`, count: apaPairs.length })),
+      ...apaPairs.map(([local, visitante], index) => ({ local, visitante, competicion: "copa_apa", ronda: `Copa de la Liga · Cruce ${index + 1}`, count: apaPairs.length })),
     ].map((game) => ({
       local: game.local,
       visitante: game.visitante,
@@ -296,7 +298,7 @@ export default function ClassificationCupManager() {
     try {
       const { error } = await supabase.from("partidos").insert(payload);
       if (error) throw error;
-      setMessage(`Cruces creados: ${argentinaPairs.length} de Copa Argentina y ${apaPairs.length} de Copa APA.`);
+      setMessage(`Cruces creados: ${argentinaPairs.length} de Copa Argentina y ${apaPairs.length} de Copa de la Liga.`);
       await load();
     } catch (error: any) {
       setMessage(error?.message || "No pude crear los cruces.");
@@ -323,9 +325,9 @@ export default function ClassificationCupManager() {
     <PermissionGuard permission="competitions.manage">
       <TournamentPage>
         <TournamentBackLink />
-        <TournamentHero eyebrow="Clasificación a Copas" title={season || "Temporada"} description="Administrá grupos, clasificados y publicación por separado.">
+        <TournamentHero eyebrow="Clasificación a Copas" title={displayLabel(season || "Temporada")} description="Administrá grupos, clasificados y publicación por separado.">
           <div className={styles.toolbar}>
-            <Field label="Temporada"><Select value={season} onChange={(e) => setSeason(e.target.value)}>{seasons.map((item) => <option key={item}>{item}</option>)}</Select></Field>
+            <Field label="Torneo"><Select value={season} onChange={(e) => setSeason(e.target.value)}>{seasons.map((item) => <option key={item} value={item}>{displayLabel(item)}</option>)}</Select></Field>
           </div>
           <div className={styles.kpis}>
             <div className={styles.kpi}><div className={styles.kpiLabel}>Grupos</div><div className={styles.kpiValue}>{groupCount}</div></div>
@@ -351,19 +353,19 @@ export default function ClassificationCupManager() {
 
         {view === "clasificados" && <div className={styles.list}>
           <TournamentPanel eyebrow="Paso 2" title="Tablas y clasificados" description={groupsComplete ? "La fase está completa. Ya podés crear las copas." : "Se actualiza sola con los resultados cargados en Centro de partidos."} action={<button className={styles.primary} type="button" disabled={loading || !groupsComplete || Boolean(argentinaMatches.length || apaMatches.length)} onClick={createCupCrosses}>Crear cruces de copas</button>}>
-            {mixedQualification && <p>Copa Argentina: primeros, segundos y 2 mejores terceros. Copa APA: el tercer tercero, cuartos, quintos y mejor sexto. Los otros 2 sextos quedan eliminados.</p>}
+            {mixedQualification && <p>Copa Argentina: primeros, segundos y 2 mejores terceros. Copa de la Liga: el tercer tercero, cuartos, quintos y mejor sexto. Los otros 2 sextos quedan eliminados.</p>}
             <div className={styles.grid2}>{labels.map((group) => <div key={group}><p className={styles.sectionEyebrow}>Grupo {group}</p><StandingsTable rows={tables[group] || []} argentinaPlaces={argentinaPerGroup} apaPlaces={apaPerGroup} mixedQualification={mixedQualification} /></div>)}</div>
           </TournamentPanel>
           {(argentinaMatches.length > 0 || apaMatches.length > 0) && <div className={styles.actionGrid}>
             <Link href="/admin/torneos/copa-argentina" className={styles.actionCard}><strong>Copa Argentina</strong><span>Abrir →</span></Link>
-            <Link href="/admin/torneos/copa-apa" className={styles.actionCard}><strong>Copa APA</strong><span>Abrir →</span></Link>
+            <Link href="/admin/torneos/copa-apa" className={styles.actionCard}><strong>Copa de la Liga</strong><span>Abrir →</span></Link>
           </div>}
         </div>}
 
         {view === "publicacion" && <TournamentPanel eyebrow="Paso 3" title="Qué se muestra en la web" description="Publicar una copa no modifica sus partidos ni resultados.">
           <div className={styles.grid2}>
             <Field label="Copa Argentina"><Select value={showArgentina ? "si" : "no"} onChange={(e) => setShowArgentina(e.target.value === "si")}><option value="si">Visible</option><option value="no">Oculta</option></Select></Field>
-            <Field label="Copa APA"><Select value={showApa ? "si" : "no"} onChange={(e) => setShowApa(e.target.value === "si")}><option value="si">Visible</option><option value="no">Oculta</option></Select></Field>
+            <Field label="Copa de la Liga"><Select value={showApa ? "si" : "no"} onChange={(e) => setShowApa(e.target.value === "si")}><option value="si">Visible</option><option value="no">Oculta</option></Select></Field>
           </div>
           <div className={styles.actions} style={{ marginTop: 16 }}><button className={styles.primary} type="button" disabled={loading} onClick={savePublication}>Guardar publicación</button></div>
         </TournamentPanel>}

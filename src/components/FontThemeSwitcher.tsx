@@ -106,7 +106,7 @@ export default function FontThemeSwitcher() {
 
           <div className={estilos.preview} aria-live="polite">
             <p className={estilos.previewLabel}>{currentTheme.intent}</p>
-            <h3>APA PSO Argentina</h3>
+            <h3>Gestioná tu Liga</h3>
             <p>
               Fixture, clubes, jugadores y estadísticas con una tipografía
               consistente en toda la plataforma.
@@ -125,7 +125,7 @@ export default function FontThemeSwitcher() {
           </dl>
 
           <button type="button" className={estilos.reset} onClick={resetTheme}>
-            Restaurar APA Moderno
+            Restaurar Liga Moderno
           </button>
 
           <span className={estilos.srOnly} aria-live="polite">

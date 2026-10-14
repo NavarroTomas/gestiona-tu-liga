@@ -24,15 +24,15 @@ export default function HomeWordlePromo() {
       <div className="mx-auto grid w-[min(94vw,1760px)] gap-10 px-4 py-14 sm:px-6 sm:py-16 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,.95fr)] lg:items-center lg:px-8 lg:py-20">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#bdeaff]">
-            Nuevo juego de APA
+            Nuevo juego de Liga
           </p>
 
           <h2 className="mt-3 text-[48px] font-black leading-[0.92] tracking-[-0.055em] text-white sm:text-[64px]">
-            APA WORDLE
+            Liga WORDLE
           </h2>
 
           <p className="mt-5 max-w-[58ch] text-[14px] font-semibold leading-7 text-white/78">
-            Poné a prueba cuánto conocés a la comunidad. Cada partida gira alrededor de nombres, clubes y conceptos de APA.
+            Poné a prueba cuánto conocés a la comunidad. Cada partida gira alrededor de nombres, clubes y conceptos de Liga.
           </p>
 
           <Link

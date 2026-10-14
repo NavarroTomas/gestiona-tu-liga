@@ -66,7 +66,7 @@ export default function CopaCampeonesPage() {
             </h2>
           </div>
           <p className="max-w-[520px] text-[10px] font-semibold leading-5 text-[#7890a7] sm:text-right sm:text-[11px]">
-            Primera División, Segunda División, Copa Argentina y Copa APA se cruzan para definir al campeón máximo de la temporada.
+            Primera División, Segunda División, Copa Argentina y Copa de la Liga se cruzan para definir al campeón máximo del torneo.
           </p>
         </div>
 

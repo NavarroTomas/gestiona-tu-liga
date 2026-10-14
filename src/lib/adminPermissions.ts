@@ -87,7 +87,7 @@ export const ADMIN_PERMISSIONS: AdminPermissionDefinition[] = [
   {
     code: "titles.manage",
     name: "Historia / Premios",
-    description: "Puede administrar palmarés, premios e historia APA.",
+    description: "Puede administrar palmarés, premios e historia Liga.",
     group: "Historia",
   },
   {

@@ -207,7 +207,7 @@ export default function AdminPermisosPage() {
 
             <div className="relative z-10">
               <p className="text-xs font-black uppercase tracking-[0.35em] text-cyan-300">
-                Seguridad APA
+                Seguridad Liga
               </p>
 
               <h1 className="mt-3 text-4xl font-black uppercase md:text-6xl">

@@ -1,3 +1,5 @@
+
+import { displayLabel } from "@/lib/displayLabels";
 import Image from "next/image";
 import { COMPETITION_LANDING_CONFIG } from "@/config/competitions";
 import AplicarLayoutGuardado from "./AplicarLayoutGuardado";
@@ -33,12 +35,12 @@ export default function PaginaCompeticion() {
           <div className={estilos.velo} aria-hidden="true" />
 
           <div className={estilos.cabeceraHero}>
-            <p className={estilos.temporada} data-layout="temporada">{config.temporada}</p>
+            <p className={estilos.temporada} data-layout="temporada">{displayLabel(config.temporada)}</p>
             <h1 className={estilos.titulo} id="titulo-competicion" data-layout="titulo">{config.titulo}</h1>
             <div className={estilos.lineaTitulo} data-layout="linea" aria-hidden="true" />
           </div>
 
-          <nav className={estilos.menuContenedor} data-layout="menu" aria-label="Competiciones de la temporada">
+          <nav className={estilos.menuContenedor} data-layout="menu" aria-label="Competiciones del torneo">
             <SelectorCompeticiones />
           </nav>
         </section>

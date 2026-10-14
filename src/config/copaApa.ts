@@ -15,7 +15,7 @@ export const COPA_APA_CONFIG = {
   seasons: ["Temporada 4"],
 
   hero: {
-    title: "Copa APA",
+    title: "Copa de la Liga",
     subtitle: "Eliminación directa",
     image: "/themes/worldcup/backgrounds/FotoCancha.png",
     alt: "Cancha de Pro Soccer Online",

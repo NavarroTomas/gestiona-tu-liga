@@ -14,7 +14,7 @@ export const LEAGUE_CONFIG = {
   divisions: ["Primera", "Segunda"],
 
   hero: {
-    title: "Torneo de Liga APA",
+    title: "Torneo de Liga",
     image: "/themes/worldcup/backgrounds/FotoCancha.png",
     alt: "Cancha de Pro Soccer Online",
   },
@@ -27,7 +27,7 @@ export const LEAGUE_CONFIG = {
   ],
 
   footer: {
-    brand: "PSO Argentina",
+    brand: "Gestioná tu Liga",
     slogan: "El fútbol virtual también nos une.",
     links: [
       { label: "Contacto", href: "/contacto" },

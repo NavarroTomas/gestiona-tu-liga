@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import type { CompetitionConfig, TournamentSeason } from "@/lib/adminTournaments";
 import { Field, Input, Select, TournamentPanel, tournamentStyles as styles } from "./TournamentUi";
@@ -36,29 +38,29 @@ export function SeasonSettingsSection({
 }) {
   return (
     <div className={styles.grid2}>
-      <TournamentPanel eyebrow="Temporada actual" title="Datos generales" description="Acá solo cambiás estado, fechas y cuál temporada es pública.">
+      <TournamentPanel eyebrow="Torneo actual" title="Datos generales" description="Acá solo cambiás estado, fechas y cuál torneo es pública.">
         <div className={styles.list}>
-          <Field label="Temporada"><Select value={seasonId} onChange={(e) => onSeasonId(e.target.value)}>{seasons.map((item) => <option key={String(item.id)} value={String(item.id)}>{item.nombre}</option>)}</Select></Field>
+          <Field label="Torneo"><Select value={seasonId} onChange={(e) => onSeasonId(e.target.value)}>{seasons.map((item) => <option key={String(item.id)} value={String(item.id)}>{displayLabel(item.nombre)}</option>)}</Select></Field>
           {season && <>
             <div className={styles.grid2}>
               <Field label="Nombre"><Input value={season.nombre} onChange={(e) => onPatchSeason({ nombre: e.target.value })} /></Field>
               <Field label="Número"><Input type="number" value={season.numero ?? ""} onChange={(e) => onPatchSeason({ numero: e.target.value ? Number(e.target.value) : null })} /></Field>
               <Field label="Estado"><Select value={season.estado || "borrador"} onChange={(e) => onPatchSeason({ estado: e.target.value })}><option value="borrador">Borrador</option><option value="activa">Activa</option><option value="finalizada">Finalizada</option><option value="archivada">Archivada</option></Select></Field>
-              <Field label="Temporada pública"><Select value={season.activa ? "si" : "no"} onChange={(e) => onPatchSeason({ activa: e.target.value === "si" })}><option value="si">Sí</option><option value="no">No</option></Select></Field>
+              <Field label="Torneo pública"><Select value={season.activa ? "si" : "no"} onChange={(e) => onPatchSeason({ activa: e.target.value === "si" })}><option value="si">Sí</option><option value="no">No</option></Select></Field>
               <Field label="Inicio"><Input type="date" value={season.fecha_inicio || ""} onChange={(e) => onPatchSeason({ fecha_inicio: e.target.value || null })} /></Field>
               <Field label="Fin"><Input type="date" value={season.fecha_fin || ""} onChange={(e) => onPatchSeason({ fecha_fin: e.target.value || null })} /></Field>
             </div>
-            <button className={styles.primary} disabled={loading} type="button" onClick={onSaveSeason}>Guardar temporada</button>
+            <button className={styles.primary} disabled={loading} type="button" onClick={onSaveSeason}>Guardar torneo</button>
           </>}
         </div>
       </TournamentPanel>
 
-      <TournamentPanel eyebrow="Nueva temporada" title="Crear y copiar" description="Creá Temporada 5, 6, etc. y opcionalmente copiá la estructura anterior.">
+      <TournamentPanel eyebrow="Nueva torneo" title="Crear y copiar" description="Creá Torneo 5, 6, etc. y opcionalmente copiá la estructura anterior.">
         <div className={styles.list}>
           <Field label="Nombre"><Input value={newSeasonName} onChange={(e) => onNewSeasonName(e.target.value)} placeholder="Temporada 5" /></Field>
           <Field label="Número"><Input type="number" value={newSeasonNumber} onChange={(e) => onNewSeasonNumber(e.target.value)} placeholder="5" /></Field>
-          <Field label="Copiar reglas desde"><Select value={cloneFrom} onChange={(e) => onCloneFrom(e.target.value)}><option value="">Empezar desde cero</option>{seasons.map((item) => <option key={String(item.id)} value={item.nombre}>{item.nombre}</option>)}</Select></Field>
-          <button className={styles.primary} disabled={loading} type="button" onClick={onCreateSeason}>Crear temporada</button>
+          <Field label="Copiar reglas desde"><Select value={cloneFrom} onChange={(e) => onCloneFrom(e.target.value)}><option value="">Empezar desde cero</option>{seasons.map((item) => <option key={String(item.id)} value={item.nombre}>{displayLabel(item.nombre)}</option>)}</Select></Field>
+          <button className={styles.primary} disabled={loading} type="button" onClick={onCreateSeason}>Crear torneo</button>
         </div>
       </TournamentPanel>
     </div>
@@ -94,7 +96,7 @@ export function CompetitionCatalogSection({
 }) {
   return (
     <div className={styles.grid2}>
-      <TournamentPanel eyebrow={season?.nombre || "Temporada"} title="Competiciones existentes" description="Elegí una para editar sus reglas en la pestaña Reglas.">
+      <TournamentPanel eyebrow={season?.nombre || "Torneo"} title="Competiciones existentes" description="Elegí una para editar sus reglas en la pestaña Reglas.">
         <div className={styles.list}>
           {configs.length ? configs.map((item) => (
             <button key={item.id} type="button" onClick={() => onSelect(item.id)} className={item.id === selectedConfigId ? styles.primary : styles.secondary}>{item.nombre} · {item.activa ? "Activa" : "Oculta"}</button>
@@ -104,7 +106,7 @@ export function CompetitionCatalogSection({
 
       <TournamentPanel eyebrow="Nueva competición" title="Agregar formato" description="Solo crea la definición. Los participantes y partidos se administran después en la pantalla de cada competición.">
         <div className={styles.list}>
-          <Field label="Nombre"><Input value={newName} onChange={(e) => onNewName(e.target.value)} placeholder="Supercopa APA" /></Field>
+          <Field label="Nombre"><Input value={newName} onChange={(e) => onNewName(e.target.value)} placeholder="SuperCopa de la Liga" /></Field>
           <Field label="Clave interna"><Input value={newSlug} onChange={(e) => onNewSlug(e.target.value)} placeholder="supercopa_apa" /></Field>
           <Field label="Tipo"><Select value={newType} onChange={(e) => onNewType(e.target.value)}><option value="liga">Liga</option><option value="grupos">Grupos</option><option value="eliminacion">Eliminación</option><option value="playoffs">Playoffs</option><option value="personalizada">Personalizada</option></Select></Field>
           <button className={styles.primary} disabled={loading} type="button" onClick={onAdd}>Agregar competición</button>
@@ -153,7 +155,7 @@ export function CompetitionRulesSection({
           <Field label="Cantidad de grupos"><Input type="number" min="1" value={config.reglas.cantidad_grupos ?? 4} onChange={(e) => onPatchRule("cantidad_grupos", Number(e.target.value))} /></Field>
           <Field label="Equipos por grupo"><Input type="number" min="2" value={config.reglas.equipos_por_grupo ?? 4} onChange={(e) => onPatchRule("equipos_por_grupo", Number(e.target.value))} /></Field>
           <Field label="A Copa Argentina"><Input type="number" min="0" value={config.reglas.clasifican_copa_argentina ?? 2} onChange={(e) => onPatchRule("clasifican_copa_argentina", Number(e.target.value))} /></Field>
-          <Field label="A Copa APA"><Input type="number" min="0" value={config.reglas.clasifican_copa_apa ?? 2} onChange={(e) => onPatchRule("clasifican_copa_apa", Number(e.target.value))} /></Field>
+          <Field label="A Copa de la Liga"><Input type="number" min="0" value={config.reglas.clasifican_copa_apa ?? 2} onChange={(e) => onPatchRule("clasifican_copa_apa", Number(e.target.value))} /></Field>
         </div>}
 
         {config.tipo === "eliminacion" && <Field label="Partido por tercer puesto"><Select value={config.reglas.tercer_puesto ? "si" : "no"} onChange={(e) => onPatchRule("tercer_puesto", e.target.value === "si")}><option value="no">No</option><option value="si">Sí</option></Select></Field>}

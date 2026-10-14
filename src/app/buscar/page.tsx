@@ -10,9 +10,9 @@ const rutas = [
   { title: "Clubes", desc: "Instituciones, perfiles y escudos.", href: "/clubes", tags: "equipos clubes escudos" },
   { title: "Plantillas", desc: "Planteles oficiales por club.", href: "/plantillas", tags: "planteles jugadores clubes" },
   { title: "Jugadores", desc: "Perfiles, rankings y estadísticas.", href: "/jugadores", tags: "jugadores goles asistencias mvp ranking stats" },
-  { title: "Guía", desc: "Cómo funciona la plataforma APA.", href: "/guia", tags: "ayuda guia como funciona" },
-  { title: "Entretenimiento", desc: "Predicciones y premios APA.", href: "/entretenimiento", tags: "premios predicciones entretenimiento" },
-  { title: "Premios APA", desc: "Reconocimientos y destacados.", href: "/entretenimiento/premios", tags: "premios balon oro raiko golden boy bota" },
+  { title: "Guía", desc: "Cómo funciona la plataforma Liga.", href: "/guia", tags: "ayuda guia como funciona" },
+  { title: "Entretenimiento", desc: "Predicciones y premios Liga.", href: "/entretenimiento", tags: "premios predicciones entretenimiento" },
+  { title: "Premios Liga", desc: "Reconocimientos y destacados.", href: "/entretenimiento/premios", tags: "premios balon oro raiko golden boy bota" },
   { title: "Privacidad", desc: "Política de privacidad.", href: "/legal/privacidad", tags: "legal privacidad datos" },
   { title: "Términos", desc: "Términos de uso de la web.", href: "/legal/terminos", tags: "legal terminos uso" },
   { title: "Cookies", desc: "Política de cookies.", href: "/legal/cookies", tags: "legal cookies" },
@@ -38,7 +38,7 @@ export default function BuscarPage() {
   return (
     <main className="min-h-screen bg-[#f5f6f8] px-4 py-10 text-[#0b2747] md:px-8 md:py-14">
       <section className="mx-auto max-w-5xl">
-        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#245f8e]">APA PSO Argentina</p>
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#245f8e]">Gestioná tu Liga</p>
         <h1 className="mt-2 text-4xl font-black uppercase tracking-[-0.04em] md:text-5xl">Buscar</h1>
 
         <div className="mt-7 rounded-2xl border border-[#0b2747]/10 bg-white p-3 shadow-[0_12px_35px_rgba(11,39,71,.06)]">
@@ -47,7 +47,7 @@ export default function BuscarPage() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Buscar clubes, jugadores, fixture, premios..."
-            aria-label="Buscar en APA"
+            aria-label="Buscar en Liga"
             className="w-full rounded-xl border border-[#0b2747]/10 bg-[#f5f6f8] px-4 py-4 text-base font-bold text-[#0b2747] outline-none transition focus:border-[#245f8e]"
           />
         </div>

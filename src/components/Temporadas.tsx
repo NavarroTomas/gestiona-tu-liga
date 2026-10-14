@@ -48,7 +48,7 @@ export default function Temporadas() {
               font-black
               text-white
             ">
-              TEMPORADAS
+              TORNEOS
             </h2>
 
           </div>

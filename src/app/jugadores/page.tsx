@@ -1,4 +1,6 @@
 "use client";
+import {displayLabel} from "@/lib/displayLabels";
+
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -9,7 +11,7 @@ import { usePublicSeasons } from "@/hooks/usePublicSeasons";
 
 type RankingTab = "general" | "goles" | "asistencias" | "mvps" | "rating";
 type RankingMode = "temporada" | "historico";
-type CompetitionFilter = "Todas" | "Primera" | "Segunda" | "Copa APA" | "Copa Argentina" | "Copa Campeones" | "Playoffs";
+type CompetitionFilter = "Todas" | "Primera" | "Segunda" | "Copa de la Liga" | "Copa Argentina" | "Copa Campeones" | "Playoffs";
 
 type RankingJugadorRow = {
   temporada?: string | null;
@@ -60,7 +62,7 @@ type ClubInfo = {
 };
 
 const CUP_COMPETITION_KEYS: Record<Exclude<CompetitionFilter, "Todas" | "Primera" | "Segunda">, string> = {
-  "Copa APA": "copa_apa",
+  "Copa de la Liga": "copa_apa",
   "Copa Argentina": "copa_argentina",
   "Copa Campeones": "copa_campeones",
   Playoffs: "playoffs",
@@ -451,10 +453,10 @@ export default function JugadoresPage() {
           <div className="mt-2 grid gap-7 lg:grid-cols-[minmax(0,1fr)_620px] lg:items-end">
             <div>
               <h1 className="text-[clamp(2.6rem,7vw,5rem)] font-black uppercase leading-[.9] tracking-[-.045em] text-[#102f55]">
-                Jugadores <span className="text-[#32a9df]">APA</span>
+                Jugadores <span className="text-[#32a9df]">Liga</span>
               </h1>
               <p className="mt-4 max-w-2xl text-[14px] font-semibold leading-6 text-[#466a85] sm:text-[16px]">
-                Conocé el rendimiento de los jugadores de APA PSO Argentina. Explorá estadísticas, rankings y las figuras de cada temporada.
+                Conocé el rendimiento de los jugadores de Gestioná tu Liga. Explorá estadísticas, rankings y las figuras de cada torneo.
               </p>
             </div>
 
@@ -465,7 +467,7 @@ export default function JugadoresPage() {
                   value={modo}
                   onChange={(value) => setModo(value as RankingMode)}
                   options={[
-                    { value: "temporada", label: "Temporada" },
+                    { value: "temporada", label: "Torneo" },
                     { value: "historico", label: "Histórico" },
                   ]}
                   ariaLabel="Vista"
@@ -486,12 +488,12 @@ export default function JugadoresPage() {
               {modo === "temporada" ? (
                 <>
                   <label className="block">
-                    <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-[#567b96]">Temporada</span>
+                    <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-[#567b96]">Torneo</span>
                     <APASelect
                       value={temporada}
                       onChange={setTemporada}
                       options={temporadas.map((season) => ({ value: season, label: season }))}
-                      ariaLabel="Temporada"
+                      ariaLabel="Torneo"
                     />
                   </label>
                   <label className="block">
@@ -503,7 +505,7 @@ export default function JugadoresPage() {
                         { value: "Todas", label: "Todas las competencias" },
                         { value: "Primera", label: "Primera División" },
                         { value: "Segunda", label: "Segunda División" },
-                        { value: "Copa APA", label: "Copa APA" },
+                        { value: "Copa de la Liga", label: "Copa de la Liga" },
                         { value: "Copa Argentina", label: "Copa Argentina" },
                         { value: "Copa Campeones", label: "Copa de Campeones" },
                         { value: "Playoffs", label: "Playoffs" },
@@ -532,7 +534,7 @@ export default function JugadoresPage() {
             <div className="space-y-4">
               <section className="rounded-[12px] bg-[#07375d] p-5 text-white sm:p-6">
                 <p className="text-[10px] font-black uppercase tracking-[.16em] text-[#7dc8ee]">Jugador destacado</p>
-                <h2 className="mt-1 text-[25px] font-black uppercase leading-tight">Líder de la temporada</h2>
+                <h2 className="mt-1 text-[25px] font-black uppercase leading-tight">Líder del torneo</h2>
 
                 {featured ? (
                   <>
@@ -607,7 +609,7 @@ export default function JugadoresPage() {
                     <div>
                       <h2 className="text-[20px] font-black uppercase text-[#102f55] sm:text-[23px]">Ranking de jugadores</h2>
                       <p className="mt-1 text-[11px] font-semibold text-[#6b879b]">
-                        {modo === "historico" ? "Archivo histórico APA" : `${temporada} · ${competitionDisplayLabel(division)}`}
+                        {displayLabel(modo === "historico" ? "Archivo histórico Liga" : `${temporada} · ${competitionDisplayLabel(division)}`)}
                       </p>
                     </div>
                     <span className="text-[10px] font-bold uppercase tracking-wide text-[#7790a2]">{filteredPlayers.length} jugadores</span>

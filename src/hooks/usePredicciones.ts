@@ -318,7 +318,7 @@ export function usePredicciones() {
     (userId: string) => {
       if (userId === usuarioId) return "Vos";
       const profile = perfiles[userId];
-      return profile?.display_name || profile?.username || "Invitado APA";
+      return profile?.display_name || profile?.username || "Invitado Liga";
     },
     [perfiles, usuarioId],
   );

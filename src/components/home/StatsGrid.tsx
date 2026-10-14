@@ -39,7 +39,7 @@ export default function StatsGrid({ stats }: Props) {
           </div>
 
           <p className="max-w-md text-sm leading-6 text-slate-200/80">
-            Datos actualizados según la temporada y la competición seleccionadas.
+            Datos actualizados según el torneo y la competición seleccionadas.
           </p>
         </div>
 

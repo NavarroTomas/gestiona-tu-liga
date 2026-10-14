@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -249,8 +251,8 @@ export default function PromotionPlayoffsManager() {
     <PermissionGuard permission="competitions.manage">
       <TournamentPage>
         <TournamentBackLink />
-        <TournamentHero eyebrow="Playoffs de Ascenso" title={season || "Temporada"} description="Participantes, cuadro y promoción separados para que cada acción tenga un único propósito.">
-          <div className={styles.toolbar}><Field label="Temporada"><Select value={season} onChange={(e) => setSeason(e.target.value)}>{seasons.map((item) => <option key={item}>{item}</option>)}</Select></Field></div>
+        <TournamentHero eyebrow="Playoffs de Ascenso" title={displayLabel(season || "Temporada")} description="Participantes, cuadro y promoción separados para que cada acción tenga un único propósito.">
+          <div className={styles.toolbar}><Field label="Torneo"><Select value={season} onChange={(e) => setSeason(e.target.value)}>{seasons.map((item) => <option key={item} value={item}>{displayLabel(item)}</option>)}</Select></Field></div>
           <div className={styles.kpis}>
             <div className={styles.kpi}><div className={styles.kpiLabel}>Semifinales</div><div className={styles.kpiValue}>{semifinals.length}</div></div>
             <div className={styles.kpi}><div className={styles.kpiLabel}>Final</div><div className={styles.kpiValue}>{final ? 1 : 0}</div></div>
@@ -268,7 +270,7 @@ export default function PromotionPlayoffsManager() {
         ]} />
 
         {view === "participantes" && <TournamentPanel eyebrow="Paso 1" title="Quién juega los playoffs" description="Se sugieren los puestos de Segunda según la tabla, pero podés reemplazarlos antes de crear el cuadro." action={<button className={styles.primary} type="button" disabled={loading || structureExists} onClick={createSemifinals}>Crear semifinales</button>}>
-          <div className={styles.grid2}>{slots.map((slot, index) => <Field key={index} label={`Lugar ${index + 1}`}><Select value={slot} disabled={structureExists} onChange={(e) => patchSlot(index, e.target.value)}><option value="">Elegir equipo</option>{secondTeams.filter((team) => team === slot || !slots.includes(team)).map((team) => <option key={team}>{team}</option>)}</Select></Field>)}</div>
+          <div className={styles.grid2}>{slots.map((slot, index) => <Field key={index} label={`Lugar ${index + 1}`}><Select value={slot} disabled={structureExists} onChange={(e) => patchSlot(index, e.target.value)}><option value="">Elegir equipo</option>{secondTeams.filter((team) => team === slot || !slots.includes(team)).map((team) => <option key={team} value={team}>{displayLabel(team)}</option>)}</Select></Field>)}</div>
         </TournamentPanel>}
 
         {view === "cuadro" && <div className={styles.list}>
@@ -280,7 +282,7 @@ export default function PromotionPlayoffsManager() {
 
         {view === "promocion" && <TournamentPanel eyebrow="Paso 3" title="Promoción" description="El ganador de la Final de Ascenso enfrenta al equipo definido de Primera." action={<button className={styles.primary} type="button" disabled={loading || Boolean(promotion)} onClick={createPromotion}>Crear promoción</button>}>
           <div className={styles.grid2}>
-            <Field label="Equipo de Primera"><Select value={promotionTeam} disabled={Boolean(promotion)} onChange={(e) => setPromotionTeam(e.target.value)}><option value="">Elegir equipo</option>{firstTeams.map((team) => <option key={team}>{team}</option>)}</Select></Field>
+            <Field label="Equipo de Primera"><Select value={promotionTeam} disabled={Boolean(promotion)} onChange={(e) => setPromotionTeam(e.target.value)}><option value="">Elegir equipo</option>{firstTeams.map((team) => <option key={team} value={team}>{displayLabel(team)}</option>)}</Select></Field>
             <div><p className={styles.label}>Ganador del playoff</p><div className={styles.row}><strong>{winnerOf(final) || "Por definir"}</strong></div></div>
           </div>
           <div style={{ marginTop: 18 }}><MatchRow match={promotion} emptyLabel="La promoción todavía no fue creada" /></div>

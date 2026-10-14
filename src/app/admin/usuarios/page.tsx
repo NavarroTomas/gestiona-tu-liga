@@ -128,7 +128,7 @@ export default function AdminUsuariosPage() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,.18),transparent_42%)]" />
             <div className="relative z-10">
               <p className="text-xs font-black uppercase tracking-[0.35em] text-purple-300">
-                Comunidad APA
+                Comunidad Liga
               </p>
               <h1 className="mt-3 text-4xl font-black uppercase md:text-6xl">
                 Usuarios

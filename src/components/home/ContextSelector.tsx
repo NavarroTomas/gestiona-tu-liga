@@ -1,3 +1,4 @@
+import {displayLabel} from "@/lib/displayLabels";
 type DivisionItem = {
   nombre: string;
   label: string;
@@ -40,14 +41,14 @@ export default function ContextSelector({
             </h2>
           </div>
           <p className="max-w-xl text-base leading-7 text-zinc-300">
-            La portada se actualiza segun la temporada y division seleccionada.
+            La portada se actualiza segun el torneo y división seleccionados.
           </p>
         </div>
 
         <div className="grid gap-6">
           <div>
             <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-sky-200">
-              Temporada
+              Torneo
             </p>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
               {temporadas.map((t) => (

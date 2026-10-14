@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -182,7 +184,7 @@ export default function PerfilPublicoPage() {
       {
         key: "perfil_completo",
         titulo: "Perfil completo",
-        descripcion: "Agregó una biografía pública a su cuenta APA.",
+        descripcion: "Agregó una biografía pública a su cuenta Liga.",
         activo: tieneBio,
         progreso: tieneBio ? "Completado" : "Pendiente",
       },
@@ -196,7 +198,7 @@ export default function PerfilPublicoPage() {
       {
         key: "pronosticador",
         titulo: "Pronosticador",
-        descripcion: "Participó al menos una vez en Predicciones APA.",
+        descripcion: "Participó al menos una vez en Predicciones Liga.",
         activo: predicciones.length >= 1,
         progreso: `${predicciones.length} predicciones`,
       },
@@ -210,13 +212,13 @@ export default function PerfilPublicoPage() {
       {
         key: "100_partidos",
         titulo: "100 partidos oficiales",
-        descripcion: "Disputó al menos 100 partidos oficiales en APA.",
+        descripcion: "Disputó al menos 100 partidos oficiales en Liga.",
         activo: resumenJugador.partidos >= 100,
         progreso: `${Math.min(resumenJugador.partidos, 100)} / 100`,
       },
       {
         key: "premio_apa",
-        titulo: "Premiado por APA",
+        titulo: "Premiado por Liga",
         descripcion: "Consiguió al menos un premio individual oficial.",
         activo: tienePremio,
         progreso: `${premios.length} premios`,
@@ -281,7 +283,7 @@ export default function PerfilPublicoPage() {
       <main className={estilos.statePage}>
         <section className={estilos.stateCard}>
           <h1>Cargando perfil</h1>
-          <p>Estamos preparando la información pública de esta cuenta APA.</p>
+          <p>Estamos preparando la información pública de esta cuenta Liga.</p>
         </section>
       </main>
     );
@@ -317,7 +319,7 @@ export default function PerfilPublicoPage() {
           </div>
 
           <div className={estilos.identity}>
-            <p className={estilos.eyebrow}>Perfil de comunidad APA</p>
+            <p className={estilos.eyebrow}>Perfil de comunidad Liga</p>
             <h1>{perfil.display_name || perfil.username}</h1>
 
             <div className={estilos.meta}>
@@ -339,7 +341,7 @@ export default function PerfilPublicoPage() {
               <span className={estilos.primaryAction}>Sin jugador vinculado</span>
             )}
             <Link className={estilos.secondaryAction} href="/entretenimiento">
-              Ver comunidad APA
+              Ver comunidad Liga
             </Link>
           </div>
         </section>
@@ -358,7 +360,7 @@ export default function PerfilPublicoPage() {
             <strong>{logrosDesbloqueados}/{logros.length}</strong>
           </article>
           <article className={estilos.statCard}>
-            <span>Premios APA</span>
+            <span>Premios Liga</span>
             <strong>{premios.length}</strong>
           </article>
         </section>
@@ -375,7 +377,7 @@ export default function PerfilPublicoPage() {
                 <article className={estilos.activityItem}>
                   <small>Predicciones realizadas</small>
                   <strong>{predicciones.length}</strong>
-                  <p>Participaciones registradas en el juego de predicciones APA.</p>
+                  <p>Participaciones registradas en el juego de predicciones Liga.</p>
                 </article>
 
                 <article className={estilos.activityItem}>
@@ -461,7 +463,7 @@ export default function PerfilPublicoPage() {
             <section className={estilos.panel}>
               <header className={estilos.panelHeader}>
                 <span>Reconocimientos</span>
-                <h2>Vitrina APA</h2>
+                <h2>Vitrina Liga</h2>
               </header>
 
               {premios.length > 0 ? (
@@ -471,7 +473,7 @@ export default function PerfilPublicoPage() {
                       <div>
                         <strong>{premioNombre(premio.premio)}</strong>
                         <span>
-                          {premio.temporada}
+                          {displayLabel(premio.temporada)}
                           {premio.equipo ? ` · ${premio.equipo}` : ""}
                         </span>
                       </div>

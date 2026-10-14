@@ -12,7 +12,7 @@ export async function generateMetadata({
 
   return createPageMetadata({
     title: `Jugador ${id}`,
-    description: `Perfil y estadísticas del jugador ${id} en APA PSO Argentina.`,
+    description: `Perfil y estadísticas del jugador ${id} en Gestioná tu Liga.`,
     path: `/jugadores/${encodeURIComponent(id)}`,
   });
 }

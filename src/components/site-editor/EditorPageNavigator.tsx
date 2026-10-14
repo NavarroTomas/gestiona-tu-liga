@@ -9,11 +9,11 @@ export default function EditorPageNavigator() {
   const currentKey = pathname === "/admin/editor" ? "home" : pathname.split("/").at(-1) || "home";
 
   return (
-    <div data-apa-editor-ignore className="fixed left-1/2 top-3 z-[99999] -translate-x-1/2 rounded-xl border border-white/10 bg-[#081725]/95 p-1 shadow-2xl backdrop-blur-xl">
+    <div data-apa-editor-ignore className="fixed left-1/2 top-3 z-[99999] -translate-x-1/2 rounded-xl border border-white/10 bg-[#222222] p-1 shadow-2xl ">
       <select
         value={currentKey}
         onChange={(event) => { window.location.href = event.target.value === "home" ? "/admin/editor" : `/admin/editor/${event.target.value}`; }}
-        className="min-w-[220px] rounded-lg border border-white/10 bg-[#102131] px-3 py-2 text-[10px] font-black uppercase tracking-[0.08em] text-white outline-none"
+        className="min-w-[220px] rounded-lg border border-white/10 bg-[#303030] px-3 py-2 text-[10px] font-black uppercase tracking-[0.08em] text-white outline-none"
         aria-label="Página a editar"
       >
         {Array.from(new Set(SITE_EDITOR_PAGES.map((page) => page.group))).map((group) => (
@@ -24,7 +24,7 @@ export default function EditorPageNavigator() {
           </optgroup>
         ))}
       </select>
-      <Link href="/" className="sr-only">Ver sitio</Link>
+      <Link href="/liga" className="sr-only">Ver sitio</Link>
     </div>
   );
 }

@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -126,7 +128,7 @@ export default function SquadRoster({
                 {clubName}
               </TeamLink>
               <p className="mt-1 text-[13px] font-bold text-[#52738d]">
-                {season}
+                {displayLabel(season)}
                 <span className="px-2 text-[#b8ccd8]">|</span>
                 {division} División
               </p>
@@ -311,12 +313,12 @@ export default function SquadRoster({
         <div className="rounded-[10px] border border-[#d6e9f3] bg-white p-5">
           <div className="flex items-center gap-2.5 text-[#168fd4]">
             <TrophyIcon />
-            <h3 className="text-sm font-black text-[#102f55]">Temporada actual</h3>
+            <h3 className="text-sm font-black text-[#102f55]">Torneo actual</h3>
           </div>
 
           <div className="mt-4 flex items-center justify-between gap-4 rounded-[8px] border border-[#e0edf4] bg-[#f8fcff] p-4">
             <div>
-              <p className="text-base font-black text-[#102f55]">{season}</p>
+              <p className="text-base font-black text-[#102f55]">{displayLabel(season)}</p>
               <p className="mt-1 text-[13px] font-semibold text-[#58768d]">{division} División</p>
             </div>
             <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden">

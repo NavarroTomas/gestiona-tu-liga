@@ -43,7 +43,7 @@ export function normalizeCompetition(value: unknown, division?: unknown) {
   ) return "liga";
   if (normalized.includes("clasificacion") || normalized.includes("clasificatoria")) return "copa_clasificatoria";
   if (normalized.includes("copa argentina")) return "copa_argentina";
-  if (normalized.includes("copa apa")) return "copa_apa";
+  if (normalized.includes("Copa de la Liga")) return "copa_apa";
   if (normalized.includes("campeones")) return "copa_campeones";
   if (normalized.includes("playoff")) return "playoffs";
   if (!normalized && normalizeDivision(division)) return "liga";

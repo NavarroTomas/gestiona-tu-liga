@@ -1,3 +1,5 @@
+
+import { displayLabel } from "@/lib/displayLabels";
 import { LEAGUE_CONFIG } from "@/config/league";
 
 export default function LeagueHero({
@@ -23,7 +25,7 @@ export default function LeagueHero({
             {LEAGUE_CONFIG.hero.title}
           </h1>
           <p className="mt-3 text-[clamp(14px,1.45vw,22px)] font-semibold text-[#214b77] sm:mt-4">
-            {division} División · {temporada}
+            {division} División · {displayLabel(temporada)}
           </p>
         </div>
       </div>

@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { Field, Input, Select, TournamentPanel, tournamentStyles as styles } from "@/components/admin/tournaments/TournamentUi";
 
@@ -37,7 +39,7 @@ export default function AddPlayerPanel({
     <TournamentPanel
       eyebrow="Alta manual"
       title="Agregar jugador"
-      description="Usá PSO ID como identificador principal. Si existe en APA, completamos los datos automáticamente."
+      description="Usá PSO ID como identificador principal. Si existe en Liga, completamos los datos automáticamente."
     >
       {membershipWarning ? (
         <div
@@ -77,7 +79,7 @@ export default function AddPlayerPanel({
         <Field label="Club">
           <Select value={team} onChange={(event) => onTeam(event.target.value)}>
             <option value="">Elegir club</option>
-            {teams.map((name) => <option key={name} value={name}>{name}</option>)}
+            {teams.map((name) => <option key={name} value={name}>{displayLabel(name)}</option>)}
           </Select>
         </Field>
       </div>

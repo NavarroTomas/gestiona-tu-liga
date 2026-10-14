@@ -23,7 +23,7 @@ export default function PremiosFilters({ controller }: { controller: PremiosCont
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <PredictionDropdown
-          label="Temporada"
+          label="Torneo"
           value={controller.temporada}
           options={controller.temporadas.map((value) => ({ value, label: value }))}
           onChange={controller.setTemporada}

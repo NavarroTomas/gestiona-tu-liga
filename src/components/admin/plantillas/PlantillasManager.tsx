@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -176,7 +178,7 @@ export default function PlantillasManager() {
         setPlayerId(found.playerid || cleanId);
         setSteamId(found.steam_id || "");
         setProfileId(found.id);
-        setMessage("Jugador encontrado en perfiles APA.");
+        setMessage("Jugador encontrado en perfiles Liga.");
         return;
       }
 
@@ -193,7 +195,7 @@ export default function PlantillasManager() {
         setPlayerName(found.nombre || "");
         setPlayerId(found.playerId || cleanId);
         setProfileId(null);
-        setMessage("Jugador encontrado en estadísticas APA.");
+        setMessage("Jugador encontrado en estadísticas Liga.");
       } else {
         setProfileId(null);
         setMessage("No encontré ese PSO ID. Podés cargarlo manualmente.");
@@ -475,7 +477,7 @@ export default function PlantillasManager() {
           <div className={styles.kpis}>
             <div className={styles.kpi}><div className={styles.kpiLabel}>Club</div><div className={styles.kpiValue} style={{ fontSize: 18 }}>{team || "—"}</div></div>
             <div className={styles.kpi}><div className={styles.kpiLabel}>Activos</div><div className={styles.kpiValue}>{players.filter((p) => (!team || p.equipo === team) && p.estado !== "baja").length}</div></div>
-            <div className={styles.kpi}><div className={styles.kpiLabel}>Temporada</div><div className={styles.kpiValue} style={{ fontSize: 18 }}>{season}</div></div>
+            <div className={styles.kpi}><div className={styles.kpiLabel}>Torneo</div><div className={styles.kpiValue} style={{ fontSize: 18 }}>{displayLabel(season)}</div></div>
           </div>
         </TournamentHero>
 
@@ -484,20 +486,20 @@ export default function PlantillasManager() {
         <section className={styles.panel} style={{ marginTop: 22 }}>
           <div className={styles.panelBody}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 14 }}>
-              <Field label="Temporada">
+              <Field label="Torneo">
                 <Select value={season} onChange={(event) => setSeason(event.target.value)}>
-                  {seasons.map((value) => <option key={value}>{value}</option>)}
+                  {seasons.map((value) => <option key={value} value={value}>{displayLabel(value)}</option>)}
                 </Select>
               </Field>
               <Field label="División">
                 <Select value={division} onChange={(event) => setDivision(event.target.value)}>
-                  {DIVISIONS.map((value) => <option key={value}>{value}</option>)}
+                  {DIVISIONS.map((value) => <option key={value} value={value}>{displayLabel(value)}</option>)}
                 </Select>
               </Field>
               <Field label="Club">
                 <Select key={`${season}:${division}`} value={team} onChange={(event) => setTeam(event.target.value)}>
                   <option value="">Todos los clubes</option>
-                  {teams.map((value) => <option key={value}>{value}</option>)}
+                  {teams.map((value) => <option key={value} value={value}>{displayLabel(value)}</option>)}
                 </Select>
               </Field>
             </div>

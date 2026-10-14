@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { useEffect, useMemo, useState } from "react";
 import PermissionGuard from "@/components/PermissionGuard";
@@ -285,8 +287,8 @@ export default function MatchManualEditor() {
 
         <MatchCard title="1. Elegí el partido" description="Ya no se escriben clubes ni IDs a mano: se reutiliza el fixture oficial.">
           <div className={styles.grid3}>
-            <Field label="Temporada"><Select value={temporada} onChange={(e) => setTemporada(e.target.value)}>{(temporadas.length ? temporadas : [temporada]).map((item) => <option key={item}>{item}</option>)}</Select></Field>
-            <Field label="Competición"><Select value={competicion} onChange={(e) => setCompeticion(e.target.value)}>{ADMIN_MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</Select></Field>
+            <Field label="Torneo"><Select value={temporada} onChange={(e) => setTemporada(e.target.value)}>{(temporadas.length ? temporadas : [temporada]).map((item) => <option key={item} value={item}>{displayLabel(item)}</option>)}</Select></Field>
+            <Field label="Competición"><Select value={competicion} onChange={(e) => setCompeticion(e.target.value)}>{ADMIN_MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{displayLabel(item.label)}</option>)}</Select></Field>
             <Field label="Partido"><Select value={matchId} onChange={(e) => setMatchId(e.target.value)} disabled={loading}>{matches.length === 0 && <option value="">Sin partidos</option>}{matches.map((item) => <option key={item.id} value={String(item.id)}>F{item.fecha || "-"} · {item.local} vs {item.visitante}</option>)}</Select></Field>
           </div>
           {match && <p className={styles.muted} style={{ marginTop: 12 }}>{matchContextLabel(match)}</p>}
@@ -318,7 +320,7 @@ export default function MatchManualEditor() {
                     <div className={styles.statGrid}>
                       <Field label="Jugador"><Input value={player.nombre} onChange={(e) => updatePlayer(player.key, { nombre: e.target.value })} /></Field>
                       <Field label="Player ID"><Input value={player.playerId} onChange={(e) => updatePlayer(player.key, { playerId: e.target.value })} /></Field>
-                      <Field label="Equipo"><Select value={player.equipo} onChange={(e) => updatePlayer(player.key, { equipo: e.target.value })}><option value={match.local}>{match.local}</option><option value={match.visitante || ""}>{match.visitante}</option></Select></Field>
+                      <Field label="Equipo"><Select value={player.equipo} onChange={(e) => updatePlayer(player.key, { equipo: e.target.value })}><option value={match.local}>{displayLabel(match.local)}</option><option value={match.visitante || ""}>{displayLabel(match.visitante)}</option></Select></Field>
                       <Field label="Goles"><Input type="number" min={0} value={player.goals} onChange={(e) => updatePlayer(player.key, { goals: Math.max(0, Number(e.target.value)) })} /></Field>
                       <Field label="Asist."><Input type="number" min={0} value={player.assists} onChange={(e) => updatePlayer(player.key, { assists: Math.max(0, Number(e.target.value)) })} /></Field>
                       <Field label="Score"><Input type="number" min={0} value={player.score} onChange={(e) => updatePlayer(player.key, { score: Math.max(0, Number(e.target.value)) })} /></Field>

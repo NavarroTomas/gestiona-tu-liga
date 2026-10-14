@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -250,7 +252,7 @@ export default function TournamentAdvancedManager() {
       { slug: "liga", nombre: "Liga" },
       { slug: "copa_clasificatoria", nombre: "Clasificatoria" },
       { slug: "copa_argentina", nombre: "Copa Argentina" },
-      { slug: "copa_apa", nombre: "Copa APA" },
+      { slug: "copa_apa", nombre: "Copa de la Liga" },
       { slug: "copa_campeones", nombre: "Copa de Campeones" },
       { slug: "playoffs", nombre: "Playoffs" },
     ];
@@ -269,9 +271,9 @@ export default function TournamentAdvancedManager() {
           description="Usá esta pantalla cuando el flujo normal no alcanza. Podés crear cruces especiales, reubicar partidos vacíos, cambiar participantes, fases, fechas y estados sin tocar código."
         >
           <div className={styles.toolbar}>
-            <Field label="Temporada">
+            <Field label="Torneo">
               <Select value={season} onChange={(e) => { setSeason(e.target.value); setSelectedId(""); setDraft(emptyDraft); }}>
-                {seasons.map((item) => <option key={item}>{item}</option>)}
+                {seasons.map((item) => <option key={item} value={item}>{displayLabel(item)}</option>)}
               </Select>
             </Field>
             <Link href="/admin/torneos/configuracion" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Editar reglas globales</Link>
@@ -288,18 +290,18 @@ export default function TournamentAdvancedManager() {
                   {match.local} vs {match.visitante} · {match.competicion || "sin competición"} · {match.fecha || "sin fecha"}
                 </button>
               ))}
-              {!matches.length && <div className={styles.empty}>No hay partidos para esta temporada.</div>}
+              {!matches.length && <div className={styles.empty}>No hay partidos para este torneo.</div>}
             </div>
           </TournamentPanel>
 
           <TournamentPanel eyebrow={selected ? "Editar existente" : "Crear excepción"} title={selected ? `${selected.local} vs ${selected.visitante}` : "Nuevo partido manual"} description={selectedLoaded ? "Este partido ya tiene datos oficiales: equipos y competición quedan protegidos para no romper estadísticas." : "Todos los campos estructurales se pueden modificar."}>
             <div className={styles.grid2}>
-              <Field label="Local"><Select value={draft.local} onChange={(e) => patchDraft({ local: e.target.value })}><option value="">Seleccionar</option>{teams.map((team) => <option key={`l-${team.nombre}`} value={team.nombre}>{team.nombre}</option>)}</Select></Field>
-              <Field label="Visitante"><Select value={draft.visitante} onChange={(e) => patchDraft({ visitante: e.target.value })}><option value="">Seleccionar</option>{teams.map((team) => <option key={`v-${team.nombre}`} value={team.nombre}>{team.nombre}</option>)}</Select></Field>
-              <Field label="Competición"><Select value={draft.competicion} onChange={(e) => patchDraft({ competicion: e.target.value })}>{competitionOptions.map((item) => <option key={item.slug} value={item.slug}>{item.nombre}</option>)}</Select></Field>
+              <Field label="Local"><Select value={draft.local} onChange={(e) => patchDraft({ local: e.target.value })}><option value="">Seleccionar</option>{teams.map((team) => <option key={`l-${team.nombre}`} value={team.nombre}>{displayLabel(team.nombre)}</option>)}</Select></Field>
+              <Field label="Visitante"><Select value={draft.visitante} onChange={(e) => patchDraft({ visitante: e.target.value })}><option value="">Seleccionar</option>{teams.map((team) => <option key={`v-${team.nombre}`} value={team.nombre}>{displayLabel(team.nombre)}</option>)}</Select></Field>
+              <Field label="Competición"><Select value={draft.competicion} onChange={(e) => patchDraft({ competicion: e.target.value })}>{competitionOptions.map((item) => <option key={item.slug} value={item.slug}>{displayLabel(item.nombre)}</option>)}</Select></Field>
               <Field label="División"><Input value={draft.division} onChange={(e) => patchDraft({ division: e.target.value })} placeholder="primera / segunda / copa / personalizada" /></Field>
               <Field label="Fase"><Input value={draft.fase} onChange={(e) => patchDraft({ fase: e.target.value })} placeholder="liga / grupos / cuartos / semifinal / final" /></Field>
-              <Field label="Ronda / etiqueta"><Input value={draft.ronda} onChange={(e) => patchDraft({ ronda: e.target.value })} placeholder="Ej: Copa APA · Repechaje" /></Field>
+              <Field label="Ronda / etiqueta"><Input value={draft.ronda} onChange={(e) => patchDraft({ ronda: e.target.value })} placeholder="Ej: Copa de la Liga · Repechaje" /></Field>
               <Field label="Fecha"><Input value={draft.fecha} onChange={(e) => patchDraft({ fecha: e.target.value })} /></Field>
               <Field label="Estado"><Select value={draft.estado} onChange={(e) => patchDraft({ estado: e.target.value })}><option value="programado">Programado</option><option value="postergado">Postergado</option><option value="suspendido">Suspendido</option><option value="cancelado">Cancelado</option></Select></Field>
               <Field label="Día"><Input value={draft.dia} onChange={(e) => patchDraft({ dia: e.target.value })} placeholder="Ej: Domingo 20/09" /></Field>

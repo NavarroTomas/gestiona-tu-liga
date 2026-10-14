@@ -79,7 +79,7 @@ export default function BienvenidaAPA() {
           <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.4em] text-sky-400">
-                APA PSO ARGENTINA
+                Liga PSO ARGENTINA
               </p>
 
               <h2 className="mt-4 text-4xl font-black uppercase italic leading-none md:text-6xl">
@@ -142,7 +142,7 @@ export default function BienvenidaAPA() {
 
           <div className="mt-7 rounded-3xl border border-yellow-400/25 bg-yellow-400/10 p-5">
             <p className="text-xs font-black uppercase tracking-[0.25em] text-yellow-300">
-              Consejo APA
+              Consejo Liga
             </p>
 
             <p className="mt-3 leading-relaxed text-zinc-200">

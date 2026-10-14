@@ -17,12 +17,12 @@ export default function LeagueFilters({
   return (
     <div className="mb-5 flex flex-wrap items-end gap-3 sm:mb-6">
       <label className="grid gap-1.5">
-        <span className="text-[9px] font-black uppercase tracking-[.15em] text-[#7991a8]">Temporada</span>
+        <span className="text-[9px] font-black uppercase tracking-[.15em] text-[#7991a8]">Torneo</span>
         <APASelect
           value={temporada}
           onChange={onTemporadaChange}
           options={seasons.map((season) => ({ value: season, label: season }))}
-          ariaLabel="Temporada"
+          ariaLabel="Torneo"
           className="min-w-[160px] sm:min-w-[170px]"
           compact
         />

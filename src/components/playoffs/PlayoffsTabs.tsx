@@ -1,3 +1,5 @@
+
+import { displayLabel } from "@/lib/displayLabels";
 import Link from "next/link";
 import { PLAYOFFS_CONFIG } from "@/config/playoffs";
 
@@ -45,7 +47,7 @@ export default function PlayoffsTabs({
           >
             {seasons.map((item) => (
               <option key={item} value={item} style={{ backgroundColor: "#f3fafe", color: "#102f55" }}>
-                {item}
+                {displayLabel(item)}
               </option>
             ))}
           </select>

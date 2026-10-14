@@ -74,7 +74,7 @@ export default function CookieConsent() {
         >
           <p className="font-black">Privacidad y cookies</p>
           <p className="mt-2 text-zinc-300">
-            APA usa almacenamiento necesario para el funcionamiento del sitio. Analytics y publicidad son opcionales y sólo se cargan si los autorizás.
+            Liga usa almacenamiento necesario para el funcionamiento del sitio. Analytics y publicidad son opcionales y sólo se cargan si los autorizás.
           </p>
 
           <div className="mt-4 flex flex-wrap gap-4">

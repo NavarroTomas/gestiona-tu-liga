@@ -141,8 +141,8 @@ export function useHistory(initialSeason: string = HISTORY_CONFIG.defaultSeason)
         titlesResult.error;
 
       if (firstError) {
-        console.error("Error cargando temporada histórica:", firstError);
-        setSeasonError("No pudimos cargar todos los datos de esta temporada.");
+        console.error("Error cargando torneo histórica:", firstError);
+        setSeasonError("No pudimos cargar todos los datos de este torneo.");
       }
 
       setSeasonMatches((matchesResult.data || []) as HistoryMatch[]);

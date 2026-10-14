@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -152,11 +154,11 @@ export default function AdminListasPage() {
           <section className="rounded-[24px] border border-[#d8e2ec] bg-white p-5 shadow-sm">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-[220px_260px_1fr]">
               <select className="input" value={temporada} onChange={(e) => setTemporada(e.target.value)}>
-                {TEMPORADAS.map((item) => <option key={item}>{item}</option>)}
+                {TEMPORADAS.map((item) => <option key={item} value={item}>{displayLabel(item)}</option>)}
               </select>
               <select className="input" value={competicion} onChange={(e) => setCompeticion(e.target.value)}>
                 <option value="todas">Todas las competiciones</option>
-                {MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                {MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{displayLabel(item.label)}</option>)}
               </select>
               <input
                 className="input"

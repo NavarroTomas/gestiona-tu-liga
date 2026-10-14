@@ -23,7 +23,7 @@ export default function DreamTeamHero({
 
       <div className="relative z-10">
         <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-400 sm:text-xs sm:tracking-[0.45em]">
-          APA PSO ARGENTINA
+          Liga PSO ARGENTINA
         </p>
 
         <h1 className="mt-4 text-[clamp(2.5rem,9vw,5rem)] font-black uppercase italic leading-none">
@@ -49,7 +49,7 @@ export default function DreamTeamHero({
               (usuarioId ? "Invitado" : "Modo invitado")
             }
           />
-          <HeroStat label="Temporada" value={temporada} />
+          <HeroStat label="Torneo" value={temporada} />
           <HeroStat label="Competición" value={competicionLabel} />
           <HeroStat label="Contexto" value={contextoLabel} />
         </div>

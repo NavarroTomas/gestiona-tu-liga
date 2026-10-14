@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { useEffect, useMemo, useState } from "react";
 import PermissionGuard from "@/components/PermissionGuard";
@@ -64,7 +66,7 @@ export default function MatchCenter() {
         setTemporadas(names);
         setTemporada((current) => current && names.includes(current) ? current : active);
       })
-      .catch(() => setMessage("No se pudieron cargar las temporadas."));
+      .catch(() => setMessage("No se pudieron cargar los torneos."));
   }, []);
 
   async function loadMatches() {
@@ -257,8 +259,8 @@ export default function MatchCenter() {
 
         <MatchCard title="Buscar partidos" description="Los filtros se aplican en base de datos; la búsqueda de texto se aplica sobre el conjunto filtrado.">
           <div className={styles.grid3}>
-            <Field label="Temporada"><Select value={temporada} onChange={(e) => setTemporada(e.target.value)}>{temporadas.map((item) => <option key={item}>{item}</option>)}</Select></Field>
-            <Field label="Competición"><Select value={competicion} onChange={(e) => setCompeticion(e.target.value)}><option value="todas">Todas</option>{ADMIN_MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</Select></Field>
+            <Field label="Torneo"><Select value={temporada} onChange={(e) => setTemporada(e.target.value)}>{temporadas.map((item) => <option key={item} value={item}>{displayLabel(item)}</option>)}</Select></Field>
+            <Field label="Competición"><Select value={competicion} onChange={(e) => setCompeticion(e.target.value)}><option value="todas">Todas</option>{ADMIN_MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{displayLabel(item.label)}</option>)}</Select></Field>
             <Field label="Buscar"><Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Club, resultado, fase..." /></Field>
           </div>
         </MatchCard>

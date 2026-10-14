@@ -2,7 +2,7 @@ import { createPageMetadata } from "@/lib/seo";
 
 export const metadata = createPageMetadata({
   title: "Competición",
-  description: "Torneos, divisiones, copas, tablas, fixture y estadísticas oficiales de APA PSO Argentina.",
+  description: "Torneos, divisiones, copas, tablas, fixture y estadísticas oficiales de Gestioná tu Liga.",
   path: "/competicion",
 });
 

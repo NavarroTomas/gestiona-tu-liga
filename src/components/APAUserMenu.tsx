@@ -163,12 +163,12 @@ export default function APAUserMenu() {
     return (
       <div className={estilos.guestActions}>
         <Link href="/login" className={estilos.loginLink}>Ingresar</Link>
-        <Link href="/registro" className={estilos.joinLink}>Unite a APA <span aria-hidden="true">→</span></Link>
+        <Link href="/registro" className={estilos.joinLink}>Unite a Liga <span aria-hidden="true">→</span></Link>
       </div>
     );
   }
 
-  const displayName = profile.display_name || profile.username || "Usuario APA";
+  const displayName = profile.display_name || profile.username || "Usuario Liga";
   const initial = displayName.slice(0, 1).toUpperCase();
   const role = (profile.visible_role || (isAdmin ? "staff" : "usuario")).toUpperCase();
   const status = (profile.status || "active").toUpperCase();
@@ -206,7 +206,7 @@ export default function APAUserMenu() {
           </span>
           <div className={estilos.identityText}>
             <strong>{displayName}</strong>
-            <span>{profile.username ? `@${profile.username}` : "Cuenta APA"}</span>
+            <span>{profile.username ? `@${profile.username}` : "Cuenta Liga"}</span>
             <small>{role} · {status}</small>
           </div>
         </div>

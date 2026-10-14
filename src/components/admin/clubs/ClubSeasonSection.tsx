@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import type { ClubSeasonAssignment } from "@/lib/adminClubs";
 import { Field, Select, TournamentPanel, tournamentStyles as styles } from "@/components/admin/tournaments/TournamentUi";
@@ -20,19 +22,19 @@ export default function ClubSeasonSection({
   return (
     <TournamentPanel
       eyebrow="2 · Competencia"
-      title="Temporada y división"
+      title="Torneo y división"
       description="Este bloque controla únicamente dónde participa el club y si está activo."
     >
       <div className={styles.grid3}>
-        <Field label="Temporada">
+        <Field label="Torneo">
           <Select value={assignment.temporada} onChange={(event) => onChange({ temporada: event.target.value })}>
-            {seasons.map((season) => <option key={season} value={season}>{season}</option>)}
+            {seasons.map((season) => <option key={season} value={season}>{displayLabel(season)}</option>)}
           </Select>
         </Field>
 
         <Field label="División">
           <Select value={assignment.division} onChange={(event) => onChange({ division: event.target.value })}>
-            {DIVISIONS.map((division) => <option key={division.value} value={division.value}>{division.label}</option>)}
+            {DIVISIONS.map((division) => <option key={division.value} value={division.value}>{displayLabel(division.label)}</option>)}
           </Select>
         </Field>
 

@@ -13,9 +13,9 @@ export const COPA_CAMPEONES_CONFIG = {
 
   hero: {
     title: "Copa de Campeones",
-    subtitle: "Los campeones de la temporada",
+    subtitle: "Los campeones del torneo",
     image: "/themes/worldcup/backgrounds/FotoCancha.png",
-    alt: "Copa de Campeones APA",
+    alt: "Copa de Campeones Liga",
   },
 
   formatsBySeason: {
@@ -27,7 +27,7 @@ export const COPA_CAMPEONES_CONFIG = {
 
   placeholderMatchups: {
     semifinals: [
-      ["Campeón Primera División", "Campeón Copa APA"],
+      ["Campeón Primera División", "Campeón Copa de la Liga"],
       ["Campeón Segunda División", "Campeón Copa Argentina"],
     ],
     final: ["Ganador SF1", "Ganador SF2"],

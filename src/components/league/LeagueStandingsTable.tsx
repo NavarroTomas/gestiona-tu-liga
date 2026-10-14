@@ -60,7 +60,7 @@ export default function LeagueStandingsTable({
           {tabla.length === 0 ? (
             <tr>
               <td colSpan={10} className="py-16 text-center text-[15px] font-semibold text-[#7890a8]">
-                No hay clubes cargados para esta temporada y división.
+                No hay clubes cargados para este torneo y división.
               </td>
             </tr>
           ) : (

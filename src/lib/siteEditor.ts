@@ -94,7 +94,14 @@ export type ElementStyle = {
   textAlign: "left" | "center" | "right";
 };
 
+export type CustomHomeBlock = {
+ id: string; type: "text" | "image" | "banner" | "divider";
+ title: string; body: string; image: string; alt: string; label: string; href: string;
+ after: HomeSectionId | "start"; visible: boolean;
+ tone: "light" | "gray" | "dark"; align: "left" | "center"; padding: number;
+};
 export type HomeEditorDocument = {
+  blocks: CustomHomeBlock[];
   schemaVersion: 3;
   pageKey: "home";
   order: HomeSectionId[];
@@ -210,7 +217,7 @@ export const HOME_ELEMENT_LABELS: Record<HomeEditorElementId, string> = {
   "awards.cards": "Tarjetas de premios",
   "competitions.heading": "Encabezado de competiciones",
   "competitions.cards": "Contenido de competiciones",
-  "competitions.eyebrow": "Etiqueta Temporada",
+  "competitions.eyebrow": "Etiqueta Torneo",
   "competitions.title": "Título Competiciones",
   "competitions.subtitle": "Bajada de Competiciones",
   "competitions.calendarLink": "Enlace calendario",
@@ -306,6 +313,7 @@ elementDefaults["hero.cards"].maxWidth = responsive(420, 9999, 9999);
 elementDefaults["community.button"].width = responsive(100, 100, 100);
 
 export const DEFAULT_HOME_EDITOR_DOCUMENT: HomeEditorDocument = {
+  blocks: [],
   schemaVersion: 3,
   pageKey: "home",
   order: ["hero", "news", "awards", "competitions", "match", "stats", "community"],
@@ -328,8 +336,8 @@ export const DEFAULT_HOME_EDITOR_DOCUMENT: HomeEditorDocument = {
   },
   elements: elementDefaults,
   hero: {
-    eyebrow: "Liga APA PSO",
-    title: "APA PSO ARGENTINA",
+    eyebrow: "Liga Liga PSO",
+    title: "Liga PSO ARGENTINA",
     subtitle: "Competencias, resultados, clubes, premios y actualidad oficial.",
     primaryLabel: "Ver competición",
     secondaryLabel: "Ver fixture",
@@ -354,8 +362,8 @@ export const DEFAULT_HOME_EDITOR_DOCUMENT: HomeEditorDocument = {
     buttonRadius: 12,
   },
   awards: {
-    eyebrow: "Temporada actual",
-    title: "Premios APA",
+    eyebrow: "Torneo actual",
+    title: "Premios Liga",
     linkLabel: "Ver todos →",
     background: "#0b2747",
     textColor: "#ffffff",
@@ -366,7 +374,7 @@ export const DEFAULT_HOME_EDITOR_DOCUMENT: HomeEditorDocument = {
     cardMinHeight: 0,
   },
   competitions: {
-    eyebrow: "Temporada",
+    eyebrow: "Torneo",
     title: "Competiciones",
     linkLabel: "Ver todas →",
     titleColor: "#0b2747",
@@ -384,7 +392,7 @@ export const DEFAULT_HOME_EDITOR_DOCUMENT: HomeEditorDocument = {
     cardGap: 12,
   },
   community: {
-    eyebrow: "Comunidad APA",
+    eyebrow: "Comunidad Liga",
     title: "Unite a la comunidad",
     buttonLabel: "Discord →",
     buttonHref: "https://discord.com",
@@ -465,8 +473,8 @@ export function normalizeHomeEditorDocument(value: unknown): HomeEditorDocument 
     elements[id] = normalizeElement(input.elements?.[id], base.elements[id]);
   }
 
-  if (input.hero?.title === "El fútbol de APA, en un solo lugar") {
-    input.hero = { ...input.hero, title: "APA PSO ARGENTINA" };
+  if (input.hero?.title === "El fútbol de Liga, en un solo lugar") {
+    input.hero = { ...input.hero, title: "Liga PSO ARGENTINA" };
   }
 
   return {
@@ -475,6 +483,7 @@ export function normalizeHomeEditorDocument(value: unknown): HomeEditorDocument 
     schemaVersion: 3,
     pageKey: "home",
     order,
+    blocks: Array.isArray(input.blocks) ? input.blocks.filter(b=>b&&typeof b.id==="string"&&["text","image","banner","divider"].includes(b.type)).map(b=>({...b,title:String(b.title??""),body:String(b.body??""),image:String(b.image??""),alt:String(b.alt??""),label:String(b.label??""),href:String(b.href??""),after:base.order.includes(b.after as HomeSectionId)?b.after:"start",visible:b.visible!==false,tone:["light","gray","dark"].includes(b.tone)?b.tone:"light",align:b.align==="center"?"center":"left",padding:Math.max(0,Math.min(160,Number(b.padding)||48))})) : [],
     global: {
       ...base.global,
       ...(input.global || {}),

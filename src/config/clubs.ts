@@ -2,14 +2,14 @@ export const CLUBS_CONFIG = {
   defaultSeason: "Temporada 4" as string,
   defaultDivision: "Primera" as string,
   hero: {
-    eyebrow: "Clubes APA",
-    title: "Clubes APA",
+    eyebrow: "Clubes Liga",
+    title: "Clubes Liga",
     description:
-      "Las instituciones que forman la identidad competitiva de APA PSO Argentina. Explorá clubes por temporada, categoría, conocé sus perfiles, planteles, estadísticas e historia.",
+      "Las instituciones que forman la identidad competitiva de Gestioná tu Liga. Explorá clubes por torneo, categoría, conocé sus perfiles, planteles, estadísticas e historia.",
   },
   filters: {
-    eyebrow: "Temporada y categoría",
-    title: "Explorá los clubes de APA",
+    eyebrow: "Torneo y categoría",
+    title: "Explorá los clubes de Liga",
     description: "Elegí el contexto competitivo para ver las instituciones registradas.",
   },
 } as const;

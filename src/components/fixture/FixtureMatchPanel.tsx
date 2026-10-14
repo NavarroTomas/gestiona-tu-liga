@@ -113,7 +113,7 @@ export default function FixtureMatchPanel({
                 </div>
                 <div className="min-w-0 px-1">
                   <span className="block text-[8px] font-bold uppercase tracking-[.1em] text-[#8aa0b2] sm:text-[9px]">Competición</span>
-                  <strong className="mt-1 block truncate text-[11px] capitalize text-[#244b72] sm:text-[13px]">{String(selectedMatch.competicion || "APA").replaceAll("_", " ")}</strong>
+                  <strong className="mt-1 block truncate text-[11px] capitalize text-[#244b72] sm:text-[13px]">{String(selectedMatch.competicion || "Liga").replaceAll("_", " ")}</strong>
                 </div>
               </div>
 

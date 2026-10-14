@@ -113,7 +113,7 @@ export default function HomeAwards({
                         {awardLabel(award.premio)}
                       </p>
                     </div>
-                    <span className="text-[9px] font-black uppercase tracking-[0.18em] text-white/35">APA</span>
+                    <span className="text-[9px] font-black uppercase tracking-[0.18em] text-white/35">Liga</span>
                   </div>
 
                   <div className="mt-7 flex items-center gap-4">
@@ -130,12 +130,12 @@ export default function HomeAwards({
                       <h3 className="mt-1 truncate text-2xl font-black uppercase tracking-[-0.025em] text-white md:text-3xl">
                         {award.nombre}
                       </h3>
-                      <p className="mt-1 truncate text-xs font-bold text-white/58">{award.equipo || "APA"}</p>
+                      <p className="mt-1 truncate text-xs font-bold text-white/58">{award.equipo || "Liga"}</p>
                     </div>
                   </div>
 
                   <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-3">
-                    <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/38">Temporada actual</span>
+                    <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/38">Torneo actual</span>
                     {award.puntos != null ? (
                       <span className="text-sm font-black text-white/85">{Number(award.puntos).toFixed(1)} pts</span>
                     ) : (

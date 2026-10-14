@@ -166,7 +166,7 @@ function StreamerVisual() {
     <div className="relative min-h-[330px] overflow-hidden rounded-[28px] bg-[#071d34]">
       <img
         src="/images/home/streamer-twitch.webp"
-        alt="Transmisión y presentación oficial de APA"
+        alt="Transmisión y presentación oficial de Liga"
         className="absolute inset-0 h-full w-full object-cover"
       />
 
@@ -184,7 +184,7 @@ function CreateVisual() {
     <div className="overflow-hidden rounded-[28px]">
       <img
         src="/images/home/crea-equipo-chelsea.webp"
-        alt="Chelsea campeón de Copa APA"
+        alt="Chelsea campeón de Copa de la Liga"
         className="block min-h-[330px] w-full object-cover"
       />
     </div>
@@ -307,8 +307,8 @@ export function HomeSponsors() {
   return (
     <ActionSection
       eyebrow="Auspiciantes"
-      title="Comunidades y proyectos que acompañan a APA."
-      description="Espacio para comunidades, servidores y proyectos compañeros de Pro Soccer Online que forman parte del ecosistema sudamericano junto a APA."
+      title="Comunidades y proyectos que acompañan a Liga."
+      description="Espacio para comunidades, servidores y proyectos compañeros de Pro Soccer Online que forman parte del ecosistema sudamericano junto a Liga."
       cta="Quiero ser auspiciante"
       href={SOCIAL_LINKS.discord}
       visual="auspiciantes"
@@ -337,7 +337,7 @@ export function HomeCreateTeamCTA() {
     <ActionSection
       eyebrow="Clubes"
       title="Creá tu equipo y entrá a competir."
-      description="Armá tu identidad, reuní tu plantel y empezá el proceso para formar parte de las competiciones oficiales de APA."
+      description="Armá tu identidad, reuní tu plantel y empezá el proceso para formar parte de las competiciones oficiales de Liga."
       cta="Quiero crear mi equipo"
       href={SOCIAL_LINKS.discord}
       visual="create"

@@ -18,7 +18,7 @@ const competitions = [
     label: "Liga",
     title: "Primera División",
     description:
-      "La máxima categoría de APA. Tabla, resultados, clubes y recorrido completo de la temporada.",
+      "La máxima categoría de Liga. Tabla, resultados, clubes y recorrido completo del torneo.",
     href: "/divisiones?division=primera",
     image: "/images/fixture/liga.png",
   },
@@ -38,7 +38,7 @@ const competitions = [
     label: "Copa",
     title: "Copa Argentina",
     description:
-      "Cruces directos, series decisivas y una llave que lleva a la final nacional de APA.",
+      "Cruces directos, series decisivas y una llave que lleva a la final nacional de Liga.",
     href: "/competicion/copa-argentina",
     image: "/images/competicion/copa-argentina.png",
   },
@@ -46,9 +46,9 @@ const competitions = [
     key: "apa",
     elementId: "competitions.cups" as const,
     label: "Copa",
-    title: "Copa APA",
+    title: "Copa de la Liga",
     description:
-      "La copa oficial de la temporada con formato propio y partidos de eliminación.",
+      "La copa oficial del torneo con formato propio y partidos de eliminación.",
     href: "/competicion/copa-apa",
     image: "/images/competicion/copa-apa.png",
   },
@@ -68,7 +68,7 @@ const competitions = [
     label: "Definición",
     title: "Playoffs",
     description:
-      "Los cruces que deciden ascensos, permanencias y el cierre competitivo de la temporada.",
+      "Los cruces que deciden ascensos, permanencias y el cierre competitivo del torneo.",
     href: "/competicion/playoffs",
     image: "/images/competicion/playoffs.png",
   },
@@ -165,7 +165,7 @@ export default function HomeCompetitionStrip({
               " mx-auto mt-3 max-w-xl text-center text-[14px] font-semibold leading-6 text-[#58788f]"
             }
           >
-            Toda la temporada, en un vistazo.
+            Todo el torneo, en un vistazo.
           </p>
         </div>
 

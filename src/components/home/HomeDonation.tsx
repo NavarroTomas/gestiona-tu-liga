@@ -19,7 +19,7 @@ export default function HomeDonation() {
           </p>
 
           <h2 className="mt-3 max-w-[900px] text-[clamp(2.5rem,4.8vw,5rem)] font-black leading-[0.95] tracking-[-0.055em] text-[#102f55]">
-            Doná y ayudá a que APA siga creciendo.
+            Doná y ayudá a que Liga siga creciendo.
           </h2>
 
           <p className="mt-5 max-w-[72ch] text-[14px] font-semibold leading-7 text-[#58788f]">

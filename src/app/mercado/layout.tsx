@@ -2,7 +2,7 @@ import { createPageMetadata } from "@/lib/seo";
 
 export const metadata = createPageMetadata({
   title: "Mercado de pases",
-  description: "Fichajes, salidas, préstamos y jugadores libres del mercado de APA PSO Argentina.",
+  description: "Fichajes, salidas, préstamos y jugadores libres del mercado de Gestioná tu Liga.",
   path: "/mercado",
 });
 

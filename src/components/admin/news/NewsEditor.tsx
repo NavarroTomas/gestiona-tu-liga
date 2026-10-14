@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { useMemo } from "react";
 import { Field, Input, Select, TournamentPanel, tournamentStyles as styles } from "@/components/admin/tournaments/TournamentUi";
@@ -28,9 +30,9 @@ export default function NewsEditor({ draft, seasons, editing, saving, imageFile,
         </Field>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 14 }}>
-          <Field label="Temporada"><Select value={draft.temporada || ""} onChange={(e) => onChange({ temporada: e.target.value })}>{seasons.map((s) => <option key={s}>{s}</option>)}</Select></Field>
-          <Field label="Categoría"><Select value={draft.categoria || "General"} onChange={(e) => onChange({ categoria: e.target.value })}>{NEWS_CATEGORIES.map((c) => <option key={c}>{c}</option>)}</Select></Field>
-          <Field label="Autor"><Input value={draft.autor || ""} onChange={(e) => onChange({ autor: e.target.value })} placeholder="Prensa APA" /></Field>
+          <Field label="Torneo"><Select value={draft.temporada || ""} onChange={(e) => onChange({ temporada: e.target.value })}>{seasons.map((s) => <option key={s} value={s}>{displayLabel(s)}</option>)}</Select></Field>
+          <Field label="Categoría"><Select value={draft.categoria || "General"} onChange={(e) => onChange({ categoria: e.target.value })}>{NEWS_CATEGORIES.map((c) => <option key={c} value={c}>{displayLabel(c)}</option>)}</Select></Field>
+          <Field label="Autor"><Input value={draft.autor || ""} onChange={(e) => onChange({ autor: e.target.value })} placeholder="Prensa Liga" /></Field>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 14, alignItems: "end" }}>

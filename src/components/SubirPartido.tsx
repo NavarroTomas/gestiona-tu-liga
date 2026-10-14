@@ -145,9 +145,9 @@ export default function SubirPartido() {
         onChange={(e) => setTemporada(e.target.value)}
         className="mb-3 p-2 text-black rounded w-full"
       >
-        <option>Temporada 1</option>
-        <option>Temporada 2</option>
-        <option>Temporada 3</option>
+        <option value="Temporada 1">Torneo 1</option>
+        <option value="Temporada 2">Torneo 2</option>
+        <option value="Temporada 3">Torneo 3</option>
       </select>
 
       <select

@@ -54,11 +54,11 @@ function competitionLabel(match: HomeMatch) {
     return match.division ? "Liga " + match.division : "Liga";
 
   if (competition === "copa_argentina") return "Copa Argentina";
-  if (competition === "copa_apa") return "Copa APA";
+  if (competition === "copa_apa") return "Copa de la Liga";
   if (competition === "copa_campeones") return "Copa de Campeones";
   if (competition === "playoffs") return "Playoffs";
 
-  return String(match.competicion || "APA").replaceAll("_", " ");
+  return String(match.competicion || "Liga").replaceAll("_", " ");
 }
 
 function dateForMatch(
@@ -158,7 +158,7 @@ function Calendar({
     <aside className="h-full overflow-hidden rounded-[28px] border border-[#cce1ec] bg-white shadow-[0_18px_50px_rgba(16,47,85,.08)]">
       <div className="border-b border-[#d9e8ef] bg-[#175b8a] px-7 py-6 text-white">
         <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#86d4f7]">
-          Calendario APA
+          Calendario de la liga
         </p>
 
         <h3 className="mt-1 capitalize text-[28px] font-black tracking-[-0.045em]">
@@ -348,10 +348,11 @@ export default function HomeMatchStrip({
   const fixtureSelection = selectable("match.fixtureLink");
   const listSelection = selectable("match.list");
 
+  if (!editorMode && upcoming.length === 0) return null;
   const slots = Array.from(
     { length: 6 },
     (_, index) => upcoming[index] || null,
-  );
+  ).filter(match => editorMode || match !== null);
 
   return (
     <section className="w-full bg-white py-12 sm:py-14 lg:py-16">

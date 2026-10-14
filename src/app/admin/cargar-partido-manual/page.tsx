@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { useEffect, useMemo, useState } from "react";
 import PermissionGuard from "@/components/PermissionGuard";
@@ -101,7 +103,7 @@ export default function CargarPartidoManualPage() {
       })
       .catch(() => {
         setTemporadas([]);
-        setMensaje("No pude cargar las temporadas.");
+        setMensaje("No pude cargar los torneos.");
       });
   }, []);
 
@@ -313,11 +315,11 @@ export default function CargarPartidoManualPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-6">
-              <select className="input" value={temporada} onChange={(e) => setTemporada(e.target.value)}>{temporadas.map((item) => <option key={item}>{item}</option>)}</select>
-              <select className="input" value={competicion} onChange={(e) => setCompeticion(e.target.value as MatchCompetition)}>{MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
-              {competicion === "liga" && <select className="input" value={division} onChange={(e) => setDivision(e.target.value)}>{MATCH_DIVISIONS.map((item) => <option key={item}>{item}</option>)}</select>}
-              {competicion === "copa_clasificatoria" && <select className="input" value={grupo} onChange={(e) => setGrupo(e.target.value)}>{MATCH_GROUPS.map((item) => <option key={item}>{item}</option>)}</select>}
-              {["copa_argentina", "copa_apa", "copa_campeones", "playoffs"].includes(competicion) && <select className="input" value={fase} onChange={(e) => setFase(e.target.value)}>{phaseOptions.map((item) => <option key={item}>{item}</option>)}</select>}
+              <select className="input" value={temporada} onChange={(e) => setTemporada(e.target.value)}>{temporadas.map((item) => <option key={item} value={item}>{displayLabel(item)}</option>)}</select>
+              <select className="input" value={competicion} onChange={(e) => setCompeticion(e.target.value as MatchCompetition)}>{MATCH_COMPETITIONS.map((item) => <option key={item.value} value={item.value}>{displayLabel(item.label)}</option>)}</select>
+              {competicion === "liga" && <select className="input" value={division} onChange={(e) => setDivision(e.target.value)}>{MATCH_DIVISIONS.map((item) => <option key={item} value={item}>{displayLabel(item)}</option>)}</select>}
+              {competicion === "copa_clasificatoria" && <select className="input" value={grupo} onChange={(e) => setGrupo(e.target.value)}>{MATCH_GROUPS.map((item) => <option key={item} value={item}>{displayLabel(item)}</option>)}</select>}
+              {["copa_argentina", "copa_apa", "copa_campeones", "playoffs"].includes(competicion) && <select className="input" value={fase} onChange={(e) => setFase(e.target.value)}>{phaseOptions.map((item) => <option key={item} value={item}>{displayLabel(item)}</option>)}</select>}
               <input className="input" value={fecha} onChange={(e) => setFecha(e.target.value)} placeholder="Fecha (opcional)" />
               <select className="input xl:col-span-2" value={partidoId} onChange={(e) => setPartidoId(e.target.value)}>
                 {partidos.length === 0 && <option value="">Sin partidos en este contexto</option>}

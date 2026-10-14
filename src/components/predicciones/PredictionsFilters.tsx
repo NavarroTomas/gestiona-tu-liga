@@ -47,7 +47,7 @@ export default function PredictionsFilters(controller: Pick<
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <PredictionDropdown
-          label="Temporada"
+          label="Torneo"
           value={controller.temporada}
           onChange={controller.setTemporada}
           options={controller.temporadas.map((season) => ({ value: season, label: season }))}

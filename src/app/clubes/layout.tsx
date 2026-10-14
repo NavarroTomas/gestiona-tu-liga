@@ -2,7 +2,7 @@ import { createPageMetadata } from "@/lib/seo";
 
 export const metadata = createPageMetadata({
   title: "Clubes",
-  description: "Clubes participantes de APA PSO Argentina, planteles, identidad, resultados e historial.",
+  description: "Clubes participantes de Gestioná tu Liga, planteles, identidad, resultados e historial.",
   path: "/clubes",
 });
 

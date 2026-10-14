@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { useMemo, useState } from "react";
 import ClubIdentity from "./ClubIdentity";
@@ -46,7 +48,7 @@ export default function ClubsTable({
           <div>
             <p className="text-[11px] font-black uppercase tracking-[.14em] text-[#1593d0]">Clubes</p>
             <h2 className="mt-1 text-[29px] font-black uppercase leading-tight tracking-[-.035em] text-[#102f55] sm:text-[36px]">
-              {season} <span className="text-[#38a8df]">/</span> {division} División
+              {displayLabel(season)} <span className="text-[#38a8df]">/</span> {division} División
             </h2>
             <p className="mt-1 text-[13px] font-medium text-[#5a788e]">{standings.length} clubes encontrados</p>
           </div>
@@ -75,7 +77,7 @@ export default function ClubsTable({
 
         {standings.length === 0 ? (
           <div className="rounded-[12px] border border-[#d6e8f2] bg-[#f7fcff] px-5 py-12 text-center text-[14px] font-semibold text-[#6f879d]">
-            Todavía no hay clubes cargados para esta temporada y división.
+            Todavía no hay clubes cargados para este torneo y división.
           </div>
         ) : (
           <>

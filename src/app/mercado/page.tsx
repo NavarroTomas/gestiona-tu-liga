@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -328,7 +330,7 @@ export default function MercadoPage() {
           <div className="relative z-10 flex min-h-[360px] items-center">
             <div className="max-w-3xl">
               <p className="text-[10px] font-black uppercase tracking-[0.25em] text-sky-400 sm:text-xs sm:tracking-[0.45em]">
-                APA PSO ARGENTINA
+                Liga PSO ARGENTINA
               </p>
 
               <h1 className="mt-4 text-[clamp(2.5rem,9vw,5rem)] font-black uppercase italic leading-none">
@@ -342,8 +344,8 @@ export default function MercadoPage() {
               </h1>
 
               <p className="mt-5 max-w-2xl text-zinc-300">
-                Fichajes, salidas, préstamos y jugadores libres de APA PSO
-                Argentina UE5. Seguimiento oficial por temporada y división.
+                Fichajes, salidas, préstamos y jugadores libres de Liga PSO
+                Argentina UE5. Seguimiento oficial por torneo y división.
               </p>
 
               <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
@@ -391,7 +393,7 @@ export default function MercadoPage() {
           <div className="grid gap-7">
             <div>
               <p className="text-sky-300 uppercase tracking-[0.3em] text-xs font-black mb-4">
-                Temporada
+                Torneo
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
@@ -463,7 +465,7 @@ export default function MercadoPage() {
           </p>
 
           <h2 className="mt-3 text-[clamp(1.8rem,7vw,3rem)] font-black uppercase">
-            {temporada}
+            {displayLabel(temporada)}
             <span className="text-sky-400"> / </span>
             {division}
           </h2>
@@ -519,7 +521,7 @@ export default function MercadoPage() {
 
               <div className="mt-5 flex flex-wrap items-center gap-3">
                 <p className="text-zinc-500 uppercase tracking-[0.18em] text-xs font-black">
-                  {movimientoDestacado.temporada} ·{" "}
+                  {displayLabel(movimientoDestacado.temporada)} ·{" "}
                   {movimientoDestacado.division}
                 </p>
 
@@ -548,7 +550,7 @@ export default function MercadoPage() {
 
               <p className="mt-4 text-zinc-400">
                 No hay movimientos visibles con el filtro actual. Probá cambiar
-                temporada, división o tipo de movimiento.
+                torneo, división o tipo de movimiento.
               </p>
 
               <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -627,7 +629,7 @@ export default function MercadoPage() {
                   </div>
 
                   <p className="mt-5 text-zinc-500 uppercase tracking-[0.16em] text-xs font-black">
-                    {m.temporada} · {m.division}
+                    {displayLabel(m.temporada)} · {m.division}
                   </p>
                 </div>
               </div>

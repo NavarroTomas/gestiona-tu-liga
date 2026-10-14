@@ -27,12 +27,12 @@ export default function ClubsFilters({
           </div>
 
           <label className="grid gap-1.5">
-            <span className="text-[11px] font-black text-[#173d65]">Temporada</span>
+            <span className="text-[11px] font-black text-[#173d65]">Torneo</span>
             <APASelect
               value={season}
               onChange={onSeasonChange}
               options={(seasons.length ? seasons : [season]).map((item) => ({ value: item, label: item }))}
-              ariaLabel="Temporada"
+              ariaLabel="Torneo"
             />
           </label>
 

@@ -52,7 +52,7 @@ const ADMIN_CARDS: AdminCard[] = [
     group: "Gestión deportiva",
     eyebrow: "Instituciones",
     title: "Clubes",
-    description: "Datos, imágenes, colores e inscripción de clubes por temporada y división.",
+    description: "Datos, imágenes, colores e inscripción de clubes por torneo y división.",
     permissions: ["clubs.manage"],
   },
   {
@@ -68,7 +68,7 @@ const ADMIN_CARDS: AdminCard[] = [
     group: "Contenido e historia",
     eyebrow: "Publicaciones",
     title: "Noticias",
-    description: "Administrá comunicados, novedades y contenido editorial de APA.",
+    description: "Administrá comunicados, novedades y contenido editorial de tu liga.",
     permissions: ["news.manage"],
   },
   {
@@ -182,7 +182,7 @@ export default function AdminPage() {
       <div className="mx-auto max-w-[1420px] px-4 py-8 md:px-8 md:py-10">
         <header className="mb-9 flex flex-col gap-5 border-b border-[#d7e0e8] pb-8 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.28em] text-[#245f8e]">Administración APA</p>
+            <p className="text-xs font-black uppercase tracking-[0.28em] text-[#245f8e]">Administración de la liga</p>
             <h1 className="mt-2 text-4xl font-black uppercase tracking-[-0.04em] md:text-6xl">Panel de control</h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-[#65798b] md:text-base">
               Las herramientas aparecen según los accesos reales de cada cuenta. El editor visual está aislado del resto de permisos administrativos.
@@ -190,7 +190,7 @@ export default function AdminPage() {
           </div>
 
           <Link
-            href="/"
+            href="/liga"
             className="inline-flex min-h-11 w-fit items-center justify-center rounded-xl border border-[#cbd7e1] bg-white px-5 text-xs font-black uppercase tracking-[0.12em] text-[#102f55] transition hover:border-[#245f8e] hover:bg-[#edf3f7]"
           >
             Volver al sitio

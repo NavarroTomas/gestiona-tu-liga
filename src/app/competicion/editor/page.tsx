@@ -31,7 +31,7 @@ function porcentaje(valor: string | undefined, fallback: number) {
 }
 
 function leerLayoutDesdePagina(doc: Document): CompeticionLayout {
-  const temporada = doc.querySelector<HTMLElement>('[data-layout="temporada"]');
+  const temporada = doc.querySelector<HTMLElement>("[data-layout=\"torneo\"]");
   const titulo = doc.querySelector<HTMLElement>('[data-layout="titulo"]');
   const linea = doc.querySelector<HTMLElement>('[data-layout="linea"]');
   const menu = doc.querySelector<HTMLElement>('[data-layout="menu"]');
@@ -100,7 +100,7 @@ export default function EditorCompeticion() {
     const doc = documento();
     if (!doc) return;
 
-    const temporada = doc.querySelector<HTMLElement>('[data-layout="temporada"]');
+    const temporada = doc.querySelector<HTMLElement>("[data-layout=\"torneo\"]");
     const titulo = doc.querySelector<HTMLElement>('[data-layout="titulo"]');
     const linea = doc.querySelector<HTMLElement>('[data-layout="linea"]');
     const menu = doc.querySelector<HTMLElement>('[data-layout="menu"]');
@@ -403,7 +403,7 @@ export default function EditorCompeticion() {
           <div className="sticky top-5 space-y-5">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#56afe2]">
-                APA · Remodelación
+                Liga · Remodelación
               </p>
               <h1 className="mt-1 text-2xl font-black">Editor de Competición</h1>
               <p className="mt-2 text-xs font-semibold leading-5 text-[#5b7898]">
@@ -477,7 +477,7 @@ export default function EditorCompeticion() {
 
                 {seleccion === "temporada" && (
                   <Control
-                    etiqueta="Tamaño de temporada"
+                    etiqueta="Tamaño de torneo"
                     min={8}
                     max={40}
                     step={1}
@@ -562,7 +562,7 @@ export default function EditorCompeticion() {
             </p>
 
             <p className="text-[10px] font-bold leading-4 text-[#7891aa]">
-              Tip: también podés arrastrar título, temporada, línea, menú y fondo directamente dentro de la página. Flechas = 1 px · Shift + flechas = 10 px.
+              Tip: también podés arrastrar título, torneo, línea, menú y fondo directamente dentro de la página. Flechas = 1 px · Shift + flechas = 10 px.
             </p>
           </div>
         </aside>

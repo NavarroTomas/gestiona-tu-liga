@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { Field, Input, Select, TournamentPanel, tournamentStyles as styles } from "@/components/admin/tournaments/TournamentUi";
 
@@ -53,20 +55,20 @@ export default function TransferPanel({
         <Field label="Origen">
           <Select value={from} onChange={(event) => onFrom(event.target.value)}>
             <option value="">Libre / sin club</option>
-            {teams.map((name) => <option key={`from-${name}`} value={name}>{name}</option>)}
+            {teams.map((name) => <option key={`from-${name}`} value={name}>{displayLabel(name)}</option>)}
           </Select>
         </Field>
 
         <Field label="Destino">
           <Select value={to} disabled={!needsDestination} onChange={(event) => onTo(event.target.value)}>
-            <option value="">{needsDestination ? "Elegir club" : "Queda libre"}</option>
-            {teams.map((name) => <option key={`to-${name}`} value={name}>{name}</option>)}
+            <option value="">{displayLabel(needsDestination ? "Elegir club" : "Queda libre")}</option>
+            {teams.map((name) => <option key={`to-${name}`} value={name}>{displayLabel(name)}</option>)}
           </Select>
         </Field>
 
         <Field label="Tipo">
           <Select value={type} onChange={(event) => onType(event.target.value)}>
-            {["Fichaje", "Salida", "Libre", "Préstamo"].map((value) => <option key={value}>{value}</option>)}
+            {["Fichaje", "Salida", "Libre", "Préstamo"].map((value) => <option key={value} value={value}>{displayLabel(value)}</option>)}
           </Select>
         </Field>
 

@@ -328,7 +328,7 @@ export default function IntroAPA() {
           animate={{ opacity: closing ? 0 : 1 }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
           className="fixed inset-0 z-[1000000] bg-[#01050b] text-white"
-          aria-label="Presentación inicial de APA PSO Argentina"
+          aria-label="Presentación inicial de Gestioná tu Liga"
         >
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(14,116,144,.22),transparent_34rem),radial-gradient(circle_at_50%_100%,rgba(37,99,235,.17),transparent_38rem),linear-gradient(180deg,#01050b_0%,#020a14_55%,#010409_100%)]" />
@@ -348,7 +348,7 @@ export default function IntroAPA() {
           <div className="fixed left-4 top-4 z-50 flex items-center gap-3 md:left-7 md:top-6">
             <Image
               src="/intro-apa/logo-apa.png"
-              alt="Logo APA"
+              alt="Logo Liga"
               width={44}
               height={44}
               priority
@@ -356,7 +356,7 @@ export default function IntroAPA() {
             />
 
             <div className="hidden sm:block">
-              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white">APA PSO</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white">Liga PSO</p>
               <p className="mt-1 text-[9px] font-black uppercase tracking-[0.34em] text-sky-300">Argentina</p>
             </div>
           </div>
@@ -387,7 +387,7 @@ export default function IntroAPA() {
 
                 <IntroCopy
                   eyebrow="Una liga en expansión"
-                  title={<>12+ temporadas. 3500+ miembros.</>}
+                  title={<>12+ torneos. 3500+ miembros.</>}
                   description="Lo que comenzó como una liga nacional se transformó en un punto de encuentro para jugadores, clubes y comunidades de toda la región."
                   opacity={copyGrowthOpacity}
                   y={copyGrowthY}
@@ -428,7 +428,7 @@ export default function IntroAPA() {
                   <motion.div style={{ x: apaX }} className="flex w-[30vw] max-w-[250px] items-center justify-center">
                     <Image
                       src="/intro-apa/logo-apa.png"
-                      alt="Logo de APA PSO Argentina"
+                      alt="Logo de Gestioná tu Liga"
                       width={1254}
                       height={1254}
                       priority
@@ -442,7 +442,7 @@ export default function IntroAPA() {
                   className="absolute inset-x-0 bottom-[8vh] z-50 flex flex-col items-center px-5 text-center"
                 >
                   <p className="text-[10px] font-black uppercase tracking-[0.5em] text-sky-300 md:text-xs">
-                    APA PSO Argentina
+                    Gestioná tu Liga
                   </p>
 
                   <h2 className="mt-3 text-2xl font-black uppercase italic text-white md:text-5xl">

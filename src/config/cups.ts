@@ -48,7 +48,7 @@ export const CUPS_CONFIG = {
     // Los primeros N puestos van a Copa Argentina. El resto va a Copa APA.
     copaArgentinaPlaces: 2,
     copaArgentinaLabel: "Copa Argentina",
-    copaApaLabel: "Copa APA",
+    copaApaLabel: "Copa de la Liga",
   },
 
   tabs: [

@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+
 import "./globals.css";
 import "./typography-fixed.css";
 import "./theme-worldcup-mural.css";
 import "./admin-awards-fixes.css";
-import APAHeader from "../components/APAHeader";
-import APAFooter from "../components/APAFooter";
-import BienvenidaAPA from "../components/BienvenidaAPA";
-import IntroAPA from "../components/IntroAPA";
-import CookieConsent from "../components/CookieConsent";
-import SiteEditorRuntime from "../components/site-editor/SiteEditorRuntime";
+import ApplicationShell from "@/components/ApplicationShell";
 import { Inter } from "next/font/google";
 
 const inter = Inter({
@@ -21,38 +16,27 @@ const inter = Inter({
 const fontVariables = inter.variable;
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.psoargentina.com"),
   title: {
-    default: "APA PSO Argentina",
-    template: "%s | APA PSO Argentina",
+    default: "Gestioná tu Liga",
+    template: "%s | Gestioná tu Liga",
   },
   description:
-    "Sitio oficial de APA PSO Argentina: fixture, resultados, estadísticas, clubes, jugadores, competiciones y comunidad de Pro Soccer Online.",
+    "Creá y administrá tu liga. Organizá partidos, equipos y estadísticas en un solo lugar.",
   openGraph: {
     type: "website",
     locale: "es_AR",
-    siteName: "APA PSO Argentina",
-    title: "APA PSO Argentina",
+    siteName: "Gestioná tu Liga",
+    title: "Gestioná tu Liga",
     description:
-      "Fixture, resultados, estadísticas, clubes, jugadores y competiciones de APA PSO Argentina.",
+      "Fixture, resultados, estadísticas, clubes, jugadores y competiciones de Gestioná tu Liga.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "APA PSO Argentina",
+    title: "Gestioná tu Liga",
     description:
-      "Fixture, resultados, estadísticas, clubes, jugadores y competiciones de APA PSO Argentina.",
+      "Fixture, resultados, estadísticas, clubes, jugadores y competiciones de Gestioná tu Liga.",
   },
-  icons: {
-    icon: [
-      { url: "/favicon.png?v=5", type: "image/png" },
-      { url: "/icon.png?v=5", type: "image/png", sizes: "32x32" },
-    ],
-    shortcut: "/favicon.png?v=5",
-    apple: "/apple-icon.png?v=5",
-  },
-  other: {
-    "google-adsense-account": "ca-pub-9012377872796123",
-  },
+
 };
 
 export default function RootLayout({
@@ -68,15 +52,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="text-white overflow-x-hidden">
-        <IntroAPA />
-        <BienvenidaAPA />
-        <APAHeader />
-        {children}
-        <APAFooter />
-        <CookieConsent />
-        <Suspense fallback={null}>
-          <SiteEditorRuntime />
-        </Suspense>
+        <ApplicationShell>{children}</ApplicationShell>
       </body>
     </html>
   );

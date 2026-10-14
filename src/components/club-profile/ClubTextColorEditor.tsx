@@ -34,7 +34,7 @@ const TEXT_SELECTOR =
 const QUICK_COLORS = [
   ["Blanco", "#ffffff"],
   ["Negro", "#111827"],
-  ["Navy APA", "#102f55"],
+  ["Navy Liga", "#102f55"],
   ["Azul medio", "#1d4d79"],
   ["Azul fuerte", "#245f8e"],
   ["Gris", "#4b5563"],

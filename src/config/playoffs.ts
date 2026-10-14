@@ -38,7 +38,7 @@ export const PLAYOFFS_CONFIG = {
     title: "Playoffs de Ascenso",
     subtitle: "El camino a Primera División",
     image: "/images/competicion/playoffs.png",
-    alt: "Playoffs de Ascenso APA",
+    alt: "Playoffs de Ascenso Liga",
   },
 
   stageDefinitions: {

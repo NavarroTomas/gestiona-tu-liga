@@ -1,3 +1,5 @@
+
+import { displayLabel } from "@/lib/displayLabels";
 import { PLAYOFFS_CONFIG } from "@/config/playoffs";
 
 /** Hero de Playoffs. Textos e imagen se cambian desde config/playoffs.ts. */
@@ -18,7 +20,7 @@ export default function PlayoffsHero({ season }: { season: string }) {
             {PLAYOFFS_CONFIG.hero.title}
           </h1>
           <p className="mt-3 text-[clamp(14px,1.45vw,22px)] font-semibold text-[#214b77] sm:mt-4">
-            {PLAYOFFS_CONFIG.hero.subtitle} · {season}
+            {PLAYOFFS_CONFIG.hero.subtitle} · {displayLabel(season)}
           </p>
         </div>
       </div>

@@ -56,7 +56,7 @@ export default function TablaPosicionesHome({ tabla }: { tabla: any[] }) {
             <div className="relative h-12 w-12 overflow-hidden rounded-2xl border border-sky-400/35 bg-black/40 shadow-[0_0_22px_rgba(56,189,248,.22)]">
               <img
                 src="/logo-apa.png"
-                alt="APA PSO"
+                alt="Liga PSO"
                 className="h-full w-full object-cover"
               />
             </div>

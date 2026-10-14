@@ -184,7 +184,7 @@ export default function NewsManager() {
 
         <TournamentHero
           eyebrow="Noticias"
-          title="Prensa APA"
+          title="Prensa de la liga"
           description="Publicá noticias y administrá lo existente sin mezclar edición, estados y listado en una sola pantalla."
         >
           <div className={styles.kpis}>

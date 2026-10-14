@@ -25,7 +25,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   {
     id: "primeros-pasos",
     eyebrow: "Primeros pasos",
-    title: "Configurá tu identidad APA",
+    title: "Configurá tu identidad Liga",
     description:
       "Para que perfiles, estadísticas y premios funcionen correctamente hay tres datos que tienen que estar bien cargados.",
     items: [
@@ -39,7 +39,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "Discord User ID",
-        description: "APA lo usa para verificaciones e integraciones con Discord.",
+        description: "Liga lo usa para verificaciones e integraciones con Discord.",
         points: [
           "Activá Modo Desarrollador en Discord.",
           "Copiá el ID numérico de tu usuario.",
@@ -47,7 +47,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "PlayerId",
-        description: "Es la referencia deportiva principal dentro de APA.",
+        description: "Es la referencia deportiva principal dentro de Liga.",
         points: [
           "Une tus partidos, rankings, premios e historial.",
           "Tus estadísticas continúan aunque cambies de club.",
@@ -58,14 +58,14 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   {
     id: "competicion",
     eyebrow: "Competición",
-    title: "Seguí la temporada desde un solo lugar",
+    title: "Seguí el torneo desde un solo lugar",
     description:
       "Liga, copas y calendario comparten la misma estructura para que puedas pasar de una competencia a otra sin perder contexto.",
     tone: "blue",
     items: [
       {
         title: "Competición",
-        description: "Entrá a Liga, Clasificación a Copas, Copa Argentina, Copa APA y el resto de los torneos oficiales.",
+        description: "Entrá a Liga, Clasificación a Copas, Copa Argentina, Copa de la Liga y el resto de los torneos oficiales.",
         href: "/competicion",
         points: [
           "Primero elegís competencia.",
@@ -77,17 +77,17 @@ export const GUIDE_SECTIONS: GuideSection[] = [
         description: "Consultá el calendario, resultados y partidos del día de cualquier competencia.",
         href: "/fixture",
         points: [
-          "Podés filtrar por temporada, torneo y equipo.",
+          "Podés filtrar por competición y equipo.",
           "Los resultados cargados quedan conectados con el Match Center.",
         ],
       },
       {
         title: "Historia",
-        description: "Revisá temporadas anteriores, tablas finales, campeones, premios y récords.",
+        description: "Revisá torneos anteriores, tablas finales, campeones, premios y récords.",
         href: "/historia",
         points: [
-          "Cada temporada se consulta de forma independiente.",
-          "Los datos se construyen desde registros oficiales de APA.",
+          "Cada torneo se consulta de forma independiente.",
+          "Los datos se construyen desde registros oficiales de Liga.",
         ],
       },
     ],
@@ -104,7 +104,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
         description: "Directorio de instituciones con su situación competitiva y acceso al perfil de cada equipo.",
         href: "/clubes",
         points: [
-          "Los clubes se filtran por temporada y división.",
+          "Los clubes se filtran por torneo y división.",
           "Nombre y escudo llevan al perfil estadístico del equipo.",
         ],
       },
@@ -113,7 +113,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
         description: "Consultá quién integra cada club y las estadísticas principales de sus jugadores.",
         href: "/plantillas",
         points: [
-          "Podés cambiar temporada, división y club.",
+          "Podés cambiar torneo, división y club.",
           "Cada jugador con PlayerId abre su perfil individual.",
         ],
       },
@@ -133,7 +133,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     eyebrow: "Comunidad",
     title: "Participá más allá de los partidos",
     description:
-      "APA también reúne herramientas de participación, mercado y reconocimientos sin mezclarlas con la navegación competitiva principal.",
+      "Liga también reúne herramientas de participación, mercado y reconocimientos sin mezclarlas con la navegación competitiva principal.",
     tone: "blue",
     items: [
       {
@@ -147,8 +147,8 @@ export const GUIDE_SECTIONS: GuideSection[] = [
         href: "/entretenimiento/dream-team",
       },
       {
-        title: "Premios APA",
-        description: "Consultá reconocimientos de fecha y premios oficiales de temporada.",
+        title: "Premios Liga",
+        description: "Consultá reconocimientos de fecha y premios oficiales de torneo.",
         href: "/entretenimiento/premios",
       },
     ],
@@ -177,9 +177,9 @@ export const GUIDE_FAQ = [
       "Desde Fixture podés seleccionar el encuentro y abrir sus detalles cuando el partido tenga datos cargados.",
   },
   {
-    question: "¿Cómo se organiza una temporada?",
+    question: "¿Cómo se organiza un torneo?",
     answer:
-      "La estructura base es Temporada, Competición y luego División, Grupo o Fase según el torneo elegido.",
+      "La estructura base es Torneo, Competición y luego División, Grupo o Fase según el torneo elegido.",
   },
   {
     question: "¿Qué dato identifica realmente a un jugador?",

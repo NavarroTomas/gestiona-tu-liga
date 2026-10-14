@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import type { AdminClub, ClubSeasonAssignment } from "@/lib/adminClubs";
 import { Field, Input, TournamentPanel, tournamentStyles as styles } from "@/components/admin/tournaments/TournamentUi";
@@ -47,7 +49,7 @@ export default function ClubVisualSection({
               <h3 style={{ margin: 0, fontSize: 28, fontWeight: 900 }}>{club.nombre || "Nombre del club"}</h3>
               <p style={{ margin: "5px 0 0", color: "#f3f4f6", fontSize: 13 }}>/{club.slug || "slug"}</p>
               <p style={{ margin: "6px 0 0", color: "#f3f4f6", fontSize: 11, fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>
-                {assignment.temporada} · {assignment.division}
+                {displayLabel(assignment.temporada)} · {assignment.division}
               </p>
             </div>
           </div>

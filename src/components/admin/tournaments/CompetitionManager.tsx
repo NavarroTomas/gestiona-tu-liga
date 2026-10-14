@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -265,7 +267,7 @@ export default function CompetitionManager() {
       return;
     }
     if (argentinaMatches.length || apaMatches.length) {
-      setMessage("Ya existen cruces de Copa Argentina o Copa APA. Podés modificarlos desde Acciones avanzadas.");
+      setMessage("Ya existen cruces de Copa Argentina o Copa de la Liga. Podés modificarlos desde Acciones avanzadas.");
       return;
     }
 
@@ -285,7 +287,7 @@ export default function CompetitionManager() {
     const apaPairs = seededPairs(apaQualifiers);
     const payload = [
       ...argentinaPairs.map(([local, visitante], index) => ({ local, visitante, competicion: "copa_argentina", ronda: `Copa Argentina · Cruce ${index + 1}` })),
-      ...apaPairs.map(([local, visitante], index) => ({ local, visitante, competicion: "copa_apa", ronda: `Copa APA · Cruce ${index + 1}` })),
+      ...apaPairs.map(([local, visitante], index) => ({ local, visitante, competicion: "copa_apa", ronda: `Copa de la Liga · Cruce ${index + 1}` })),
     ].map((game) => ({
       ...game,
       resultado: null,
@@ -310,13 +312,13 @@ export default function CompetitionManager() {
       setMessage("No pude crear los cruces.");
       return;
     }
-    setMessage(`Cruces creados: ${argentinaPairs.length} de Copa Argentina y ${apaPairs.length} de Copa APA.`);
+    setMessage(`Cruces creados: ${argentinaPairs.length} de Copa Argentina y ${apaPairs.length} de Copa de la Liga.`);
     await load();
   }
 
   async function createNextKnockoutRound(competition: "copa_argentina" | "copa_apa") {
     const cup = matches.filter((match) => match.competicion === competition);
-    const label = competition === "copa_argentina" ? "Copa Argentina" : "Copa APA";
+    const label = competition === "copa_argentina" ? "Copa Argentina" : "Copa de la Liga";
     if (!cup.length) {
       setMessage(`${label} todavía no tiene cruces.`);
       return;
@@ -518,7 +520,7 @@ export default function CompetitionManager() {
           description="Elegí qué querés administrar. El panel te indica qué está listo, qué falta y qué acción conviene hacer después. Las excepciones quedan disponibles sin tocar código."
         >
           <div className={styles.toolbar}>
-            <Field label="Temporada"><Select value={temporada} onChange={(event) => setTemporada(event.target.value)}>{seasons.map((season) => <option key={season}>{season}</option>)}</Select></Field>
+            <Field label="Torneo"><Select value={temporada} onChange={(event) => setTemporada(event.target.value)}>{seasons.map((season) => <option key={season} value={season}>{displayLabel(season)}</option>)}</Select></Field>
             <Link href="/admin/torneos/configuracion" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Configurar reglas</Link>
             <Link href="/admin/torneos/acciones-avanzadas" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Acciones avanzadas</Link>
           </div>
@@ -553,7 +555,7 @@ export default function CompetitionManager() {
                   <span className={styles.badge}>{finalWinner(matches, "copa_argentina") || `${argentinaMatches.length} partidos`}</span>
                 </button>
                 <button type="button" className={styles.row} onClick={() => setView("copas")}>
-                  <div><div className={styles.rowTitle}>Copa APA</div><div className={styles.rowMeta}>{nextKnockoutAction(apaMatches)}</div></div>
+                  <div><div className={styles.rowTitle}>Copa de la Liga</div><div className={styles.rowMeta}>{nextKnockoutAction(apaMatches)}</div></div>
                   <span className={styles.badge}>{finalWinner(matches, "copa_apa") || `${apaMatches.length} partidos`}</span>
                 </button>
                 <button type="button" className={styles.row} onClick={() => setView("ascensos")}>
@@ -570,7 +572,7 @@ export default function CompetitionManager() {
                     <option value="si">Sí, mostrarla</option><option value="no">No, mantenerla oculta</option>
                   </Select>
                 </Field>
-                <Field label="Mostrar Copa APA en la web">
+                <Field label="Mostrar Copa de la Liga en la web">
                   <Select value={showApaPublic ? "si" : "no"} onChange={(event) => setShowApaPublic(event.target.value === "si")}>
                     <option value="si">Sí, mostrarla</option><option value="no">No, mantenerla oculta</option>
                   </Select>
@@ -596,7 +598,7 @@ export default function CompetitionManager() {
                     {(groups[group] || Array(teamsPerGroup).fill("")).map((value, index) => (
                       <Select key={`${group}-${index}`} value={value} disabled={groupMatches.some(isLoadedMatch)} onChange={(event) => setGroups((current) => ({ ...current, [group]: (current[group] || []).map((item, itemIndex) => itemIndex === index ? event.target.value : item) }))}>
                         <option value="">Elegir equipo {index + 1}</option>
-                        {teamOptions(value).map((team) => <option key={team.nombre} value={team.nombre}>{team.nombre}</option>)}
+                        {teamOptions(value).map((team) => <option key={team.nombre} value={team.nombre}>{displayLabel(team.nombre)}</option>)}
                       </Select>
                     ))}
                   </div>
@@ -633,9 +635,9 @@ export default function CompetitionManager() {
           <div className={styles.list}>
             <TournamentPanel eyebrow="Eliminación directa" title="Copa Argentina" description={nextKnockoutAction(argentinaMatches)} action={<div className={styles.actions}><button className={styles.primary} type="button" disabled={!argentinaMatches.length || Boolean(finalWinner(matches, "copa_argentina"))} onClick={() => createNextKnockoutRound("copa_argentina")}>{nextKnockoutAction(argentinaMatches)}</button><Link href="/admin/torneos/acciones-avanzadas" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Editar manualmente</Link></div>}>{cupList(argentinaMatches)}</TournamentPanel>
 
-            <TournamentPanel eyebrow="Eliminación directa" title="Copa APA" description={nextKnockoutAction(apaMatches)} action={<div className={styles.actions}><button className={styles.primary} type="button" disabled={!apaMatches.length || Boolean(finalWinner(matches, "copa_apa"))} onClick={() => createNextKnockoutRound("copa_apa")}>{nextKnockoutAction(apaMatches)}</button><Link href="/admin/torneos/acciones-avanzadas" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Editar manualmente</Link></div>}>{cupList(apaMatches)}</TournamentPanel>
+            <TournamentPanel eyebrow="Eliminación directa" title="Copa de la Liga" description={nextKnockoutAction(apaMatches)} action={<div className={styles.actions}><button className={styles.primary} type="button" disabled={!apaMatches.length || Boolean(finalWinner(matches, "copa_apa"))} onClick={() => createNextKnockoutRound("copa_apa")}>{nextKnockoutAction(apaMatches)}</button><Link href="/admin/torneos/acciones-avanzadas" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Editar manualmente</Link></div>}>{cupList(apaMatches)}</TournamentPanel>
 
-            <TournamentPanel eyebrow="Campeones" title="Copa de Campeones" description="Por defecto usa campeón de Primera, Segunda, Copa Argentina y Copa APA. Si querés otros participantes podés cambiarlos manualmente.">
+            <TournamentPanel eyebrow="Campeones" title="Copa de Campeones" description="Por defecto usa campeón de Primera, Segunda, Copa Argentina y Copa de la Liga. Si querés otros participantes podés cambiarlos manualmente.">
               <div className={styles.actions}>
                 {!championsMatches.length ? <button className={styles.primary} type="button" onClick={generateChampionsCup}>Crear con campeones detectados</button> : <button className={styles.primary} type="button" onClick={continueChampionsCup}>Crear siguiente partido</button>}
                 <Link href="/admin/torneos/acciones-avanzadas" className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Elegir participantes manualmente</Link>
@@ -660,9 +662,9 @@ export default function CompetitionManager() {
         )}
 
         {view === "sanciones" && (
-          <TournamentPanel eyebrow="Disciplina" title="Descontar puntos" description="Elegí club, cantidad y motivo. El descuento impacta en las tablas de esta temporada.">
+          <TournamentPanel eyebrow="Disciplina" title="Descontar puntos" description="Elegí club, cantidad y motivo. El descuento impacta en las tablas de este torneo.">
             <div className={styles.grid3}>
-              <Field label="Club"><Select value={sanctionTeam} onChange={(event) => setSanctionTeam(event.target.value)}><option value="">Seleccionar club</option>{teams.map((team) => <option key={team.nombre} value={team.nombre}>{team.nombre}</option>)}</Select></Field>
+              <Field label="Club"><Select value={sanctionTeam} onChange={(event) => setSanctionTeam(event.target.value)}><option value="">Seleccionar club</option>{teams.map((team) => <option key={team.nombre} value={team.nombre}>{displayLabel(team.nombre)}</option>)}</Select></Field>
               <Field label="Puntos a descontar"><Input type="number" min={1} value={sanctionPoints} onChange={(event) => setSanctionPoints(Math.max(1, Number(event.target.value || 1)))} /></Field>
               <Field label="Motivo"><Input value={sanctionReason} onChange={(event) => setSanctionReason(event.target.value)} /></Field>
             </div>

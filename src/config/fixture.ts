@@ -75,7 +75,7 @@ export const FIXTURE_CONFIG = {
   hero: {
     title: "Fixture",
     image: "/images/fixture/fixture.png",
-    alt: "Fixture oficial APA",
+    alt: "Fixture oficial Liga",
   },
 
   competitions: [
@@ -95,7 +95,7 @@ export const FIXTURE_CONFIG = {
     },
     {
       id: "copa-apa",
-      label: "Copa APA",
+      label: "Copa de la Liga",
       description: "Eliminación directa",
       competitionKey: "copa_apa",
     },

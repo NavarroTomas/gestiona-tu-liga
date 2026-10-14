@@ -84,7 +84,7 @@ export const ENTERTAINMENT_HEADER_MENU: HeaderDropdownItem[] = [
     href: "/entretenimiento/dream-team",
   },
   {
-    label: "Premios APA",
+    label: "Premios Liga",
     description: "Reconocimientos y destacados",
     href: "/entretenimiento/premios",
   },

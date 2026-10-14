@@ -7,7 +7,7 @@ export default function PremiosLayout({ children }: { children: ReactNode }) {
     <div className={styles.scope}>
       <div className={styles.topbar}>
         <Link href="/admin/historia">← Volver a historia</Link>
-        <span>Historia · Premios APA</span>
+        <span>Historia · Premios Liga</span>
       </div>
       {children}
     </div>

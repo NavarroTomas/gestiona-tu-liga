@@ -106,7 +106,7 @@ const SOCIALS = [
     label: "Twitch",
     eyebrow: "En vivo",
     description:
-      "Partidos y transmisiones oficiales de APA.",
+      "Partidos y transmisiones oficiales de Liga.",
     href: TWITCH_URL,
     icon: <TwitchIcon />,
     accent: "#6f57b8",
@@ -163,7 +163,7 @@ export default function HomeCommunity() {
           }}
         >
           <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#168fd4]">
-            Comunidad APA
+            Comunidad Liga
           </p>
 
           <h2 className="mt-4 text-[clamp(4rem,8vw,8.5rem)] font-black uppercase leading-[0.84] tracking-[-0.07em] text-[#102f55]">
@@ -173,7 +173,7 @@ export default function HomeCommunity() {
           </h2>
 
           <p className="mt-7 max-w-[620px] text-[14px] font-semibold leading-7 text-[#58788f] sm:text-[16px]">
-            Todo lo que pasa en APA también vive fuera de la web.
+            Todo lo que pasa en Liga también vive fuera de la web.
             Elegí tu plataforma y seguí la liga donde más te guste.
           </p>
         </motion.div>

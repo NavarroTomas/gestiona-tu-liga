@@ -2,8 +2,8 @@ import ApaWordleGame from "@/components/entertainment/ApaWordleGame";
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata = createPageMetadata({
-  title: "APA Wordle",
-  description: "El Wordle de APA PSO Argentina: una palabra por día inspirada en la liga y su comunidad.",
+  title: "Liga Wordle",
+  description: "El Wordle de Gestioná tu Liga: una palabra por día inspirada en la liga y su comunidad.",
   path: "/entretenimiento/wordle",
 });
 

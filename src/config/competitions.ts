@@ -82,7 +82,7 @@ export const COMPETITIONS: CompetitionDefinition[] = [
   },
   {
     id: "copa-apa",
-    titulo: "Copa APA",
+    titulo: "Copa de la Liga",
     subtitulo: "En juego",
     href: "/competicion/copa-apa",
     enabled: true,
@@ -115,7 +115,7 @@ export const COMPETITION_LANDING_CONFIG = {
   footer: {
     marca: "PSO ARGENTINA",
     descripcion: "Liga oficial de Pro Soccer Online",
-    copyright: "© 2026 APA PSO ARGENTINA",
+    copyright: "© 2026 Liga PSO ARGENTINA",
     enlaces: [
       { label: "Privacidad", href: "/privacidad" },
       { label: "Términos", href: "/terminos" },

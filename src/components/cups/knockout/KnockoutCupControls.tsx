@@ -1,3 +1,5 @@
+
+import { displayLabel } from "@/lib/displayLabels";
 import {
   COPA_ARGENTINA_CONFIG,
   getCopaArgentinaSeasonFormat,
@@ -30,7 +32,7 @@ export default function KnockoutCupControls({
       </div>
 
       <label className="grid gap-1.5">
-        <span className="text-[9px] font-black uppercase tracking-[.15em] text-[#7991a8]">Temporada</span>
+        <span className="text-[9px] font-black uppercase tracking-[.15em] text-[#7991a8]">Torneo</span>
         <span className="relative">
           <select
             value={season}
@@ -40,7 +42,7 @@ export default function KnockoutCupControls({
           >
             {COPA_ARGENTINA_CONFIG.seasons.map((item) => (
               <option key={item} value={item} style={{ backgroundColor: "#f3fafe", color: "#102f55" }}>
-                {item}
+                {displayLabel(item)}
               </option>
             ))}
           </select>

@@ -21,7 +21,7 @@ export const TITLE_COMPETITIONS: Array<{ value: CompetitionValue; label: string 
   { value: "liga", label: "Liga" },
   { value: "copa_clasificatoria", label: "Clasificación a Copas" },
   { value: "copa_argentina", label: "Copa Argentina" },
-  { value: "copa_apa", label: "Copa APA" },
+  { value: "copa_apa", label: "Copa de la Liga" },
   { value: "copa_campeones", label: "Copa de Campeones" },
   { value: "playoffs", label: "Playoffs de Ascenso" },
 ];

@@ -198,10 +198,10 @@ export default function ApaWordleGame() {
       <section className="border-b border-[#c9e3f1] bg-white">
         <div className="mx-auto w-[min(94vw,1760px)] py-10 sm:py-14">
           <p className="text-[10px] font-black uppercase tracking-[.18em] text-[#168fd4]">
-            Entretenimiento APA
+            Entretenimiento Liga
           </p>
           <h1 className="mt-2 text-[clamp(3rem,7vw,6.8rem)] font-black uppercase leading-[.86] tracking-[-.06em]">
-            APA WORDLE
+            Liga WORDLE
           </h1>
           <p className="mt-5 max-w-2xl text-[15px] font-semibold leading-7 text-[#58788f]">
             Una palabra por día inspirada en la liga, sus clubes, posiciones, torneos y cultura.
@@ -218,7 +218,7 @@ export default function ApaWordleGame() {
                   Palabra del día
                 </p>
                 <p className="mt-1 text-[13px] font-bold text-[#6c8799]">
-                  {answer.length} letras · {answerEntry?.category || "APA"}
+                  {answer.length} letras · {answerEntry?.category || "Liga"}
                 </p>
               </div>
               <span className="rounded-full border border-[#cfe2ed] bg-[#f4f9fc] px-4 py-2 text-[10px] font-black uppercase tracking-[.08em] text-[#58788f]">
@@ -319,7 +319,7 @@ export default function ApaWordleGame() {
               Pista de hoy
             </p>
             <p className="mt-4 text-[18px] font-black leading-6 text-white">
-              {answerEntry?.hint || "Está relacionada con APA."}
+              {answerEntry?.hint || "Está relacionada con Liga."}
             </p>
           </section>
 

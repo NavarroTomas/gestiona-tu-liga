@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -46,13 +48,13 @@ const FASES_MANUALES = [
   "Grupo C",
   "Grupo D",
   "Cuartos - Copa Argentina",
-  "Cuartos - Copa APA",
+  "Cuartos - Copa de la Liga",
   "Semifinal - Copa Argentina",
-  "Semifinal - Copa APA",
+  "Semifinal - Copa de la Liga",
   "3.º Puesto - Copa Argentina",
-  "3.º Puesto - Copa APA",
+  "3.º Puesto - Copa de la Liga",
   "Final - Copa Argentina",
-  "Final - Copa APA",
+  "Final - Copa de la Liga",
 ];
 
 const COMPETICION_GRUPOS = "copa_clasificatoria";
@@ -220,7 +222,7 @@ export default function AdminCopasPage() {
         setTemporadas(names);
         setTemporada((current) => current && names.includes(current) ? current : active);
       })
-      .catch(() => setMensaje("No pude cargar las temporadas."));
+      .catch(() => setMensaje("No pude cargar los torneos."));
   }, []);
 
   useEffect(() => {
@@ -574,7 +576,7 @@ export default function AdminCopasPage() {
 
     if (!esGrupo) {
       if (faseManual.includes("Copa Argentina")) competicionAsignada = "copa_argentina";
-      if (faseManual.includes("Copa APA")) competicionAsignada = "copa_apa";
+      if (faseManual.includes("Copa de la Liga")) competicionAsignada = "copa_apa";
 
       if (faseManual.startsWith("Cuartos")) faseNombre = "cuartos";
       else if (faseManual.startsWith("Semifinal")) faseNombre = "semifinal";
@@ -668,7 +670,7 @@ export default function AdminCopasPage() {
         <section className="mx-auto max-w-[1700px] space-y-8">
           <section className="relative overflow-hidden rounded-[40px] border border-yellow-500/25 bg-[#020714] p-7 shadow-[0_0_55px_rgba(250,204,21,.12)] md:p-10">
             <h1 className="text-5xl font-black uppercase italic text-yellow-300">
-              Admin Copas & Liga APA
+              Admin Copas & Liga Liga
             </h1>
             <p className="mt-2 text-zinc-300">
               Gestión de Grupos, Liga, Cuartos, Semifinales, 3.º Puesto, Finales y Horarios.
@@ -704,7 +706,7 @@ export default function AdminCopasPage() {
 
             <div className="space-y-3">
               <h3 className="text-lg font-black uppercase text-sky-300">
-                🏆 Copa APA
+                🏆 Copa de la Liga
               </h3>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -746,7 +748,7 @@ export default function AdminCopasPage() {
                     <option value="">Seleccionar equipo...</option>
                     {equipos.map((eq) => (
                       <option key={`sancion-${eq.nombre}`} value={eq.nombre}>
-                        {eq.nombre}
+                        {displayLabel(eq.nombre)}
                       </option>
                     ))}
                   </select>
@@ -804,7 +806,7 @@ export default function AdminCopasPage() {
                 <h2 className="text-2xl font-black uppercase text-emerald-300">Visibilidad Copas</h2>
                 <div className="mt-5 space-y-4">
                   <label className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/35 px-4 py-3 cursor-pointer">
-                    <span className="text-sm font-black uppercase text-white">Copa APA</span>
+                    <span className="text-sm font-black uppercase text-white">Copa de la Liga</span>
                     <input
                       type="checkbox"
                       checked={copaApaActiva}
@@ -841,7 +843,7 @@ export default function AdminCopasPage() {
                   >
                     {FASES_MANUALES.map((fase) => (
                       <option key={fase} value={fase}>
-                        {fase}
+                        {displayLabel(fase)}
                       </option>
                     ))}
                   </select>
@@ -853,7 +855,7 @@ export default function AdminCopasPage() {
                     <option value="">Local</option>
                     {equipos.map((e) => (
                       <option key={`local-${e.nombre}`} value={e.nombre}>
-                        {e.nombre}
+                        {displayLabel(e.nombre)}
                       </option>
                     ))}
                   </select>
@@ -865,7 +867,7 @@ export default function AdminCopasPage() {
                     <option value="">Visitante</option>
                     {equipos.map((e) => (
                       <option key={`vis-${e.nombre}`} value={e.nombre}>
-                        {e.nombre}
+                        {displayLabel(e.nombre)}
                       </option>
                     ))}
                   </select>
@@ -955,7 +957,7 @@ export default function AdminCopasPage() {
                           : "border-white/10 bg-black/35 text-zinc-400 hover:text-white"
                       }`}
                     >
-                      🏆 Copa APA
+                      🏆 Copa de la Liga
                     </button>
 
                     <button

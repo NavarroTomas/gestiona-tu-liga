@@ -21,7 +21,7 @@ const tools = [
 export default function AdminCuentasPage() {
   return (
     <AdminToolHub
-      eyebrow="Comunidad APA"
+      eyebrow="Comunidad Liga"
       title="Usuarios"
       description="La cuenta y su identidad deportiva forman parte del mismo proceso administrativo. Los permisos de staff se mantienen aislados por seguridad."
       tools={tools}

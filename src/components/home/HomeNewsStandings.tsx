@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -44,7 +46,7 @@ function NewsCard({
                 : "text-[9px] font-black uppercase tracking-[0.15em] text-[#168fd4]"
             }
           >
-            {item.categoria || "Actualidad APA"}
+            {item.categoria || "Actualidad de la liga"}
           </span>
 
           {item.meta ? (
@@ -287,11 +289,11 @@ export default function HomeNewsStandings({
           >
             <div className="flex flex-wrap items-center gap-3">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#168fd4]">
-                Actualidad APA
+                Actualidad de la liga
               </p>
 
               <span className="rounded-full border border-[#cfe3ee] bg-[#f5fbff] px-3 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-[#68879d]">
-                {temporada}
+                {displayLabel(temporada)}
               </span>
             </div>
 

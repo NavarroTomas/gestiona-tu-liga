@@ -2,12 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, useState, useRef } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { CLUBS_HEADER_MENU, COMPETITION_HEADER_MENU } from "@/config/navigation";
 import { SOCIAL_LINKS } from "@/config/social";
 import APAUserMenu from "./APAUserMenu";
 import estilos from "./APAHeader.module.css";
+import {getActiveLocalLeague} from "@/lib/localLeagueClient";
 
 function IconoBuscar() {
   return (
@@ -101,20 +102,47 @@ const redes = [
 
 export default function APAHeader() {
   const pathname = usePathname();
+  const router=useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [menuArea,setMenuArea]=useState<"web"|"admin">("web");
+  const drawer=useRef<HTMLDialogElement>(null);
+  const [closing,setClosing]=useState(false);
+  const closeTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
+  const closeMenu=(navigateTo?:string)=>{
+    if(!drawer.current?.open || closeTimer.current)return;
+    if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){drawer.current.close();if(navigateTo)router.push(navigateTo);return;}
+    setClosing(true);
+    closeTimer.current=setTimeout(()=>{drawer.current?.close();setClosing(false);closeTimer.current=null;if(navigateTo)router.push(navigateTo);},420);
+  };
+  useEffect(()=>()=>{if(closeTimer.current)clearTimeout(closeTimer.current);},[]);
+  useEffect(()=>{const dialog=drawer.current;if(!dialog)return;if(mobileOpen){dialog.showModal();const previous=document.body.style.overflow;document.body.style.overflow="hidden";return()=>{document.body.style.overflow=previous;if(dialog.open)dialog.close();};}if(dialog.open)dialog.close();},[mobileOpen]);
 
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
 
+  const localLeague=getActiveLocalLeague();
+  if(localLeague){
+    const publicLinks=[["Inicio","/liga"],["Partidos y fixture","/fixture"],["Posiciones","/divisiones"],["Equipos","/clubes"],["Jugadores y estadísticas","/jugadores"]];
+    const adminLinks=[["Panel de administración","/admin"],["Partidos y resultados","/admin/partidos"],["Torneos","/admin/torneos"],["Equipos","/admin/clubes"],["Planteles y jugadores","/admin/plantillas"],["Noticias","/admin/noticias"]];
+    const links=menuArea==="web"?publicLinks:adminLinks;
+    return <><header className={estilos.leagueHeader}><Link href="/liga" prefetch={false} className={estilos.leagueBrand}>{localLeague.name}</Link><div className={estilos.headerActions}><Link href="/mis-ligas" prefetch={false}>Mis ligas</Link><button type="button" className={estilos.menuTrigger} aria-haspopup="dialog" aria-expanded={mobileOpen} aria-controls="league-menu" onClick={()=>{setClosing(false);setMenuArea(pathname.startsWith("/admin")?"admin":"web");setMobileOpen(true);}}>Menú</button></div></header>
+      <dialog ref={drawer} id="league-menu" className={estilos.drawer} data-closing={closing} aria-labelledby="league-menu-title" onCancel={e=>{e.preventDefault();closeMenu();}} onClose={()=>{setMobileOpen(false);setClosing(false);if(closeTimer.current)clearTimeout(closeTimer.current);closeTimer.current=null;}} onClick={e=>{if(e.target===e.currentTarget)closeMenu();}}>
+        <div className={estilos.drawerPanel}><div className={estilos.drawerTop}><h2 id="league-menu-title">{localLeague.name}</h2><button type="button" onClick={()=>closeMenu()}>Cerrar</button></div>
+          <div className={estilos.drawerSwitch} aria-label="Tipo de navegación"><button type="button" aria-pressed={menuArea==="web"} onClick={()=>setMenuArea("web")}>Ver la liga</button><button type="button" aria-pressed={menuArea==="admin"} onClick={()=>setMenuArea("admin")}>Administrar</button></div>
+          <nav className={estilos.drawerNav} aria-label={menuArea==="web"?"Secciones de la liga":"Administración de la liga"}>{links.map(([name,href])=><Link key={href} href={href} prefetch={false} aria-current={pathname===href?"page":undefined} onClick={e=>{if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();closeMenu(href);}}>{name}</Link>)}</nav>
+          <div className={estilos.drawerBottom}><Link href="/mis-ligas" prefetch={false} onClick={e=>{if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();closeMenu("/mis-ligas");}}>Cambiar de liga</Link><Link href="/" onClick={e=>{if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();closeMenu("/");}}>Gestioná tu Liga</Link><p>Estás usando una sesión de prueba.</p></div>
+        </div>
+      </dialog></>;
+  }
   return (
     <header className={estilos.header}>
       <div className={estilos.interior}>
-        <Link className={estilos.marca} href="/" aria-label="PSO Argentina - Inicio">
+        <Link className={estilos.marca} href="/" aria-label="Gestioná tu Liga - Inicio">
           <span className={estilos.logoCaja}>
             <Image
               src="/logo-apa-oficial.webp"
-              alt="Logo PSO Argentina"
+              alt="Logo Gestioná tu Liga"
               fill
               priority
               sizes="64px"
@@ -161,7 +189,7 @@ export default function APAHeader() {
             <div className={estilos.dropdown} role="menu" aria-label="Menú de Competición">
               <div className={estilos.dropdownCabecera}>
                 <strong>Competición</strong>
-                <span>Accesos rápidos APA</span>
+                <span>Accesos rápidos Liga</span>
               </div>
 
               <div className={estilos.dropdownLista}>
@@ -261,7 +289,7 @@ export default function APAHeader() {
         ) : null}
 
         <div className={estilos.acciones}>
-          <Link className={estilos.icono} href="/buscar" aria-label="Buscar en APA">
+          <Link className={estilos.icono} href="/buscar" aria-label="Buscar en Liga">
             <IconoBuscar />
           </Link>
 
@@ -275,7 +303,7 @@ export default function APAHeader() {
                 href={red.href}
                 target="_blank"
                 rel="noreferrer"
-                aria-label={`Abrir ${red.label} de APA`}
+                aria-label={`Abrir ${red.label} de Liga`}
                 title={red.label}
               >
                 {red.icon}

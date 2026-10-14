@@ -4,7 +4,7 @@ import PrediccionesLayoutClient from "./PrediccionesLayoutClient";
 export const metadata = createPageMetadata({
   title: "Predicciones",
   description:
-    "Predicciones de partidos de APA PSO Argentina y participación de la comunidad.",
+    "Predicciones de partidos de Gestioná tu Liga y participación de la comunidad.",
   path: "/entretenimiento/predicciones",
 });
 

@@ -1,8 +1,8 @@
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata = createPageMetadata({
-  title: "Premios APA",
-  description: "Premios y reconocimientos de la comunidad y las competiciones de APA PSO Argentina.",
+  title: "Premios Liga",
+  description: "Premios y reconocimientos de la comunidad y las competiciones de Gestioná tu Liga.",
   path: "/entretenimiento/premios",
 });
 

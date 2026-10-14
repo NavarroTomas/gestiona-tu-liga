@@ -11,15 +11,15 @@ export const HISTORY_CONFIG = {
 
   hero: {
     eyebrow: "Historia",
-    title: "Temporadas de APA",
+    title: "Torneos de Liga",
     description:
-      "Todas las temporadas, un mismo legado. Explorá estadísticas, campeones, premios y récords.",
+      "Todas los torneos, un mismo legado. Explorá estadísticas, campeones, premios y récords.",
   },
 
   competitions: [
     { key: "liga", label: "Torneo de Liga" },
     { key: "copa_argentina", label: "Copa Argentina" },
-    { key: "copa_apa", label: "Copa APA" },
+    { key: "copa_apa", label: "Copa de la Liga" },
     { key: "copa_campeones", label: "Copa de Campeones" },
   ],
 

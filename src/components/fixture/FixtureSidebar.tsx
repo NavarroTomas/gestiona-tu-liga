@@ -77,9 +77,9 @@ export default function FixtureSidebar({
 
           <label className={`block ${!competition.divisions && !competition.groups ? "sm:col-span-2" : ""}`}>
             <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[.14em] text-[#4e7ba4]">
-              Temporada
+              Torneo
             </span>
-            <APASelect value={season} onChange={onSeasonChange} options={seasons.map((item) => ({ value: item, label: item }))} ariaLabel="Temporada" />
+            <APASelect value={season} onChange={onSeasonChange} options={seasons.map((item) => ({ value: item, label: item }))} ariaLabel="Torneo" />
           </label>
         </div>
       </section>
@@ -131,8 +131,8 @@ export default function FixtureSidebar({
           ) : null}
 
           <label className="block">
-            <span className="mb-2 block text-[10px] font-black uppercase tracking-[.15em] text-[#4e7ba4]">Temporada</span>
-            <APASelect value={season} onChange={onSeasonChange} options={seasons.map((item) => ({ value: item, label: item }))} ariaLabel="Temporada" compact />
+            <span className="mb-2 block text-[10px] font-black uppercase tracking-[.15em] text-[#4e7ba4]">Torneo</span>
+            <APASelect value={season} onChange={onSeasonChange} options={seasons.map((item) => ({ value: item, label: item }))} ariaLabel="Torneo" compact />
           </label>
         </div>
 

@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -152,7 +154,7 @@ export default function ClubsManager() {
       return;
     }
     if (!assignment.temporada || !assignment.division) {
-      setMessage("Seleccioná temporada y división.");
+      setMessage("Seleccioná torneo y división.");
       setView("competencia");
       return;
     }
@@ -186,7 +188,7 @@ export default function ClubsManager() {
 
   async function handleDelete() {
     if (!club.id) return;
-    if (!window.confirm("¿Seguro que querés eliminar este club? También se eliminará su inscripción por temporada.")) return;
+    if (!window.confirm("¿Seguro que querés eliminar este club? También se eliminará su inscripción por torneo.")) return;
 
     setSaving(true);
     try {
@@ -206,19 +208,19 @@ export default function ClubsManager() {
       <TournamentPage>
         <Link href="/admin" className={styles.backLink}>← Volver al panel</Link>
         <TournamentHero
-          eyebrow="Clubes por temporada"
+          eyebrow="Clubes por torneo"
           title="Administrar clubes"
-          description="Cada temporada tiene sus propias identidades competitivas. Un mismo nombre puede existir en varias temporadas sin compartir historia."
+          description="Cada torneo tiene sus propias identidades competitivas. Un mismo nombre puede existir en varias torneos sin compartir historia."
         >
           <div className={styles.toolbar}>
             <label className={styles.field}>
-              <span className={styles.label}>Temporada de trabajo</span>
+              <span className={styles.label}>Torneo de trabajo</span>
               <select
                 className={styles.select}
                 value={seasonFilter}
                 onChange={(event) => setSeasonFilter(event.target.value)}
               >
-                {seasons.map((season) => <option key={season} value={season}>{season}</option>)}
+                {seasons.map((season) => <option key={season} value={season}>{displayLabel(season)}</option>)}
               </select>
             </label>
           </div>
@@ -246,12 +248,12 @@ export default function ClubsManager() {
             onChange={setView}
             items={[
               { value: "datos", label: "Datos" },
-              { value: "competencia", label: "Temporada" },
+              { value: "competencia", label: "Torneo" },
               { value: "visual", label: "Visual" },
             ]}
           />
 
-          {view === "datos" && <ClubGeneralSection club={club} season={assignment.temporada || seasonFilter} onChange={patchClub} />}
+          {displayLabel(view === "datos" && <ClubGeneralSection club={club} season={assignment.temporada || seasonFilter} onChange={patchClub} />)}
           {view === "competencia" && <ClubSeasonSection assignment={assignment} seasons={[seasonFilter]} onChange={patchAssignment} />}
           {view === "visual" && (
             <ClubVisualSection
@@ -277,11 +279,11 @@ export default function ClubsManager() {
             <p>Acciones poco frecuentes quedan fuera del flujo normal.</p>
           </div>
           <div className={styles.actions}>
-            {club.slug && (
+            {displayLabel(club.slug && (
               <Link href={`/equipos/${encodeURIComponent(club.slug)}?temporada=${encodeURIComponent(assignment.temporada)}&preview=1`} className={styles.secondary} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
                 Ver ficha pública
               </Link>
-            )}
+            ))}
             {club.id && (
               <button type="button" className={styles.danger} disabled={saving} onClick={handleDelete}>
                 Eliminar club

@@ -176,7 +176,7 @@ export default function AvatarCropper({ file, onCancel, onConfirm }: Props) {
           <p className={styles.eyebrow}>Foto de perfil</p>
           <h2 className={styles.title}>Ajustá el encuadre</h2>
           <p className={styles.description}>
-            Arrastrá la imagen para centrarla y usá el zoom. Este mismo recorte se va a ver en todo APA.
+            Arrastrá la imagen para centrarla y usá el zoom. Este mismo recorte se va a ver en todo Liga.
           </p>
         </div>
 

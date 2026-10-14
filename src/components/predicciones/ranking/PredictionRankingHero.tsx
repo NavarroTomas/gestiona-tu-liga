@@ -10,7 +10,7 @@ export default function PredictionRankingHero({
     <section className="rounded-2xl border border-[#c9e3f1] bg-white p-6 md:p-8">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#2d98d4]">Comunidad APA</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#2d98d4]">Comunidad Liga</p>
           <h1 className="mt-3 text-[clamp(2.6rem,7vw,5rem)] font-black uppercase leading-[.9] tracking-[-.045em] text-[#102f55]">
             Ranking de
             <span className="block text-[#2d98d4]">Predicciones</span>

@@ -267,7 +267,7 @@ export default function AdminVerificacionesPage() {
         playerid: solicitado,
         playerid_verified: true,
         verification_status: "approved",
-        verification_note: notaPerfil(perfil, "PlayerId aprobado por administración APA."),
+        verification_note: notaPerfil(perfil, "PlayerId aprobado por administración Liga."),
         verified_at: new Date().toISOString(),
         verified_by: user?.id || null,
         status: perfil.status === "pending" ? "active" : perfil.status,
@@ -295,7 +295,7 @@ export default function AdminVerificacionesPage() {
       userId: perfil.id,
       tipo: "approved",
       titulo: "Verificación aprobada",
-      mensaje: `Tu PlayerId ${solicitado} fue aprobado por el staff APA.`,
+      mensaje: `Tu PlayerId ${solicitado} fue aprobado por el staff Liga.`,
       href: "/perfil",
     });
 
@@ -443,7 +443,7 @@ export default function AdminVerificacionesPage() {
         playerid: null,
         playerid_verified: false,
         verification_status: "pending",
-        verification_note: notaPerfil(perfil, "PlayerId desvinculado por administración APA."),
+        verification_note: notaPerfil(perfil, "PlayerId desvinculado por administración Liga."),
         verified_at: null,
         verified_by: null,
         updated_at: new Date().toISOString(),

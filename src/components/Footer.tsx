@@ -21,7 +21,7 @@ export default function Footer() {
             font-black
             text-white
           ">
-            APA PSO ARGENTINA
+            Liga PSO ARGENTINA
           </h3>
 
           <p className="
@@ -43,7 +43,7 @@ export default function Footer() {
           text-zinc-500
           text-sm
         ">
-          © 2026 APA PSO ARGENTINA
+          © 2026 Liga PSO ARGENTINA
         </div>
       </div>
     </footer>

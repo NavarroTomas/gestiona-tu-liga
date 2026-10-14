@@ -1,4 +1,6 @@
 "use client";
+import { displayLabel } from "@/lib/displayLabels";
+
 
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -99,10 +101,10 @@ export default function LeagueHero({
           >
             <span className="h-px w-10 bg-[#45afe0]" />
             <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#168fd4]">
-              {editor.eyebrow || "Liga APA PSO"}
+              {editor.eyebrow || "Liga Liga PSO"}
             </span>
             <span className="rounded-full border border-[#bcdceb] bg-white/70 px-3 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-[#557a92]">
-              {temporada}
+              {displayLabel(temporada)}
             </span>
           </div>
 
@@ -123,7 +125,7 @@ export default function LeagueHero({
               textWrap: "balance",
             }}
           >
-            {editor.title || "APA PSO ARGENTINA"}
+            {editor.title || "Liga PSO ARGENTINA"}
           </h1>
 
           <p
@@ -169,7 +171,7 @@ export default function LeagueHero({
                     {story.kicker}
                   </span>
                   <span className="text-[9px] font-bold uppercase tracking-[0.08em] text-[#91a7b5]">
-                    {story.meta || (index === 0 ? "Actualidad" : temporada)}
+                    {displayLabel(story.meta || (index === 0 ? "Actualidad" : temporada))}
                   </span>
                 </div>
                 <p className="mt-4 line-clamp-2 text-[17px] font-black leading-[1.08] tracking-[-0.03em] text-[#102f55] transition group-hover:text-[#168fd4] sm:text-[19px]">
