@@ -846,6 +846,66 @@ table {
   height: 32px !important;
 }
 
+/* Cup cards must shrink with their grid tracks, including long club names. */
+.apa-cups-page .apa-cups-grid > *,
+.apa-cups-page .apa-cups-grid aside > *,
+.apa-cups-page .apa-cup-match-row > *,
+.apa-cups-page .apa-cup-match-team > * { min-width: 0; }
+.apa-cups-page .apa-cups-grid header { flex-wrap: wrap; gap: 8px; }
+.apa-cups-page .apa-cups-grid header h2 { overflow-wrap: anywhere; }
+.apa-cups-page .apa-cups-grid header > a { flex-shrink: 0; }
+.apa-cups-page .apa-cups-grid th { overflow-wrap: anywhere; line-height: 1.4; }
+.apa-cups-page .apa-cups-grid th:nth-child(9) { width: 76px; }
+.apa-cups-page .apa-cups-grid th:nth-child(10) { width: 124px; }
+.apa-cups-page .apa-cups-grid tbody td { vertical-align: middle; }
+.apa-cups-page .apa-cups-grid td:last-child a { display: inline-flex; vertical-align: middle; }
+.apa-cups-page .apa-cups-grid aside section > div { padding-inline: 14px; }
+.apa-cups-page .apa-cup-match-row { grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr); gap: 10px; }
+.apa-cups-page .apa-cup-match-team { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 8px; align-items: center; }
+.apa-cups-page .apa-cup-match-away { grid-template-columns: minmax(0, 1fr) 32px; }
+.apa-cups-page .apa-cup-match-team > span.text-sm { overflow-wrap: anywhere; line-height: 1.35; }
+.apa-cups-page .apa-cups-grid aside strong { overflow-wrap: anywhere; }
+.apa-cups-page .apa-cups-grid footer > span { min-width: 0; overflow-wrap: anywhere; }
+
+@media (max-width: 1099px) {
+  .apa-cups-page .apa-cups-content { padding: 16px; }
+  .apa-cups-page .apa-cups-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .apa-cups-page .apa-cups-grid aside { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .apa-cups-page .apa-cups-grid table { min-width: 0; }
+  .apa-cups-page .apa-cups-grid th:first-child { width: 28px; }
+  .apa-cups-page .apa-cups-grid th:nth-child(n+3):nth-child(-n+8) { width: 32px; }
+  .apa-cups-page .apa-cups-grid td { padding: 8px 4px; }
+  .apa-cups-page .apa-cups-grid td a > span:not(.apa-cup-badge) { font-size: 14px; }
+  .apa-cups-page .apa-cups-grid tbody tr { height: auto; font-size: 14px; }
+  .apa-cups-page .apa-cups-grid header { height: auto; }
+}
+@media (max-width: 640px) {
+  .apa-cups-page .apa-cups-content { padding: 12px 10px; }
+  .apa-cups-page .apa-cups-grid aside { grid-template-columns: minmax(0, 1fr); }
+  .apa-cups-page .apa-cups-grid th:nth-child(4),
+  .apa-cups-page .apa-cups-grid th:nth-child(5),
+  .apa-cups-page .apa-cups-grid th:nth-child(6),
+  .apa-cups-page .apa-cups-grid th:nth-child(9),
+  .apa-cups-page .apa-cups-grid td:nth-child(4),
+  .apa-cups-page .apa-cups-grid td:nth-child(5),
+  .apa-cups-page .apa-cups-grid td:nth-child(6),
+  .apa-cups-page .apa-cups-grid td:nth-child(9) { display: none; }
+  .apa-cups-page .apa-cups-grid th:first-child { width: 22px; }
+  .apa-cups-page .apa-cups-grid th:nth-child(3),
+  .apa-cups-page .apa-cups-grid th:nth-child(7),
+  .apa-cups-page .apa-cups-grid th:nth-child(8) { width: 26px; }
+  .apa-cups-page .apa-cups-grid th:nth-child(10) { width: 48px; }
+  .apa-cups-page .apa-cups-grid th { padding-inline: 2px; font-size: 11px; }
+  .apa-cups-page .apa-cups-grid td { font-size: 12px; }
+  .apa-cups-page .apa-cups-grid td:nth-child(8) { font-size: 14px; }
+  .apa-cups-page .apa-cups-grid td:nth-child(2) a { gap: 5px; }
+  .apa-cups-page .apa-cups-grid td a > span:not(.apa-cup-badge) { font-size: 12px; overflow-wrap: anywhere; }
+  .apa-cups-page .apa-cups-grid footer { font-size: 12px; padding: 12px; }
+  .apa-cups-content > div:first-child > div:first-child { flex-wrap: wrap; align-items: center; }
+  .apa-cups-content > div:first-child > div:last-child > div { min-width: 0; width: 100%; }
+  .apa-cups-content > div:first-child button { min-width: 0; flex: 1; padding-inline: 10px; }
+}
+
 @media (max-width: 1099px) {
   body {
     zoom: 1;

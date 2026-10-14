@@ -46,7 +46,7 @@ export default function CupGroupStandings({
               <th className="w-[54px] px-1 text-center">DG</th>
               <th className="w-[58px] px-1 text-center">PTS</th>
               <th className="w-[112px] px-2 text-center">Forma</th>
-              <th className="w-[220px] px-3 text-left">Próximo rival</th>
+              <th className="w-[220px] px-2 text-center"><span className="hidden sm:inline">Próximo rival</span><span className="sm:hidden">Rival</span></th>
             </tr>
           </thead>
 

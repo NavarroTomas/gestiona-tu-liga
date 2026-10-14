@@ -99,9 +99,9 @@ export default function CupSidebar({
             matchdayMatches.map((match) => (
               <div
                 key={match.id}
-                className="grid min-h-[80px] grid-cols-[minmax(0,1fr)_24px_minmax(0,1fr)] items-center gap-2 border-b border-[#e7eff5] py-3 last:border-b-0 transition hover:bg-[#f8fbfd]"
+                className="apa-cup-match-row grid min-h-[80px] grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)] items-center gap-2 border-b border-[#e7eff5] py-3 last:border-b-0 transition hover:bg-[#f8fbfd]"
               >
-                <TeamLink name={match.local} className="group/team flex min-w-0 items-center gap-1.5">
+                <TeamLink name={match.local} className="apa-cup-match-team group/team flex min-w-0 items-center gap-1.5">
                   <span className="transition-transform group-hover/team:scale-[1.04]">
                     <TeamLogo name={match.local} getLogo={getLogo} size="sm" />
                   </span>
@@ -117,7 +117,7 @@ export default function CupSidebar({
                   <span className="mt-1 block text-[10px] leading-tight">{match.hora || formatCupDate(match)}</span>
                 </Link>
 
-                <TeamLink name={match.visitante} className="group/team flex min-w-0 items-center justify-end gap-1.5">
+                <TeamLink name={match.visitante} className="apa-cup-match-team apa-cup-match-away group/team flex min-w-0 items-center justify-end gap-1.5">
                   <span className="text-right text-sm leading-snug font-bold text-[#173e68] transition-colors group-hover/team:text-[#258fcf]">{match.visitante}</span>
                   <span className="transition-transform group-hover/team:scale-[1.04]">
                     <TeamLogo name={match.visitante} getLogo={getLogo} size="sm" />
