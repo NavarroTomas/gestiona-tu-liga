@@ -855,6 +855,7 @@ table {
 .apa-cups-page .apa-cups-grid header h2 { overflow-wrap: anywhere; }
 .apa-cups-page .apa-cups-grid header > a { flex-shrink: 0; }
 .apa-cups-page .apa-cups-grid th { overflow-wrap: anywhere; line-height: 1.4; }
+.apa-cups-page .apa-cups-grid th:nth-child(n+3):nth-child(-n+9) { white-space: nowrap; overflow-wrap: normal; }
 .apa-cups-page .apa-cups-grid th:nth-child(9) { width: 76px; }
 .apa-cups-page .apa-cups-grid th:nth-child(10) { width: 124px; }
 .apa-cups-page .apa-cups-grid tbody td { vertical-align: middle; }
