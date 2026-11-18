@@ -128,7 +128,10 @@ export function playerStandings(data: LeagueBundle) {
     }
     return [...rows.values()].sort((a, b) => b.points - a.points || b.goals - a.goals || b.assists - a.assists || a.name.localeCompare(b.name));
 }
-export function validateResult(match: Match, home: number, away: number, stats: MatchPlayer[], players: Player[], league: League): string | null {
+/** Saved participation preserves the player's historical side after a transfer.
+ * The server checks its own stored rows; this argument is only client validation.
+ */
+export function validateResult(match: Match, home: number, away: number, stats: MatchPlayer[], players: Player[], league: League, previousStats: MatchPlayer[] = []): string | null {
     if (![home, away].every(n => Number.isInteger(n) && n >= 0 && n <= 999))
         return "El marcador debe contener goles enteros entre 0 y 999.";
     const seen = new Set<string>();
@@ -138,7 +141,8 @@ export function validateResult(match: Match, home: number, away: number, stats: 
             return "Revisá los participantes: cada jugador puede aparecer una sola vez.";
         if (s.match_id !== match.id || s.league_id !== league.id || p.league_id !== league.id)
             return "Los datos no pertenecen a esta liga o partido.";
-        if (league.mode === "teams" && p.team_id !== (s.side === "home" ? match.home_team_id : match.away_team_id))
+        const historical = previousStats.find(old => old.match_id === match.id && old.league_id === league.id && old.player_id === p.id);
+        if (league.mode === "teams" && (historical ? historical.side !== s.side : p.team_id !== (s.side === "home" ? match.home_team_id : match.away_team_id)))
             return "Un jugador no pertenece al equipo seleccionado.";
         if (![s.goals, s.assists, s.yellow_cards, s.red_cards].every(n => Number.isInteger(n) && n >= 0) || s.yellow_cards > 2 || s.red_cards > 1)
             return "Revisá goles, asistencias y tarjetas.";

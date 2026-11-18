@@ -1,0 +1,5 @@
+{
+  "checked_at": "2026-11-18T21:17:26.252Z",
+  "unexpectedly_recreated": true,
+  "description": "Editing a deleted row through upsert recreates it instead of reporting it unavailable."
+}

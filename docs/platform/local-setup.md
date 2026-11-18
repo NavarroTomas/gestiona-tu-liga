@@ -29,3 +29,11 @@ Producción verificada con `next build --webpack`. En este equipo se utilizó `N
 | `/l/[slug]` | Página deportiva pública |
 
 Las rutas históricas APA siguen presentes; no forman parte del nuevo recorrido y necesitan una limpieza/migración posterior. No se publicó un despliegue comercial. Antes de comercializar, resolver branding, términos reales, soporte/correo, backups, hosting comercial y validación completa en dispositivos.
+
+## Corrección incremental y prueba detallada
+
+El proyecto existente recibió `supabase/patches/result-history-v2.sql` el 18/11/2026. Para otra base que ya tenga el bootstrap original, aplicar ese parche; para una base vacía usar el bootstrap actualizado. No volver a ejecutar platform-v1.sql sobre el proyecto actual.
+
+`npm run test:platform:integration` requiere GTL_QA_EMAIL y GTL_QA_PASSWORD en el entorno y crea sus propias ligas QA; usa únicamente un proyecto de desarrollo autorizado. `supabase/tests/platform-role-matrix.sql` ejecuta la matriz de roles y revierte todos sus datos. Informes, casos, diferencias y límites en `crud-permissions-review-2026-11-18.md`.
+
+Durante esta revisión la versión nueva se sirvió en localhost:3002 porque 3001 estaba ocupado por una instancia anterior. Verificar la instancia que se abre antes de atribuirle las correcciones.

@@ -12,9 +12,9 @@ Distribución principal: el asistente desarrolla web, base compartida y pruebas;
 - ☑ TypeScript finalizó sin errores después de incorporar los módulos nuevos.
 - ☑ Pasaron siete grupos de pruebas de lógica: fixture, posiciones, ranking individual, validación de resultados, reparto de equipos, formulario inicial y verificaciones estáticas del SQL.
 - ◐ Se escribieron la landing, el formulario animado, acceso real, Mis ligas, página pública y administración básica.
-- ◐ Se lanzó la prueba SQL de permisos y aislamiento con datos transaccionales. No se obtuvo una lectura final de su resultado.
+- ☑ Lectura final confirmada: 84 comprobaciones SQL de permisos y aislamiento aprobadas, con rollback de los datos temporales.
 - ⚠ El build de producción se inició, pero su resultado no se pudo recuperar. No está registrado como aprobado.
-- ⚠ Falta configurar la URL y la clave publicable en el entorno local, comprobar confirmación de correo y realizar la prueba completa de cuenta y liga.
+- ◐ URL y clave publicable configuradas; liga e ingreso QA comprobados. Sigue pendiente validar recepción y retorno del correo de confirmación.
 - ⚠ Una actualización de la configuración del entorno agregó rutas Linux a la sesión Windows. Desde entonces fallan terminal, edición local y navegador. Se continuó la documentación por Google Docs.
 # Día 1 — Miércoles 18/11: base y alcance
 - ☑ Identificar repositorio y commit de trabajo.
@@ -32,8 +32,8 @@ Salida del día: proyecto ejecutable, alcance verificable y pendientes ordenados
 - ☑ Aplicar el bootstrap SQL al proyecto nuevo.
 - ◐ Implementar políticas de lectura pública y escritura restringida a administradores.
 - ◐ Implementar creación de liga idempotente: reintentar no debe duplicar una liga.
-- ◐ Implementar guardado conjunto de resultado y estadísticas mediante RPC.
-- ☐ Confirmar el resultado de la prueba SQL con dos organizadores y un visitante.
+- ☑ Guardado conjunto de resultado y estadísticas mediante RPC comprobado contra Supabase.
+- ☑ Matriz SQL de propietario, otro organizador, admin delegado y visitante: 84 comprobaciones aprobadas, con rollback.
 - ☐ Revisar asesores de seguridad y corregir los hallazgos relevantes.
 - ☐ Generar el historial de migraciones con CLI cuando esté disponible. El archivo actual es un bootstrap versionado, no una migración registrada por CLI.
 - ☐ Validar el contrato de datos con Navarro antes de conectar Flutter.
@@ -56,7 +56,7 @@ Control obligatorio: registrar una cuenta, confirmar acceso y abrir la misma lig
 - ◐ Carga de escudos y fotos con validación de formato y límite de 2 MB.
 - ◐ Búsqueda y listados en el panel; vista de equipos y jugadores en la página pública.
 - ◐ Confirmación de eliminación y rechazo de relaciones que impidan borrar un registro.
-- ☐ Probar CRUD real con cuatro equipos y sus jugadores ficticios.
+- ☑ CRUD real con equipos y jugadores ficticios: 87 comprobaciones HTTP/integración aprobadas.
 - ☐ Probar nombres largos, vacíos, duplicados, archivos inválidos y errores de conexión.
 - ☐ Revisar historial de planteles para que futuros cambios de equipo no alteren partidos ya registrados.
 - ☐ Conectar listas y formularios iniciales de Flutter al mismo contrato.
@@ -67,7 +67,7 @@ Salida del día: participantes guardados en Supabase y visibles desde la web pú
 - ☑ Pruebas de lógica con cantidades pares e impares, parejas únicas y ausencia de cruces simultáneos por fecha.
 - ◐ Prevención de generación repetida de fixture cuando ya existen partidos.
 - ◐ Edición de programación sin alterar el resultado registrado.
-- ☐ Validar fixture real con los permisos de un organizador autenticado.
+- ☑ Fixture real comprobado con organizador autenticado, cuatro equipos y rechazo de generación repetida.
 - ☐ Confirmar el uso de hora argentina en creación y consulta.
 - ☐ Completar vista de calendario por fecha y filtros útiles.
 - ☐ Agregar consulta de partidos y detalle inicial en Flutter.
@@ -77,8 +77,8 @@ Salida del día: una jornada completa programada, consultable y editable desde s
 - ◐ Guardado atómico mediante save_match_result; escrituras directas de marcador y participaciones restringidas.
 - ☑ Pruebas de reemplazo de resultado, empate 0-0, reglas de puntos personalizadas y exclusión de partidos pendientes.
 - ☑ Pruebas contra participantes repetidos, datos de otra liga y goles o asistencias superiores al marcador.
-- ◐ Anulación de resultado con retiro de estadísticas; eliminación de partido con sus participaciones.
-- ☐ Comprobar estas operaciones contra Supabase y verificar que los fallos reviertan todos los cambios.
+- ☑ Anulación y eliminación de partido comprobadas; se retiran sus estadísticas y se recalculan posiciones.
+- ☑ Operaciones comprobadas contra Supabase; resultados inválidos preservan marcador y estadísticas anteriores.
 - ☐ Implementar carga y edición de resultados desde Flutter.
 - ☐ Probar resultado cargado en app y consultado en web, y el recorrido inverso.
 Salida del día: edición sin duplicación de estadísticas y coincidencia de resultados entre ambos clientes.
@@ -170,3 +170,12 @@ Avance comprobado — 18/11/2026
 ☑ Código y documentación respaldados en GitHub: rama feat/platform-foundation-20261118, commit de implementación c232779. Main permanece sin integrar.
 ☑ Resultado 2–1 y tabla pública 3/0 puntos comprobados en navegador; liga revisada en ancho móvil de 390 px. Capturas en docs/testing.
 ☐ Merge y despliegue: todavía pendientes; no se da por publicada la plataforma.
+
+## Tareas 1 y 2 completadas — revisión del 18/11
+☑ 87 comprobaciones de CRUD e integración aprobadas.
+☑ 84 comprobaciones de permisos aprobadas después del parche de historial.
+☑ Corrección histórica de jugador transferido guardada desde navegador y confirmada en la base.
+☑ Nueve grupos de dominio, TypeScript, ESLint focalizado y build Webpack aprobados.
+☑ Corregidos guardados/borrados sin efecto, recreación por edición obsoleta y edición de resultados tras transferencia.
+☑ Informe detallado, JSON por caso, captura y contrato Flutter actualizados.
+☐ Asesor de seguridad de Supabase, pruebas de carga, revocación de tokens y backups: no se consideran completados.

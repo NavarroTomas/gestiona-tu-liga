@@ -1,6 +1,6 @@
 import { platformClient } from "./client";
 import { slugify, validateDraft } from "./domain";
-import type { League, LeagueBundle, LeagueDraft, MatchPlayer } from "./types";
+import type { League, LeagueBundle, LeagueDraft, Match, MatchPlayer } from "./types";
 const columns = "id,slug,name,description,purpose,mode,expected_participants,format,primary_color,secondary_color,logo_url,points_win,points_draw,points_loss,is_public,created_at";
 export async function myLeagues(): Promise<League[]> {
     const { data: { user }, error: authError } = await platformClient().auth.getUser();
@@ -50,15 +50,28 @@ export async function canManage(leagueId: string): Promise<boolean> {
         throw error;
     return !!data;
 }
-export async function saveEntity(table: "teams" | "players" | "matches" | "news", value: Record<string, unknown>) {
-    const { error } = table === "matches" ? await platformClient().from(table).insert(value) : await platformClient().from(table).upsert(value);
+export async function saveEntity(table: "teams" | "players" | "matches" | "news", value: Record<string, unknown>, operation: "create" | "update" = "create") {
+    // Editing must never recreate a row deleted by another administrator.
+    const { id, league_id, ...changes } = value;
+    if (operation === "update" && (typeof id !== "string" || typeof league_id !== "string"))
+        throw new Error("Falta identificar el registro y su liga.");
+    const query = operation === "update"
+        ? platformClient().from(table).update(changes).eq("id", id).eq("league_id", league_id)
+        : platformClient().from(table).insert(value);
+    const { error } = await query.select("id").single();
     if (error)
         throw error;
 }
 export async function removeEntity(table: "teams" | "players" | "matches" | "news", id: string, leagueId: string) {
-    const { error } = await platformClient().from(table).delete().eq("id", id).eq("league_id", leagueId);
+    // RLS can hide rows without returning a permission error. Require a readback
+    // so a missing or inaccessible row is never displayed as successfully deleted.
+    const { error } = await platformClient().from(table).delete().eq("id", id).eq("league_id", leagueId).select("id").single();
     if (error)
         throw error;
+}
+export async function updateMatchSchedule(matchId: string, leagueId: string, changes: Pick<Match, "starts_at" | "venue" | "round" | "home_label" | "away_label">) {
+    const { error } = await platformClient().from("matches").update(changes).eq("id", matchId).eq("league_id", leagueId).select("id").single();
+    if (error) throw error;
 }
 export async function saveResult(matchId: string, home: number | null, away: number | null, stats: MatchPlayer[]) {
     const { error } = await platformClient().rpc("save_match_result", { p_match_id: matchId, p_home: home, p_away: away, p_players: stats.map(({ player_id, side, goals, assists, yellow_cards, red_cards, rating }) => ({ player_id, side, goals, assists, yellow_cards, red_cards, rating })) });

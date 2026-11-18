@@ -41,6 +41,18 @@ test('random and balanced teams: every player once, sizes differ at most one',()
  }
  const r=domain.splitPlayers(d.players,true,ratings,()=>.4),score=players=>players.reduce((sum,p)=>sum+ratings.get(p.id),0);assert.ok(Math.abs(score(r.home)-score(r.away))<=2);
 });
+test('a transfer preserves eligibility only for the previously recorded match and side',()=>{
+ const d=exampleLeague(),m=d.matches[0],previous=d.stats.filter(s=>s.match_id===m.id),p=d.players.find(p=>p.id===previous[0].player_id);
+ p.team_id='another-team';
+ assert.ok(domain.validateResult(m,2,1,previous,d.players,d.league));
+ assert.equal(domain.validateResult(m,2,1,previous,d.players,d.league,previous),null);
+ const changedSide=[{...previous[0],side:previous[0].side==='home'?'away':'home',goals:0,assists:0}];
+ p.team_id=changedSide[0].side==='home'?m.home_team_id:m.away_team_id;
+ assert.ok(domain.validateResult(m,2,1,changedSide,d.players,d.league,previous));
+ p.team_id='another-team';
+ assert.ok(domain.validateResult(m,2,1,previous,d.players,d.league,previous.map(s=>({...s,match_id:'different-match'}))));
+ assert.ok(domain.validateResult(m,2,1,previous,d.players,d.league,previous.map(s=>({...s,league_id:'different-league'}))));
+});
 test('onboarding validates limits, formats and colors',()=>{
  const draft={version:1,requestId:'a',purpose:'friends',mode:'players',name:'Sábados de fútbol',description:'',expectedParticipants:10,format:'friendly',primaryColor:'#216348',secondaryColor:'#dbe99d'};
  assert.equal(domain.validateDraft(draft),null);assert.equal(domain.slugify(draft.name),'sabados-de-futbol');

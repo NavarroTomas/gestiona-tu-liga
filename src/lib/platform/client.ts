@@ -30,6 +30,8 @@ export function messageFor(error: unknown): string {
         return "Ese registro está relacionado con otros datos. Revisá sus partidos o participantes.";
     if (e?.code === "42501")
         return "No tenés permisos para realizar esta acción en la liga.";
+    if (e?.code === "PGRST116")
+        return "El registro ya no está disponible o no tenés permisos. Actualizá la lista antes de reintentar.";
     if (e?.message?.includes("fetch"))
         return "No pudimos conectar. Revisá tu conexión e intentá nuevamente.";
     return e?.message || "No se pudo completar la operación. Volvé a intentar.";

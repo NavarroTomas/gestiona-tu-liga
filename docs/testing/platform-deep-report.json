@@ -1,0 +1,462 @@
+{
+  "started_at": "2026-11-18T21:19:08.903Z",
+  "finished_at": "2026-11-18T21:20:03.000Z",
+  "project_ref": "ilkkqynzvwskpwjgtapi",
+  "fixtures": {
+    "league": {
+      "id": "a01b7eb6-31a1-433c-bb57-97d3465a5ee9",
+      "slug": "qa-detalle-20261118211908-a01b7eb6"
+    },
+    "other": {
+      "id": "29d50d50-97af-4f3a-936c-fe6e2cc19635",
+      "slug": "qa-detalle-20261118211908-secundaria-29d50d50"
+    },
+    "friends": {
+      "id": "e7d32271-b934-4424-86c4-ddfb39f6b700",
+      "slug": "qa-detalle-20261118211908-amigos-e7d32271"
+    }
+  },
+  "passed": 87,
+  "failed": 0,
+  "results": [
+    {
+      "id": "C01",
+      "description": "Create/list league and owner access",
+      "status": "passed"
+    },
+    {
+      "id": "C02",
+      "description": "Rename team, abbreviation and public readback",
+      "status": "passed"
+    },
+    {
+      "id": "C03",
+      "description": "Reject duplicate team names regardless of case and spaces",
+      "status": "passed"
+    },
+    {
+      "id": "C04",
+      "description": "Reject invalid team C04",
+      "status": "passed"
+    },
+    {
+      "id": "C05",
+      "description": "Reject invalid team C05",
+      "status": "passed"
+    },
+    {
+      "id": "C06",
+      "description": "Reject invalid team C06",
+      "status": "passed"
+    },
+    {
+      "id": "C07",
+      "description": "Create and delete unused team through shared API",
+      "status": "passed"
+    },
+    {
+      "id": "C08",
+      "description": "Player rename and position update",
+      "status": "passed"
+    },
+    {
+      "id": "C09",
+      "description": "Unassign and transfer player before playing",
+      "status": "passed"
+    },
+    {
+      "id": "C10",
+      "description": "Cross-league team assignment rejected by composite FK",
+      "status": "passed"
+    },
+    {
+      "id": "C11",
+      "description": "Delete unused player through shared API",
+      "status": "passed"
+    },
+    {
+      "id": "C12",
+      "description": "A missing deletion must not report success",
+      "status": "passed"
+    },
+    {
+      "id": "C13",
+      "description": "Deleting a team with an assigned roster is rejected",
+      "status": "passed"
+    },
+    {
+      "id": "C-stale-teams",
+      "description": "Editing a deleted teams row cannot recreate it",
+      "status": "passed"
+    },
+    {
+      "id": "C-stale-players",
+      "description": "Editing a deleted players row cannot recreate it",
+      "status": "passed"
+    },
+    {
+      "id": "C-stale-news",
+      "description": "Editing a deleted news row cannot recreate it",
+      "status": "passed"
+    },
+    {
+      "id": "C-scope-delete",
+      "description": "Wrong league filter cannot report deletion success or delete the row",
+      "status": "passed"
+    },
+    {
+      "id": "M01",
+      "description": "Edit match schedule, date, venue and round",
+      "status": "passed"
+    },
+    {
+      "id": "M02",
+      "description": "Result stores appearances, goals, assists, cards and rating",
+      "status": "passed"
+    },
+    {
+      "id": "M03",
+      "description": "Transfer does not rewrite past points or appearances",
+      "status": "passed"
+    },
+    {
+      "id": "M04",
+      "description": "Correct a past result after transferring a participant",
+      "status": "passed"
+    },
+    {
+      "id": "M05",
+      "description": "Client validates historical participation after transfer",
+      "status": "passed"
+    },
+    {
+      "id": "M-history-side",
+      "description": "Transfer to opposing team cannot rewrite an existing historical side",
+      "status": "passed"
+    },
+    {
+      "id": "M-scope-schedule",
+      "description": "Wrong league filter cannot report schedule update success",
+      "status": "passed"
+    },
+    {
+      "id": "M06",
+      "description": "Reject invalid result and preserve previous state: M06",
+      "status": "passed"
+    },
+    {
+      "id": "M07",
+      "description": "Reject invalid result and preserve previous state: M07",
+      "status": "passed"
+    },
+    {
+      "id": "M08",
+      "description": "Reject invalid result and preserve previous state: M08",
+      "status": "passed"
+    },
+    {
+      "id": "M09",
+      "description": "Reject invalid result and preserve previous state: M09",
+      "status": "passed"
+    },
+    {
+      "id": "M10",
+      "description": "Reject invalid result and preserve previous state: M10",
+      "status": "passed"
+    },
+    {
+      "id": "M11",
+      "description": "Reject invalid result and preserve previous state: M11",
+      "status": "passed"
+    },
+    {
+      "id": "M12",
+      "description": "Reject invalid result and preserve previous state: M12",
+      "status": "passed"
+    },
+    {
+      "id": "M13",
+      "description": "Reject invalid result and preserve previous state: M13",
+      "status": "passed"
+    },
+    {
+      "id": "M14",
+      "description": "Reject invalid result and preserve previous state: M14",
+      "status": "passed"
+    },
+    {
+      "id": "M15",
+      "description": "Reject invalid result and preserve previous state: M15",
+      "status": "passed"
+    },
+    {
+      "id": "M16",
+      "description": "Reject invalid result and preserve previous state: M16",
+      "status": "passed"
+    },
+    {
+      "id": "M17",
+      "description": "Reject invalid result and preserve previous state: M17",
+      "status": "passed"
+    },
+    {
+      "id": "M18",
+      "description": "Reject invalid result and preserve previous state: M18",
+      "status": "passed"
+    },
+    {
+      "id": "M19",
+      "description": "Reject invalid result and preserve previous state: M19",
+      "status": "passed"
+    },
+    {
+      "id": "M20",
+      "description": "Reject invalid result and preserve previous state: M20",
+      "status": "passed"
+    },
+    {
+      "id": "M21",
+      "description": "Cannot delete a player with recorded appearances",
+      "status": "passed"
+    },
+    {
+      "id": "M22",
+      "description": "Editing replaces totals rather than adding to previous result",
+      "status": "passed"
+    },
+    {
+      "id": "M23",
+      "description": "Configurable draw points recalculate existing standings",
+      "status": "passed"
+    },
+    {
+      "id": "M24",
+      "description": "Annul removes statistics and makes zero appearances/points",
+      "status": "passed"
+    },
+    {
+      "id": "M25",
+      "description": "Deleting a match cascades its stats and recalculates rankings",
+      "status": "passed"
+    },
+    {
+      "id": "M26",
+      "description": "Fixture generation uses actual teams and refuses repetition",
+      "status": "passed"
+    },
+    {
+      "id": "N01",
+      "description": "Create and update unpublished news",
+      "status": "passed"
+    },
+    {
+      "id": "A01",
+      "description": "Visitor can read league, teams, players, fixture and published results",
+      "status": "passed"
+    },
+    {
+      "id": "A02",
+      "description": "Visitor cannot read unpublished news by guessing its UUID",
+      "status": "passed"
+    },
+    {
+      "id": "A-teams-insert",
+      "description": "Visitor cannot insert teams",
+      "status": "passed"
+    },
+    {
+      "id": "A-teams-update",
+      "description": "Visitor cannot update teams",
+      "status": "passed"
+    },
+    {
+      "id": "A-teams-delete",
+      "description": "Visitor cannot delete teams",
+      "status": "passed"
+    },
+    {
+      "id": "A-players-insert",
+      "description": "Visitor cannot insert players",
+      "status": "passed"
+    },
+    {
+      "id": "A-players-update",
+      "description": "Visitor cannot update players",
+      "status": "passed"
+    },
+    {
+      "id": "A-players-delete",
+      "description": "Visitor cannot delete players",
+      "status": "passed"
+    },
+    {
+      "id": "A-matches-insert",
+      "description": "Visitor cannot insert matches",
+      "status": "passed"
+    },
+    {
+      "id": "A-matches-update",
+      "description": "Visitor cannot update matches",
+      "status": "passed"
+    },
+    {
+      "id": "A-matches-delete",
+      "description": "Visitor cannot delete matches",
+      "status": "passed"
+    },
+    {
+      "id": "A-news-insert",
+      "description": "Visitor cannot insert news",
+      "status": "passed"
+    },
+    {
+      "id": "A-news-update",
+      "description": "Visitor cannot update news",
+      "status": "passed"
+    },
+    {
+      "id": "A-news-delete",
+      "description": "Visitor cannot delete news",
+      "status": "passed"
+    },
+    {
+      "id": "A-leagues-insert",
+      "description": "Visitor cannot insert leagues",
+      "status": "passed"
+    },
+    {
+      "id": "A-leagues-update",
+      "description": "Visitor cannot update leagues",
+      "status": "passed"
+    },
+    {
+      "id": "A-leagues-delete",
+      "description": "Visitor cannot delete leagues",
+      "status": "passed"
+    },
+    {
+      "id": "A03",
+      "description": "Visitor cannot enumerate memberships",
+      "status": "passed"
+    },
+    {
+      "id": "A04",
+      "description": "Private schema is not exposed by REST",
+      "status": "passed"
+    },
+    {
+      "id": "A-auth-schema",
+      "description": "Auth users and credential tables are not exposed by REST",
+      "status": "passed"
+    },
+    {
+      "id": "A-rpc-generate_league_fixture",
+      "description": "Visitor cannot call generate_league_fixture",
+      "status": "passed"
+    },
+    {
+      "id": "A-rpc-add_league_admin",
+      "description": "Visitor cannot call add_league_admin",
+      "status": "passed"
+    },
+    {
+      "id": "A-rpc-save_match_result",
+      "description": "Visitor cannot call save_match_result",
+      "status": "passed"
+    },
+    {
+      "id": "A05",
+      "description": "Publishing makes news visible and unpublishing hides it again",
+      "status": "passed"
+    },
+    {
+      "id": "N02",
+      "description": "Delete news and verify readback",
+      "status": "passed"
+    },
+    {
+      "id": "S-home_score",
+      "description": "Direct mutation of protected match column home_score rejected",
+      "status": "passed"
+    },
+    {
+      "id": "S-away_score",
+      "description": "Direct mutation of protected match column away_score rejected",
+      "status": "passed"
+    },
+    {
+      "id": "S-status",
+      "description": "Direct mutation of protected match column status rejected",
+      "status": "passed"
+    },
+    {
+      "id": "S-league_id",
+      "description": "Direct mutation of protected match column league_id rejected",
+      "status": "passed"
+    },
+    {
+      "id": "S-competition_id",
+      "description": "Direct mutation of protected match column competition_id rejected",
+      "status": "passed"
+    },
+    {
+      "id": "S-home_team_id",
+      "description": "Direct mutation of protected match column home_team_id rejected",
+      "status": "passed"
+    },
+    {
+      "id": "S-stat-insert",
+      "description": "Direct insert of statistics denied",
+      "status": "passed"
+    },
+    {
+      "id": "S-stat-update",
+      "description": "Direct update of statistics denied",
+      "status": "passed"
+    },
+    {
+      "id": "S-stat-delete",
+      "description": "Direct deletion of statistics denied",
+      "status": "passed"
+    },
+    {
+      "id": "S-membership",
+      "description": "Cannot insert own administrator membership directly",
+      "status": "passed"
+    },
+    {
+      "id": "S-storage-anon",
+      "description": "Storage HTTP rejects unauthenticated upload",
+      "status": "passed"
+    },
+    {
+      "id": "F01",
+      "description": "Odd friends group records every participant once in 3/2 teams",
+      "status": "passed"
+    },
+    {
+      "id": "F02",
+      "description": "Friends result awards points only to the participating side",
+      "status": "passed"
+    },
+    {
+      "id": "F03",
+      "description": "Correcting friendly participation removes omitted player appearance",
+      "status": "passed"
+    },
+    {
+      "id": "F04",
+      "description": "Friends match rejects duplicate participants without creating a match",
+      "status": "passed"
+    },
+    {
+      "id": "F05",
+      "description": "Friends match rejects participant from another league",
+      "status": "passed"
+    }
+  ],
+  "limits": [
+    "Other-organizer and delegated-admin RLS are tested separately in transactional SQL; this HTTP run uses one confirmed QA organizer and an anonymous client.",
+    "Only disposable rows created in this run were deleted; the QA leagues and main fixture remain for inspection."
+  ]
+}

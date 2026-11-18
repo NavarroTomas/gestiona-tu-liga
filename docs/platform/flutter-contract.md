@@ -73,3 +73,9 @@ Bucket `league-images`, ruta `leagueId/uuid.ext`, upload sin sobrescribir. JPG/P
 7. Deep links de confirmación/recuperación, prueba en dispositivo y APK firmado para entrega.
 
 No marcar la app terminada hasta instalar el APK y comprobar que un cambio hecho en Android aparece en la web y viceversa.
+
+## Ajuste de contrato tras revisión CRUD (18/11/2026)
+
+Al editar entidades, usar update con filtros de id y league_id y exigir una fila devuelta; no usar upsert para editar. Así no se recrea un registro borrado por otro administrador. Delete también debe comprobar la fila afectada. Un resultado vacío significa registro ausente o sin permiso; no mostrar éxito.
+
+Para corregir partidos con un jugador transferido, mostrar también las participaciones ya guardadas en el lado histórico. El servidor permite conservar ese lado, incluso si cambió el plantel actual. No puede mover esa participación al lado contrario solo por un cambio de equipo. Los participantes nuevos se validan con el plantel actual. Ver el informe crud-permissions-review-2026-11-18.md y el parche result-history-v2.sql.

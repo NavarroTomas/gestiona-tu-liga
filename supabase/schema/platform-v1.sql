@@ -204,7 +204,7 @@ begin
  if exists(select 1 from jsonb_array_elements(p_players) x group by x->>'player_id' having count(*)>1) then raise exception 'Un jugador aparece dos veces.'; end if;
  for s in select * from jsonb_array_elements(p_players) loop
   pid := (s->>'player_id')::uuid; ps:=s->>'side';
-  if ps is null or ps not in ('home','away') or not exists(select 1 from public.players where id=pid and league_id=m.league_id and (l.mode='players' or team_id=case when ps='home' then m.home_team_id else m.away_team_id end)) then raise exception 'El jugador no pertenece al equipo o a la liga.'; end if;
+  if ps is null or ps not in ('home','away') or not exists(select 1 from public.players p where p.id=pid and p.league_id=m.league_id and (l.mode='players' or exists(select 1 from public.match_players old where old.match_id=m.id and old.player_id=pid and old.side=ps) or (not exists(select 1 from public.match_players old where old.match_id=m.id and old.player_id=pid) and p.team_id=case when ps='home' then m.home_team_id else m.away_team_id end))) then raise exception 'El jugador no pertenece al equipo, al lado histórico o a la liga.'; end if;
  end loop;
  select coalesce(sum((x->>'goals')::integer) filter(where x->>'side'='home'),0),coalesce(sum((x->>'goals')::integer) filter(where x->>'side'='away'),0) into hs,as_ from jsonb_array_elements(p_players) x;
  if hs>p_home or as_>p_away then raise exception 'Los goles individuales superan el marcador.'; end if;

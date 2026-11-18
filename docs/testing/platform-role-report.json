@@ -1,0 +1,429 @@
+{
+  "checked_at": "2026-11-18T21:21:03.613Z",
+  "project_ref": "ilkkqynzvwskpwjgtapi",
+  "checks_passed": 84,
+  "checks": [
+    {
+      "id": "ADMIN-B-NO-MEMBER",
+      "status": "passed",
+      "description": "Admin cannot read B membership"
+    },
+    {
+      "id": "ADMIN-CRUD",
+      "status": "passed",
+      "description": "Delegated administrator can create and edit a team"
+    },
+    {
+      "id": "ADMIN-DELETE",
+      "status": "passed",
+      "description": "Delegated administrator can delete own disposable team"
+    },
+    {
+      "id": "ADMIN-DRAFT",
+      "status": "passed",
+      "description": "Delegated administrator can read own league draft"
+    },
+    {
+      "id": "ADMIN-MEMBER",
+      "status": "passed",
+      "description": "Delegated administrator has exactly one own membership"
+    },
+    {
+      "id": "ADMIN-NO-DELEGATE",
+      "status": "passed",
+      "description": "Admin cannot add another administrator"
+    },
+    {
+      "id": "ADMIN-NO-OTHER",
+      "status": "passed",
+      "description": "Admin of A cannot edit B"
+    },
+    {
+      "id": "ADMIN-NO-PROMOTION",
+      "status": "passed",
+      "description": "Admin cannot promote self"
+    },
+    {
+      "id": "ADMIN-RESULT",
+      "status": "passed",
+      "description": "Delegated administrator can correct result"
+    },
+    {
+      "id": "ANON-ADMIN-RPC",
+      "status": "passed",
+      "description": "Visitor cannot grant administrators"
+    },
+    {
+      "id": "ANON-CREATE",
+      "status": "passed",
+      "description": "Visitor cannot bootstrap league"
+    },
+    {
+      "id": "ANON-DELETE-competitions",
+      "status": "passed",
+      "description": "Visitor cannot delete competitions"
+    },
+    {
+      "id": "ANON-DELETE-divisions",
+      "status": "passed",
+      "description": "Visitor cannot delete divisions"
+    },
+    {
+      "id": "ANON-DELETE-leagues",
+      "status": "passed",
+      "description": "Visitor cannot delete leagues"
+    },
+    {
+      "id": "ANON-DELETE-match_players",
+      "status": "passed",
+      "description": "Visitor cannot delete match_players"
+    },
+    {
+      "id": "ANON-DELETE-matches",
+      "status": "passed",
+      "description": "Visitor cannot delete matches"
+    },
+    {
+      "id": "ANON-DELETE-news",
+      "status": "passed",
+      "description": "Visitor cannot delete news"
+    },
+    {
+      "id": "ANON-DELETE-players",
+      "status": "passed",
+      "description": "Visitor cannot delete players"
+    },
+    {
+      "id": "ANON-DELETE-seasons",
+      "status": "passed",
+      "description": "Visitor cannot delete seasons"
+    },
+    {
+      "id": "ANON-DELETE-teams",
+      "status": "passed",
+      "description": "Visitor cannot delete teams"
+    },
+    {
+      "id": "ANON-FIXTURE",
+      "status": "passed",
+      "description": "Visitor cannot generate fixture"
+    },
+    {
+      "id": "ANON-FRIENDLY",
+      "status": "passed",
+      "description": "Visitor cannot call friendly-match RPC"
+    },
+    {
+      "id": "ANON-MEMBERS",
+      "status": "passed",
+      "description": "Visitor cannot read memberships"
+    },
+    {
+      "id": "ANON-NO-ADMIN",
+      "status": "passed",
+      "description": "Visitor is never administrator"
+    },
+    {
+      "id": "ANON-NO-DRAFT",
+      "status": "passed",
+      "description": "Visitor cannot read unpublished draft"
+    },
+    {
+      "id": "ANON-PRIVATE",
+      "status": "passed",
+      "description": "Visitor cannot read private request table"
+    },
+    {
+      "id": "ANON-PUBLIC",
+      "status": "passed",
+      "description": "Visitor reads public league"
+    },
+    {
+      "id": "ANON-RESULT",
+      "status": "passed",
+      "description": "Visitor cannot save result"
+    },
+    {
+      "id": "ANON-STORAGE",
+      "status": "passed",
+      "description": "Visitor cannot upload image"
+    },
+    {
+      "id": "FUNCTION-SEARCH-PATH",
+      "status": "passed",
+      "description": "All private security-definer functions pin search_path"
+    },
+    {
+      "id": "OTHER-ADMIN",
+      "status": "passed",
+      "description": "Other organizer cannot grant A membership"
+    },
+    {
+      "id": "OTHER-ANNUL",
+      "status": "passed",
+      "description": "Other organizer cannot annul A result"
+    },
+    {
+      "id": "OTHER-DELETE-competitions",
+      "status": "passed",
+      "description": "Other organizer cannot delete competitions"
+    },
+    {
+      "id": "OTHER-DELETE-divisions",
+      "status": "passed",
+      "description": "Other organizer cannot delete divisions"
+    },
+    {
+      "id": "OTHER-DELETE-matches",
+      "status": "passed",
+      "description": "Other organizer cannot delete matches"
+    },
+    {
+      "id": "OTHER-DELETE-news",
+      "status": "passed",
+      "description": "Other organizer cannot delete news"
+    },
+    {
+      "id": "OTHER-DELETE-players",
+      "status": "passed",
+      "description": "Other organizer cannot delete players"
+    },
+    {
+      "id": "OTHER-DELETE-seasons",
+      "status": "passed",
+      "description": "Other organizer cannot delete seasons"
+    },
+    {
+      "id": "OTHER-DELETE-teams",
+      "status": "passed",
+      "description": "Other organizer cannot delete teams"
+    },
+    {
+      "id": "OTHER-FIXTURE",
+      "status": "passed",
+      "description": "Other organizer cannot generate A fixture"
+    },
+    {
+      "id": "OTHER-FRIENDLY",
+      "status": "passed",
+      "description": "Other organizer cannot create a friendly match in A"
+    },
+    {
+      "id": "OTHER-INSERT-competitions",
+      "status": "passed",
+      "description": "Other organizer cannot insert competitions"
+    },
+    {
+      "id": "OTHER-INSERT-divisions",
+      "status": "passed",
+      "description": "Other organizer cannot insert divisions"
+    },
+    {
+      "id": "OTHER-INSERT-matches",
+      "status": "passed",
+      "description": "Other organizer cannot insert matches"
+    },
+    {
+      "id": "OTHER-INSERT-news",
+      "status": "passed",
+      "description": "Other organizer cannot insert news"
+    },
+    {
+      "id": "OTHER-INSERT-players",
+      "status": "passed",
+      "description": "Other organizer cannot insert players"
+    },
+    {
+      "id": "OTHER-INSERT-seasons",
+      "status": "passed",
+      "description": "Other organizer cannot insert seasons"
+    },
+    {
+      "id": "OTHER-INSERT-teams",
+      "status": "passed",
+      "description": "Other organizer cannot insert teams"
+    },
+    {
+      "id": "OTHER-METADATA",
+      "status": "passed",
+      "description": "Forged user_metadata never grants administration"
+    },
+    {
+      "id": "OTHER-MOVE-IN",
+      "status": "passed",
+      "description": "B cannot move A player into own league"
+    },
+    {
+      "id": "OTHER-MOVE-OUT",
+      "status": "passed",
+      "description": "B cannot move own player into A league"
+    },
+    {
+      "id": "OTHER-NO-DRAFT",
+      "status": "passed",
+      "description": "Other organizer cannot read A draft by UUID"
+    },
+    {
+      "id": "OTHER-NO-MEMBER",
+      "status": "passed",
+      "description": "Other organizer cannot read A memberships"
+    },
+    {
+      "id": "OTHER-PLAYER-FK",
+      "status": "passed",
+      "description": "B cannot attach own player to A team"
+    },
+    {
+      "id": "OTHER-PUBLIC",
+      "status": "passed",
+      "description": "Other organizer can read public sporting data"
+    },
+    {
+      "id": "OTHER-RESULT",
+      "status": "passed",
+      "description": "Other organizer cannot save A result"
+    },
+    {
+      "id": "OTHER-STATS-DELETE",
+      "status": "passed",
+      "description": "B cannot directly delete A stats"
+    },
+    {
+      "id": "OTHER-STATS-INSERT",
+      "status": "passed",
+      "description": "B cannot directly insert A stats"
+    },
+    {
+      "id": "OTHER-STATS-UPDATE",
+      "status": "passed",
+      "description": "B cannot directly change A stats"
+    },
+    {
+      "id": "OTHER-STORAGE",
+      "status": "passed",
+      "description": "B cannot upload into A image folder"
+    },
+    {
+      "id": "OTHER-UPDATE-competitions",
+      "status": "passed",
+      "description": "Other organizer cannot update competitions"
+    },
+    {
+      "id": "OTHER-UPDATE-divisions",
+      "status": "passed",
+      "description": "Other organizer cannot update divisions"
+    },
+    {
+      "id": "OTHER-UPDATE-leagues",
+      "status": "passed",
+      "description": "Other organizer cannot rename A"
+    },
+    {
+      "id": "OTHER-UPDATE-matches",
+      "status": "passed",
+      "description": "Other organizer cannot update matches"
+    },
+    {
+      "id": "OTHER-UPDATE-news",
+      "status": "passed",
+      "description": "Other organizer cannot update news"
+    },
+    {
+      "id": "OTHER-UPDATE-players",
+      "status": "passed",
+      "description": "Other organizer cannot update players"
+    },
+    {
+      "id": "OTHER-UPDATE-seasons",
+      "status": "passed",
+      "description": "Other organizer cannot update seasons"
+    },
+    {
+      "id": "OTHER-UPDATE-teams",
+      "status": "passed",
+      "description": "Other organizer cannot update teams"
+    },
+    {
+      "id": "OWNER-NEWS",
+      "status": "passed",
+      "description": "Owner reads own unpublished draft"
+    },
+    {
+      "id": "OWNER-NO-PRIVATE",
+      "status": "passed",
+      "description": "Owner cannot read private creation requests"
+    },
+    {
+      "id": "OWNER-NO-ROLE-WRITE",
+      "status": "passed",
+      "description": "Owner cannot bypass membership RPC"
+    },
+    {
+      "id": "OWNER-SELF",
+      "status": "passed",
+      "description": "Owner reads only their membership"
+    },
+    {
+      "id": "PRIVATE-ACL",
+      "status": "passed",
+      "description": "App role cannot read private request table"
+    },
+    {
+      "id": "PRIVATE-RLS",
+      "status": "passed",
+      "description": "Private request table has RLS"
+    },
+    {
+      "id": "RLS-competitions",
+      "status": "passed",
+      "description": "RLS enabled on competitions"
+    },
+    {
+      "id": "RLS-divisions",
+      "status": "passed",
+      "description": "RLS enabled on divisions"
+    },
+    {
+      "id": "RLS-league_members",
+      "status": "passed",
+      "description": "RLS enabled on league_members"
+    },
+    {
+      "id": "RLS-leagues",
+      "status": "passed",
+      "description": "RLS enabled on leagues"
+    },
+    {
+      "id": "RLS-match_players",
+      "status": "passed",
+      "description": "RLS enabled on match_players"
+    },
+    {
+      "id": "RLS-matches",
+      "status": "passed",
+      "description": "RLS enabled on matches"
+    },
+    {
+      "id": "RLS-news",
+      "status": "passed",
+      "description": "RLS enabled on news"
+    },
+    {
+      "id": "RLS-players",
+      "status": "passed",
+      "description": "RLS enabled on players"
+    },
+    {
+      "id": "RLS-seasons",
+      "status": "passed",
+      "description": "RLS enabled on seasons"
+    },
+    {
+      "id": "RLS-teams",
+      "status": "passed",
+      "description": "RLS enabled on teams"
+    }
+  ],
+  "method": "SQL transaction with authenticated/anon roles and simulated JWT subjects; all fixture data rolled back.",
+  "after_patch": "result-history-v2.sql"
+}

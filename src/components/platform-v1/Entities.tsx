@@ -19,7 +19,7 @@ export default function Entities({ data, kind, onChanged }: {
         let imageUrl = isTeam ? editing.logo_url : editing.photo_url;
         if (image)
             imageUrl = await uploadImage(data.league.id, image);
-        await saveEntity(kind, isTeam ? { id: editing.id ?? crypto.randomUUID(), league_id: data.league.id, name: editing.name.trim(), short_name: editing.short_name ?? "", logo_url: imageUrl ?? null } : { id: editing.id ?? crypto.randomUUID(), league_id: data.league.id, name: editing.name.trim(), team_id: editing.team_id || null, position: editing.position || "Sin definir", photo_url: imageUrl ?? null });
+        await saveEntity(kind, isTeam ? { id: editing.id ?? crypto.randomUUID(), league_id: data.league.id, name: editing.name.trim(), short_name: editing.short_name ?? "", logo_url: imageUrl ?? null } : { id: editing.id ?? crypto.randomUUID(), league_id: data.league.id, name: editing.name.trim(), team_id: editing.team_id || null, position: editing.position || "Sin definir", photo_url: imageUrl ?? null }, editing.id ? "update" : "create");
         setEditing(null);
         setImage(null);
         await onChanged();

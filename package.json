@@ -14,7 +14,8 @@
     "test:security": "node tests/security-regressions.mjs",
     "test:league": "node tests/local-league-regressions.cjs",
     "test:original-league": "node tests/original-league-adapter.cjs",
-    "test:platform": "node tests/platform-domain.cjs"
+    "test:platform": "node tests/platform-domain.cjs",
+    "test:platform:integration": "node scripts/platform-deep-checks.cjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",

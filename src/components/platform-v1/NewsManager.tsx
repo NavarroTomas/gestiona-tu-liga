@@ -16,7 +16,7 @@ export default function NewsManager({ data, onChanged }: {
         let url = editing.image_url;
         if (image)
             url = await uploadImage(data.league.id, image);
-        await saveEntity("news", { id: editing.id ?? crypto.randomUUID(), league_id: data.league.id, title: editing.title?.trim(), body: editing.body?.trim(), published: editing.published ?? true, image_url: url ?? null });
+        await saveEntity("news", { id: editing.id ?? crypto.randomUUID(), league_id: data.league.id, title: editing.title?.trim(), body: editing.body?.trim(), published: editing.published ?? true, image_url: url ?? null }, editing.id ? "update" : "create");
         setEditing(null);
         setImage(null);
         await onChanged();

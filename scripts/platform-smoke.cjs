@@ -93,5 +93,5 @@ if(require.main===module){
   const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if(!url||!key||!process.env.GTL_QA_EMAIL||!process.env.GTL_QA_PASSWORD)throw new Error('Configure public project settings and QA credentials in environment variables.');
   const client=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
-  (async()=>{const {error}=await client.auth.signInWithPassword({email:process.env.GTL_QA_EMAIL,password:process.env.GTL_QA_PASSWORD});if(error)throw error;const report=await runSmoke({client});console.log(JSON.stringify(report,null,2));await client.auth.signOut();})().catch(error=>{console.error(error.message);process.exitCode=1;});
+  (async()=>{const {error}=await client.auth.signInWithPassword({email:process.env.GTL_QA_EMAIL,password:process.env.GTL_QA_PASSWORD});if(error)throw error;const report=await runSmoke({client});console.log(JSON.stringify(report,null,2));await client.auth.signOut({scope:'local'});})().catch(error=>{console.error(error.message);process.exitCode=1;});
 }
