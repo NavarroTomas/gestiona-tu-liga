@@ -166,3 +166,7 @@ Avance comprobado — 18/11/2026
 ☑ Recorrido desde navegador aprobado hasta crear liga, cargar dos equipos ficticios, generar fixture y guardar resultado 2–1.
 ☑ Ocho grupos de pruebas de dominio, incluyendo borradores inválidos, aprobados.
 ☑ Contrato Flutter, modelo de datos y guía de ejecución guardados junto al código.
+
+☑ Código y documentación respaldados en GitHub: rama feat/platform-foundation-20261118, commit de implementación c232779. Main permanece sin integrar.
+☑ Resultado 2–1 y tabla pública 3/0 puntos comprobados en navegador; liga revisada en ancho móvil de 390 px. Capturas en docs/testing.
+☐ Merge y despliegue: todavía pendientes; no se da por publicada la plataforma.
