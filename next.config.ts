@@ -39,6 +39,8 @@ const noIndexHeader = {
 };
 
 const nextConfig: NextConfig = {
+  // Separate development and production checks when both run on this workstation.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
   turbopack: {
     root: process.cwd(),

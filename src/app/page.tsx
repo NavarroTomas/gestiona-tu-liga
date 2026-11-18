@@ -1,48 +1,13 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { Metadata } from "next";
-import LandingSectionLink from "@/components/LandingSectionLink";
-import LandingPanels from "@/components/LandingPanels";
-import LandingCarousel from "@/components/LandingCarousel";
-import styles from "./landing.module.css";
-
-export const metadata: Metadata = {
-  title: { absolute: "Gestioná tu Liga" },
-  description: "Creá y administrá tu liga por equipos o por jugadores. Partidos, noticias y estadísticas en un mismo lugar.",
-};
-
-export default function LandingPage() {
-  return <div className={styles.landing}>
-    <LandingPanels />
-    <LandingSectionLink className={styles.skip} target="contenido">Ir al contenido</LandingSectionLink>
-    <header className={styles.header}>
-      <Link href="/" className={styles.brand}>Gestioná tu Liga</Link>
-      <nav aria-label="Navegación principal"><LandingSectionLink target="plataforma">Plataforma</LandingSectionLink><LandingSectionLink target="modalidades">Modalidades</LandingSectionLink><LandingSectionLink target="planes">Planes</LandingSectionLink></nav>
-      <Link href="/login" prefetch={false} className={styles.login}>Iniciar sesión</Link>
-    </header>
-    <main id="contenido" className={styles.stack}>
-      <LandingCarousel />
-      <section id="plataforma" className={styles.platform}>
-        <div className={styles.content}>
-          <div className={styles.visualColumn}><h2>Tu liga,<br />organizada.</h2><div className={styles.sectionImage}><Image src="/themes/worldcup-real/photos/street-football.jpg" alt="Un partido de fútbol visto desde las tribunas" fill sizes="(max-width: 620px) 90vw, 42vw" /></div></div>
-          <div className={styles.description}><p>Creá tu liga, organizá los partidos y seguí los resultados y las estadísticas desde una misma web.</p><p>Para torneos por equipos o partidos entre amigos.</p><Link href="/liga" prefetch={false} className={styles.buttonDark}>Ver la liga de referencia</Link></div>
-        </div>
-      </section>
-      <section id="modalidades" className={styles.modes}>
-        <div className={styles.content}>
-          <div className={styles.visualColumn}><h2>Como ustedes<br />juegan.</h2><div className={styles.sectionImage}><Image src="/themes/worldcup-real/photos/pitch-lights.jpg" alt="Un jugador frente a un arco en una cancha iluminada" fill sizes="(max-width: 620px) 90vw, 42vw" /></div></div>
-          <div className={styles.modeList}><article><h3>Por equipos</h3><p>Organizá planteles, partidos y posiciones de tu torneo.</p></article><article><h3>Por jugadores</h3><p>Registrá los partidos de tus amigos y sus estadísticas, aunque los equipos cambien.</p></article><Link href="/registro" prefetch={false} className={styles.button}>Crear mi liga</Link></div>
-        </div>
-      </section>
-      <section id="planes" className={styles.plans}>
-        <div className={styles.plansContent}><h2>Un plan para tu liga.</h2>
-          <div className={styles.planColumns}>
-            <article><h3>Gratuita</h3><p>Para tu grupo de amigos o una liga pequeña.</p><ul><li>Partidos y resultados.</li><li>Posiciones y estadísticas básicas.</li><li>Límite de equipos y miembros.</li></ul><Link href="/registro" prefetch={false} className={styles.buttonDark}>Empezar gratis</Link></article>
-            <article><h3>Completa</h3><p>Para administrar toda tu competencia.</p><ul><li>Todo lo de la versión gratuita.</li><li>Torneos, copas y planteles.</li><li>Noticias y estadísticas detalladas.</li></ul><LandingSectionLink target="plataforma" className={styles.buttonOutline}>Conocer la plataforma</LandingSectionLink></article>
-          </div><p className={styles.note}>Planes en desarrollo. Límites y precio por definir.</p>
-        </div>
-      </section>
-      <section className={styles.close}><div className={styles.content}><h2>Ejemplo</h2><div className={styles.closeActions}><Link href="/registro" prefetch={false} className={styles.button}>Crear mi liga</Link><Link href="/login" prefetch={false} className={styles.link}>Ya tengo una cuenta</Link></div></div><footer className={styles.footer}><span>Gestioná tu Liga</span><LandingSectionLink target="contenido">Volver al inicio</LandingSectionLink></footer></section>
-    </main>
-  </div>;
-}
+import { Arrow, Footer, Header, Monogram } from "@/components/platform-v1/ui";
+import s from "@/components/platform-v1/platform.module.css";
+export const metadata: Metadata = { title:{absolute:"Organizá tu liga de fútbol"},description:"Creá tu liga amateur o tu grupo de amigos. Organizá equipos, partidos, resultados y estadísticas, y compartí un enlace para seguir la competencia." };
+export default function LandingPage(){return <><Header/><main>
+<section className={s.hero}><div><span className={s.eyebrow}>Para quienes organizan el partido</span><h1>Organizá tu liga.<br/><em>Compartí cada fecha.</em></h1><p>Equipos, partidos y estadísticas en una misma web. Creá tu liga y compartí el enlace para que todos puedan seguirla.</p><div className={s.heroActions}><Link href="/registro" className={s.button}>Crear mi liga <Arrow/></Link><Link href="/demo" className={s.backLink}>Ver una liga de ejemplo</Link></div><p className={s.heroNote}>Empezá gratis. No necesitás una tarjeta.</p></div>
+<div className={s.heroVisual}><div className={s.visualBackdrop}/><div className={s.preview}><div className={s.previewTop}><div><small>LIGA AMATEUR · TEMPORADA 1</small><strong>Liga del domingo</strong></div><svg viewBox="0 0 36 36" width="34" height="34" fill="none" aria-hidden="true"><rect x="2" y="2" width="32" height="32" rx="6" stroke="#c9dbb9"/><path d="M18 2v32M2 12h6v12H2m32-12h-6v12h6" stroke="#c9dbb9"/><circle cx="18" cy="18" r="6" stroke="#c9dbb9"/></svg></div><div className={s.previewContent}><p className={s.previewLabel}>Último resultado · Fecha 1</p><div className={s.previewMatch}><div className={s.previewTeam}><Monogram name="Los Pinos"/>Los Pinos</div><b>2 — 1</b><div className={s.previewTeam}><Monogram name="Barrio Norte"/>Barrio Norte</div></div><p className={s.previewMeta}>Resultado cargado. Posiciones actualizadas.</p><div className={`${s.previewRow} ${s.previewHead}`}><span>#</span><span>Equipo</span><span>PJ</span><span>PTS</span></div>{[["Los Pinos",1,3],["La Ribera",1,1],["El Cruce",1,1],["Barrio Norte",1,0]].map(([name,pj,pts],i)=><div key={name} className={s.previewRow}><span>{i+1}</span><span>{name}</span><span>{pj}</span><strong>{pts}</strong></div>)}</div></div><div className={s.exampleTag}><span>UNA VISTA DE TU COMPETENCIA</span><span>Datos ficticios de ejemplo</span></div></div></section>
+<div className={s.strip}><span>Fixture y calendario</span><span>Resultados y posiciones</span><span>Jugadores y estadísticas</span><span>Noticias de tu liga</span></div>
+<section className={s.section} id="como-funciona"><div className={s.sectionHeading}><div><span className={s.eyebrow}>De la organización a la cancha</span><h2>Menos mensajes para explicar.<br/>Un enlace para consultar.</h2></div><p>Vos administrás la competencia. Los jugadores y sus amigos consultan la información sin crear una cuenta.</p></div><div className={s.featureGrid}><article className={s.feature}><span>01 / CONFIGURÁ</span><h3>Una liga con tu identidad.</h3><p>Elegí la modalidad, el nombre y los colores. Después sumá el logo de la liga y los escudos de tus equipos.</p></article><article className={s.feature}><span>02 / ORGANIZÁ</span><h3>Todo listo para cada fecha.</h3><p>Cargá los participantes, prepará el fixture y definí cuándo y dónde se juega cada partido.</p></article><article className={s.feature}><span>03 / COMPARTÍ</span><h3>El resultado, a la vista.</h3><p>Registrá el marcador y las estadísticas. La tabla se actualiza con los partidos que vas cargando.</p></article></div></section>
+<section className={s.modeSection}><div className={s.modeInner}><div><span className={s.eyebrow}>Dos formas de jugar</span><h2>Para el torneo del barrio.<br/>Y el partido de los sábados.</h2><p>Organizá una competencia de equipos o llevá el registro de tu grupo, aunque cambien los compañeros cada semana.</p><Link href="/registro" className={s.backLink}>Elegir mi modalidad <Arrow/></Link></div><div className={s.modeCards}><article className={s.modeCard}><h3>Liga por equipos</h3><p>Planteles fijos, fixture todos contra todos, resultados y tabla de posiciones.</p></article><article className={s.modeCard}><h3>Grupo de jugadores</h3><p>Equipos variables, reparto aleatorio o equilibrado y puntos individuales por cada partido.</p></article></div></div></section>
+<section className={s.close}><div><h2>Prepará la próxima fecha.</h2><p>Respondé unas preguntas y empezá a cargar tu competencia.</p></div><Link href="/registro" className={s.buttonLight}>Crear mi liga gratis <Arrow/></Link></section>
+</main><Footer/></>;}

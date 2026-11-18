@@ -1,2 +1,2 @@
-import DemoAccess from "@/components/platform/DemoAccess";
-export default function LoginPage(){return <DemoAccess />;}
+import Access from "@/components/platform-v1/Access";
+export default function LoginPage(){return <Access/>;}

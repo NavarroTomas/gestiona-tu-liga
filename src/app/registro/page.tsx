@@ -1,2 +1,2 @@
-import DemoAccess from "@/components/platform/DemoAccess";
-export default function RegisterPage(){return <DemoAccess registering />;}
+import Onboarding from "@/components/platform-v1/Onboarding";
+export default function RegisterPage(){return <Onboarding/>;}

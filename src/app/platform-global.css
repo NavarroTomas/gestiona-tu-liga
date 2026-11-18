@@ -1,0 +1,17 @@
+/* Scoped reset: legacy APA screens retain their existing styles. */
+:root { --font-inter: Arial, Helvetica, sans-serif; }
+html:has([data-platform-shell]) { font-size: 16px; scroll-behavior: smooth; --font-inter: Arial, Helvetica, sans-serif; --apa-font-data-first: Arial, Helvetica, sans-serif; }
+body:has([data-platform-shell]) { zoom: 1; background: #f6f5ef; color: #202720; font-family: Arial, Helvetica, sans-serif; }
+body:has([data-platform-shell])::before, body:has([data-platform-shell])::after { display: none; }
+[data-platform-shell] { min-height: 100dvh; background: #f6f5ef; color: #202720; font-family: Arial, Helvetica, sans-serif; }
+[data-platform-shell] button, [data-platform-shell] input, [data-platform-shell] select, [data-platform-shell] textarea { font: inherit; }
+[data-platform-shell] button, [data-platform-shell] a { -webkit-tap-highlight-color: transparent; }
+[data-platform-shell] button { cursor: pointer; }
+[data-platform-shell] button:disabled { cursor: wait; opacity: .55; }
+[data-platform-shell] p { line-height: 1.6; }
+[data-platform-shell] h1, [data-platform-shell] h2, [data-platform-shell] h3 { text-wrap: balance; letter-spacing: -.04em; }
+[data-platform-shell] input, [data-platform-shell] select, [data-platform-shell] textarea { color: #202720; background: #fff; }
+[data-platform-shell] select option { color: #202720; background: #fff; }
+[data-platform-shell] :focus-visible { outline: 3px solid #688b25; outline-offset: 4px; }
+[data-platform-shell] img { object-fit: cover; }
+@media (prefers-reduced-motion: reduce) { html:has([data-platform-shell]) { scroll-behavior: auto; } }

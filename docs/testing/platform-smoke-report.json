@@ -1,0 +1,43 @@
+{
+  "checked_at": "2026-11-18T20:17:11.682Z",
+  "project_ref": "ilkkqynzvwskpwjgtapi",
+  "steps": [
+    "League creation returned a public address",
+    "Repeating a creation request returns the same league",
+    "Creator has the owner membership",
+    "Four fictional teams persisted",
+    "Eight fictional players persisted",
+    "Four-team round robin creates six matches",
+    "Fixture is persisted and contains every pair once",
+    "Generating the fixture twice is rejected",
+    "Result is stored as completed",
+    "Two player appearances persisted with rating",
+    "Editing replaces statistics without duplication",
+    "Impossible individual goals are rejected",
+    "Rejected result leaves the previous result and statistics unchanged",
+    "Direct score manipulation is denied",
+    "Anonymous visitor can open the league by its public address",
+    "Public news excludes unpublished drafts",
+    "Anonymous writes are rejected",
+    "Memberships remain private",
+    "Identity and scoring settings persist",
+    "Image upload produces an accessible public image",
+    "Changing-team match stores four participants",
+    "Friends match accepts a result with individual appearances",
+    "Composite keys reject cross-league relationships",
+    "Team data stays scoped to its league",
+    "Authenticated session stayed valid during the workflow"
+  ],
+  "checks_passed": 25,
+  "fixtures": {
+    "league": {
+      "id": "9a1d608d-833a-48c6-92d2-74152303d548",
+      "slug": "qa-liga-del-barrio-9a1d608d"
+    },
+    "friends": {
+      "id": "2c74f942-c063-4727-ac16-0dd459e8736b",
+      "slug": "qa-amigos-del-sabado-2c74f942"
+    }
+  },
+  "note": "Fictional QA data retained, separate from user-created leagues. Browser and email-link checks are separate."
+}

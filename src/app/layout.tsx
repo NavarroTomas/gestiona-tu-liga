@@ -4,16 +4,8 @@ import "./globals.css";
 import "./typography-fixed.css";
 import "./theme-worldcup-mural.css";
 import "./admin-awards-fixes.css";
+import "./platform-global.css";
 import ApplicationShell from "@/components/ApplicationShell";
-import { Inter } from "next/font/google";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const fontVariables = inter.variable;
 
 export const metadata: Metadata = {
   title: {
@@ -47,7 +39,6 @@ export default function RootLayout({
   return (
     <html
       lang="es-AR"
-      className={fontVariables}
       data-font-theme="data-first"
       suppressHydrationWarning
     >
